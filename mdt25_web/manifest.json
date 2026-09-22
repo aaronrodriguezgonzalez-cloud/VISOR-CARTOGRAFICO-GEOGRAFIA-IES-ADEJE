@@ -1,0 +1,86 @@
+{
+  "EH": {
+    "file": "MDT25_EH.tif",
+    "width": 1188,
+    "height": 1014,
+    "crs": "EPSG:32628",
+    "resolution_m": 25,
+    "dtype": "int16",
+    "nodata": -32768.0,
+    "size_mb": 0.331,
+    "max_rounding_error_m": 0.5,
+    "mean_rounding_error_m": 0.182
+  },
+  "FV": {
+    "file": "MDT25_FV.tif",
+    "width": 2798,
+    "height": 3294,
+    "crs": "EPSG:32628",
+    "resolution_m": 25,
+    "dtype": "int16",
+    "nodata": -32768.0,
+    "size_mb": 1.516,
+    "max_rounding_error_m": 0.5,
+    "mean_rounding_error_m": 0.192
+  },
+  "GC": {
+    "file": "MDT25_GC.tif",
+    "width": 1954,
+    "height": 2056,
+    "crs": "EPSG:32628",
+    "resolution_m": 25,
+    "dtype": "int16",
+    "nodata": -32768.0,
+    "size_mb": 1.919,
+    "max_rounding_error_m": 0.5,
+    "mean_rounding_error_m": 0.205
+  },
+  "LG": {
+    "file": "MDT25_LG.tif",
+    "width": 1065,
+    "height": 965,
+    "crs": "EPSG:32628",
+    "resolution_m": 25,
+    "dtype": "int16",
+    "nodata": -32768.0,
+    "size_mb": 0.515,
+    "max_rounding_error_m": 0.5,
+    "mean_rounding_error_m": 0.186
+  },
+  "LP": {
+    "file": "MDT25_LP.tif",
+    "width": 1185,
+    "height": 1883,
+    "crs": "EPSG:32628",
+    "resolution_m": 25,
+    "dtype": "int16",
+    "nodata": -32768.0,
+    "size_mb": 0.925,
+    "max_rounding_error_m": 0.5,
+    "mean_rounding_error_m": 0.189
+  },
+  "LZ": {
+    "file": "MDT25_LZ.tif",
+    "width": 2501,
+    "height": 2997,
+    "crs": "EPSG:32628",
+    "resolution_m": 25,
+    "dtype": "int16",
+    "nodata": -32768.0,
+    "size_mb": 0.721,
+    "max_rounding_error_m": 0.5,
+    "mean_rounding_error_m": 0.163
+  },
+  "TF": {
+    "file": "MDT25_TF.tif",
+    "width": 3255,
+    "height": 2747,
+    "crs": "EPSG:32628",
+    "resolution_m": 25,
+    "dtype": "int16",
+    "nodata": -32768.0,
+    "size_mb": 2.389,
+    "max_rounding_error_m": 0.5,
+    "mean_rounding_error_m": 0.203
+  }
+}
