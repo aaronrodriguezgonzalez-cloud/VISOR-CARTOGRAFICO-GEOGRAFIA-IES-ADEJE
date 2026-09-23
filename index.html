@@ -187,6 +187,7 @@ font-size:11px!important;font-weight:800!important;padding:2px 4px!important
 <button class="tool" onclick="gps()"><span>📍</span> Mi ubicación GPS</button>
 <button class="tool" onclick="togglePanel('locPanel')"><span>🎯</span> Localizar coordenadas</button>
 <button class="tool" onclick="togglePanel('measurePanel')"><span>📏</span> Medir</button>
+<button class="tool" onclick="togglePanel('profilePanel')"><span>⛰️</span> Perfil</button>
 <button class="tool" onclick="togglePanel('searchPanel')"><span>🔎</span> Buscar topónimo</button>
 
 </div>
@@ -249,6 +250,14 @@ font-size:11px!important;font-weight:800!important;padding:2px 4px!important
 <div class="row" style="margin-top:5px"><button class="action" onclick="finishMeasure()">Terminar</button><button class="action" onclick="clearMeasure()">Borrar</button></div>
 <p id="measureResult"><b>Resultado:</b> —</p></div>
 
+<div id="profilePanel" class="panel hidden"><h3>Perfil topográfico</h3>
+<p>Activa la herramienta y marca dos o más puntos sobre el mapa. Después pulsa «Generar perfil». La línea permanece visible hasta que pulses «Borrar».</p>
+<div class="row"><button class="action" onclick="startProfile()">⛰️ Iniciar perfil</button><button class="action" onclick="finishProfile()">Generar perfil</button></div>
+<button class="action" style="margin-top:5px;width:100%" onclick="clearProfile()">Borrar</button>
+<p id="profileResult"><b>Resultado:</b> —</p>
+<div id="profileBox" style="display:none"><div id="profileSummary" style="margin-bottom:5px"></div><canvas id="profileCanvas" width="520" height="220" style="width:100%;height:auto;border:1px solid #bbb;border-radius:6px"></canvas></div>
+</div>
+
 <div id="searchPanel" class="panel hidden"><h3>Buscar topónimo</h3>
 <input id="searchQ" type="text" placeholder="Ej.: Teide, Taganana, Adeje…">
 <button class="action" onclick="searchPlace()">Buscar</button>
@@ -302,26 +311,33 @@ const geoGrid=L.layerGroup();
 let gridEnabled=true;
 let gridOpacity=0.70;
 
-function gridStepForZoom(z){
- if(z<=4) return 10;
- if(z<=6) return 5;
- if(z<=8) return 2;
- if(z<=10) return 1;
- if(z<=12) return 0.5;
- if(z<=14) return 0.25;
- if(z<=16) return 0.10;
- return 0.05;
+function gridStepForBounds(){
+ const b=map.getBounds(), size=map.getSize();
+ const latSpan=Math.max(1e-9,Math.min(170,b.getNorth()-b.getSouth()));
+ const lonSpan=Math.max(1e-9,Math.min(360,b.getEast()-b.getWest()));
+ const target=Math.max(latSpan/Math.max(4,Math.min(12,size.y/115)),lonSpan/Math.max(4,Math.min(14,size.x/120)));
+ const steps=[30,20,10,5,2,1,0.5,0.25,1/6,1/12,1/30,1/60,1/120,1/240,1/360,1/720,1/1800,1/3600];
+ let best=steps[steps.length-1];
+ for(const st of steps){if(st>=target)best=st;else break;}
+ return best;
 }
-function fmtDeg(v,axis){
- const a=Math.abs(v);
- const hemi=axis==='lat'?(v>=0?'N':'S'):(v>=0?'E':'O');
- let dec=a>=10?1:(a>=1?2:3);
- return a.toFixed(dec).replace('.',',')+'° '+hemi;
+function gridStepForZoom(){return gridStepForBounds();}
+function fmtDeg(v,axis,step=gridStepForBounds()){
+ const a=Math.abs(v),hemi=axis==='lat'?(v>=0?'N':'S'):(v>=0?'E':'O');
+ let total=Math.round(a*3600),d=Math.floor(total/3600),m=Math.floor((total-d*3600)/60),sec=total-d*3600-m*60;
+ if(step>=1)return d+'° '+hemi;
+ if(step>=1/60){let mins=Math.round((a-d)*60);if(mins===60){d++;mins=0;}return d+'° '+String(mins).padStart(2,'0')+'′ '+hemi;}
+ return d+'° '+String(m).padStart(2,'0')+'′ '+String(sec).padStart(2,'0')+'″ '+hemi;
+}
+function fmtGridStep(step){
+ if(step>=1)return (Number.isInteger(step)?step:fmtNum(step,2))+'°';
+ const min=step*60;if(min>=1)return (Math.abs(min-Math.round(min))<1e-8?Math.round(min):fmtNum(min,1))+'′';
+ return Math.round(step*3600)+'″';
 }
 function redrawGeoGrid(){
  geoGrid.clearLayers();
  if(!gridEnabled) return;
- const b=map.getBounds(), step=gridStepForZoom(map.getZoom());
+ const b=map.getBounds(), step=gridStepForBounds();
  const south=Math.max(-85,b.getSouth()), north=Math.min(85,b.getNorth());
  const west=Math.max(-180,b.getWest()), east=Math.min(180,b.getEast());
  const lat0=Math.floor(south/step)*step, lon0=Math.floor(west/step)*step;
@@ -333,7 +349,7 @@ function redrawGeoGrid(){
    if(y<south-step/100 || y>north+step/100) continue;
    L.polyline([[y,west],[y,east]],style).addTo(geoGrid);
    L.circleMarker([y,west+(east-west)*.045],{radius:0,opacity:0,fillOpacity:0,interactive:false})
-     .bindTooltip(fmtDeg(y,'lat'),{permanent:true,direction:'right',className:'grid-label',opacity:1})
+     .bindTooltip(fmtDeg(y,'lat',step),{permanent:true,direction:'right',className:'grid-label',opacity:1})
      .addTo(geoGrid);
  }
 
@@ -343,7 +359,7 @@ function redrawGeoGrid(){
    if(x<west-step/100 || x>east+step/100) continue;
    L.polyline([[south,x],[north,x]],style).addTo(geoGrid);
    L.circleMarker([south+(north-south)*.055,x],{radius:0,opacity:0,fillOpacity:0,interactive:false})
-     .bindTooltip(fmtDeg(x,'lon'),{permanent:true,direction:'top',className:'grid-label',opacity:1})
+     .bindTooltip(fmtDeg(x,'lon',step),{permanent:true,direction:'top',className:'grid-label',opacity:1})
      .addTo(geoGrid);
  }
 }
@@ -531,7 +547,37 @@ async function showPoint(ll,title='Punto consultado',useMarker=true){
  status('Lat '+lat.toFixed(6)+' · Lon '+lon.toFixed(6)+' · Altitud aprox. '+ztxt);
  return z;
 }
-map.on('click',e=>{if(measureMode){addMeasurePoint(e.latlng);return;}showPoint(e.latlng);});
+// Perfil topográfico · herramienta independiente
+let profileMode=false,profilePts=[],profileLayer=null;
+function startProfile(){
+ measureMode=null;profileMode=true;profilePts=[];if(profileLayer)map.removeLayer(profileLayer);profileLayer=L.layerGroup().addTo(map);
+ document.querySelectorAll('.panel').forEach(p=>{if(p.id!=='profilePanel')p.classList.add('hidden')});document.getElementById('profilePanel').classList.remove('hidden');
+ document.getElementById('profileResult').innerHTML='<b>Resultado:</b> —';document.getElementById('profileBox').style.display='none';
+ status('PERFIL TOPOGRÁFICO · marca dos o más puntos · pulsa «Generar perfil»');
+}
+function addProfilePoint(ll){profilePts.push(ll);L.circleMarker(ll,{radius:4}).addTo(profileLayer);redrawProfileLine();}
+function redrawProfileLine(){if(!profileLayer)return;profileLayer.eachLayer(l=>{if(l instanceof L.Polyline && !(l instanceof L.CircleMarker))profileLayer.removeLayer(l);});if(profilePts.length>1)L.polyline(profilePts).addTo(profileLayer);}
+function interpolateProfilePoints(pts,n=100){
+ const seg=[],cum=[0];let total=0;for(let i=1;i<pts.length;i++){const d=pts[i-1].distanceTo(pts[i]);seg.push(d);total+=d;cum.push(total);}const out=[];
+ for(let k=0;k<n;k++){const target=total*k/(n-1);let i=0;while(i<seg.length-1&&cum[i+1]<target)i++;const f=seg[i]?((target-cum[i])/seg[i]):0,a=pts[i],b=pts[i+1];out.push({d:target,ll:L.latLng(a.lat+(b.lat-a.lat)*f,a.lng+(b.lng-a.lng)*f)});}return {total,points:out};
+}
+async function finishProfile(){
+ if(profilePts.length<2){alert('Marca al menos dos puntos para generar el perfil.');return;}profileMode=false;redrawProfileLine();
+ const prof=interpolateProfilePoints(profilePts,100),result=document.getElementById('profileResult');result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · calculando altitudes…';
+ const samples=[];for(const p of prof.points)samples.push({d:p.d,z:await elevationAt(p.ll.lat,p.ll.lng)});
+ const valid=samples.filter(x=>x.z!==null);if(valid.length<2){result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · sin datos altimétricos suficientes';status('Perfil: sin datos altimétricos suficientes');return;}
+ const zs=valid.map(x=>x.z),zmin=Math.min(...zs),zmax=Math.max(...zs);let gain=0,loss=0,last=null;for(const x of valid){if(last!==null){const dz=x.z-last;if(dz>0)gain+=dz;else loss-=dz;}last=x.z;}
+ document.getElementById('profileSummary').innerHTML='<b>Distancia:</b> '+fmtDistance(prof.total)+' · <b>Cota mín.:</b> '+fmtNum(zmin,0)+' m · <b>Cota máx.:</b> '+fmtNum(zmax,0)+' m · <b>Ascenso aprox.:</b> +'+fmtNum(gain,0)+' m · <b>Descenso aprox.:</b> −'+fmtNum(loss,0)+' m';
+ drawProfile(samples,prof.total,zmin,zmax);document.getElementById('profileBox').style.display='block';result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total);status('Perfil topográfico generado · '+fmtDistance(prof.total));
+}
+function drawProfile(samples,total,zmin,zmax){
+ const c=document.getElementById('profileCanvas'),ctx=c.getContext('2d'),W=c.width,H=c.height,p={l:55,r:15,t:15,b:38};ctx.clearRect(0,0,W,H);let lo=Math.max(0,Math.floor((zmin-20)/50)*50),hi=Math.ceil((zmax+20)/50)*50;if(hi<=lo)hi=lo+50;
+ ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.l,p.t);ctx.lineTo(p.l,H-p.b);ctx.lineTo(W-p.r,H-p.b);ctx.stroke();ctx.fillStyle='#222';ctx.font='12px sans-serif';ctx.fillText(fmtNum(hi,0)+' m',4,p.t+4);ctx.fillText(fmtNum(lo,0)+' m',4,H-p.b+4);ctx.fillText('0',p.l-4,H-12);ctx.fillText(fmtDistance(total),W-p.r-70,H-12);
+ ctx.strokeStyle='#333';ctx.lineWidth=2;ctx.beginPath();let pen=false;for(const sm of samples){if(sm.z===null){pen=false;continue;}const x=p.l+(sm.d/total)*(W-p.l-p.r),y=p.t+(hi-sm.z)/(hi-lo)*(H-p.t-p.b);if(!pen){ctx.moveTo(x,y);pen=true;}else ctx.lineTo(x,y);}ctx.stroke();
+}
+function clearProfile(){profileMode=false;profilePts=[];if(profileLayer)map.removeLayer(profileLayer);profileLayer=null;document.getElementById('profileResult').innerHTML='<b>Resultado:</b> —';document.getElementById('profileBox').style.display='none';status('Perfil borrado');}
+
+map.on('click',e=>{if(profileMode){addProfilePoint(e.latlng);return;}if(measureMode){addMeasurePoint(e.latlng);return;}showPoint(e.latlng);});
 function goCoords(){const lat=parseFloat(latIn.value),lon=parseFloat(lonIn.value);if(!isFinite(lat)||!isFinite(lon))return alert('Introduce latitud y longitud válidas.');const ll=L.latLng(lat,lon);map.setView(ll,16);closePanels();showPoint(ll,'Coordenadas introducidas');}
 
 // GPS
@@ -549,16 +595,21 @@ function gps(){
  },err=>{status('No se pudo obtener la ubicación GPS');alert('Activa el permiso de ubicación del navegador. En GitHub Pages funciona mediante HTTPS.');},{enableHighAccuracy:true,timeout:12000,maximumAge:0});
 }
 
+// Formato numérico español para mediciones
+function fmtNum(n,max=2){return Number(n).toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:max});}
+function fmtDistance(m){if(m<1000)return fmtNum(m,0)+' m';if(m<10000)return fmtNum(m/1000,2)+' km';return fmtNum(m/1000,1)+' km';}
+function fmtArea(a){return a<1000000?fmtNum(a,0)+' m²':fmtNum(a/1000000,2)+' km²';}
+
 // Medición
 let measureMode=null,measurePts=[],measureLayer=null;
-function startMeasure(mode){measureMode=mode;measurePts=[];if(measureLayer)map.removeLayer(measureLayer);measureLayer=L.layerGroup().addTo(map);document.querySelectorAll('.panel').forEach(p=>{if(p.id!=='measurePanel')p.classList.add('hidden')});document.getElementById('measurePanel').classList.remove('hidden');document.getElementById('measureResult').innerHTML='<b>Resultado:</b> —';status(mode==='distance'?'MEDIR DISTANCIA · toca puntos · pulsa «Terminar» al acabar':'MEDIR ÁREA · marca al menos 3 vértices · pulsa «Terminar» al acabar');}
+function startMeasure(mode){profileMode=false;measureMode=mode;measurePts=[];if(measureLayer)map.removeLayer(measureLayer);measureLayer=L.layerGroup().addTo(map);document.querySelectorAll('.panel').forEach(p=>{if(p.id!=='measurePanel')p.classList.add('hidden')});document.getElementById('measurePanel').classList.remove('hidden');document.getElementById('measureResult').innerHTML='<b>Resultado:</b> —';status(mode==='distance'?'MEDIR DISTANCIA · toca puntos · pulsa «Terminar» al acabar':'MEDIR ÁREA · marca al menos 3 vértices · pulsa «Terminar» al acabar');}
 function addMeasurePoint(ll){measurePts.push(ll);L.circleMarker(ll,{radius:4}).addTo(measureLayer);redrawMeasure();}
 function redrawMeasure(){
  measureLayer.eachLayer(l=>{if(l instanceof L.Polyline && !(l instanceof L.CircleMarker))measureLayer.removeLayer(l);});
  if(measurePts.length>1)(measureMode==='area'?L.polygon(measurePts,{fillOpacity:.12}):L.polyline(measurePts)).addTo(measureLayer);
  let res='—';
- if(measureMode==='distance'&&measurePts.length>1){let d=0;for(let i=1;i<measurePts.length;i++)d+=measurePts[i-1].distanceTo(measurePts[i]);res=d>=1000?(d/1000).toFixed(3)+' km':d.toFixed(1)+' m';}
- if(measureMode==='area'&&measurePts.length>2){let area=geodesicArea(measurePts);res=area>=1000000?(area/1e6).toFixed(3)+' km²':area.toFixed(0)+' m²';}
+ if(measureMode==='distance'&&measurePts.length>1){let d=0;for(let i=1;i<measurePts.length;i++)d+=measurePts[i-1].distanceTo(measurePts[i]);res=fmtDistance(d);}
+ if(measureMode==='area'&&measurePts.length>2){let area=geodesicArea(measurePts);res=fmtArea(area);}
  document.getElementById('measureResult').innerHTML='<b>Resultado:</b> '+res;status('Medición: '+res);
 }
 function geodesicArea(pts){let a=0,R=6378137;if(pts.length<3)return 0;for(let i=0;i<pts.length;i++){let p1=pts[i],p2=pts[(i+1)%pts.length];a+=(p2.lng-p1.lng)*Math.PI/180*(2+Math.sin(p1.lat*Math.PI/180)+Math.sin(p2.lat*Math.PI/180));}return Math.abs(a*R*R/2);}
@@ -640,7 +691,7 @@ function updateLegend(){
 
  // Red geográfica
  if(gridEnabled && map.hasLayer(geoGrid)){
-   h+='<div style="margin-bottom:8px"><b>Red geográfica</b><br><span style="display:inline-block;width:24px;border-top:3px solid #fff;box-shadow:0 0 0 1px #555;vertical-align:middle;margin-right:6px"></span>Paralelos y meridianos ('+gridStepForZoom(map.getZoom())+'°)</div>';
+   h+='<div style="margin-bottom:8px"><b>Red geográfica</b><br><span style="display:inline-block;width:24px;border-top:3px solid #fff;box-shadow:0 0 0 1px #555;vertical-align:middle;margin-right:6px"></span>Paralelos y meridianos ('+fmtGridStep(gridStepForBounds())+')</div>';
  }
 
  // ENP visibles
