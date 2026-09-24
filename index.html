@@ -967,6 +967,206 @@ body.globe-mode #orientation,body.globe-mode #status{display:none!important}
   }
 }
 
+
+/* MÓVIL 2.4 — MISMA INFORMACIÓN QUE EN ESCRITORIO, SOLO REORDENADA */
+@media(max-width:760px){
+  .brand.brandWide{
+    position:absolute!important;
+    z-index:5000!important;
+    top:4px!important;
+    left:6px!important;
+    right:6px!important;
+    width:auto!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:94px!important;
+    transform:none!important;
+    margin:0!important;
+    padding:7px 8px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+
+    display:grid!important;
+    grid-template-columns:44px minmax(0,1fr) auto!important;
+    grid-template-rows:auto auto!important;
+    grid-template-areas:
+      "center center center"
+      "left spacer right"!important;
+    column-gap:7px!important;
+    row-gap:5px!important;
+    align-items:center!important;
+  }
+
+  /* Título + nombre: primera fila completa */
+  .brandWide .brandCenter{
+    grid-area:center!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:0!important;
+    width:100%!important;
+    gap:2px!important;
+    overflow:visible!important;
+  }
+  .brandWide .brandTitle{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:15px!important;
+    line-height:1.02!important;
+  }
+  .brandWide .brandTitle .brandBase{
+    display:inline!important;
+  }
+  .brandWide .brandTitle .brandLogoWord{
+    display:inline!important;
+    font-size:20px!important;
+    line-height:1!important;
+  }
+  .brandWide .brandTeacher{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:10.5px!important;
+    line-height:1.12!important;
+  }
+
+  /* Logo + IES Adeje + herramienta + curso + versión: segunda fila izquierda */
+  .brandWide .brandSideLeft{
+    grid-area:left!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:6px!important;
+    width:auto!important;
+    min-width:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+  }
+  .brandWide .brandSideLeft img{
+    display:block!important;
+    width:36px!important;
+    height:36px!important;
+    flex:0 0 36px!important;
+  }
+  .brandWide .brandLeftText{
+    display:block!important;
+    min-width:0!important;
+  }
+  .brandWide .brandDept{
+    display:block!important;
+    margin:0!important;
+    text-align:left!important;
+    font-size:7.2px!important;
+    line-height:1.08!important;
+    color:#40596c!important;
+    white-space:nowrap!important;
+  }
+  .brandWide .brandDept b{
+    font-size:8px!important;
+  }
+  .brandWide .brandVersion{
+    position:static!important;
+    display:inline-block!important;
+    margin-top:2px!important;
+    padding:1px 4px!important;
+    font-size:6.5px!important;
+    line-height:1!important;
+  }
+
+  /* Funciones + botón: segunda fila derecha */
+  .brandWide .brandSideRight{
+    grid-area:right!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-end!important;
+    justify-content:center!important;
+    gap:3px!important;
+    width:auto!important;
+    min-width:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+  }
+  .brandWide .brandRoles{
+    display:block!important;
+    max-width:180px!important;
+    margin:0!important;
+    text-align:right!important;
+    font-size:6.8px!important;
+    line-height:1.12!important;
+    color:#4b6170!important;
+  }
+  .brandWide .brandRoles b{
+    font-size:7px!important;
+  }
+  .brandWide .brandActions{
+    display:flex!important;
+    position:static!important;
+    margin:0!important;
+    justify-content:flex-end!important;
+  }
+  .brandWide .brandWelcomeBtn{
+    display:block!important;
+    padding:4px 7px!important;
+    font-size:7.2px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+
+  /* Los controles quedan por debajo, sin cubrir la cabecera */
+  .toolbar{top:106px!important}
+  .leaflet-top.leaflet-left{top:102px!important}
+}
+
+@media(max-width:430px){
+  .brand.brandWide{
+    min-height:90px!important;
+    grid-template-columns:40px minmax(0,1fr) auto!important;
+    padding:6px!important;
+    column-gap:5px!important;
+    row-gap:4px!important;
+  }
+  .brandWide .brandTitle{font-size:13.2px!important}
+  .brandWide .brandTitle .brandLogoWord{font-size:18px!important}
+  .brandWide .brandTeacher{font-size:9.4px!important}
+  .brandWide .brandSideLeft img{
+    width:32px!important;
+    height:32px!important;
+    flex-basis:32px!important;
+  }
+  .brandWide .brandDept{
+    font-size:6.3px!important;
+    line-height:1.04!important;
+  }
+  .brandWide .brandDept b{font-size:7px!important}
+  .brandWide .brandVersion{font-size:5.8px!important}
+  .brandWide .brandRoles{
+    max-width:145px!important;
+    font-size:6px!important;
+    line-height:1.06!important;
+  }
+  .brandWide .brandRoles b{font-size:6.2px!important}
+  .brandWide .brandWelcomeBtn{
+    padding:3px 6px!important;
+    font-size:6.5px!important;
+  }
+  .toolbar{top:100px!important}
+  .leaflet-top.leaflet-left{top:96px!important}
+}
+
 </style>
 </head><body>
 <div id="map"></div>
