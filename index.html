@@ -765,6 +765,65 @@ body.globe-mode #orientation,body.globe-mode #status{display:none!important}
   }
 }
 
+
+/* Corrección definitiva de cabecera móvil */
+@media(max-width:760px){
+  .brand.brandWide{
+    left:46px!important;
+    right:6px!important;
+    top:4px!important;
+    width:auto!important;
+    max-width:none!important;
+    transform:none!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+}
+@media(max-width:420px){
+  .brand.brandWide{
+    left:43px!important;
+    right:4px!important;
+    top:3px!important;
+    width:auto!important;
+    transform:none!important;
+  }
+}
+
+
+@media(max-width:760px){
+  .brandWide .brandSideLeft{
+    width:34px!important;
+    min-width:34px!important;
+  }
+  .brandWide .brandSideLeft img{
+    width:32px!important;
+    height:32px!important;
+    flex:0 0 32px!important;
+  }
+  .brand.brandWide{
+    grid-template-columns:34px minmax(0,1fr) auto!important;
+    min-height:48px!important;
+  }
+  .brandWide .brandTitle{
+    font-size:12px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .brandWide .brandTitle .brandLogoWord{
+    font-size:17px!important;
+  }
+  .brandWide .brandTeacher{
+    font-size:8.5px!important;
+  }
+  .brandWide .brandWelcomeBtn{
+    padding:4px 6px!important;
+    font-size:7.5px!important;
+  }
+  .toolbar{top:57px!important}
+}
+
 </style>
 </head><body>
 <div id="map"></div>
@@ -921,7 +980,7 @@ body.globe-mode #orientation,body.globe-mode #status{display:none!important}
 </details>
 
 <details><summary>🌍 Mundo · globo 3D</summary>
-<label><input id="countriesCheck" type="checkbox" checked> <b>Fronteras internacionales</b></label>
+<label><input id="countriesCheck" type="checkbox"> <b>Fronteras internacionales</b></label>
 <label class="sub"><input id="countryLabelsCheck" type="checkbox"> Nombres de países</label>
 <label class="sub"><input id="worldToponymsCheck" type="checkbox"> Topónimos mundiales vectoriales · IGN en España</label>
 <div style="padding:2px 2px 5px 13px"><small>Fronteras internacionales · Natural Earth 1:10 M. Los topónimos mundiales aumentan su detalle con la escala. La identificación territorial y los perfiles funcionan aunque las capas de rótulos estén apagadas.</small></div>
