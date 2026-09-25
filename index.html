@@ -1167,6 +1167,355 @@ body.globe-mode #orientation,body.globe-mode #status{display:none!important}
   .leaflet-top.leaflet-left{top:96px!important}
 }
 
+
+/* =========================================================
+   ANAMBRO MÓVIL 2.8
+   Cabecera móvil limpia y equilibrada.
+   No altera escritorio.
+   ========================================================= */
+
+/* ---------- VERTICAL ---------- */
+@media (max-width:760px) and (orientation:portrait){
+  .brand.brandWide{
+    position:absolute!important;
+    z-index:5000!important;
+    top:4px!important;
+    left:6px!important;
+    right:6px!important;
+    width:auto!important;
+    max-width:none!important;
+    height:82px!important;
+    min-height:82px!important;
+    margin:0!important;
+    padding:6px 8px!important;
+    transform:none!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    border-radius:12px!important;
+
+    display:grid!important;
+    grid-template-columns:58px minmax(0,1fr) 116px!important;
+    column-gap:8px!important;
+    align-items:center!important;
+  }
+
+  .brandWide .brandSideLeft{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:58px!important;
+    min-width:58px!important;
+    height:100%!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    gap:2px!important;
+  }
+  .brandWide .brandSideLeft img{
+    display:block!important;
+    width:38px!important;
+    height:38px!important;
+    flex:0 0 38px!important;
+  }
+  .brandWide .brandLeftText{
+    display:block!important;
+    width:100%!important;
+    text-align:center!important;
+    line-height:1.02!important;
+  }
+  .brandWide .brandDept{
+    display:block!important;
+    margin:0!important;
+    font-size:6.8px!important;
+    line-height:1.03!important;
+    color:#40596c!important;
+  }
+  .brandWide .brandDept b{
+    display:block!important;
+    font-size:7.8px!important;
+    line-height:1.02!important;
+  }
+  .brandWide .brandDept br{display:none!important}
+  .brandWide .brandVersion{
+    display:none!important;
+  }
+
+  .brandWide .brandCenter{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:0!important;
+    height:100%!important;
+    padding:0!important;
+    margin:0!important;
+    gap:3px!important;
+    overflow:hidden!important;
+  }
+  .brandWide .brandTitle{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:center!important;
+    white-space:normal!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+    font-size:14px!important;
+    line-height:1.0!important;
+  }
+  .brandWide .brandTitle .brandBase{
+    display:block!important;
+    font-size:14px!important;
+    line-height:1!important;
+  }
+  .brandWide .brandTitle .brandLogoWord{
+    display:block!important;
+    margin-top:1px!important;
+    font-size:19px!important;
+    line-height:1!important;
+  }
+  .brandWide .brandTeacher{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:center!important;
+    white-space:normal!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+    font-size:9.8px!important;
+    line-height:1.08!important;
+    font-weight:700!important;
+  }
+
+  .brandWide .brandSideRight{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-end!important;
+    justify-content:center!important;
+    width:116px!important;
+    min-width:116px!important;
+    height:100%!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    gap:5px!important;
+  }
+  .brandWide .brandRoles{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    text-align:right!important;
+    font-size:6.9px!important;
+    line-height:1.08!important;
+    color:#4b6170!important;
+  }
+  .brandWide .brandRoles b{
+    font-size:7.1px!important;
+  }
+  .brandWide .brandActions{
+    display:flex!important;
+    position:static!important;
+    width:100%!important;
+    margin:0!important;
+    justify-content:flex-end!important;
+  }
+  .brandWide .brandWelcomeBtn{
+    display:block!important;
+    padding:4px 7px!important;
+    font-size:6.7px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+
+  .toolbar{top:92px!important}
+  .leaflet-top.leaflet-left{top:88px!important}
+}
+
+/* Versión 1.0 visible en móviles verticales algo más anchos */
+@media (min-width:430px) and (max-width:760px) and (orientation:portrait){
+  .brandWide .brandVersion{
+    display:inline-block!important;
+    position:static!important;
+    margin-top:2px!important;
+    padding:1px 4px!important;
+    font-size:5.8px!important;
+    line-height:1!important;
+  }
+}
+
+/* ---------- HORIZONTAL ---------- */
+@media (max-width:950px) and (orientation:landscape){
+  .brand.brandWide{
+    position:absolute!important;
+    z-index:5000!important;
+    top:4px!important;
+    left:58px!important;
+    right:8px!important;
+    width:auto!important;
+    max-width:none!important;
+    height:70px!important;
+    min-height:70px!important;
+    margin:0!important;
+    padding:6px 10px!important;
+    transform:none!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    border-radius:12px!important;
+
+    display:grid!important;
+    grid-template-columns:185px minmax(0,1fr) 210px!important;
+    column-gap:12px!important;
+    align-items:center!important;
+  }
+
+  .brandWide .brandSideLeft{
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr)!important;
+    grid-template-rows:auto auto!important;
+    grid-template-areas:
+      "logo dept"
+      "logo version"!important;
+    column-gap:7px!important;
+    row-gap:2px!important;
+    align-items:center!important;
+    width:auto!important;
+    min-width:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+  }
+  .brandWide .brandSideLeft img{
+    grid-area:logo!important;
+    display:block!important;
+    width:40px!important;
+    height:40px!important;
+    flex:0 0 40px!important;
+  }
+  .brandWide .brandLeftText{display:contents!important}
+  .brandWide .brandDept{
+    grid-area:dept!important;
+    display:block!important;
+    margin:0!important;
+    text-align:left!important;
+    font-size:7.8px!important;
+    line-height:1.08!important;
+    color:#40596c!important;
+  }
+  .brandWide .brandDept b{
+    display:block!important;
+    font-size:9px!important;
+  }
+  .brandWide .brandVersion{
+    grid-area:version!important;
+    display:inline-block!important;
+    position:static!important;
+    justify-self:start!important;
+    margin:0!important;
+    padding:2px 6px!important;
+    font-size:6.4px!important;
+    line-height:1!important;
+  }
+
+  .brandWide .brandCenter{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:0!important;
+    height:100%!important;
+    padding:0!important;
+    margin:0!important;
+    gap:2px!important;
+    overflow:hidden!important;
+  }
+  .brandWide .brandTitle{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:15px!important;
+    line-height:1!important;
+  }
+  .brandWide .brandTitle .brandBase{
+    display:inline!important;
+  }
+  .brandWide .brandTitle .brandLogoWord{
+    display:inline!important;
+    font-size:20px!important;
+    line-height:1!important;
+  }
+  .brandWide .brandTeacher{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:10.2px!important;
+    line-height:1.08!important;
+    font-weight:700!important;
+  }
+
+  .brandWide .brandSideRight{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-end!important;
+    justify-content:center!important;
+    width:auto!important;
+    min-width:0!important;
+    height:100%!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    gap:4px!important;
+  }
+  .brandWide .brandRoles{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    text-align:right!important;
+    font-size:7.4px!important;
+    line-height:1.08!important;
+    color:#4b6170!important;
+  }
+  .brandWide .brandRoles b{
+    font-size:7.7px!important;
+  }
+  .brandWide .brandActions{
+    display:flex!important;
+    position:static!important;
+    width:100%!important;
+    margin:0!important;
+    justify-content:flex-end!important;
+  }
+  .brandWide .brandWelcomeBtn{
+    display:block!important;
+    padding:4px 8px!important;
+    font-size:6.8px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+
+  .toolbar{
+    top:80px!important;
+    left:6px!important;
+    max-height:calc(100vh - 86px)!important;
+    overflow-y:auto!important;
+    scrollbar-width:none!important;
+  }
+  .toolbar::-webkit-scrollbar{display:none!important}
+  .leaflet-top.leaflet-left{top:76px!important}
+}
+
 </style>
 </head><body>
 <div id="map"></div>
