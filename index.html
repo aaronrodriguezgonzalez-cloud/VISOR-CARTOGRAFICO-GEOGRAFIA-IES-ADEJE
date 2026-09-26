@@ -2801,6 +2801,17 @@ const LITH_EXACT_ES={
  'igneous':'rocas ígneas','igneous rocks':'rocas ígneas',
  'plutonic rocks':'rocas plutónicas','metamorphic':'rocas metamórficas','metamorphic rocks':'rocas metamórficas',
  'crystalline metamorphic rocks':'rocas metamórficas cristalinas',
+ 'medium-high grade orthogneiss/paragneiss/metavolcanic gneiss':'ortogneis, paragneis y gneis metavolcánico de grado metamórfico medio-alto',
+ 'medium-high grade orthogneiss/paragneiss/metavolcanic gneis':'ortogneis, paragneis y gneis metavolcánico de grado metamórfico medio-alto',
+ 'orthogneiss/paragneiss/metavolcanic gneiss':'ortogneis, paragneis y gneis metavolcánico',
+ 'orthogneiss/paragneiss/metavolcanic gneis':'ortogneis, paragneis y gneis metavolcánico',
+ 'orthogneiss':'ortogneis','paragneiss':'paragneis','gneiss':'gneis','gneis':'gneis',
+ 'metavolcanic gneiss':'gneis metavolcánico','metavolcanic gneis':'gneis metavolcánico',
+ 'medium-high grade metamorphic rocks':'rocas metamórficas de grado medio-alto',
+ 'high grade metamorphic rocks':'rocas metamórficas de alto grado',
+ 'medium grade metamorphic rocks':'rocas metamórficas de grado medio',
+ 'low grade metamorphic rocks':'rocas metamórficas de bajo grado',
+
  'metasedimentary rocks':'rocas metasedimentarias','metavolcanic rocks':'rocas metavolcánicas',
  'crystalline basement':'basamento cristalino','basement rocks':'rocas del basamento',
  'carbonate rocks':'rocas carbonatadas','siliciclastic sedimentary rocks':'rocas sedimentarias siliciclásticas',
@@ -2831,7 +2842,10 @@ const LITH_WORD_ES=[
  ['carbonate','carbonatado'],['crystalline','cristalino'],['marine','marino'],
  ['lacustrine','lacustre'],['glacial','glaciar'],['aeolian','eólico'],
  ['intrusive','intrusivo'],['extrusive','extrusivo'],['unconsolidated','no consolidado'],
- ['metasedimentary','metasedimentario'],['metavolcanic','metavolcánico']
+ ['metasedimentary','metasedimentario'],['metavolcanic','metavolcánico'],
+ ['orthogneiss','ortogneis'],['paragneiss','paragneis'],['gneiss','gneis'],
+ ['medium-high grade','grado metamórfico medio-alto'],['high grade','alto grado metamórfico'],
+ ['medium grade','grado metamórfico medio'],['low grade','bajo grado metamórfico']
 ];
 
 function macrostratLithologyEs(v){
@@ -2856,16 +2870,22 @@ function macrostratLithologyEs(v){
  }
 
  const list=s.split(/\s*[,;/]\s*/).filter(Boolean);
- if(list.length>1)return list.map(x=>macrostratLithologyEs(x)).join(' · ');
+ if(list.length>1){
+  const translated=list.map(x=>macrostratLithologyEs(x));
+  return translated.join(' · ');
+ }
 
  for(const [en,es] of LITH_WORD_ES)
   s=s.replace(new RegExp('\\b'+en+'\\b','ig'),es);
  s=s.replace(/\brocks?\b/ig,'rocas').replace(/\band\b/ig,'y').replace(/\s+/g,' ').trim();
  s=s.replace(/^cristalino\s+metamórfico\s+rocas$/i,'rocas metamórficas cristalinas')
+    .replace(/^rocas\s+metamórficas\s+cristalino$/i,'rocas metamórficas cristalinas')
     .replace(/^metamórfico\s+rocas$/i,'rocas metamórficas')
     .replace(/^sedimentario\s+rocas$/i,'rocas sedimentarias')
     .replace(/^volcánico\s+rocas$/i,'rocas volcánicas')
-    .replace(/^ígneo\s+rocas$/i,'rocas ígneas');
+    .replace(/^ígneo\s+rocas$/i,'rocas ígneas')
+    .replace(/\bmetavolcánico\s+gneis\b/ig,'gneis metavolcánico')
+    .replace(/\bgrado metamórfico medio-alto\s+ortogneis\b/i,'ortogneis de grado metamórfico medio-alto');
  return s;
 }
 
@@ -2915,13 +2935,16 @@ function macrostratGenericUnitEs(v){
 
  const ar=macrostratAgePrefixUnitEs(s);
  if(ar && ar.rest){
-  const lith=macrostratLithologyEs(ar.rest);
-  if(lith && lith.toLowerCase()!==ar.rest.toLowerCase()){
+  let rest=ar.rest.trim();
+  if(/^crystalline\s+metamorphic\s+rocks?$/i.test(rest))return 'Rocas metamórficas cristalinas del '+ar.age;
+  if(/^crystalline\s+basement$/i.test(rest))return 'Basamento cristalino del '+ar.age;
+  const lith=macrostratLithologyEs(rest);
+  if(lith && lith.toLowerCase()!==rest.toLowerCase()){
    const cap=lith.charAt(0).toUpperCase()+lith.slice(1);
    return cap+' del '+ar.age;
   }
-  if(/^basement$/i.test(ar.rest))return 'Basamento del '+ar.age;
-  if(/^deposits?$/i.test(ar.rest))return 'Depósitos del '+ar.age;
+  if(/^basement$/i.test(rest))return 'Basamento del '+ar.age;
+  if(/^deposits?$/i.test(rest))return 'Depósitos del '+ar.age;
  }
 
  let m=s.match(/^(.+?)\s+(sedimentary|volcanic|igneous|metamorphic|volcaniclastic|metasedimentary|metavolcanic)\s+rocks?$/i);
@@ -2965,6 +2988,9 @@ function macrostratSourceNameEs(v){
  s=s.replace(/^Africa\b/i,'África').replace(/^Europe\b/i,'Europa')
     .replace(/^North America\b/i,'América del Norte').replace(/^South America\b/i,'América del Sur')
     .replace(/\bGeneralized Geology of the World\b/ig,'Geología generalizada del mundo')
+    .replace(/\bGeneralized Geology\b/ig,'Geología generalizada')
+    .replace(/\bGeological Map of the World\b/ig,'Mapa geológico del mundo')
+    .replace(/\bGeology of the World\b/ig,'Geología del mundo')
     .replace(/\b1:(\d+)M\b/g,'1:$1 M');
  return s;
 }
