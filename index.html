@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Visor Cartográfico ANAMBRO v0.2 · Aarón Rodríguez González · Docente del Departamento de Geografía e Historia · IES ADEJE</title>
+<title>Visor Cartográfico ANAMBRO v0.7 · Aarón Rodríguez González · Docente del Departamento de Geografía e Historia · IES ADEJE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Satisfy&display=swap" rel="stylesheet">
@@ -2456,7 +2456,168 @@ html body .layoutOverlay{z-index:9000!important}
   font-weight:800!important;
 }
 </style>
-<!-- ANAMBRO v0.2 · rendimiento: datos externos bajo demanda, cachés y perfil mundial no bloqueante -->
+<!-- ANAMBRO v0.3 · aula interactiva, mapas políticos/mudos y escala móvil permanente -->
+
+<style id="anambro-v03-aula-politico-css">
+/* v0.3 · la escala numérica es un instrumento didáctico y NUNCA se oculta en 2D. */
+html body .anambro-scale-num{display:block!important;visibility:visible!important;opacity:1!important;z-index:1300!important}
+@media(max-width:950px){
+ html body .anambro-scale-num{display:block!important;font-size:10px!important;padding:4px 6px!important;margin-left:3px!important;margin-bottom:29px!important;border-width:1.5px!important;white-space:nowrap!important}
+}
+@media(max-width:520px){html body .anambro-scale-num{font-size:9px!important;padding:3px 5px!important;margin-bottom:27px!important}}
+
+.explainIntro,.politicalIntro{padding:8px 10px;border-radius:9px;background:#eef6fa;border:1px solid #c9dce8;line-height:1.35;margin-bottom:9px}
+.explainCard{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;padding:11px;border:1px solid #d6e0e7;background:#fff;border-radius:12px}
+.explainCardIcon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:27px;background:#fff3c4;border:1px solid #efd26d}
+.explainCardBody{min-width:0}.explainCardBody>b{display:block;font:900 14px/1.15 Montserrat,system-ui,sans-serif;color:#17324d}.explainCardBody small{display:block;margin:5px 0 8px;line-height:1.35;color:#4b5d6b}.explainLaunch{width:100%}
+.explainSoon{margin-top:9px;padding:8px;border-left:4px solid #0f9d8a;background:#eff9f6;border-radius:7px;line-height:1.3}
+.explanationOverlay{position:fixed;inset:0;z-index:10000;background:rgba(7,17,27,.78);backdrop-filter:blur(3px);display:none;padding:10px;box-sizing:border-box}
+.explanationOverlay.open{display:block}.explanationShell{width:100%;height:100%;display:grid;grid-template-rows:42px minmax(0,1fr);background:#0b1723;border-radius:14px;overflow:hidden;box-shadow:0 18px 60px #000b}
+.explanationHead{display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 14px;background:#fff;color:#17324d;font:850 13px/1 Montserrat,system-ui,sans-serif}.explanationHead button{border:0;border-radius:9px;background:#17324d;color:#fff;width:34px;height:34px;font-size:22px;font-weight:900;cursor:pointer}.explanationShell iframe{width:100%;height:100%;border:0;background:#09131e}
+
+.politicalPanel{width:min(390px,calc(100vw - 70px))!important}.politicalPanel select{width:100%;box-sizing:border-box;padding:7px;border:1px solid #9caab5;border-radius:7px;background:#fff;margin-top:3px}.politicalGrid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}.politicalCheck{display:flex!important;align-items:center!important;gap:7px!important;min-height:34px!important}.politicalCheck input{width:18px;height:18px;flex:0 0 18px}.politicalButtons{margin-top:5px}.politicalExit{background:#5e6d78!important}.politicalEditor{margin-top:9px;padding:9px;border:1px solid #ccd5dc;border-radius:9px;background:#f8fafb}.politicalEditor.disabled{opacity:.55}.politicalEditor b{display:block;color:#17324d;margin-bottom:4px}.politicalEditRow{display:grid;grid-template-columns:58px 1fr 1fr;gap:6px;margin-top:7px}.politicalEditRow input[type=color]{width:58px;height:34px;padding:2px;border:1px solid #9caab5;border-radius:6px}.politicalEditRow button{border:1px solid #9caab5;background:#fff;border-radius:6px;font-weight:800;cursor:pointer}.politicalHint{margin-top:9px;padding:8px;background:#fff8e7;border:1px solid #ead59c;border-radius:8px;line-height:1.35}.politicalExportBtn{width:100%;margin-top:8px;background:#0f766e!important}.politicalStatus{margin-top:7px;color:#566773;font-size:10.5px;line-height:1.3}
+
+body.political-map-mode #map{background:#d9eef6!important}
+body.political-map-mode #map .leaflet-overlay-pane,
+body.political-map-mode #map .leaflet-marker-pane,
+body.political-map-mode #map .leaflet-shadow-pane,
+body.political-map-mode #map .leaflet-tooltip-pane{opacity:0!important;pointer-events:none!important}
+body.political-map-mode #map .anambro-political-bathy{filter:saturate(.60) brightness(1.22) contrast(.84) hue-rotate(-5deg)}
+body.political-map-mode #map [class*="politicalAdminPane"],body.political-map-mode #map [class*="politicalLabelPane"],body.political-map-mode #map [class*="politicalLandPane"]{opacity:1!important;visibility:visible!important}
+.political-map-label{background:rgba(255,255,255,.76)!important;border:0!important;box-shadow:none!important;border-radius:3px!important;padding:1px 3px!important;color:#182b3b!important;font:800 10px/1.05 Montserrat,system-ui,sans-serif!important;text-align:center!important;white-space:nowrap!important;text-shadow:0 1px 0 #fff!important;pointer-events:none!important}
+.political-map-label:before{display:none!important}
+.politicalSelectedPath{filter:drop-shadow(0 0 2px rgba(18,50,77,.75))}
+@media(max-width:760px){.politicalPanel{width:auto!important}.politicalPanel label:not(.politicalCheck){display:block!important;min-height:0!important}.politicalGrid2{grid-template-columns:1fr}.political-map-label{font-size:8px!important}.explanationOverlay{padding:4px}.explanationShell{border-radius:9px}.explanationHead{height:38px}html body .toolbar{max-height:calc(100vh - 112px)!important;overflow-y:auto!important;scrollbar-width:none!important}html body .toolbar::-webkit-scrollbar{display:none!important}}
+</style>
+
+
+<style id="anambro-v05-editor-css">
+/* v0.5 · editor político/cartográfico avanzado */
+:root{--political-sea:#dceff7}
+body.political-map-mode #map{background:var(--political-sea)!important}
+body.political-map-mode #map .leaflet-tile-pane,
+body.political-map-mode #map .leaflet-overlay-pane,
+body.political-map-mode #map .leaflet-marker-pane,
+body.political-map-mode #map .leaflet-shadow-pane,
+body.political-map-mode #map .leaflet-tooltip-pane{opacity:0!important;pointer-events:none!important}
+body.political-map-mode #map [class*="politicalBathyPane"],
+body.political-map-mode #map [class*="politicalAdminPane"],
+body.political-map-mode #map [class*="politicalLeaderPane"],
+body.political-map-mode #map [class*="politicalLabelPane"]{opacity:1!important;visibility:visible!important}
+.politicalPanel{width:min(430px,calc(100vw - 70px))!important}
+.politicalSection{border-top:1px solid #d8e0e6;margin-top:7px;padding-top:4px}.politicalSection summary{font-weight:900;color:#17324d;padding:6px 2px}
+.politicalPanel input[type=color]{width:100%;height:34px;padding:2px;border:1px solid #9caab5;border-radius:6px;background:#fff;box-sizing:border-box}
+.politicalPanel input[type=range]{width:100%}.politicalRange{display:grid!important;grid-template-columns:1fr 120px 48px;align-items:center;gap:6px;min-height:34px!important}.politicalRange output{text-align:right;font-weight:800;font-size:10px;color:#456}
+.politicalSubHint{display:block;color:#60717d;line-height:1.25;margin:3px 0 7px}
+.politicalIndividualGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}.politicalIndividualGrid label{padding:0;font-size:10.5px;font-weight:800}.politicalIndividualGrid button,.politicalLabelEditor button{border:1px solid #9caab5;background:#fff;border-radius:6px;font-weight:800;cursor:pointer;min-height:34px}.politicalLabelEditor{margin-top:9px;padding-top:8px;border-top:1px solid #d7dee3}.politicalLabelEditor label{font-size:10.5px;font-weight:800}
+.political-map-label{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;pointer-events:auto!important;cursor:grab!important;overflow:visible!important}
+.political-map-label:before{display:none!important}.politicalLabelInner{display:inline-block;background:rgba(255,255,255,.78);border-radius:3px;padding:2px 4px;color:#182b3b;font-family:Montserrat,system-ui,sans-serif;font-weight:850;line-height:1.05;white-space:nowrap;text-shadow:0 1px 0 #fff;box-shadow:0 0 0 1px rgba(255,255,255,.34)}
+.politicalLabelInner.align-center{transform:translateX(-50%)}.politicalLabelInner.align-left{transform:none}.politicalLabelInner.align-right{transform:translateX(-100%)}
+.leaflet-marker-draggable .politicalLabelInner{cursor:grab}.leaflet-dragging .politicalLabelInner{cursor:grabbing}
+.politicalSelectedPath{filter:drop-shadow(0 0 2px rgba(18,50,77,.65))}
+.brandWide>.brandCenter{position:relative!important}.brandAuthorPortrait{position:absolute!important;left:10px!important;top:50%!important;transform:translateY(-50%)!important;width:48px!important;height:48px!important;min-width:48px!important;object-fit:cover!important;border-radius:50%!important;border:2px solid rgba(15,117,107,.35)!important;box-shadow:0 2px 8px rgba(0,0,0,.16)!important;flex:none!important}
+.welcomeAuthorWithPortrait{display:flex!important;align-items:center;justify-content:center;gap:12px;text-align:left!important}.welcomeAuthorPortrait{width:76px;height:76px;object-fit:cover;border-radius:50%;border:3px solid #d7e9e6;box-shadow:0 3px 12px rgba(0,0,0,.14);flex:0 0 76px}.welcomeAuthorText{min-width:0}.welcomePhilosophy{margin:10px 0 12px!important;border-left:4px solid #0f9d8a!important;background:linear-gradient(135deg,#f0faf8,#f8fbfd)!important}.welcomePhilosophy p{margin:5px 0!important}.welcomeMotto{color:#116b60;font-size:14px!important}.welcomeNewTools{margin:10px 0 12px!important;border-left:4px solid #7a5fb4!important}
+@media(max-width:760px){.politicalPanel{width:auto!important}.politicalRange{grid-template-columns:1fr 110px 44px}.brandAuthorPortrait{width:32px!important;height:32px!important;min-width:32px!important;left:1px!important;opacity:.92}.welcomeAuthorWithPortrait{align-items:flex-start}.welcomeAuthorPortrait{width:62px;height:62px;flex-basis:62px}}
+@media(max-width:430px){.brandAuthorPortrait{display:none}.welcomeAuthorWithPortrait{gap:8px}.welcomeAuthorPortrait{width:54px;height:54px;flex-basis:54px}.politicalIndividualGrid{grid-template-columns:1fr}}
+</style>
+
+<style id="anambro-v06-final-css">
+/* v0.6 · cabecera: identidad institucional+autor a la izquierda, ANAMBRO al centro. */
+@media(min-width:761px){
+ html body .brand.brandWide.brandV06{height:118px!important;min-height:118px!important;display:grid!important;grid-template-columns:38% 38% 24%!important;grid-template-rows:78px 40px!important;grid-template-areas:"left title right" "left center right"!important;padding:0 14px!important;overflow:hidden!important}
+ html body .brandV06>.brandSideLeft{grid-area:left!important;height:118px!important;display:grid!important;grid-template-columns:minmax(185px,.9fr) minmax(230px,1.25fr)!important;gap:12px!important;align-items:center!important;padding:8px 14px 8px 2px!important;border-right:1px solid rgba(45,80,105,.14)!important;min-width:0!important}
+ .brandInstitutionV06{display:grid;grid-template-columns:62px minmax(0,1fr);gap:9px;align-items:center;min-width:0}.brandInstituteLogoV06{width:58px!important;height:58px!important;object-fit:contain!important;border-radius:9px!important;box-shadow:0 2px 8px rgba(0,0,0,.10)!important}.brandV06 .brandDept{font-size:11.5px!important;line-height:1.12!important}.brandV06 .brandDept b{font-size:16px!important}.brandV06 .brandVersion{font-size:8.5px!important;padding:2px 6px!important;margin-top:3px!important}
+ .brandAuthorV06{display:grid;grid-template-columns:54px minmax(0,1fr);gap:9px;align-items:center;min-width:0}.brandAuthorPortraitV06{width:52px;height:52px;object-fit:cover;border-radius:50%;border:2px solid rgba(15,117,107,.32);box-shadow:0 2px 8px rgba(0,0,0,.16)}.brandAuthorTextV06{min-width:0}.brandV06 .brandAuthorTextV06 .brandTeacher{font-size:14px!important;line-height:1.05!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.brandV06 .brandAuthorTextV06 .brandProfessional{font-size:8.6px!important;line-height:1.12!important;text-align:left!important;white-space:normal!important}
+ html body .brandV06>.brandTitleTop{grid-area:title!important;height:78px!important;padding:3px 12px 0!important}.brandV06 .brandAnambroIntegratedLogo{height:73px!important;width:min(100%,560px)!important}
+ html body .brandV06>.brandCenter{grid-area:center!important;height:40px!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;padding:0 8px 4px!important}.brandV06 .brandDescriptor{font-size:11.4px!important;line-height:1.08!important;text-align:center!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;color:#0f756b!important;font-weight:850!important}.brandV06>.brandCenter .brandAuthorPortrait,.brandV06>.brandCenter .brandTeacher,.brandV06>.brandCenter .brandProfessional{display:none!important}
+ html body .brandV06>.brandSideRight{grid-area:right!important;height:118px!important;padding:9px 2px 9px 14px!important}.brandV06 .brandRoles{font-size:10.2px!important;line-height:1.18!important}.brandV06 .brandWelcomeBtn{font-size:9.7px!important;padding:7px 9px!important}
+ html body .toolbar{top:126px!important}html body .leaflet-top.leaflet-left{top:120px!important}
+}
+@media(min-width:761px) and (max-width:1180px){html body .brand.brandWide.brandV06{grid-template-columns:40% 36% 24%!important;padding:0 8px!important}.brandV06>.brandSideLeft{grid-template-columns:minmax(155px,.85fr) minmax(190px,1.15fr)!important;gap:7px!important;padding-right:8px!important}.brandInstitutionV06{grid-template-columns:48px minmax(0,1fr);gap:6px}.brandInstituteLogoV06{width:46px!important;height:46px!important}.brandAuthorV06{grid-template-columns:43px minmax(0,1fr);gap:6px}.brandAuthorPortraitV06{width:41px;height:41px}.brandV06 .brandDept{font-size:9.2px!important}.brandV06 .brandDept b{font-size:12px!important}.brandV06 .brandAuthorTextV06 .brandTeacher{font-size:11px!important}.brandV06 .brandAuthorTextV06 .brandProfessional{font-size:7.2px!important}.brandV06 .brandRoles{font-size:8.5px!important}.brandV06 .brandDescriptor{font-size:9.5px!important}}
+@media(max-width:760px){.brandV06 .brandAuthorV06{display:none!important}.brandV06>.brandSideLeft{display:flex!important}.brandV06>.brandCenter .brandDescriptor{font-size:6.5px!important}.brandV06 .brandInstitutionV06{display:block!important}.brandV06 .brandInstituteLogoV06{width:34px!important;height:34px!important}.brandV06 .brandLeftText{display:none!important}}
+/* v0.6 · modo político: el resto del mundo sigue siendo TIERRA, nunca océano. */
+body.political-map-mode #map .leaflet-tile-pane{opacity:.16!important;filter:grayscale(1) saturate(.25) brightness(1.25)!important;pointer-events:none!important}
+body.political-map-mode.political-context-ready #map .leaflet-tile-pane{opacity:0!important}
+body.political-map-mode #map .leaflet-overlay-pane,body.political-map-mode #map .leaflet-marker-pane,body.political-map-mode #map .leaflet-shadow-pane,body.political-map-mode #map .leaflet-tooltip-pane{opacity:0!important;pointer-events:none!important}
+body.political-map-mode #map [class*="politicalBathyPane"],body.political-map-mode #map [class*="politicalLandPane"],body.political-map-mode #map [class*="politicalAdminPane"],body.political-map-mode #map [class*="politicalLeaderPane"],body.political-map-mode #map [class*="politicalLabelPane"]{opacity:1!important;visibility:visible!important}
+</style>
+
+<style id="anambro-v07-correcciones-css">
+/* v0.7 · Modo político: nunca se fabrica una máscara terrestre inferior. */
+body.political-map-mode #map .leaflet-tile-pane{opacity:.34!important;filter:grayscale(.78) saturate(.42) brightness(1.16)!important;pointer-events:none!important}
+body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{opacity:.08!important;filter:grayscale(1) saturate(.15) brightness(1.28)!important}
+body.political-map-mode #map [class*="politicalBasePane"],body.political-map-mode #map [class*="politicalBathyPane"],body.political-map-mode #map [class*="politicalAdminPane"],body.political-map-mode #map [class*="politicalLeaderPane"],body.political-map-mode #map [class*="politicalLabelPane"]{opacity:1!important;visibility:visible!important}
+body.political-map-mode #map [class*="politicalLandPane"]{display:none!important;opacity:0!important}
+body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1) contrast(1.12) brightness(1.08)}
+body.political-map-mode #map .anambro-political-canary-topobathy{filter:saturate(.72) contrast(.96) brightness(1.05)}
+
+/* Editor visual de cabecera. En móvil se conserva la cabecera responsiva normal. */
+.brandHeaderEditBtn{background:#edf7f5!important;border-color:#9bcfc8!important;color:#0d665e!important}
+#headerEditorBar{position:fixed;z-index:10050;left:50%;top:126px;transform:translateX(-50%);display:none;align-items:center;gap:6px;padding:7px 9px;border:1px solid #9fb5c4;border-radius:10px;background:rgba(255,255,255,.96);box-shadow:0 8px 28px rgba(0,0,0,.20);font:700 11px/1.1 Montserrat,system-ui,sans-serif;color:#17324d}
+#headerEditorBar.open{display:flex}#headerEditorBar button{border:1px solid #a7b6c0;border-radius:7px;background:#fff;color:#17324d;padding:6px 8px;font-weight:850;cursor:pointer}#headerEditorBar .save{background:#0f766e;color:#fff;border-color:#0f766e}#headerEditorBar .danger{color:#8d2f2f}
+.brandV06.header-free-layout{position:relative!important;display:block!important;height:118px!important;min-height:118px!important;padding:0!important;overflow:hidden!important}
+.brandV06.header-free-layout>.brandSideLeft,.brandV06.header-free-layout>.brandSideRight{display:contents!important}
+.brandV06.header-free-layout .headerFreeItem{position:absolute!important;margin:0!important;box-sizing:border-box!important;max-width:none!important;min-width:40px!important;min-height:24px!important}
+.brandV06.header-editing{outline:2px dashed #0f766e!important;outline-offset:-2px!important;background-image:linear-gradient(rgba(15,118,110,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,118,110,.05) 1px,transparent 1px)!important;background-size:20px 20px!important}
+.brandV06.header-editing .headerFreeItem{outline:1px dashed rgba(15,118,110,.75)!important;background-color:rgba(255,255,255,.78)!important;resize:both!important;overflow:hidden!important}
+.headerEditHandle{display:none;position:absolute;z-index:10;left:2px;top:2px;padding:2px 5px;border-radius:5px;background:#0f766e;color:#fff;font:800 8px/1.2 Montserrat,system-ui,sans-serif;cursor:move;user-select:none;touch-action:none;box-shadow:0 1px 4px rgba(0,0,0,.22)}
+.brandV06.header-editing .headerEditHandle{display:block}.brandV06.header-editing .brandActions button{pointer-events:none}
+.headerEditorToast{position:fixed;z-index:10060;top:174px;left:50%;transform:translateX(-50%);background:#17324d;color:#fff;padding:6px 10px;border-radius:7px;font:750 10px/1.2 Montserrat,system-ui,sans-serif;opacity:0;pointer-events:none;transition:opacity .2s}.headerEditorToast.show{opacity:1}
+@media(max-width:760px){.brandHeaderEditBtn{display:none!important}.brandV06.header-free-layout{display:grid!important;height:auto!important;min-height:0!important}.brandV06.header-free-layout>.brandSideLeft,.brandV06.header-free-layout>.brandSideRight{display:flex!important}.brandV06.header-free-layout .headerFreeItem{position:static!important;width:auto!important;height:auto!important;left:auto!important;top:auto!important}.headerEditHandle,#headerEditorBar{display:none!important}}
+</style>
+
+
+<style id="anambro-v08-fixes">
+/* v0.8 · modo político: el fondo físico debe leerse de verdad. */
+body.political-map-mode #map{background:var(--political-sea,#dceff7)!important}
+body.political-map-mode #map .leaflet-tile-pane{opacity:.26!important;filter:grayscale(.82) saturate(.28) brightness(1.18)!important;pointer-events:none!important}
+body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{opacity:.20!important;filter:grayscale(.9) saturate(.2) brightness(1.20)!important}
+body.political-map-mode #map [class*="politicalBasePane"],body.political-map-mode #map [class*="politicalBathyPane"],body.political-map-mode #map [class*="politicalAdminPane"],body.political-map-mode #map [class*="politicalLeaderPane"],body.political-map-mode #map [class*="politicalLabelPane"]{opacity:1!important;visibility:visible!important}
+body.political-map-mode #map [class*="politicalLandPane"]{display:none!important;opacity:0!important}
+body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1) contrast(1.28) brightness(.98)!important;mix-blend-mode:multiply}
+
+/* v0.8 · editor libre de cabecera, granular: logos, retrato y textos por separado. */
+.brandV06.header-free-layout{position:relative!important;display:block!important;height:118px!important;min-height:118px!important;padding:0!important;overflow:hidden!important}
+.brandV06.header-free-layout>.brandSideLeft,.brandV06.header-free-layout>.brandSideRight,.brandV06.header-free-layout .brandInstitutionV06,.brandV06.header-free-layout .brandAuthorV06{display:contents!important}
+.brandV06 .headerEditFrame{display:contents}
+.brandV06.header-free-layout .headerEditFrame{display:block!important;position:absolute!important;margin:0!important;box-sizing:border-box!important;min-width:20px!important;min-height:16px!important;overflow:visible;touch-action:none}
+.brandV06.header-free-layout .headerEditFrame>.headerEditableTarget{box-sizing:border-box!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important}
+.brandV06.header-free-layout .headerEditFrame.mediaFrame{overflow:hidden}
+.brandV06.header-free-layout .headerEditFrame.mediaFrame>.headerEditableTarget{display:block!important;object-fit:var(--he-fit,contain)!important;object-position:var(--he-posx,50%) var(--he-posy,50%)!important;transform:scale(var(--he-zoom,1));transform-origin:var(--he-posx,50%) var(--he-posy,50%)}
+.brandV06.header-free-layout .headerEditFrame.mediaFrame>.headerEditableTarget img{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;display:block!important;object-fit:var(--he-fit,contain)!important;object-position:var(--he-posx,50%) var(--he-posy,50%)!important;transform:scale(var(--he-zoom,1));transform-origin:var(--he-posx,50%) var(--he-posy,50%)}
+.brandV06.header-editing .headerEditFrame.boxFrame>.headerEditableTarget{pointer-events:none!important}
+.brandV06.header-editing{outline:2px dashed #0f766e!important;outline-offset:-2px!important;background-image:linear-gradient(rgba(15,118,110,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,118,110,.05) 1px,transparent 1px)!important;background-size:10px 10px!important}
+.brandV06.header-editing .headerEditFrame{outline:1px dashed rgba(15,118,110,.5);cursor:move;background:rgba(255,255,255,.16)}
+.brandV06.header-editing .headerEditFrame.selected{outline:2px solid #0f766e!important;z-index:999!important}
+.headerResizeHandle{position:absolute;width:11px;height:11px;background:#fff;border:2px solid #0f766e;border-radius:50%;z-index:6;display:none}
+.headerEditFrame.selected .headerResizeHandle{display:block}.headerResizeHandle[data-dir="nw"]{left:-6px;top:-6px;cursor:nwse-resize}.headerResizeHandle[data-dir="n"]{left:50%;top:-6px;transform:translateX(-50%);cursor:ns-resize}.headerResizeHandle[data-dir="ne"]{right:-6px;top:-6px;cursor:nesw-resize}.headerResizeHandle[data-dir="e"]{right:-6px;top:50%;transform:translateY(-50%);cursor:ew-resize}.headerResizeHandle[data-dir="se"]{right:-6px;bottom:-6px;cursor:nwse-resize}.headerResizeHandle[data-dir="s"]{left:50%;bottom:-6px;transform:translateX(-50%);cursor:ns-resize}.headerResizeHandle[data-dir="sw"]{left:-6px;bottom:-6px;cursor:nesw-resize}.headerResizeHandle[data-dir="w"]{left:-6px;top:50%;transform:translateY(-50%);cursor:ew-resize}
+.headerEditFrame.textFrame.textEditing{cursor:text!important;outline:2px solid #d29222!important}.headerEditFrame.textFrame.textEditing>.headerEditableTarget{cursor:text!important;user-select:text!important;overflow:auto!important;background:rgba(255,255,255,.94)!important}
+#headerEditorInspector{position:fixed;z-index:10055;right:14px;top:174px;width:286px;display:none;padding:9px;border:1px solid #9fb5c4;border-radius:10px;background:rgba(255,255,255,.98);box-shadow:0 10px 32px rgba(0,0,0,.23);font:700 10.5px/1.25 Montserrat,system-ui,sans-serif;color:#17324d}
+#headerEditorInspector.open{display:block}.heiFormatRow{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.heiFormatRow button{min-width:0}.heiHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;font-size:12px}.heiHead button{border:0;background:transparent;font-size:18px;cursor:pointer}.heiGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.heiGrid label,.heiBlock label{display:flex;flex-direction:column;gap:2px}.heiGrid input,#headerEditorInspector select,#headerEditorInspector input{width:100%;box-sizing:border-box}.heiBlock{border-top:1px solid #d9e1e6;margin-top:7px;padding-top:7px;display:grid;gap:6px}#headerEditorInspector button{border:1px solid #9fb0ba;border-radius:6px;background:#fff;color:#17324d;padding:6px;font-weight:800;cursor:pointer}
+@media(max-width:760px){#headerEditorInspector{display:none!important}.brandV06 .headerEditFrame{display:contents!important}}
+</style>
+
+<style id="anambro-v09-grafcan-fixes">
+/* El modelo de sombras es una capa WMS propia, no el LiDAR del IGN. */
+body.political-map-mode #map [class*="politicalBasePane"]{opacity:1!important;filter:none!important;mix-blend-mode:multiply!important}
+body.political-map-mode.political-canary-physical #map{background:#dceff7!important}
+body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{opacity:.12!important}
+body.political-map-mode #map .anambro-political-canary-shadow{opacity:1!important;filter:grayscale(1) contrast(1.32) brightness(1.03)!important;mix-blend-mode:multiply!important}
+#canaryLandLegend img{vertical-align:middle;max-width:100%;height:auto}
+body.political-map-mode.political-canary-physical #map [class*="politicalBasePane"]{opacity:1!important;visibility:visible!important;filter:none!important;mix-blend-mode:normal!important}
+body.political-map-mode #map .anambro-political-canary-shadow{opacity:1!important;filter:grayscale(1) contrast(1.20) brightness(1.02)!important;mix-blend-mode:normal!important}
+.political-map-label{width:1px!important;height:1px!important;overflow:visible!important}
+.politicalLabelInner{position:absolute;display:block!important;max-width:110px;white-space:normal!important;text-align:center;line-height:1.08!important;overflow:visible;pointer-events:auto}
+.politicalLabelInner.align-center{transform:translate(-50%,-50%)!important}
+.politicalLabelInner.align-left{transform:translate(0,-50%)!important;text-align:left}
+.politicalLabelInner.align-right{transform:translate(-100%,-50%)!important;text-align:right}
+</style>
+
+<style id="anambro-v09-mapservice-hotfix">
+/* v0.9 hotfix cartográfico: las capas WMS físicas se muestran sin filtros heredados del antiguo LiDAR. */
+.leaflet-tile-pane .leaflet-layer img{image-rendering:auto}
+body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1) contrast(1.18) brightness(1.02)!important;mix-blend-mode:normal!important}
+</style>
 </head><body>
 <div id="map"></div>
 <div id="globe" aria-label="Globo 3D"></div>
@@ -2479,22 +2640,30 @@ html body .layoutOverlay{z-index:9000!important}
   <audio id="radioGardenAudio" controls preload="none"></audio>
   <button id="radioGardenClose" onclick="radioGardenStop()" title="Cerrar reproductor">×</button>
 </div>
-<div class="brand brandWide">
-  <div class="brandTitle brandTitleTop" aria-label="ANAMBRO · Visor cartográfico interactivo de uso educativo">
-    <img class="brandAnambroIntegratedLogo" src="assets/anambro-logo.png" alt="ANAMBRO · Visor cartográfico interactivo de uso educativo">
-  </div>
+<div class="brand brandWide brandV06">
   <div class="brandSide brandSideLeft">
-    <img src="data:image/jpeg;base64,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">
-    <div class="brandLeftText">
-      <div class="brandDept"><b>IES ADEJE</b><br>Herramienta cartográfica abierta<br>Curso 2026-2027</div>
-      <div class="brandVersion">Versión 0.2 · optimización conservadora</div>
+    <div class="brandInstitutionV06">
+      <img class="brandInstituteLogoV06" src="data:image/jpeg;base64,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" alt="IES Adeje">
+      <div class="brandLeftText">
+        <div class="brandDept"><b>IES ADEJE</b><br>Herramienta cartográfica abierta<br>Curso 2026-2027</div>
+        <div class="brandVersion">Versión 0.8 · aula interactiva</div>
+      </div>
+    </div>
+    <div class="brandAuthorV06">
+      <img class="brandAuthorPortraitV06" src="assets/aaron-retrato.webp" alt="Retrato ilustrado de Aarón Rodríguez González">
+      <div class="brandAuthorTextV06">
+        <div class="brandTeacher">Aarón Rodríguez González <span class="brandGeo">· Geógrafo</span></div>
+        <div class="brandProfessional"><b>Profesor de Geografía e Historia · IES Adeje</b><br><span>Coordinador de Patrimonio Natural, Social y Cultural Canario</span></div>
+      </div>
     </div>
   </div>
 
+  <div class="brandTitle brandTitleTop" aria-label="ANAMBRO · Visor cartográfico interactivo de uso educativo">
+    <img class="brandAnambroIntegratedLogo" src="assets/anambro-logo.png" alt="ANAMBRO · Visor cartográfico interactivo de uso educativo">
+  </div>
+
   <div class="brandText brandCenter">
-    <div class="brandDescriptor">Análisis territorial · SIG web · cartografía temática 2D/3D</div>
-    <div class="brandTeacher">Aarón Rodríguez González <span class="brandGeo">· Geógrafo</span></div>
-    <div class="brandProfessional"><b>Docente del Departamento de Geografía e Historia · IES ADEJE</b><span> · Coordinador de Patrimonio Natural, Social y Cultural Canario</span></div>
+    <div class="brandDescriptor">SIG web para el análisis territorial y la cartografía temática 2D/3D</div>
   </div>
 
   <div class="brandSide brandSideRight">
@@ -2502,6 +2671,7 @@ html body .layoutOverlay{z-index:9000!important}
     <div class="brandActions">
       <button type="button" class="brandWelcomeBtn" onclick="toggleWelcome(true)">👋 ¡Bienvenido!</button>
       <button type="button" class="brandWelcomeBtn brandSourcesBtn" onclick="openSourcesPanel()">ⓘ Fuentes y licencias</button>
+      <button type="button" class="brandWelcomeBtn brandHeaderEditBtn" onclick="window.anambroHeaderEditor?.open()">✥ Editar cabecera</button>
     </div>
   </div>
 </div>
@@ -2512,14 +2682,25 @@ html body .layoutOverlay{z-index:9000!important}
         <div id="welcomeTitle" class="welcomeTitle welcomeLogoTitle">
           <img class="welcomeAnambroLogo" src="assets/anambro-logo.png" alt="ANAMBRO · Visor cartográfico interactivo de uso educativo">
         </div>
-        <div class="welcomeSub"><b>ANAMBRO</b> es un <b>visor cartográfico interactivo con capacidades de análisis territorial y SIG web</b>. Integra cartografía base y temática, consulta espacial, navegación continua entre <b>mapamundi 2D y globo 3D</b>, series temporales, datos geodemográficos, perfiles topográficos y temáticos, mediciones, leyendas dinámicas y exportación cartográfica. Permite explorar, comparar y comprender el territorio desde Canarias hasta la escala mundial, combinando fuentes oficiales y conjuntos de datos especializados con una interfaz pensada para la docencia, la divulgación y el análisis territorial.</div>
-        <div class="welcomeAuthor">
-          <div class="welcomeAuthorName"><b>Aarón Rodríguez González</b> <span>· Geógrafo</span></div>
-          <div class="welcomeAuthorContext"><b>Docente del Departamento de Geografía e Historia · IES ADEJE</b><br><b>Coordinador de Patrimonio Natural, Social y Cultural Canario</b></div>
+        <div class="welcomeSub"><b>ANAMBRO</b> es un <b>visor cartográfico interactivo y una herramienta didáctica para explorar, analizar, explicar y crear cartografía</b>. Integra mapa 2D y globo 3D, cartografía física, temática e histórica, perfiles territoriales mundiales, geodemografía, tracks GPX/KML, medición, composición y exportación, <b>mapas políticos y mapas mudos editables</b> y una biblioteca creciente de <b>explicaciones audiovisuales, animaciones y simulaciones</b>.</div>
+        <div class="welcomeAuthor welcomeAuthorWithPortrait">
+          <img class="welcomeAuthorPortrait" src="assets/aaron-retrato.webp" alt="Retrato ilustrado de Aarón Rodríguez González">
+          <div class="welcomeAuthorText"><div class="welcomeAuthorName"><b>Aarón Rodríguez González</b> <span>· Geógrafo</span></div>
+          <div class="welcomeAuthorContext"><b>Docente del Departamento de Geografía e Historia · IES ADEJE</b><br><b>Coordinador de Patrimonio Natural, Social y Cultural Canario</b></div></div>
         </div>
       </div>
       <button type="button" class="welcomeClose" onclick="toggleWelcome(false)" aria-label="Cerrar bienvenida">×</button>
     </div>
+    <section class="welcomeCard welcomePhilosophy">
+      <h4>🧭 La filosofía de ANAMBRO</h4>
+      <p><b>ANAMBRO nace en el aula.</b> Es un proyecto personal desarrollado por un profesor de Geografía e Historia de instituto para responder a necesidades reales de su trabajo docente: explicar mejor procesos geográficos e históricos, reunir herramientas cartográficas que suelen estar dispersas y crear materiales útiles para el alumnado.</p>
+      <p>Su desarrollo se realiza de forma independiente, en el tiempo libre de su autor, incorporando nuevas funciones a medida que aparecen necesidades en el aula. Aunque nació para uso propio, el proyecto queda <b>abierto a la comunidad educativa</b> para cualquier docente, estudiante o persona interesada que pueda encontrarlo útil.</p>
+      <p class="welcomeMotto"><b>Creado desde el aula, para el aula, y abierto a quien pueda encontrarlo útil.</b></p>
+    </section>
+    <section class="welcomeCard welcomeNewTools">
+      <h4>✨ Crear, explicar y editar</h4>
+      <p>Las últimas versiones amplían ANAMBRO más allá de la consulta: incorpora <b>explicaciones y animaciones interactivas</b> —como <i>Insolación y latitud</i> y <i>Eratóstenes y la medida de la Tierra</i>—, un <b>editor de mapas políticos y mapas mudos</b> para divisiones actuales e históricas, fondos marinos configurables, edición de rellenos y contornos, rotulación desplazable con líneas guía y exportación mediante el compositor cartográfico.</p>
+    </section>
     <div class="welcomeCard" style="margin:10px 0 12px;border-left:4px solid #0f9d8a">
       <h4 style="margin:0 0 5px">🗺️ Cartografía, análisis territorial y SIG web</h4>
       <p style="margin:0">ANAMBRO combina <b>cartografía base y temática</b>, consulta espacial y temporal, <b>mapa 2D y globo 3D</b>, geodemografía mundial, perfiles topográficos y temáticos, mediciones, búsqueda y localización, leyendas dinámicas y composición de mapas para exportación. Las capas pueden consultarse, compararse y combinarse para estudiar el territorio, el paisaje, la población y los procesos históricos en distintas escalas.</p>
@@ -2577,7 +2758,7 @@ html body .layoutOverlay{z-index:9000!important}
           <li>GPS, búsqueda de topónimos y localización por coordenadas.</li>
           <li>Escala, orientación, paralelos y meridianos.</li>
           <li>Capas y leyendas consultables de forma interactiva.</li>
-          <li>Perfiles editables con fichas de información asociadas al recorrido.</li>
+          <li>Perfiles territoriales mundiales con altimetría, vegetación/biomas y geología, además de fichas asociadas al recorrido.</li>
           <li>Una transición continua entre Canarias, el resto de España —territorio peninsular y Baleares— y el mundo.</li>
           <li>Uso abierto para docencia, divulgación, análisis del paisaje y exploración territorial, con interfaz adaptada a ordenador, tableta y móvil.</li>
         </ul>
@@ -2588,12 +2769,12 @@ html body .layoutOverlay{z-index:9000!important}
           <li><b>Geografía de España:</b> relieve, organización territorial, vegetación, redes, cartografía y análisis de perfiles.</li>
           <li><b>Geografía e Historia de 1.º a 4.º de ESO:</b> orientación, coordenadas, escalas, mapas, territorio, paisajes y lectura espacial de procesos históricos.</li>
           <li><b>Biología y Geología:</b> vegetación, espacios protegidos, relieve, geología, materiales y relaciones entre medio físico y paisaje.</li>
-          <li>Útil también para proyectos interdisciplinares, patrimonio, salidas de campo y divulgación.</li>
+          <li><b>Creación de materiales:</b> mapas mudos y políticos, mapas actuales o históricos, exportación para fichas y ejercicios y explicaciones audiovisuales/animadas.</li><li>Útil también para proyectos interdisciplinares, patrimonio, salidas de campo y divulgación.</li>
         </ul>
       </section>
 
     </div>
-    <div class="welcomeFooter"><b>ANAMBRO · Versión 0.2 · Curso 2026-2027.</b> Proyecto de <b>Aarón Rodríguez González · Geógrafo</b>, <b>docente del Departamento de Geografía e Historia del IES ADEJE</b> y <b>Coordinador de Patrimonio Natural, Social y Cultural Canario</b>. ANAMBRO continuará ampliando sus capas, fuentes, herramientas y capacidades de análisis territorial y SIG web, manteniendo Canarias como núcleo del proyecto y extendiendo progresivamente sus posibilidades para España y el mundo.</div>
+    <div class="welcomeFooter"><b>ANAMBRO · Versión 0.6 · Curso 2026-2027.</b> Proyecto personal de <b>Aarón Rodríguez González · Geógrafo</b>, <b>docente del Departamento de Geografía e Historia del IES ADEJE</b> y <b>Coordinador de Patrimonio Natural, Social y Cultural Canario</b>, desarrollado de forma independiente en su tiempo libre a partir de necesidades reales del aula y abierto a la comunidad educativa. ANAMBRO continuará ampliando sus capas, fuentes, herramientas, explicaciones y capacidades de creación cartográfica.</div>
   </div>
 </div>
 
@@ -2605,6 +2786,8 @@ html body .layoutOverlay{z-index:9000!important}
 <button class="tool" onclick="togglePanel('measurePanel')"><span>📏</span> Medir</button>
 <button class="tool" onclick="togglePanel('profilePanel')"><span>⛰️</span> Perfil</button>
 <button class="tool" onclick="togglePanel('trackPanel')"><span>🧭</span> Track GPX/KML</button>
+<button class="tool" onclick="togglePanel('explainPanel')"><span>🎬</span> Explicaciones y animaciones</button>
+<button class="tool" id="politicalToolBtn" onclick="window.togglePoliticalTool?.()"><span>🗺️</span> Mapas políticos / mudos</button>
 <button class="tool" onclick="togglePanel('searchPanel')"><span>🔎</span> Buscar topónimo</button>
 <button class="tool" onclick="openLayoutEditor()"><span>🖨️</span> Imprimir / PDF</button>
 
@@ -2618,8 +2801,10 @@ html body .layoutOverlay{z-index:9000!important}
 <label><input data-base-choice="pnoa" name="baseCanary" type="radio"/> Imagen · PNOA máxima actualidad</label>
 <label><input data-base-choice="street" name="baseCanary" type="radio"/> Callejero · IGN Base</label>
 <label><input checked="" data-base-choice="hybrid" name="baseCanary" type="radio"/> Híbrido · PNOA + cartografía</label>
-<label><input data-base-choice="lidar" name="baseCanary" type="radio"/> LiDAR · relieve</label>
-<label><input data-base-choice="land" name="baseCanary" type="radio"/> Ocupación del suelo</label>
+<label><input data-base-choice="lidar" name="baseCanary" type="radio"/> LiDAR · relieve (IGN)</label>
+<label><input data-base-choice="shadowCanary" name="baseCanary" type="radio"/> <b>Modelo de Sombras · GRAFCAN</b></label>
+<label><input data-base-choice="landCanary" name="baseCanary" type="radio"/> <b>Ocupación del suelo · GRAFCAN (MOS 2002)</b></label>
+<div id="canaryLandLegendWrap" class="layerSubBlock" style="display:none"><small><b>Leyenda oficial · Mapa de Ocupación del Suelo</b></small><div id="canaryLandLegend" style="max-height:210px;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:6px;padding:5px;margin-top:4px"><small>Cargando leyenda de GRAFCAN…</small></div><small>Toca un punto del mapa para consultar su clase de ocupación.</small></div>
 <label><input data-base-choice="historic" name="baseCanary" type="radio"/> Mapa histórico · 1.ª edición MTN50</label></details><details class="layerSubcategory"><summary>🧭 Territorio y patrimonio</summary><label><input checked="" id="munCheck" type="checkbox"/> <b>Municipios · Canarias</b></label>
 <div class="layerSubBlock">
 <small><b>Opacidad</b> <span id="munOpacityValue">100 %</span></small>
@@ -2824,6 +3009,152 @@ html body .layoutOverlay{z-index:9000!important}
 <button class="action" style="margin-top:8px;width:100%" onclick="togglePanel('trackPanel')">Cerrar</button>
 </div>
 
+
+
+<div class="panel hidden" id="explainPanel">
+  <h3>🎬 Explicaciones audiovisuales y animaciones</h3>
+  <div class="explainIntro">Recursos didácticos interactivos de ANAMBRO. Se cargan solo cuando los abres, por lo que no ralentizan el visor.</div>
+  <div class="explainCard">
+    <div class="explainCardIcon">☀️</div>
+    <div class="explainCardBody">
+      <b>Insolación y latitud</b>
+      <small>Rayos solares paralelos, ángulo de incidencia, reparto de la energía, estaciones y día/noche polar.</small>
+      <button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/insolacion-latitud/index.html','Insolación y latitud')">▶ Abrir animación interactiva</button>
+    </div>
+  </div>
+  <div class="explainCard" style="margin-top:9px">
+    <div class="explainCardIcon">📐</div>
+    <div class="explainCardBody">
+      <b>Eratóstenes y la medida de la Tierra</b>
+      <small>Una sombra, una distancia y una proporción: cómo un ser humano midió el planeta hace más de 2.200 años con matemáticas elementales.</small>
+      <button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/eratostenes/index.html','Eratóstenes y la medida de la Tierra')">▶ Abrir animación interactiva</button>
+    </div>
+  </div>
+  <div class="explainSoon"><b>Biblioteca didáctica ANAMBRO.</b> Animaciones, simulaciones y explicaciones audiovisuales creadas para el aula y cargadas solo cuando se necesitan.</div>
+</div>
+
+<div class="panel hidden politicalPanel" id="politicalPanel">
+  <h3>🗺️ Mapas políticos y mapas mudos</h3>
+  <div class="politicalIntro">Editor cartográfico independiente de la vista habitual de ANAMBRO. Elige las unidades territoriales, el estilo, el fondo y la rotulación; al salir, la cartografía normal reaparece intacta.</div>
+  <label><b>Ámbito territorial</b>
+    <select id="politicalScope">
+      <option value="canary-municipalities">Municipios de Canarias</option>
+      <option value="spain-provinces">Provincias de España</option>
+      <option value="spain-ccaa">Comunidades autónomas</option>
+      <option value="europe-countries">Países de Europa</option>
+      <option value="historical-polities">Entidades políticas históricas · año de la capa histórica</option>
+    </select>
+  </label>
+
+  <details open class="politicalSection"><summary>🎨 Territorios y límites</summary>
+    <div class="politicalGrid2">
+      <label><b>Interior</b>
+        <select id="politicalFillMode">
+          <option value="blank">Mapa mudo · blanco</option>
+          <option value="auto" selected>Colores automáticos</option>
+          <option value="uniform">Color único</option>
+        </select>
+      </label>
+      <label><b>Color único</b><input id="politicalUniformColor" type="color" value="#e8edf1"></label>
+    </div>
+    <label class="politicalCheck"><input id="politicalFillCheck" type="checkbox" checked> Mostrar relleno</label>
+    <label class="politicalRange"><span>Opacidad interior</span><input id="politicalFillOpacity" type="range" min="0" max="1" step="0.05" value="0.42"><output id="politicalFillOpacityValue">42 %</output></label>
+    <div class="politicalGrid2">
+      <label><b>Color de contorno</b><input id="politicalStrokeColor" type="color" value="#263746"></label>
+      <label><b>Grosor</b><input id="politicalStrokeWidth" type="range" min="0.3" max="5" step="0.1" value="1.6"></label>
+    </div>
+    <label class="politicalCheck"><input id="politicalStrokeCheck" type="checkbox" checked> Mostrar contornos</label>
+    <label class="politicalRange"><span>Opacidad contorno</span><input id="politicalStrokeOpacity" type="range" min="0" max="1" step="0.05" value="0.95"><output id="politicalStrokeOpacityValue">95 %</output></label>
+  </details>
+
+  <details open class="politicalSection"><summary>🌍 Base cartográfica</summary>
+    <input id="politicalBathyCheck" type="checkbox" hidden aria-hidden="true">
+    <div class="politicalGrid2">
+      <label><b>Base</b>
+        <select id="politicalBackground">
+          <option value="clean">Base ANAMBRO atenuada</option>
+          <option value="canary-shadow" selected>Canarias · Modelo de Sombras GRAFCAN</option>
+          <option value="canary-topobathy">Canarias · Topobatimétrico GRAFCAN</option>
+          <option value="bathy-soft">Batimetría mundial suave</option>
+          <option value="bathy-medium">Batimetría mundial media</option>
+          <option value="bathy-strong">Batimetría mundial marcada</option>
+        </select>
+      </label>
+      <label><b>Color del mar</b><input id="politicalSeaColor" type="color" value="#dceff7"></label>
+    </div>
+    <label class="politicalRange"><span>Intensidad de la base física</span><input id="politicalBathyOpacity" type="range" min="0.1" max="1" step="0.05" value="1"><output id="politicalBathyOpacityValue">100 %</output></label>
+    <small class="politicalSubHint">En Municipios de Canarias puedes usar directamente el Modelo de Sombras oficial de GRAFCAN y transparentar los recintos para leer el relieve bajo ellos. No se dibuja ninguna máscara poligonal de tierra.</small>
+  </details>
+
+  <details open class="politicalSection"><summary>🔤 Rotulación</summary>
+    <label class="politicalCheck"><input id="politicalLabelsCheck" type="checkbox"> Mostrar nombres de las unidades</label>
+    <div class="politicalGrid2">
+      <label><b>Tamaño general</b><input id="politicalLabelDefaultSize" type="range" min="7" max="20" step="1" value="10"></label>
+      <label><b>Líneas guía</b><select id="politicalLeaderMode"><option value="auto" selected>Automáticas</option><option value="always">Siempre</option><option value="never">Nunca</option></select></label>
+    </div>
+    <small class="politicalSubHint">Los nombres se pueden arrastrar directamente sobre el mapa. Al separarlos de su territorio, ANAMBRO dibuja una línea guía.</small>
+  </details>
+
+  <div class="row politicalButtons">
+    <button class="action" type="button" id="politicalApplyBtn">Mostrar / actualizar</button>
+    <button class="action politicalExit" type="button" id="politicalExitBtn">Salir del modo</button>
+  </div>
+
+  <div id="politicalEditor" class="politicalEditor disabled">
+    <b>Edición individual</b>
+    <div id="politicalSelectedName">Pulsa una unidad territorial o su nombre para editarla.</div>
+    <div class="politicalIndividualGrid">
+      <label>Interior<input id="politicalColor" type="color" value="#f4d35e" disabled></label>
+      <label>Contorno<input id="politicalSelectedStrokeColor" type="color" value="#263746" disabled></label>
+      <button type="button" id="politicalWhiteBtn" disabled>Interior blanco</button>
+      <button type="button" id="politicalResetBtn" disabled>Restablecer territorio</button>
+    </div>
+    <div class="politicalLabelEditor">
+      <b>Etiqueta seleccionada</b>
+      <div class="politicalGrid2">
+        <label>Alineación<select id="politicalLabelAlign" disabled><option value="center">Centro</option><option value="left">Izquierda</option><option value="right">Derecha</option></select></label>
+        <label>Tamaño<input id="politicalLabelSize" type="range" min="7" max="24" step="1" value="10" disabled></label>
+      </div>
+      <button type="button" id="politicalLabelResetBtn" disabled>Recolocar nombre automáticamente</button>
+    </div>
+  </div>
+  <div class="politicalHint">💡 <b>Mapa mudo:</b> interior blanco y nombres desactivados. <b>Mapa político:</b> usa colores automáticos y activa los nombres si los necesitas. Todo lo que edites —rellenos, contornos, transparencias, etiquetas y líneas guía— se conserva al maquetar/exportar.</div>
+  <button class="action politicalExportBtn" type="button" id="politicalExportBtn">🖨️ Maquetar / exportar este mapa</button>
+  <div id="politicalStatus" class="politicalStatus">Modo político inactivo.</div>
+</div>
+
+<div id="headerEditorBar" aria-hidden="true"><b>✥ Cabecera</b><span>Haz clic en un elemento · arrástralo libremente · usa los tiradores para redimensionar · doble clic en un texto para editarlo</span><button class="save" id="headerEditorSave" type="button">Guardar</button><button id="headerEditorCancel" type="button">Cancelar</button><button id="headerEditorExport" type="button">Exportar JSON</button><button id="headerEditorImport" type="button">Importar JSON</button><button class="danger" id="headerEditorReset" type="button">Restablecer</button><input id="headerEditorFile" type="file" accept="application/json,.json" hidden></div>
+<div id="headerEditorInspector" aria-hidden="true">
+  <div class="heiHead"><b id="heiTitle">Elemento</b><button id="heiClose" type="button">×</button></div>
+  <div class="heiGrid heiGeometry">
+    <label>X<input id="heiX" type="number" step="1"></label><label>Y<input id="heiY" type="number" step="1"></label><label>Ancho<input id="heiW" type="number" min="20" step="1"></label><label>Alto<input id="heiH" type="number" min="16" step="1"></label>
+  </div>
+  <div id="heiTextTools" class="heiBlock">
+    <button id="heiEditText" type="button">✎ Editar texto directamente</button>
+    <label>Fuente<select id="heiFontFamily"><option value="Montserrat">Montserrat</option><option value="Arial">Arial / Helvetica</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option><option value="system-ui">Sistema</option></select></label>
+    <label>Tamaño de texto<input id="heiFont" type="range" min="7" max="40" step="0.5"></label>
+    <label>Color<input id="heiTextColor" type="color" value="#17324d"></label>
+    <div class="heiFormatRow"><button id="heiBold" type="button" title="Negrita"><b>B</b></button><button id="heiItalic" type="button" title="Cursiva"><i>I</i></button><button id="heiUnderline" type="button" title="Subrayado"><u>U</u></button></div>
+    <div class="heiFormatRow"><button id="heiAlignLeft" type="button">⇤ Izq.</button><button id="heiAlignCenter" type="button">↔ Centro</button><button id="heiAlignRight" type="button">Der. ⇥</button></div>
+    <label>Interlineado<input id="heiLineHeight" type="range" min="0.8" max="2" step="0.05" value="1.15"></label>
+    <label>Espaciado<input id="heiLetterSpacing" type="range" min="-1" max="4" step="0.1" value="0"></label>
+    <small>Si estás editando y seleccionas solo una parte del texto, negrita/cursiva/subrayado, fuente y color se aplican a esa selección. Sin selección, se aplican al bloque completo.</small>
+  </div>
+  <div id="heiImageTools" class="heiBlock">
+    <label>Ajuste<select id="heiFit"><option value="contain">Encajar entero</option><option value="cover">Recortar para llenar</option></select></label>
+    <label>Zoom<input id="heiZoom" type="range" min="0.5" max="3" step="0.05" value="1"></label>
+    <label>Posición horizontal<input id="heiImgX" type="range" min="0" max="100" step="1" value="50"></label>
+    <label>Posición vertical<input id="heiImgY" type="range" min="0" max="100" step="1" value="50"></label>
+  </div>
+  <div class="heiGrid"><button id="heiFront" type="button">Traer delante</button><button id="heiBack" type="button">Enviar detrás</button></div>
+</div>
+<div id="headerEditorToast" class="headerEditorToast"></div>
+<div id="explanationOverlay" class="explanationOverlay" aria-hidden="true">
+  <div class="explanationShell">
+    <div class="explanationHead"><b id="explanationTitle">Explicación ANAMBRO</b><button type="button" onclick="closeAnambroExplanation()" aria-label="Cerrar">×</button></div>
+    <iframe id="explanationFrame" title="Explicación interactiva ANAMBRO" loading="lazy"></iframe>
+  </div>
+</div>
 
 <div id="profileModal" aria-hidden="true">
   <div id="profileModalHeader"><div id="profileModalTitle">Perfil topográfico</div><div class="profileHeaderActions"><button class="profileExportBtn" type="button" onclick="openProfileLayoutEditor()" title="Maquetar e imprimir el perfil">🖨️ Imprimir / Exportar</button><button id="profileModalClose" onclick="closeProfileModal()" title="Cerrar">×</button></div></div>
@@ -3196,8 +3527,22 @@ const street=L.tileLayer('https://www.ign.es/wmts/ign-base?service=WMTS&request=
 const labels=L.tileLayer('https://www.ign.es/wmts/ign-base?service=WMTS&request=GetTile&version=1.0.0&Format=image/png&layer=IGNBaseOrto&style=default&tilematrixset=GoogleMapsCompatible&TileMatrix={z}&TileRow={y}&TileCol={x}',{noWrap:true,maxZoom:19,attribution:'© IGN/CNIG'});
 const hybrid=L.layerGroup([pnoa,labels]);
 const lidar=L.tileLayer('https://wmts-mapa-lidar.idee.es/lidar?service=WMTS&request=GetTile&version=1.0.0&Format=image/png&layer=EL.GridCoverageDSM&style=default&tilematrixset=GoogleMapsCompatible&TileMatrix={z}&TileRow={y}&TileCol={x}',{noWrap:true,maxZoom:19,attribution:'LiDAR · © IGN/CNIG'});
+// Canarias: servicios oficiales GRAFCAN distintos del LiDAR del IGN.
+// Canarias · servicios oficiales GRAFCAN. Se fuerza EPSG:4326 porque estos WMS no deben pedirse como WebMercator genérico.
+const shadowCanary=L.tileLayer.wms('https://idecan1.grafcan.es/ServicioWMS/MDSombras?',{
+ noWrap:true,layers:'WMS_HS',format:'image/jpeg',transparent:false,version:'1.1.1',uppercase:true,
+ bounds:L.latLngBounds([[27.45,-18.25],[29.55,-13.15]]),minZoom:4,maxZoom:20,attribution:'Modelo de Sombras · © Gobierno de Canarias / GRAFCAN'
+});
+const landCanary=L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/MOS?',{
+ noWrap:true,layers:'WMS_MOS',format:'image/png',transparent:false,version:'1.1.1',crs:L.CRS.EPSG4326,uppercase:true,
+ bounds:L.latLngBounds([[27.45,-18.25],[29.55,-13.15]]),minZoom:4,maxZoom:20,attribution:'Mapa de Ocupación del Suelo 2002 · © Gobierno de Canarias / GRAFCAN'
+});
 const land=L.tileLayer('https://servicios.idee.es/wmts/ocupacion-suelo?service=WMTS&request=GetTile&version=1.0.0&Format=image/png&layer=LC.LandCoverSurfaces&style=default&tilematrixset=GoogleMapsCompatible&TileMatrix={z}&TileRow={y}&TileCol={x}',{noWrap:true,maxZoom:19,attribution:'SIOSE/CORINE · © IGN/CNIG'});
-const historic=L.tileLayer('https://www.ign.es/wmts/primera-edicion-mtn?service=WMTS&request=GetTile&version=1.0.0&Format=image/jpeg&layer=1%C2%AA%20Edicion%20MTN&style=default&tilematrixset=GoogleMapsCompatible&TileMatrix={z}&TileRow={y}&TileCol={x}',{noWrap:true,maxZoom:19,attribution:'1.ª edición MTN · © IGN/CNIG'});
+// Primera edición MTN50: se usa el WMS oficial, más robusto aquí que las teselas WMTS que estaban quedando en blanco.
+const historic=L.tileLayer.wms('https://www.ign.es/wms/primera-edicion-mtn?',{
+ noWrap:true,layers:'MTN50',format:'image/png',transparent:false,version:'1.3.0',uppercase:true,
+ minZoom:5,maxZoom:19,attribution:'1.ª edición MTN50 · © IGN/CNIG'
+});
 const worldImagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false',{
  noWrap:true,minZoom:0,maxZoom:23,maxNativeZoom:23,
  attribution:'Esri World Imagery'
@@ -5065,13 +5410,16 @@ document.getElementById('vegetationPotentialCanaryCheck').onchange=e=>{if(e.targ
 document.getElementById('transportOpacity').oninput=e=>transport.setOpacity(+e.target.value);
 document.getElementById('adminOpacity').oninput=e=>[adminCCAA,adminProv,adminMun].forEach(l=>l.setOpacity(+e.target.value));
 
-const bases={raster,pnoa,street,hybrid,lidar,land,historic,worldsat:worldImagery};
+const bases={raster,pnoa,street,hybrid,lidar,shadowCanary,landCanary,land,historic,worldsat:worldImagery};
 let activeBase=hybrid;
 hybrid.addTo(map);
 document.querySelectorAll('input[data-base-choice]').forEach(r=>r.addEventListener('change',()=>{
  const value=r.dataset.baseChoice;
  if(map.hasLayer(activeBase))map.removeLayer(activeBase);activeBase=bases[value];if(!document.getElementById('worldHistoryCheck')?.checked&&!(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length))activeBase.addTo(map);
  document.querySelectorAll('input[data-base-choice]').forEach(x=>x.checked=(x.dataset.baseChoice===value));
+ const mosWrap=document.getElementById('canaryLandLegendWrap');if(mosWrap)mosWrap.style.display=value==='landCanary'?'block':'none';
+ if(value==='landCanary'&&typeof loadCanaryMosLegend==='function')loadCanaryMosLegend();
+ if(typeof updateLegend==='function')setTimeout(updateLegend,0);
  bringGeologyToFront();
  if(document.getElementById('toponymyCheck')?.checked)toponymy.bringToFront();
  status('Fondo: '+r.parentElement.textContent.trim());
@@ -5174,27 +5522,38 @@ geoGrid.addTo(map);
 redrawGeoGrid();
 
 
-// Límites municipales de Canarias · v0.2: WMS oficial de GRAFCAN/IDECanarias.
-// La v0.1 cargaba y parseaba ~7,7 MB de GeoJSON. Ahora Leaflet solicita solo las teselas visibles.
-let munOpacity=1;
-const municipios=L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/CARTO_EST',{
- noWrap:true,layers:'MUN',format:'image/png',transparent:true,version:'1.1.1',
- opacity:munOpacity,attribution:'Municipios · © Gobierno de Canarias / GRAFCAN'
-});
-function syncCanaryMunicipios(){
+// Límites municipales vectoriales · v0.3: GRAFCAN generalizado, remoto y bajo demanda.
+// Evita transportar la geometría en el repositorio y conserva la visualización habitual como superposición.
+let munOpacity=1,municipios=null,municipiosLoading=null;
+async function ensureCanaryMunicipios(){
+ if(municipios)return municipios;
+ if(municipiosLoading)return municipiosLoading;
+ municipiosLoading=(async()=>{
+  const r=await fetch('https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios-generalizados.geojson',{mode:'cors',cache:'force-cache'});
+  if(!r.ok)throw new Error('Municipios Canarias HTTP '+r.status);
+  const data=await r.json();
+  municipios=L.geoJSON(data,{style:()=>({color:'#ffffff',weight:2.2,opacity:munOpacity,fill:false,interactive:false})});
+  return municipios;
+ })().catch(e=>{console.warn('Municipios Canarias:',e);status('No se pudieron cargar los límites municipales de Canarias');return null;})
+   .finally(()=>{municipiosLoading=null;});
+ return municipiosLoading;
+}
+async function syncCanaryMunicipios(){
  const wanted=document.getElementById('munCheck').checked && map.getZoom()>=8;
- if(wanted){if(!map.hasLayer(municipios))municipios.addTo(map);}
- else if(map.hasLayer(municipios))map.removeLayer(municipios);
+ if(wanted){
+  const layer=await ensureCanaryMunicipios();
+  if(layer&&document.getElementById('munCheck').checked&&map.getZoom()>=8&&!map.hasLayer(layer))layer.addTo(map);
+ }else if(municipios&&map.hasLayer(municipios))map.removeLayer(municipios);
  updateLegend();
 }
 document.getElementById('munCheck').onchange=syncCanaryMunicipios;
 map.on('zoomend',syncCanaryMunicipios);
 document.getElementById('munOpacity').oninput=e=>{
  munOpacity=parseFloat(e.target.value);
- municipios.setOpacity(munOpacity);
+ if(municipios)municipios.setStyle({opacity:munOpacity});
  document.getElementById('munOpacityValue').textContent=Math.round(munOpacity*100)+' %';
 };
-// Conserva el mismo estado inicial de visibilidad de v0.1 sin descargar geometría masiva.
+// Mantiene el estado inicial de v0.1, pero la descarga solo comienza si realmente debe verse.
 queueMicrotask(syncCanaryMunicipios);
 
 // Espacios Naturales Protegidos · v0.2: datos externos y carga por categoría.
@@ -5539,6 +5898,71 @@ async function mfeAt(lat,lon){
   return {source:'mfe',html:details.join('<br>'),unit};
  }catch(e){console.warn('Consulta MFE25:',e);return {source:'mfe',__error:true};}
 }
+// Mapa de Ocupación del Suelo de Canarias · GRAFCAN (MOS 2002)
+let canaryMosLegendItems=null,canaryMosLegendPromise=null;
+const CANARY_MOS_LEGEND_URL='https://idecan2.grafcan.es/ServicioWMS/MOS?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=WMS_MOS';
+function canaryMosLegendHTML(){
+ if(Array.isArray(canaryMosLegendItems)&&canaryMosLegendItems.length){
+  return canaryMosLegendItems.map(x=>'<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><img src="'+escHtml(x.icon)+'" alt="" style="width:22px;height:14px;object-fit:contain;border:0;flex:0 0 auto"><span>'+escHtml(x.label)+'</span></div>').join('');
+ }
+ return '<img src="'+CANARY_MOS_LEGEND_URL+'" alt="Leyenda oficial del Mapa de Ocupación del Suelo de Canarias" style="display:block;max-width:100%;height:auto;margin:2px auto">';
+}
+async function loadCanaryMosLegend(){
+ const box=document.getElementById('canaryLandLegend');
+ // El servicio MOS publica la capa WMS_MOS. La leyenda oficial se sirve mediante GetLegendGraphic.
+ // No intentamos interpretar HTML propietario: mostramos la leyenda oficial tal cual para evitar perder clases o colores.
+ if(box)box.innerHTML=canaryMosLegendHTML();
+ if(typeof updateLegend==='function')setTimeout(updateLegend,0);
+ return [];
+}
+function cleanGrafcanInfoTable(raw){
+ const doc=new DOMParser().parseFromString(String(raw||''),'text/html');doc.querySelectorAll('script,style,form,input,button').forEach(n=>n.remove());
+ const rows=[];
+ for(const tr of doc.querySelectorAll('tr')){const cells=[...tr.querySelectorAll('th,td')].map(x=>cleanGrafcanValue(x.textContent||'')).filter(Boolean);if(cells.length>=2){const k=cells[0].replace(/:$/,'').trim(),v=cells.slice(1).join(' · ').trim();if(k&&v&&!/^(shape|objectid|fid|gid|id)$/i.test(k))rows.push([k,v]);}}
+ if(!rows.length){const txt=cleanGrafcanValue(doc.body?.textContent||'');if(txt&&!/no results|sin resultados/i.test(txt))rows.push(['Clase',txt]);}
+ const seen=new Set();return rows.filter(([k,v])=>{const s=(k+'|'+v).toLowerCase();if(seen.has(s))return false;seen.add(s);return true}).slice(0,10);
+}
+async function canaryLandUseAt(lat,lon){
+ if(!isCanaryPoint(lat,lon)||typeof activeBase==='undefined'||activeBase!==landCanary)return null;
+ const d=.003,bbox=[lon-d,lat-d,lon+d,lat+d].join(',');
+ const layers=['WMS_MOS'],formats=['text/html','application/json','text/plain'];
+ let lastErr=null;
+ for(const layer of layers){for(const info of formats){try{
+  const q=new URLSearchParams({SERVICE:'WMS',VERSION:'1.1.1',REQUEST:'GetFeatureInfo',LAYERS:layer,QUERY_LAYERS:layer,STYLES:'',SRS:'EPSG:4326',BBOX:bbox,WIDTH:'101',HEIGHT:'101',X:'50',Y:'50',FORMAT:'image/png',INFO_FORMAT:info,FEATURE_COUNT:'8'});
+  const r=await fetch('https://idecan2.grafcan.es/ServicioWMS/MOS?'+q.toString(),{mode:'cors',cache:'no-store'});if(!r.ok)throw Error('GRAFCAN '+r.status);
+  const text=await r.text();
+  if(info==='application/json'){
+   try{const j=JSON.parse(text),f=j?.features?.[0],props=f?.properties;if(props){const rows=Object.entries(props).filter(([k,v])=>v!==null&&v!==''&&!/^(shape|objectid|fid|gid|id)$/i.test(k)).map(([k,v])=>[String(k),String(v)]).slice(0,12);if(rows.length)return rows;}}catch(_){ }
+  }
+  const rows=cleanGrafcanInfoTable(text);if(rows.length)return rows;
+ }catch(e){lastErr=e;}}
+ }
+ if(lastErr)console.warn('Consulta MOS Canarias:',lastErr);
+ return lastErr?{__error:true}:null;
+}
+function canaryLandUseHtml(v){
+ if(typeof activeBase==='undefined'||activeBase!==landCanary)return '';
+ if(!v)return '<hr><b>🟫 Ocupación del suelo · GRAFCAN:</b> sin dato en este punto';
+ if(v.__error)return '<hr><b>🟫 Ocupación del suelo · GRAFCAN:</b> no se pudo consultar la unidad';
+ return '<hr><b>🟫 Ocupación del suelo · GRAFCAN (MOS 2002)</b><br>'+v.map(([k,val])=>'<b>'+escHtml(k)+':</b> '+escHtml(val)).join('<br>');
+}
+async function canaryShadowInfoAt(lat,lon){
+ if(!isCanaryPoint(lat,lon)||typeof activeBase==='undefined'||activeBase!==shadowCanary)return null;
+ const d=.003,bbox=[lon-d,lat-d,lon+d,lat+d].join(',');
+ try{
+  const q=new URLSearchParams({SERVICE:'WMS',VERSION:'1.1.1',REQUEST:'GetFeatureInfo',LAYERS:'WMS_HS',QUERY_LAYERS:'WMS_HS',STYLES:'',SRS:'EPSG:4326',BBOX:bbox,WIDTH:'101',HEIGHT:'101',X:'50',Y:'50',FORMAT:'image/jpeg',INFO_FORMAT:'text/html',FEATURE_COUNT:'4'});
+  const r=await fetch('https://idecan1.grafcan.es/ServicioWMS/MDSombras?'+q.toString(),{mode:'cors',cache:'no-store'});
+  if(!r.ok)throw Error('GRAFCAN '+r.status);
+  const rows=cleanGrafcanInfoTable(await r.text());
+  return rows.length?rows:null;
+ }catch(e){console.warn('Consulta Modelo de Sombras:',e);return {__error:true};}
+}
+function canaryShadowInfoHtml(v){
+ if(typeof activeBase==='undefined'||activeBase!==shadowCanary)return '';
+ if(!v)return '<hr><b>⛰️ Modelo de Sombras · GRAFCAN:</b> sin dato en este punto';
+ if(v.__error)return '<hr><b>⛰️ Modelo de Sombras · GRAFCAN:</b> no se pudo consultar el punto';
+ return '<hr><b>⛰️ Modelo de Sombras · GRAFCAN</b><br>'+v.map(([k,val])=>'<b>'+escHtml(k)+':</b> '+escHtml(val)).join('<br>');
+}
 async function vegetationAt(lat,lon){
  if(isCanaryPoint(lat,lon)){
   const a=document.getElementById('vegetationCheck').checked,p=document.getElementById('vegetationPotentialCanaryCheck').checked;
@@ -5579,16 +6003,16 @@ function adminHtml(a){
  if(document.getElementById('ccaaCheck').checked&&a.ccaa)rows.push('<b>Comunidad autónoma:</b> '+escHtml(a.ccaa));
  return rows.length?'<br>'+rows.join('<br>'):'';
 }
-function pointHtml(lat,lon,title='Punto consultado',altText='Consultando altitud…',geo=null,veg=null,topo=null,adm=null,pending=false,climate=null,biome=null,worldGeo=null){
+function pointHtml(lat,lon,title='Punto consultado',altText='Consultando altitud…',geo=null,veg=null,topo=null,adm=null,pending=false,climate=null,biome=null,worldGeo=null,landUse=null,shadowInfo=null){
  const c=coordsDMS(lat,lon),topoHtml=topo?'<br><b>Topónimo próximo:</b> '+escHtml(topo.name)+(Number.isFinite(topo.dist)?' <small>('+fmtDistance(topo.dist)+')</small>':''):'<br><b>Topónimo próximo:</b> '+(pending?'consultando…':'sin dato');
- return '<b>📍 '+title+'</b>'+topoHtml+adminHtml(adm)+'<br><b>Latitud:</b> '+c.lat+'<br><b>Longitud:</b> '+c.lon+'<br><b>Altitud aprox.:</b> '+altText+(pending&&geologyEnabledAt(lat,lon)?'<hr><b>🪨 Geología:</b> consultando…':geologyHtml(geo))+(pending&&(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked))?'<hr><b>🌿 Vegetación:</b> consultando…':vegetationHtml(veg))+(pending&&document.getElementById('worldGeologyCheck')?.checked?'<hr><b>🪨 Geología mundial · Macrostrat:</b> consultando…':macrostratGeologyHtml(worldGeo))+(pending&&climateEnabledAt(lat,lon)?'<hr><b>🌦️ Clima Köppen-Geiger:</b> consultando…':climateHtml(climate))+(pending&&document.getElementById('worldBiomesCheck')?.checked?'<hr><b>🌿 Bioma terrestre:</b> consultando…':biomeDetailHtml(biome))+'<br><small>IGN/CNIG · CartoCiudad · MDT25/IDEE'+(geologyEnabledAt(lat,lon)?' · IGME-CSIC':'')+(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked)?' · MITECO/GRAFCAN':'')+(document.getElementById('worldGeologyCheck')?.checked?' · Macrostrat':'')+(climateEnabledAt(lat,lon)?' · Beck et al.':'')+'</small>';
+ return '<b>📍 '+title+'</b>'+topoHtml+adminHtml(adm)+'<br><b>Latitud:</b> '+c.lat+'<br><b>Longitud:</b> '+c.lon+'<br><b>Altitud aprox.:</b> '+altText+(pending&&geologyEnabledAt(lat,lon)?'<hr><b>🪨 Geología:</b> consultando…':geologyHtml(geo))+(pending&&(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked))?'<hr><b>🌿 Vegetación:</b> consultando…':vegetationHtml(veg))+(pending&&document.getElementById('worldGeologyCheck')?.checked?'<hr><b>🪨 Geología mundial · Macrostrat:</b> consultando…':macrostratGeologyHtml(worldGeo))+(pending&&climateEnabledAt(lat,lon)?'<hr><b>🌦️ Clima Köppen-Geiger:</b> consultando…':climateHtml(climate))+(pending&&document.getElementById('worldBiomesCheck')?.checked?'<hr><b>🌿 Bioma terrestre:</b> consultando…':biomeDetailHtml(biome))+(pending&&typeof activeBase!=='undefined'&&activeBase===landCanary?'<hr><b>🟫 Ocupación del suelo · GRAFCAN:</b> consultando…':canaryLandUseHtml(landUse)+canaryShadowInfoHtml(shadowInfo))+'<br><small>IGN/CNIG · CartoCiudad · MDT25/IDEE'+(geologyEnabledAt(lat,lon)?' · IGME-CSIC':'')+(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked)?' · MITECO/GRAFCAN':'')+(document.getElementById('worldGeologyCheck')?.checked?' · Macrostrat':'')+(climateEnabledAt(lat,lon)?' · Beck et al.':'')+'</small>';
 }
 let coordMarker=null,coordQuerySeq=0;
 async function showPoint(ll,title='Punto consultado',useMarker=true){
  const seq=++coordQuerySeq,lat=ll.lat,lon=ll.lng,geoOn=geologyEnabledAt(lat,lon),vegOn=['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked),c=coordsDMS(lat,lon);
- const state={z:null,zDone:false,g:null,v:null,t:null,a:null,c:null,b:null,mg:null,h:''};
- const render=()=>{if(seq!==coordQuerySeq)return;const ztxt=state.zDone?(state.z===null?'sin dato':state.z.toLocaleString('es-ES')+' m'):'consultando…';if(useMarker&&coordMarker){coordMarker.setPopupContent(pointHtml(lat,lon,title,ztxt,state.g,state.v,state.t,state.a,false,state.c,state.b,state.mg)+state.h);coordMarker.openPopup();}status((state.t?state.t.name+' · ':'')+c.lat+' · '+c.lon+' · '+ztxt);};
- if(useMarker){if(coordMarker)map.removeLayer(coordMarker);coordMarker=L.circleMarker(ll,{radius:5}).addTo(map);coordMarker.bindPopup(pointHtml(lat,lon,title,'consultando…',null,null,null,null,true,null,null,null)+(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length?'<hr><b>👥 Geografía humana:</b> consultando…':''),{maxWidth:430}).openPopup();}
+ const state={z:null,zDone:false,g:null,v:null,t:null,a:null,c:null,b:null,mg:null,lu:null,shadow:null,h:''};
+ const render=()=>{if(seq!==coordQuerySeq)return;const ztxt=state.zDone?(state.z===null?'sin dato':state.z.toLocaleString('es-ES')+' m'):'consultando…';if(useMarker&&coordMarker){coordMarker.setPopupContent(pointHtml(lat,lon,title,ztxt,state.g,state.v,state.t,state.a,false,state.c,state.b,state.mg,state.lu,state.shadow)+state.h);coordMarker.openPopup();}status((state.t?state.t.name+' · ':'')+c.lat+' · '+c.lon+' · '+ztxt);};
+ if(useMarker){if(coordMarker)map.removeLayer(coordMarker);coordMarker=L.circleMarker(ll,{radius:5}).addTo(map);coordMarker.bindPopup(pointHtml(lat,lon,title,'consultando…',null,null,null,null,true,null,null,null,null,null)+(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length?'<hr><b>👥 Geografía humana:</b> consultando…':''),{maxWidth:430}).openPopup();}
  status(c.lat+' · '+c.lon+' · consultando altitud…');
  // PRIORIDAD 1: elevación. Se lanza antes que cualquier consulta territorial/temática.
  const pz=elevationAt(lat,lon).then(x=>{state.z=x;state.zDone=true;render();return x;}).catch(()=>{state.zDone=true;render();return null;});
@@ -5604,6 +6028,8 @@ async function showPoint(ll,title='Punto consultado',useMarker=true){
   if(document.getElementById('worldGeologyCheck')?.checked){
    macrostratGeologyAt(lat,lon,map.getZoom()).then(x=>{state.mg=x;render();}).catch(()=>{state.mg=null;render();});
   }
+  if(typeof activeBase!=='undefined'&&activeBase===landCanary&&isCanaryPoint(lat,lon)){canaryLandUseAt(lat,lon).then(x=>{state.lu=x;render();}).catch(()=>{state.lu={__error:true};render();});}
+  if(typeof activeBase!=='undefined'&&activeBase===shadowCanary&&isCanaryPoint(lat,lon)){canaryShadowInfoAt(lat,lon).then(x=>{state.shadow=x;render();}).catch(()=>{state.shadow={__error:true};render();});}
   if(profileIsSpainLatLng(ll)){
    if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length){state.h=humanPointHtmlByISO3('ESP');render();}
    nearestToponymAt(lat,lon).then(x=>{state.t=x;render();});
@@ -7729,11 +8155,14 @@ function updateLegend(){
 
  // Fuera de las capas geodemográficas se mantiene la leyenda general del visor.
  // Fondo activo.
- const baseRadio=document.querySelector('input[name=base]:checked');
+ const baseRadio=document.querySelector('input[data-base-choice]:checked');
  if(humanActive){
    h+='<div style="margin-bottom:8px"><b>Fondo temático</b><br>▣ Blanco</div>';
  }else if(baseRadio){
    h+='<div style="margin-bottom:8px"><b>Mapa de fondo</b><br>▣ '+baseRadio.parentElement.textContent.trim()+'</div>';
+   if(baseRadio.dataset.baseChoice==='landCanary'){
+    h+='<div style="margin-bottom:8px"><b>Ocupación del suelo · GRAFCAN</b><br><small>Mapa de Ocupación del Suelo 2002</small><div style="max-height:230px;overflow:auto;margin-top:5px">'+(typeof canaryMosLegendHTML==='function'?canaryMosLegendHTML():'<small>Cargando leyenda…</small>')+'</div></div>';
+   }
  }
 
  // Municipios
@@ -7923,7 +8352,7 @@ worldVectorLabelSource=null,worldVectorLabelCollection=null,worldVectorLabelTile
 globeInfoCartesian=null,globeInfoPostRenderInstalled=false,globeReverseCache=new Map(),
 globeMobileMoveTimer=null,globeMobileMoving=false,globeMobileToponymWasVisible=false;
 function globePickLatLng(pos){if(!globeViewer)return null;const ray=globeViewer.camera.getPickRay(pos);let c=ray?globeViewer.scene.globe.pick(ray,globeViewer.scene):null;if(!c)c=globeViewer.camera.pickEllipsoid(pos,globeViewer.scene.globe.ellipsoid);if(!c)return null;const q=Cesium.Cartographic.fromCartesian(c);return L.latLng(Cesium.Math.toDegrees(q.latitude),Cesium.Math.toDegrees(q.longitude));}
-function globeEntityPoint(ll,color=Cesium.Color.WHITE,idx=null){const e=globeViewer.entities.add({position:Cesium.Cartesian3.fromDegrees(ll.lng,ll.lat,0),point:{pixelSize:idx===null?10:14,color,outlineColor:Cesium.Color.BLACK,outlineWidth:2,disableDepthTestDistance:Number.POSITIVE_INFINITY}});if(idx!==null)e.__profileIndex=idx;return e;}
+function globeEntityPoint(ll,color=Cesium.Color.WHITE,idx=null){const e=globeViewer.entities.add({position:Cesium.Cartesian3.fromDegrees(ll.lng,ll.lat,0),point:{pixelSize:idx===null?10:14,color,outlineColor:Cesium.Color.BLACK,outlineWidth:2,disableDepthTestDistance:0}});if(idx!==null)e.__profileIndex=idx;return e;}
 function globeEntityLine(pts,color=Cesium.Color.CYAN,closed=false){const a=closed&&pts.length>2?[...pts,pts[0]]:pts;return globeViewer.entities.add({polyline:{positions:Cesium.Cartesian3.fromDegreesArray(a.flatMap(p=>[p.lng,p.lat])),width:4,material:color,clampToGround:true,arcType:Cesium.ArcType.GEODESIC}});}
 function redrawGlobeMeasure(){for(const e of globeMeasureEntities)globeViewer.entities.remove(e);globeMeasureEntities=[];for(const p of globeMeasurePts)globeMeasureEntities.push(globeEntityPoint(p,Cesium.Color.WHITE));if(globeMeasurePts.length>1)globeMeasureEntities.push(globeEntityLine(globeMeasurePts,Cesium.Color.CYAN,globeMeasureMode==='area'));let html='<b>Resultado:</b> —';if(globeMeasureMode==='distance'&&globeMeasurePts.length>1)html='<b>Distancia:</b> '+fmtDistance(measurePerimeter(globeMeasurePts,false));if(globeMeasureMode==='area'&&globeMeasurePts.length>2)html='<b>Superficie:</b> '+fmtArea(geodesicArea(globeMeasurePts))+' &nbsp;·&nbsp; <b>Perímetro:</b> '+fmtDistance(measurePerimeter(globeMeasurePts,true));document.getElementById('measureResult').innerHTML=html;globeViewer.scene.requestRender();}
 function startGlobeMeasure(mode){globeProfileMode=false;globeMeasureMode=mode;globeMeasurePts=[];clearGlobeMeasure(false);document.querySelectorAll('.panel').forEach(p=>{if(p.id!=='measurePanel')p.classList.add('hidden')});document.getElementById('measurePanel').classList.remove('hidden');document.getElementById('measureResult').innerHTML='<b>Resultado:</b> —';status('Medición sobre globo');}
@@ -8577,7 +9006,8 @@ async function toggleCountryLabels(on){
       horizontalOrigin:Cesium.HorizontalOrigin.CENTER,
       verticalOrigin:Cesium.VerticalOrigin.CENTER,
       distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,maxDist*1.45),
-      scaleByDistance:new Cesium.NearFarScalar(600000,1.12,maxDist*1.45,.78)
+      scaleByDistance:new Cesium.NearFarScalar(600000,1.12,maxDist*1.45,.78),
+      disableDepthTestDistance:0
      }
     });
    }
@@ -8994,7 +9424,7 @@ async function toggleCountriesLayer(on){
    for(const f of data.features||[])addBorderGeometry(ds,f.geometry);
    countriesSource=ds;
    await globeViewer.dataSources.add(ds);
-   globeViewer.scene.globe.depthTestAgainstTerrain=false;
+   globeViewer.scene.globe.depthTestAgainstTerrain=true;
    globeViewer.scene.requestRender();
    status('Fronteras internacionales · Natural Earth 1:10 M');
   }catch(e){
@@ -9238,6 +9668,26 @@ async function ensureGlobe(){
   loadCssOnce(base+'Widgets/widgets.css');await loadScriptOnce(base+'Cesium.js');
   globeTerrainProvider=null;
   globeViewer=new Cesium.Viewer('globe',{animation:false,timeline:false,baseLayerPicker:false,geocoder:false,homeButton:true,sceneModePicker:false,navigationHelpButton:false,fullscreenButton:false,infoBox:false,selectionIndicator:false,baseLayer:false});
+  // INVARIANTE ANAMBRO: el globo siempre ocluye geometrías, marcadores y etiquetas del hemisferio oculto.
+  globeViewer.scene.globe.depthTestAgainstTerrain=true;
+  if(!globeViewer.__anambroOcclusionGuard){
+   const forceEntityOcclusion=e=>{
+    try{if(e?.label)e.label.disableDepthTestDistance=0;}catch(_e){}
+    try{if(e?.point)e.point.disableDepthTestDistance=0;}catch(_e){}
+    try{if(e?.billboard)e.billboard.disableDepthTestDistance=0;}catch(_e){}
+   };
+   const guardCollection=entities=>{
+    if(!entities||entities.__anambroOcclusionGuard)return;
+    try{for(const e of entities.values||[])forceEntityOcclusion(e);}catch(_e){}
+    try{entities.collectionChanged.addEventListener((_c,added)=>{for(const e of added||[])forceEntityOcclusion(e);});}catch(_e){}
+    entities.__anambroOcclusionGuard=true;
+   };
+   guardCollection(globeViewer.entities);
+   try{for(let i=0;i<globeViewer.dataSources.length;i++)guardCollection(globeViewer.dataSources.get(i)?.entities);}catch(_e){}
+   try{globeViewer.dataSources.dataSourceAdded.addEventListener((_collection,ds)=>guardCollection(ds?.entities));}catch(_e){}
+   globeViewer.scene.preRender.addEventListener(()=>{if(globeViewer?.scene?.globe&&globeViewer.scene.globe.depthTestAgainstTerrain!==true)globeViewer.scene.globe.depthTestAgainstTerrain=true;});
+   globeViewer.__anambroOcclusionGuard=true;
+  }
   // Imagen satelital mundial: PNOA es excelente para España, pero no sirve como fondo planetario.
   const sat=new Cesium.UrlTemplateImageryProvider({
    url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false',
@@ -9263,7 +9713,8 @@ async function ensureGlobe(){
     backgroundColor:Cesium.Color.BLACK.withAlpha(.45),
     pixelOffset:opts.pixelOffset||new Cesium.Cartesian2(8,-4),
     horizontalOrigin:opts.horizontalOrigin||Cesium.HorizontalOrigin.LEFT,
-    verticalOrigin:opts.verticalOrigin||Cesium.VerticalOrigin.CENTER
+    verticalOrigin:opts.verticalOrigin||Cesium.VerticalOrigin.CENTER,
+    disableDepthTestDistance:0
    }
   });
   const mkSpecialParallel=(lat,label,color,dashLength=16)=>{
@@ -13096,6 +13547,287 @@ html body .historyPopup .leaflet-popup-close-button{
   }
   // Por si alguna ficha ya estaba abierta cuando se evaluó este bloque.
   document.querySelectorAll('.leaflet-popup.historyPopup').forEach(initHistoryPopupDrag);
+})();
+</script>
+
+
+
+<script id="anambro-v09-header-editor">
+(()=>{
+ 'use strict';
+ const KEY='anambro.header.layout.v09';
+ const DEFAULT_LAYOUT={"version":3,"height":118,"items":{"iesLogo":{"left":11,"top":11,"width":78,"height":77,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16},"iesText":{"left":93,"top":14,"width":124,"height":91,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16,"html":"\n        <div class=\"brandDept\"><b>IES ADEJE</b>&nbsp;Curso 2026-2027</div>\n        <div class=\"brandVersion\">Versión 0.9 · aula interactiva</div>\n      "},"portrait":{"left":229,"top":11,"width":93,"height":81,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16},"authorText":{"left":328,"top":11,"width":242,"height":88,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":15,"html":"\n        <div class=\"brandTeacher\">Aarón Rodríguez González&nbsp;</div><div class=\"brandTeacher\"><span class=\"brandGeo\">Geógrafo</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Profesor de Geografía e Historia</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Coordinador de Patrimonio&nbsp;</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Natural,&nbsp;</span><span style=\"white-space: normal\"><span style=\"color: rgb(66, 98, 123);\">Cultural y Social Canario.</span></span></div><div class=\"brandProfessional\"><br><span><br></span></div>\n      "},"anambroLogo":{"left":578,"top":5,"width":452,"height":108,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":27},"descriptor":{"left":1040,"top":17,"width":392,"height":25,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16,"html":"\n    <div class=\"brandDescriptor\">SIG web para el análisis territorial y la cartografía temática 2D/3D</div>\n  "},"roles":{"left":1044,"top":55,"width":390,"height":48,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":8.8,"html":"<b>Cartografía base y temática · consulta espacial · series temporales · perfiles · geodemografía · leyendas dinámicas · exportación de&nbsp; mapas-historia-animaciones explicativas</b>"},"actions":{"left":1456,"top":24,"width":132,"height":54,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16}}};
+ const defs=[
+  ['iesLogo','.brandInstituteLogoV06','Logo IES','image'],['iesText','.brandLeftText','Texto IES','text'],
+  ['portrait','.brandAuthorPortraitV06','Retrato','image'],['authorText','.brandAuthorTextV06','Datos del autor','text'],
+  ['anambroLogo','.brandTitleTop','Logo ANAMBRO','imagebox'],['descriptor','.brandCenter','Descriptor','text'],
+  ['roles','.brandRoles','Funciones','text'],['actions','.brandActions','Botones','box']
+ ];
+ const brand=()=>document.querySelector('.brandV06'),bar=()=>document.getElementById('headerEditorBar'),ins=()=>document.getElementById('headerEditorInspector');
+ let editing=false,snapshot=null,selected=null,zseq=20,lastSelection=null;
+ const frames=new Map();
+ function toast(t){const e=document.getElementById('headerEditorToast');if(!e)return;e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1500)}
+ function ensureFrames(){
+  for(const [key,sel,label,type] of defs){let target=document.querySelector('.brandV06 '+sel);if(!target)continue;let f=target.closest('.headerEditFrame');if(!f){f=document.createElement('div');f.className='headerEditFrame '+(type==='text'?'textFrame ':type==='image'||type==='imagebox'?'mediaFrame ':type==='box'?'boxFrame ':'')+'headerFrame-'+key;f.dataset.key=key;f.dataset.label=label;f.dataset.type=type;target.parentNode.insertBefore(f,target);f.appendChild(target);target.classList.add('headerEditableTarget');if(type==='text'&&!target.dataset.headerOriginalHtml)target.dataset.headerOriginalHtml=target.innerHTML;for(const d of ['nw','n','ne','e','se','s','sw','w']){const h=document.createElement('i');h.className='headerResizeHandle';h.dataset.dir=d;f.appendChild(h)}}frames.set(key,f)}
+ }
+ function rectData(f){const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect();return {left:Math.round(r.left-b.left),top:Math.round(r.top-b.top),width:Math.round(r.width),height:Math.round(r.height),z:+(f.style.zIndex||1)}}
+ function textStyleData(t){const cs=getComputedStyle(t);return {fontFamily:t.style.fontFamily||cs.fontFamily||'',color:t.style.color||cs.color||'',textAlign:t.style.textAlign||cs.textAlign||'left',fontWeight:t.style.fontWeight||cs.fontWeight||'400',fontStyle:t.style.fontStyle||cs.fontStyle||'normal',textDecoration:t.style.textDecoration||cs.textDecorationLine||'none',lineHeight:t.style.lineHeight||cs.lineHeight||'normal',letterSpacing:t.style.letterSpacing||cs.letterSpacing||'normal'}}
+ function readLayout(){const data={version:3,height:Math.round(brand().getBoundingClientRect().height),items:{}};for(const [key] of defs){const f=frames.get(key);if(!f)continue;const v=rectData(f);v.fit=f.style.getPropertyValue('--he-fit')||'contain';v.zoom=parseFloat(f.style.getPropertyValue('--he-zoom'))||1;v.posx=parseFloat(f.style.getPropertyValue('--he-posx'))||50;v.posy=parseFloat(f.style.getPropertyValue('--he-posy'))||50;const t=f.querySelector('.headerEditableTarget');v.font=parseFloat(t?.style.fontSize)||parseFloat(getComputedStyle(t).fontSize)||null;if(f.dataset.type==='text'){v.html=t.innerHTML;Object.assign(v,textStyleData(t))}data.items[key]=v}return data}
+ function applyTextStyle(t,v){if(!t||!v)return;if(v.font)t.style.fontSize=v.font+'px';for(const [k,p] of [['fontFamily','font-family'],['color','color'],['textAlign','text-align'],['fontWeight','font-weight'],['fontStyle','font-style'],['textDecoration','text-decoration'],['lineHeight','line-height'],['letterSpacing','letter-spacing']]){if(v[k])t.style.setProperty(p,String(v[k]))}}
+ function applyLayout(data){if(!data?.items||window.innerWidth<=760)return;const b=brand();b.classList.add('header-free-layout');if(data.height)b.style.height=Math.max(76,+data.height)+'px';for(const [key] of defs){const f=frames.get(key),v=data.items[key];if(!f||!v)continue;Object.assign(f.style,{left:(+v.left||0)+'px',top:(+v.top||0)+'px',width:Math.max(20,+v.width||20)+'px',height:Math.max(16,+v.height||16)+'px',zIndex:String(v.z||1)});f.style.setProperty('--he-fit',v.fit||'contain');f.style.setProperty('--he-zoom',v.zoom||1);f.style.setProperty('--he-posx',(v.posx??50)+'%');f.style.setProperty('--he-posy',(v.posy??50)+'%');const t=f.querySelector('.headerEditableTarget');applyTextStyle(t,v);if(f.dataset.type==='text'&&typeof v.html==='string')t.innerHTML=v.html}}
+ function clearLayout(){const b=brand();b.classList.remove('header-free-layout','header-editing');b.style.removeProperty('height');for(const f of frames.values()){f.classList.remove('selected','textEditing');for(const p of ['left','top','width','height','z-index','--he-fit','--he-zoom','--he-posx','--he-posy'])f.style.removeProperty(p);const t=f.querySelector('.headerEditableTarget');if(t){for(const p of ['font-size','font-family','color','text-align','font-weight','font-style','text-decoration','line-height','letter-spacing'])t.style.removeProperty(p);t.removeAttribute('contenteditable')}}}
+ function selectionInside(t){const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return false;const r=s.getRangeAt(0),a=r.commonAncestorContainer;return t===a||t.contains(a.nodeType===1?a:a.parentElement)}
+ function rememberSelection(){const t=selected?.querySelector('.headerEditableTarget'),s=window.getSelection();if(t&&s?.rangeCount&&selectionInside(t))lastSelection=s.getRangeAt(0).cloneRange()}
+ function restoreSelection(){if(!lastSelection)return false;const s=window.getSelection();try{s.removeAllRanges();s.addRange(lastSelection);return true}catch(_){return false}}
+ function selectFrame(f){if(!editing||!f)return;for(const x of frames.values())x.classList.toggle('selected',x===f);selected=f;lastSelection=null;syncInspector();ins()?.classList.add('open');ins()?.setAttribute('aria-hidden','false')}
+ function syncInspector(){if(!selected)return;const v=rectData(selected),$=id=>document.getElementById(id);$('heiTitle').textContent=selected.dataset.label||'Elemento';$('heiX').value=v.left;$('heiY').value=v.top;$('heiW').value=v.width;$('heiH').value=v.height;const t=selected.querySelector('.headerEditableTarget'),isText=selected.dataset.type==='text',isImage=selected.dataset.type==='image'||selected.dataset.type==='imagebox';$('heiTextTools').style.display=isText?'grid':'none';$('heiImageTools').style.display=isImage?'grid':'none';if(isText){const cs=getComputedStyle(t);$('heiFont').value=parseFloat(t.style.fontSize)||parseFloat(cs.fontSize)||11;const fam=(t.style.fontFamily||cs.fontFamily||'Montserrat').replace(/["']/g,'');$('heiFontFamily').value=[...$('heiFontFamily').options].some(o=>fam.toLowerCase().includes(o.value.toLowerCase()))?[...$('heiFontFamily').options].find(o=>fam.toLowerCase().includes(o.value.toLowerCase())).value:'Montserrat';try{$('heiTextColor').value=rgbToHex(cs.color)}catch(_){};$('heiLineHeight').value=parseFloat(cs.lineHeight)/Math.max(1,parseFloat(cs.fontSize))||1.15;$('heiLetterSpacing').value=parseFloat(cs.letterSpacing)||0}if(isImage){$('heiFit').value=selected.style.getPropertyValue('--he-fit')||'contain';$('heiZoom').value=parseFloat(selected.style.getPropertyValue('--he-zoom'))||1;$('heiImgX').value=parseFloat(selected.style.getPropertyValue('--he-posx'))||50;$('heiImgY').value=parseFloat(selected.style.getPropertyValue('--he-posy'))||50}}
+ function rgbToHex(c){const m=String(c).match(/\d+(?:\.\d+)?/g);if(!m||m.length<3)return '#17324d';return '#'+m.slice(0,3).map(x=>Math.max(0,Math.min(255,Math.round(+x))).toString(16).padStart(2,'0')).join('')}
+ function setGeom(){if(!selected)return;const b=brand().getBoundingClientRect(),$=id=>+document.getElementById(id).value;let x=Math.max(0,$('heiX')),y=Math.max(0,$('heiY')),w=Math.max(20,$('heiW')),h=Math.max(16,$('heiH'));x=Math.min(x,Math.max(0,b.width-w));y=Math.min(y,Math.max(0,b.height-h));Object.assign(selected.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'})}
+ function beginTextEdit(){if(!selected||selected.dataset.type!=='text')return;const t=selected.querySelector('.headerEditableTarget');selected.classList.add('textEditing');t.setAttribute('contenteditable','true');t.focus();const r=document.createRange();r.selectNodeContents(t);const s=window.getSelection();s.removeAllRanges();s.addRange(r);rememberSelection()}
+ function endTextEdit(f){if(!f)return;f.classList.remove('textEditing');f.querySelector('.headerEditableTarget')?.removeAttribute('contenteditable');lastSelection=null}
+ function applyTextCommand(cmd,value,wholeStyle){if(!selected||selected.dataset.type!=='text')return;const t=selected.querySelector('.headerEditableTarget'),had=selectionInside(t)||restoreSelection();if(had){t.setAttribute('contenteditable','true');t.focus();restoreSelection();try{document.execCommand(cmd,false,value)}catch(_){}rememberSelection();return}if(wholeStyle)wholeStyle(t)}
+ function dragStart(ev,f){if(!editing||ev.button!==0||ev.target.classList.contains('headerResizeHandle')||f.classList.contains('textEditing'))return;selectFrame(f);const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect(),sx=ev.clientX,sy=ev.clientY,sl=r.left-b.left,st=r.top-b.top;ev.preventDefault();try{f.setPointerCapture(ev.pointerId)}catch(_){};const mv=e=>{let l=sl+e.clientX-sx,t=st+e.clientY-sy;l=Math.max(0,Math.min(l,b.width-r.width));t=Math.max(0,Math.min(t,b.height-r.height));f.style.left=Math.round(l)+'px';f.style.top=Math.round(t)+'px';syncInspector()};const up=e=>{f.removeEventListener('pointermove',mv);f.removeEventListener('pointerup',up);f.removeEventListener('pointercancel',up);try{f.releasePointerCapture(e.pointerId)}catch(_){}};f.addEventListener('pointermove',mv);f.addEventListener('pointerup',up);f.addEventListener('pointercancel',up)}
+ function resizeStart(ev,f,dir){if(!editing)return;selectFrame(f);const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect(),sx=ev.clientX,sy=ev.clientY,x0=r.left-b.left,y0=r.top-b.top,w0=r.width,h0=r.height;ev.preventDefault();ev.stopPropagation();const h=ev.currentTarget;try{h.setPointerCapture(ev.pointerId)}catch(_){};const mv=e=>{let dx=e.clientX-sx,dy=e.clientY-sy,x=x0,y=y0,w=w0,hg=h0;if(dir.includes('e'))w=w0+dx;if(dir.includes('s'))hg=h0+dy;if(dir.includes('w')){w=w0-dx;x=x0+dx}if(dir.includes('n')){hg=h0-dy;y=y0+dy}w=Math.max(20,w);hg=Math.max(16,hg);x=Math.max(0,Math.min(x,b.width-w));y=Math.max(0,Math.min(y,b.height-hg));Object.assign(f.style,{left:Math.round(x)+'px',top:Math.round(y)+'px',width:Math.round(w)+'px',height:Math.round(hg)+'px'});syncInspector()};const up=e=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);try{h.releasePointerCapture(e.pointerId)}catch(_){}};h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}
+ function wire(){for(const f of frames.values()){if(f.dataset.wired)return;f.dataset.wired='1';f.addEventListener('pointerdown',e=>dragStart(e,f));f.addEventListener('click',e=>{if(editing){e.stopPropagation();selectFrame(f)}});f.addEventListener('dblclick',e=>{if(editing&&f.dataset.type==='text'){e.preventDefault();e.stopPropagation();selectFrame(f);beginTextEdit()}});const t=f.querySelector('.headerEditableTarget');t?.addEventListener('mouseup',rememberSelection);t?.addEventListener('keyup',rememberSelection);t?.addEventListener('blur',()=>{if(!ins()?.contains(document.activeElement))endTextEdit(f)});f.querySelectorAll('.headerResizeHandle').forEach(h=>h.addEventListener('pointerdown',e=>resizeStart(e,f,h.dataset.dir)))}}
+ function open(){if(window.innerWidth<=760){alert('El editor visual de cabecera está disponible en escritorio.');return}ensureFrames();wire();const b=brand();snapshot=readLayout();b.classList.add('header-editing');editing=true;bar()?.classList.add('open');bar()?.setAttribute('aria-hidden','false');toast('Cabecera desbloqueada: arrastra, redimensiona y formatea')}
+ function closeEdit(){editing=false;for(const f of frames.values()){f.classList.remove('selected');endTextEdit(f)}selected=null;brand()?.classList.remove('header-editing');bar()?.classList.remove('open');bar()?.setAttribute('aria-hidden','true');ins()?.classList.remove('open');ins()?.setAttribute('aria-hidden','true')}
+ function save(){const d=readLayout();localStorage.setItem(KEY,JSON.stringify(d));closeEdit();toast('Diseño, textos y formato guardados')}
+ function cancel(){if(snapshot){clearLayout();applyLayout(snapshot)}closeEdit();toast('Cambios descartados')}
+ function reset(){localStorage.removeItem(KEY);clearLayout();applyLayout(DEFAULT_LAYOUT);closeEdit();toast('Cabecera restablecida al diseño que exportaste')}
+ function exportJSON(){const d=readLayout();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));a.download='ANAMBRO_cabecera_v09.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1200)}
+ function importFile(file){if(!file)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d?.items)throw new Error('Formato incorrecto');ensureFrames();clearLayout();applyLayout(d);localStorage.setItem(KEY,JSON.stringify(d));toast('Diseño importado')}catch(e){alert('No se pudo importar: '+e.message)}};rd.readAsText(file)}
+ ensureFrames();wire();
+ const $=id=>document.getElementById(id);
+ ['heiX','heiY','heiW','heiH'].forEach(id=>$(id)?.addEventListener('input',setGeom));
+ $('heiFont')?.addEventListener('input',e=>{if(selected)selected.querySelector('.headerEditableTarget').style.fontSize=e.target.value+'px'});
+ $('heiFontFamily')?.addEventListener('change',e=>applyTextCommand('fontName',e.target.value,t=>t.style.fontFamily=e.target.value));
+ $('heiTextColor')?.addEventListener('input',e=>applyTextCommand('foreColor',e.target.value,t=>t.style.color=e.target.value));
+ $('heiBold')?.addEventListener('mousedown',e=>e.preventDefault());$('heiItalic')?.addEventListener('mousedown',e=>e.preventDefault());$('heiUnderline')?.addEventListener('mousedown',e=>e.preventDefault());
+ $('heiBold')?.addEventListener('click',()=>applyTextCommand('bold',null,t=>t.style.fontWeight=(parseInt(getComputedStyle(t).fontWeight)>=600?'400':'700')));
+ $('heiItalic')?.addEventListener('click',()=>applyTextCommand('italic',null,t=>t.style.fontStyle=(getComputedStyle(t).fontStyle==='italic'?'normal':'italic')));
+ $('heiUnderline')?.addEventListener('click',()=>applyTextCommand('underline',null,t=>t.style.textDecoration=(getComputedStyle(t).textDecorationLine.includes('underline')?'none':'underline')));
+ $('heiAlignLeft')?.addEventListener('click',()=>{if(selected)selected.querySelector('.headerEditableTarget').style.textAlign='left'});$('heiAlignCenter')?.addEventListener('click',()=>{if(selected)selected.querySelector('.headerEditableTarget').style.textAlign='center'});$('heiAlignRight')?.addEventListener('click',()=>{if(selected)selected.querySelector('.headerEditableTarget').style.textAlign='right'});
+ $('heiLineHeight')?.addEventListener('input',e=>{if(selected)selected.querySelector('.headerEditableTarget').style.lineHeight=e.target.value});$('heiLetterSpacing')?.addEventListener('input',e=>{if(selected)selected.querySelector('.headerEditableTarget').style.letterSpacing=e.target.value+'px'});
+ $('heiFit')?.addEventListener('change',e=>selected?.style.setProperty('--he-fit',e.target.value));$('heiZoom')?.addEventListener('input',e=>selected?.style.setProperty('--he-zoom',e.target.value));$('heiImgX')?.addEventListener('input',e=>selected?.style.setProperty('--he-posx',e.target.value+'%'));$('heiImgY')?.addEventListener('input',e=>selected?.style.setProperty('--he-posy',e.target.value+'%'));
+ $('heiEditText')?.addEventListener('click',beginTextEdit);$('heiFront')?.addEventListener('click',()=>{if(selected){selected.style.zIndex=String(++zseq)}});$('heiBack')?.addEventListener('click',()=>{if(selected){selected.style.zIndex='1'}});$('heiClose')?.addEventListener('click',()=>ins()?.classList.remove('open'));
+ $('headerEditorSave')?.addEventListener('click',save);$('headerEditorCancel')?.addEventListener('click',cancel);$('headerEditorReset')?.addEventListener('click',reset);$('headerEditorExport')?.addEventListener('click',exportJSON);$('headerEditorImport')?.addEventListener('click',()=>$('headerEditorFile')?.click());$('headerEditorFile')?.addEventListener('change',e=>{importFile(e.target.files?.[0]);e.target.value=''});
+ const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(_){return null}})();requestAnimationFrame(()=>applyLayout(saved||DEFAULT_LAYOUT));
+ window.addEventListener('resize',()=>{if(window.innerWidth<=760&&editing)closeEdit()});
+ window.anambroHeaderEditor={open,save,reset,export:exportJSON};
+})();
+</script>
+
+<script id="anambro-v03-aula-politico-runtime">
+(function(){
+ 'use strict';
+ // ---------- Biblioteca de explicaciones / animaciones ----------
+ window.openAnambroExplanation=function(url,title){closePanels();const ov=document.getElementById('explanationOverlay'),fr=document.getElementById('explanationFrame');document.getElementById('explanationTitle').textContent=title||'Explicación ANAMBRO';if(fr.getAttribute('src')!==url)fr.setAttribute('src',url);ov.classList.add('open');ov.setAttribute('aria-hidden','false');};
+ window.closeAnambroExplanation=function(){const ov=document.getElementById('explanationOverlay');ov.classList.remove('open');ov.setAttribute('aria-hidden','true');};
+ document.getElementById('explanationOverlay')?.addEventListener('click',e=>{if(e.target.id==='explanationOverlay')closeAnambroExplanation();});
+ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('explanationOverlay')?.classList.contains('open'))closeAnambroExplanation();});
+
+ // ---------- Editor de mapas políticos / mudos v0.5 ----------
+ const POLITICAL_URLS={
+  'canary-municipalities':['https://datos.canarias.es/catalogos/estadisticas/dataset/6dd8baf4-14f4-43a3-88b2-984d034c965c/resource/d31b5422-df3b-4eae-b0eb-b4acbecb8ef0/download/municipios_desde2007_generalizada_20170101.json','https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios.geojson','https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios-generalizados.geojson','data/admin/municipios-canarias.geojson'],
+  'spain-provinces':['https://mapas.fomento.gob.es/arcgis/rest/services/SIU/ENTIDADES_TERRITORIALES_EGRN/MapServer/2/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&outSR=4326','https://raw.githubusercontent.com/codeforgermany/click_that_hood/refs/heads/main/public/data/spain-provinces.geojson'],
+  'spain-ccaa':['https://mapas.fomento.gob.es/arcgis/rest/services/SIU/ENTIDADES_TERRITORIALES_EGRN/MapServer/1/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&outSR=4326','https://raw.githubusercontent.com/codeforgermany/click_that_hood/refs/heads/main/public/data/spain-communities.geojson'],
+  'europe-countries':['https://gisco-services.ec.europa.eu/distribution/v2/countries/geojson/CNTR_RG_10M_2024_4326.geojson','https://gisco-services.ec.europa.eu/distribution/v2/countries/geojson/CNTR_RG_20M_2024_4326.geojson']
+ };
+ const POLITICAL_SCOPE_META={
+  'canary-municipalities':{title:'Municipios de Canarias',source:'GRAFCAN / SITCAN',bounds:[[27.45,-18.25],[29.50,-13.20]]},
+  'spain-provinces':{title:'Provincias de España',source:'Administración General del Estado / SIU',bounds:[[27.3,-18.4],[44.5,5.0]]},
+  'spain-ccaa':{title:'Comunidades autónomas de España',source:'Administración General del Estado / SIU',bounds:[[27.3,-18.4],[44.5,5.0]]},
+  'europe-countries':{title:'Países de Europa',source:'Eurostat GISCO 2024',bounds:[[31,-25],[72,50]]},
+  'historical-polities':{title:'Entidades políticas históricas',source:'Cliopatria · Seshat Global History Databank',bounds:null}
+ };
+ const EUROPE_CODES=new Set('AL AD AM AT AZ BE BA BG BY CH CY CZ DE DK EE ES FI FR GB GE GR HR HU IE IS IT LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS RU SE SI SK SM TR UA VA XK'.split(' '));
+ const COUNTRY_ES={AL:'Albania',AD:'Andorra',AM:'Armenia',AT:'Austria',AZ:'Azerbaiyán',BE:'Bélgica',BA:'Bosnia y Herzegovina',BG:'Bulgaria',BY:'Bielorrusia',CH:'Suiza',CY:'Chipre',CZ:'Chequia',DE:'Alemania',DK:'Dinamarca',EE:'Estonia',ES:'España',FI:'Finlandia',FR:'Francia',GB:'Reino Unido',GE:'Georgia',GR:'Grecia',HR:'Croacia',HU:'Hungría',IE:'Irlanda',IS:'Islandia',IT:'Italia',LI:'Liechtenstein',LT:'Lituania',LU:'Luxemburgo',LV:'Letonia',MC:'Mónaco',MD:'Moldavia',ME:'Montenegro',MK:'Macedonia del Norte',MT:'Malta',NL:'Países Bajos',NO:'Noruega',PL:'Polonia',PT:'Portugal',RO:'Rumanía',RS:'Serbia',RU:'Rusia',SE:'Suecia',SI:'Eslovenia',SK:'Eslovaquia',SM:'San Marino',TR:'Turquía',UA:'Ucrania',VA:'Ciudad del Vaticano',XK:'Kosovo'};
+ const POLITICAL_PALETTE=['#f4d35e','#8ecae6','#f7a072','#9cc27c','#b7bdf5','#ef9aa8','#8bd3c7','#c5a3d8','#ffd166','#a7d8de','#dced91','#ffb3a7'];
+ let politicalLayer=null,politicalBathy=null,politicalPhysicalBase=null,politicalLabels=L.layerGroup(),politicalLeaders=L.layerGroup(),politicalDataCache=new Map();
+ let politicalActive=false,politicalSelected=null,politicalCurrentScope='canary-municipalities',politicalHistoryAutoEnabled=false,politicalHistoryWasVisible=false,politicalViewSnapshot=null,politicalCanaryDefaultsApplied=false;
+ const politicalOverrides=new Map(),politicalLabelOverrides=new Map(),politicalLabelRefs=new Map();
+
+ function pEl(id){return document.getElementById(id)}
+ function politicalEnsurePanes(){const defs=[['politicalBathyPane',245],['politicalBasePane',255],['politicalAdminPane',760],['politicalLeaderPane',780],['politicalLabelPane',790]];for(const [name,z] of defs){if(!map.getPane(name)){const p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents=(name==='politicalAdminPane'||name==='politicalLabelPane')?'auto':'none';}}}
+ function politicalSetStatus(t){const e=pEl('politicalStatus');if(e)e.textContent=t;status(t);}
+ function politicalName(f,i=0){const p=f?.properties||{};const code=String(p.CNTR_ID||p.ISO2_CODE||p.ISO_A2||p.iso_a2||'').toUpperCase();if(code&&COUNTRY_ES[code])return COUNTRY_ES[code];const n=p.__name_popup_es||p.__name_es||p.__name||p.etiqueta||p.ETIQUETA||p.NAMEUNIT||p.NAME_1||p.NAME_2||p.NAME||p.name||p.Text||p.NOMBRE||p.nombre||p.DENOMINACION||p.nom_prov||p.nom_ccaa||p.NAME_LATN;return n?String(n):politicalCurrentScope==='canary-municipalities'?'':('Unidad '+(i+1));}
+ function politicalCode(f,i=0){const p=f?.properties||{};return String(p.CNTR_ID||p.ISO2_CODE||p.ISO_A2||p.iso_a2||p.cod_prov||p.cod_ccaa||p.NATCODE||p.CODNUT2||p.CODNUT3||p.GEOCODE||p.CODIGO||p.codigo||p.__seshat||p.__name||politicalName(f,i)||i);}
+ function politicalKey(f,i=0){const scopeKey=politicalCurrentScope==='historical-polities'&&typeof historyYear!=='undefined'?politicalCurrentScope+'@'+historyYear:politicalCurrentScope;return scopeKey+'::'+politicalCode(f,i);}
+ function politicalHash(s){let h=2166136261;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+ function politicalBaseColor(f,i){const key=politicalKey(f,i),ov=politicalOverrides.get(key);if(ov?.fillColor)return ov.fillColor;const mode=pEl('politicalFillMode')?.value||'auto';if(mode==='blank')return '#ffffff';if(mode==='uniform')return pEl('politicalUniformColor')?.value||'#e8edf1';return POLITICAL_PALETTE[politicalHash(politicalCode(f,i))%POLITICAL_PALETTE.length];}
+ function politicalStyle(f,i=0){const key=politicalKey(f,i),ov=politicalOverrides.get(key)||{},fillOn=pEl('politicalFillCheck')?.checked!==false,strokeOn=pEl('politicalStrokeCheck')?.checked!==false;return {pane:'politicalAdminPane',color:ov.strokeColor||pEl('politicalStrokeColor')?.value||'#263746',weight:strokeOn?+(pEl('politicalStrokeWidth')?.value||1.6):0,opacity:strokeOn?+(pEl('politicalStrokeOpacity')?.value||.95):0,fillColor:politicalBaseColor(f,i),fillOpacity:fillOn?+(pEl('politicalFillOpacity')?.value||.42):0,lineJoin:'round',lineCap:'round'};}
+ async function politicalFetch(urls){let err;for(const u of urls||[]){try{const r=await fetch(u,{cache:'force-cache'});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d?.type==='FeatureCollection'&&Array.isArray(d.features)&&d.features.length)return d;throw new Error('GeoJSON vacío');}catch(e){err=e;console.warn('Fuente territorial',u,e);}}throw err||new Error('Sin fuente disponible');}
+ async function waitHistoricalData(){
+  const cb=pEl('worldHistoryCheck');
+  politicalHistoryWasVisible=!!cb?.checked;
+  const finish=(fc)=>{try{if(typeof setHistoryVisible==='function')setHistoryVisible(false);if(cb)cb.checked=false;}catch(e){}return fc;};
+  if(typeof historyCurrentFC!=='undefined'&&historyCurrentFC?.features?.length)return finish(historyCurrentFC);
+  if(cb&&!cb.checked){politicalHistoryAutoEnabled=true;cb.checked=true;if(typeof setHistoryVisible==='function')setHistoryVisible(true);}else if(typeof makeHistoryWorker==='function')makeHistoryWorker();
+  if(typeof requestHistoryYear==='function')requestHistoryYear(typeof historyYear!=='undefined'?historyYear:1492,true);
+  const t0=Date.now();while(Date.now()-t0<45000){if(typeof historyCurrentFC!=='undefined'&&historyCurrentFC?.features?.length)return finish(historyCurrentFC);await new Promise(r=>setTimeout(r,250));}
+  throw new Error('La cartografía histórica todavía no está disponible. Activa la capa histórica y espera a que termine de cargar.');
+ }
+ async function enrichCanaryMunicipalityNames(fc){
+  if(!fc?.features?.length)return fc;
+  const hasName=f=>{const p=f?.properties||{};return !!(p.etiqueta||p.NOMBRE||p.nombre||p.NAME||p.name||p.DENOMINACION||p.__name)};
+  if(fc.features.filter(hasName).length>=80)return fc;
+  try{
+   const url='https://datos.canarias.es/catalogos/estadisticas/dataset/6dd8baf4-14f4-43a3-88b2-984d034c965c/resource/74237bc8-1e5f-43f1-9f6b-24ef9e073903/download/municipios_desde2007_20170101.csv';
+   const r=await fetch(url,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('ISTAC '+r.status);
+   const text=await r.text(),lines=text.split(/\r?\n/).filter(Boolean);if(lines.length<2)return fc;
+   const parse=line=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='\"'){if(q&&line[i+1]==='\"'){cur+='\"';i++;}else q=!q;}else if((c===';'||c===',')&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out.map(x=>x.trim())};
+   // Detectar delimitador por la cabecera, sin asumir el formato de exportación del portal.
+   const semi=(lines[0].match(/;/g)||[]).length,comma=(lines[0].match(/,/g)||[]).length,delim=semi>comma?';':',';
+   const parseD=line=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='\"'){if(q&&line[i+1]==='\"'){cur+='\"';i++;}else q=!q;}else if(c===delim&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out.map(x=>x.trim())};
+   const h=parseD(lines[0]).map(x=>x.replace(/^\ufeff/,'').toLowerCase()),idx=n=>h.indexOf(n);
+   const ie=idx('etiqueta'),ila=idx('latitud'),ilo=idx('longitud');if(ie<0||ila<0||ilo<0)return fc;
+   const refs=[];for(const line of lines.slice(1)){const a=parseD(line),lat=parseFloat(String(a[ila]||'').replace(',','.')),lon=parseFloat(String(a[ilo]||'').replace(',','.'));if(a[ie]&&Number.isFinite(lat)&&Number.isFinite(lon))refs.push({name:a[ie],lat,lon});}
+   if(refs.length<80)return fc;
+   const unused=new Set(refs.map((_,i)=>i));
+   for(const f of fc.features){if(hasName(f))continue;const a=politicalFeatureAnchor(f);if(!a)continue;let bi=-1,bd=Infinity;for(const i of unused){const rr=refs[i],d=(rr.lat-a[0])**2+(rr.lon-a[1])**2;if(d<bd){bd=d;bi=i}}if(bi>=0){f.properties=f.properties||{};f.properties.__name=refs[bi].name;unused.delete(bi)}}
+  }catch(e){console.warn('No se pudieron enriquecer los nombres municipales del fallback:',e)}
+  return fc;
+ }
+ async function politicalData(scope){
+  if(scope==='historical-polities')return await waitHistoricalData();
+  if(politicalDataCache.has(scope))return politicalDataCache.get(scope);
+  let d=await politicalFetch(POLITICAL_URLS[scope]);
+  if(scope==='canary-municipalities')d=await enrichCanaryMunicipalityNames(d);
+  if(scope==='europe-countries')d={type:'FeatureCollection',features:(d.features||[]).filter(f=>EUROPE_CODES.has(String(f?.properties?.CNTR_ID||f?.properties?.ISO2_CODE||f?.properties?.ISO_A2||'').toUpperCase()))};
+  politicalDataCache.set(scope,d);return d;
+ }
+ function politicalRingCandidates(coords,out=[]){if(!Array.isArray(coords))return out;if(coords.length&&typeof coords[0]?.[0]==='number'){out.push(coords);return out;}for(const x of coords)politicalRingCandidates(x,out);return out;}
+ function politicalFeatureAnchor(f){
+ const rings=politicalRingCandidates(f?.geometry?.coordinates||[]);if(!rings.length)return null;
+ let best=rings[0],bestArea=-1;for(const r of rings){const a=typeof ringAreaAbs==='function'?ringAreaAbs(r):r.length;if(a>bestArea){best=r;bestArea=a;}}
+ const c=typeof ringCentroid==='function'?ringCentroid(best):null;if(c&&Number.isFinite(c[0])&&Number.isFinite(c[1]))return [c[1],c[0]];
+ let sx=0,sy=0,n=0;for(const p of best){if(Number.isFinite(+p[0])&&Number.isFinite(+p[1])){sx+=+p[0];sy+=+p[1];n++;}}return n?[sy/n,sx/n]:null;
+}
+ function politicalScopeTitle(){const base=POLITICAL_SCOPE_META[politicalCurrentScope]?.title||'Mapa político';return politicalCurrentScope==='historical-polities'&&typeof historyYearText==='function'?base+' · '+historyYearText(historyYear):base;}
+
+ async function politicalResolveWmsLayer(url,keywords,fallback){
+  try{
+   const join=url.includes('?')?'&':'?';
+   const r=await fetch(url+join+'service=WMS&request=GetCapabilities',{cache:'force-cache'});
+   if(!r.ok)throw new Error('HTTP '+r.status);
+   const xml=new DOMParser().parseFromString(await r.text(),'text/xml');
+   const layers=[...xml.querySelectorAll('Layer')];
+   const words=(keywords||[]).map(x=>String(x).toLowerCase());
+   for(const layer of layers){
+    const name=layer.querySelector(':scope > Name')?.textContent?.trim();
+    const title=layer.querySelector(':scope > Title')?.textContent?.trim().toLowerCase()||'';
+    if(name&&words.some(w=>title.includes(w)||name.toLowerCase().includes(w)))return name;
+   }
+  }catch(e){console.warn('No se pudieron leer las capacidades WMS; se usa el nombre conocido/de reserva.',url,e);}
+  return fallback;
+ }
+ function politicalRemoveBackdropLayers(){
+  for(const l of [politicalBathy,politicalPhysicalBase])try{if(l&&map.hasLayer(l))map.removeLayer(l);}catch(e){}
+  politicalBathy=null;politicalPhysicalBase=null;
+ }
+ async function politicalEnsureBackdrop(){
+  politicalEnsurePanes();
+  document.documentElement.style.setProperty('--political-sea',pEl('politicalSeaColor')?.value||'#dceff7');
+  document.body.classList.remove('political-canary-physical');
+  politicalRemoveBackdropLayers();
+  let bg=pEl('politicalBackground')?.value||'clean';
+  if(politicalCurrentScope!=='canary-municipalities'&&bg.startsWith('canary-')){
+   bg='clean';
+   if(pEl('politicalBackground'))pEl('politicalBackground').value='clean';
+  }
+  const intensity=+(pEl('politicalBathyOpacity')?.value||.72);
+  if(bg==='clean')return;
+  if(bg==='canary-shadow'){
+   // Capa oficial del servicio MDSombras: WMS_HS.
+   politicalPhysicalBase=L.tileLayer.wms('https://idecan1.grafcan.es/ServicioWMS/MDSombras?',{
+    layers:'WMS_HS',format:'image/jpeg',transparent:false,version:'1.1.1',uppercase:true,pane:'politicalBasePane',minZoom:4,maxZoom:20,
+    bounds:L.latLngBounds([[27.45,-18.25],[29.55,-13.15]]),className:'anambro-political-canary-shadow',attribution:'Modelo de Sombras · GRAFCAN / Gobierno de Canarias'
+   }).addTo(map);
+   politicalPhysicalBase.setOpacity(Math.max(.55,Math.min(1,intensity)));
+   document.body.classList.add('political-canary-physical');
+   return;
+  }
+  if(bg==='canary-topobathy'){
+   const url='https://idecan1.grafcan.es/ServicioWMS/Topobatimetrico?';
+   const layerName=await politicalResolveWmsLayer(url,['topobatim','topo-batim','modelo topobatim'],'Topobatimetrico');
+   politicalPhysicalBase=L.tileLayer.wms(url,{
+    layers:layerName,format:'image/png',transparent:true,version:'1.1.1',crs:L.CRS.EPSG4326,uppercase:true,pane:'politicalBasePane',maxZoom:20,
+    className:'anambro-political-canary-topobathy',attribution:'Modelo Topobatimétrico · GRAFCAN / Gobierno de Canarias'
+   }).addTo(map);
+   politicalPhysicalBase.setOpacity(Math.max(.25,Math.min(1,intensity)));
+   document.body.classList.add('political-canary-physical');
+   return;
+  }
+  const factor=bg==='bathy-soft'?.26:bg==='bathy-medium'?.48:.72;
+  politicalBathy=L.tileLayer.wms('https://wms.gebco.net/mapserv?',{layers:'gebco_latest',format:'image/jpeg',transparent:false,version:'1.3.0',pane:'politicalBathyPane',maxZoom:10,className:'anambro-political-bathy',attribution:'GEBCO_2026'}).addTo(map);
+  politicalBathy.setOpacity(Math.min(1,factor*intensity));
+  requestAnimationFrame(()=>{const c=politicalBathy?.getContainer?.();if(c)c.style.filter=bg==='bathy-soft'?'saturate(.35) brightness(1.35) contrast(.62)':bg==='bathy-medium'?'saturate(.48) brightness(1.22) contrast(.76)':'saturate(.62) brightness(1.10) contrast(.90)';});
+ }
+ function politicalClearLabels(){politicalLabels.clearLayers();politicalLeaders.clearLayers();politicalLabelRefs.clear();if(map.hasLayer(politicalLabels))map.removeLayer(politicalLabels);if(map.hasLayer(politicalLeaders))map.removeLayer(politicalLeaders);}
+ function politicalLabelStyle(key){const o=politicalLabelOverrides.get(key)||{};return {align:o.align||'center',size:+(o.size||pEl('politicalLabelDefaultSize')?.value||10)};}
+ function politicalIcon(name,key){const st=politicalLabelStyle(key);return L.divIcon({className:'political-map-label',html:'<span class="politicalLabelInner align-'+st.align+'" style="font-size:'+st.size+'px">'+escHtml(name)+'</span>',iconSize:[1,1],iconAnchor:[0,0]});}
+ function politicalUpdateLeader(ref){if(!ref)return;const mode=pEl('politicalLeaderMode')?.value||'auto',m=ref.marker,a=L.latLng(ref.anchor),b=m.getLatLng();let show=mode==='always';if(mode==='auto'){const pa=map.latLngToLayerPoint(a),pb=map.latLngToLayerPoint(b);show=pa.distanceTo(pb)>28;}if(mode==='never')show=false;if(show){if(!ref.line){ref.line=L.polyline([a,b],{pane:'politicalLeaderPane',color:'#516573',weight:1.05,opacity:.8,interactive:false}).addTo(politicalLeaders);}else ref.line.setLatLngs([a,b]);}else if(ref.line){politicalLeaders.removeLayer(ref.line);ref.line=null;}}
+ function politicalBuildLabels(data){politicalClearLabels();if(!pEl('politicalLabelsCheck')?.checked)return;(data.features||[]).forEach((f,i)=>{const anchor=politicalFeatureAnchor(f);if(!anchor)return;const key=politicalKey(f,i),ov=politicalLabelOverrides.get(key)||{},pos=(Number.isFinite(ov.lat)&&Number.isFinite(ov.lng))?[ov.lat,ov.lng]:anchor,name=politicalName(f,i);if(!name)return;const marker=L.marker(pos,{pane:'politicalLabelPane',icon:politicalIcon(name,key),draggable:true,interactive:true});const ref={key,f,i,name,anchor,marker,line:null};marker.on('click',()=>politicalSelect(f,i,null));marker.on('dragstart',()=>politicalSelect(f,i,null));marker.on('drag',()=>politicalUpdateLeader(ref));marker.on('dragend',()=>{const ll=marker.getLatLng(),old=politicalLabelOverrides.get(key)||{};politicalLabelOverrides.set(key,{...old,lat:ll.lat,lng:ll.lng});politicalUpdateLeader(ref);});marker.addTo(politicalLabels);politicalLabelRefs.set(key,ref);});politicalLeaders.addTo(map);politicalLabels.addTo(map);for(const ref of politicalLabelRefs.values())politicalUpdateLeader(ref);}
+ function politicalRefreshLabel(key){const ref=politicalLabelRefs.get(key);if(!ref)return;ref.marker.setIcon(politicalIcon(ref.name,key));politicalUpdateLeader(ref);}
+ function politicalSelect(f,i,layer){const key=politicalKey(f,i);politicalSelected={f,i,layer,key,name:politicalName(f,i)};pEl('politicalSelectedName').textContent=politicalSelected.name;const ov=politicalOverrides.get(key)||{};pEl('politicalColor').value=ov.fillColor||politicalBaseColor(f,i);pEl('politicalSelectedStrokeColor').value=ov.strokeColor||pEl('politicalStrokeColor').value;const lov=politicalLabelOverrides.get(key)||{};pEl('politicalLabelAlign').value=lov.align||'center';pEl('politicalLabelSize').value=lov.size||pEl('politicalLabelDefaultSize').value;for(const id of ['politicalColor','politicalSelectedStrokeColor','politicalWhiteBtn','politicalResetBtn','politicalLabelAlign','politicalLabelSize','politicalLabelResetBtn'])pEl(id).disabled=false;pEl('politicalEditor').classList.remove('disabled');try{if(politicalLayer)politicalLayer.eachLayer(l=>l.setStyle&&l.setStyle({dashArray:null}));if(layer){layer.setStyle({dashArray:'5 4',weight:Math.max(2.4,+pEl('politicalStrokeWidth').value+1)});layer.bringToFront();}}catch(e){}}
+ function politicalResetEditor(){politicalSelected=null;pEl('politicalSelectedName').textContent='Pulsa una unidad territorial o su nombre para editarla.';for(const id of ['politicalColor','politicalSelectedStrokeColor','politicalWhiteBtn','politicalResetBtn','politicalLabelAlign','politicalLabelSize','politicalLabelResetBtn'])pEl(id).disabled=true;pEl('politicalEditor').classList.add('disabled');}
+ function politicalSnapshotView(){if(politicalViewSnapshot)return;let baseValue='';try{baseValue=document.querySelector('input[data-base-choice]:checked')?.dataset?.baseChoice||''}catch(_){};politicalViewSnapshot={center:map.getCenter(),zoom:map.getZoom(),baseValue,wasGlobe:document.body.classList.contains('globe-mode')}}
+ async function politicalRestoreNormal2D(){
+  try{if(document.body.classList.contains('globe-mode')&&typeof toggleGlobe==='function')await toggleGlobe()}catch(_){}
+  const snap=politicalViewSnapshot;politicalViewSnapshot=null;
+  if(snap?.baseValue){const r=document.querySelector('input[data-base-choice="'+snap.baseValue+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
+  else {const r=document.querySelector('input[data-base-choice="worldsat"]')||document.querySelector('input[data-base-choice="hybrid"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
+  if(snap?.center&&Number.isFinite(snap.zoom))map.setView(snap.center,snap.zoom,{animate:false});
+  setTimeout(()=>map.invalidateSize({pan:false,animate:false}),30);
+ }
+ function politicalApplyScopeDefaults(scope){if(scope==='canary-municipalities'&&!politicalCanaryDefaultsApplied){politicalCanaryDefaultsApplied=true;const op=pEl('politicalFillOpacity');if(op){op.value='.42';updatePct('politicalFillOpacity','politicalFillOpacityValue')}const bi=pEl('politicalBathyOpacity');if(bi){bi.value='1';updatePct('politicalBathyOpacity','politicalBathyOpacityValue')}const bg=pEl('politicalBackground');if(bg)bg.value='canary-shadow';}}
+ function politicalRestyle(){if(!politicalLayer)return;let i=0;politicalLayer.eachLayer(l=>{if(l.feature&&l.setStyle){const idx=l.__politicalOrder??i;l.setStyle(politicalStyle(l.feature,idx));i++;}});if(politicalSelected?.layer?.setStyle)politicalSelected.layer.setStyle({dashArray:'5 4',weight:Math.max(2.4,+pEl('politicalStrokeWidth').value+1)});}
+ async function politicalApply(){const scope=pEl('politicalScope').value;politicalSnapshotView();politicalApplyScopeDefaults(scope);politicalCurrentScope=scope;politicalSetStatus('Cargando '+politicalScopeTitle()+'…');document.body.classList.add('political-map-mode');politicalActive=true;politicalEnsurePanes();try{const data=await politicalData(scope);await politicalEnsureBackdrop();if(politicalLayer&&map.hasLayer(politicalLayer))map.removeLayer(politicalLayer);let order=0;politicalLayer=L.geoJSON(data,{pane:'politicalAdminPane',style:f=>politicalStyle(f,order),onEachFeature:(f,l)=>{l.__politicalOrder=order++;l.on('click',()=>politicalSelect(f,l.__politicalOrder,l));}}).addTo(map);politicalBuildLabels(data);politicalResetEditor();const b=politicalLayer.getBounds?.();if(b?.isValid?.())map.fitBounds(b,{padding:[18,18],animate:false,maxZoom:scope==='canary-municipalities'?9:undefined});else if(POLITICAL_SCOPE_META[scope]?.bounds)map.fitBounds(POLITICAL_SCOPE_META[scope].bounds,{padding:[18,18],animate:false});politicalSetStatus(politicalScopeTitle()+' · '+data.features.length+' unidades · '+(pEl('politicalFillMode').value==='blank'?'mapa mudo':pEl('politicalFillMode').value==='auto'?'colores automáticos':'color único')+(pEl('politicalLabelsCheck').checked?' · nombres editables':' · sin nombres'));}catch(e){console.error('Mapa político',e);politicalSetStatus('No se pudo cargar '+politicalScopeTitle()+': '+(e?.message||e));politicalExit(false);}}
+ async function politicalExit(report=true,restoreView=true){
+  for(const l of [politicalLayer,politicalBathy,politicalPhysicalBase,politicalLabels,politicalLeaders])try{if(l&&map.hasLayer(l))map.removeLayer(l);}catch(e){}
+  politicalLayer=null;politicalBathy=null;politicalPhysicalBase=null;politicalClearLabels();document.body.classList.remove('political-map-mode','political-context-ready','political-canary-physical');politicalActive=false;politicalResetEditor();
+  const cb=pEl('worldHistoryCheck');
+  if(politicalHistoryWasVisible){try{if(cb)cb.checked=true;if(typeof setHistoryVisible==='function')setHistoryVisible(true);}catch(e){}}
+  else if(politicalHistoryAutoEnabled){try{if(cb)cb.checked=false;if(typeof setHistoryVisible==='function')setHistoryVisible(false);}catch(e){}}
+  politicalHistoryWasVisible=false;politicalHistoryAutoEnabled=false;
+  if(restoreView)await politicalRestoreNormal2D();
+  if(report)politicalSetStatus('Modo político inactivo. Vista 2D habitual restaurada.');
+ }
+ async function rebuildLabels(){if(!politicalActive)return;const d=await politicalData(politicalCurrentScope);politicalBuildLabels(d);}
+ function updatePct(id,out){const e=pEl(id),o=pEl(out);if(e&&o)o.textContent=Math.round(+e.value*100)+' %';}
+
+ pEl('politicalApplyBtn')?.addEventListener('click',politicalApply);pEl('politicalExitBtn')?.addEventListener('click',()=>politicalExit(true,true));pEl('politicalExportBtn')?.addEventListener('click',()=>{if(!politicalActive){alert('Muestra primero un mapa político o mudo.');return;}openLayoutEditor();});
+ pEl('politicalScope')?.addEventListener('change',async()=>{politicalOverrides.clear();politicalLabelOverrides.clear();politicalResetEditor();const sc=pEl('politicalScope')?.value||'';const bg=pEl('politicalBackground');if(sc!=='canary-municipalities'&&bg?.value?.startsWith('canary-'))bg.value='clean';await politicalApply();});
+ for(const id of ['politicalFillMode','politicalUniformColor','politicalFillCheck','politicalStrokeColor','politicalStrokeWidth','politicalStrokeCheck'])pEl(id)?.addEventListener('input',politicalRestyle);
+ pEl('politicalFillOpacity')?.addEventListener('input',()=>{updatePct('politicalFillOpacity','politicalFillOpacityValue');politicalRestyle();});
+ pEl('politicalStrokeOpacity')?.addEventListener('input',()=>{updatePct('politicalStrokeOpacity','politicalStrokeOpacityValue');politicalRestyle();});
+ for(const id of ['politicalBackground','politicalSeaColor'])pEl(id)?.addEventListener('input',()=>{if(politicalActive)politicalEnsureBackdrop();});
+ pEl('politicalBackground')?.addEventListener('change',()=>{const legacy=pEl('politicalBathyCheck');if(legacy)legacy.checked=pEl('politicalBackground').value!=='clean';if(politicalActive)politicalEnsureBackdrop();});
+ pEl('politicalFillMode')?.addEventListener('change',politicalRestyle);
+ pEl('politicalBathyOpacity')?.addEventListener('input',()=>{updatePct('politicalBathyOpacity','politicalBathyOpacityValue');if(politicalActive)politicalEnsureBackdrop();});
+ pEl('politicalLabelsCheck')?.addEventListener('change',rebuildLabels);pEl('politicalLabelDefaultSize')?.addEventListener('input',rebuildLabels);pEl('politicalLeaderMode')?.addEventListener('change',()=>{for(const r of politicalLabelRefs.values())politicalUpdateLeader(r);});
+ pEl('politicalColor')?.addEventListener('input',e=>{if(!politicalSelected)return;const o=politicalOverrides.get(politicalSelected.key)||{};politicalOverrides.set(politicalSelected.key,{...o,fillColor:e.target.value});politicalRestyle();});
+ pEl('politicalSelectedStrokeColor')?.addEventListener('input',e=>{if(!politicalSelected)return;const o=politicalOverrides.get(politicalSelected.key)||{};politicalOverrides.set(politicalSelected.key,{...o,strokeColor:e.target.value});politicalRestyle();});
+ pEl('politicalWhiteBtn')?.addEventListener('click',()=>{if(!politicalSelected)return;const o=politicalOverrides.get(politicalSelected.key)||{};politicalOverrides.set(politicalSelected.key,{...o,fillColor:'#ffffff'});pEl('politicalColor').value='#ffffff';politicalRestyle();});
+ pEl('politicalResetBtn')?.addEventListener('click',()=>{if(!politicalSelected)return;politicalOverrides.delete(politicalSelected.key);pEl('politicalColor').value=politicalBaseColor(politicalSelected.f,politicalSelected.i);pEl('politicalSelectedStrokeColor').value=pEl('politicalStrokeColor').value;politicalRestyle();});
+ pEl('politicalLabelAlign')?.addEventListener('change',e=>{if(!politicalSelected)return;const o=politicalLabelOverrides.get(politicalSelected.key)||{};politicalLabelOverrides.set(politicalSelected.key,{...o,align:e.target.value});politicalRefreshLabel(politicalSelected.key);});
+ pEl('politicalLabelSize')?.addEventListener('input',e=>{if(!politicalSelected)return;const o=politicalLabelOverrides.get(politicalSelected.key)||{};politicalLabelOverrides.set(politicalSelected.key,{...o,size:+e.target.value});politicalRefreshLabel(politicalSelected.key);});
+ pEl('politicalLabelResetBtn')?.addEventListener('click',()=>{if(!politicalSelected)return;const o=politicalLabelOverrides.get(politicalSelected.key)||{};delete o.lat;delete o.lng;delete o.align;delete o.size;if(Object.keys(o).length)politicalLabelOverrides.set(politicalSelected.key,o);else politicalLabelOverrides.delete(politicalSelected.key);rebuildLabels();});
+ map.on('zoomend moveend',()=>{if(politicalActive)for(const r of politicalLabelRefs.values())politicalUpdateLeader(r);});
+ for(const id of ['historyYearRange','historyYearInput'])pEl(id)?.addEventListener('change',()=>{if(politicalActive&&politicalCurrentScope==='historical-polities')setTimeout(()=>politicalApply(),900);});
+
+ if(typeof defaultLayoutTitle==='function'){const base=defaultLayoutTitle;defaultLayoutTitle=function(){if(politicalActive)return (pEl('politicalFillMode')?.value==='blank'?'Mapa mudo · ':'Mapa político · ')+politicalScopeTitle();return base.apply(this,arguments);};}
+ if(typeof activeLegendHTML==='function'){const base=activeLegendHTML;activeLegendHTML=function(){if(politicalActive){const blank=pEl('politicalFillMode')?.value==='blank',labels=pEl('politicalLabelsCheck')?.checked;return '<small><b>'+escHtml(politicalScopeTitle())+'</b><br>'+(blank?'Unidades en blanco para trabajo cartográfico.':'Representación política editable.')+'<br>'+(labels?'Rotulación editable y desplazable.':'Sin rotulación.')+'</small>';}return base.apply(this,arguments);};}
+ if(typeof activeSourcesText==='function'){const base=activeSourcesText;activeSourcesText=function(){if(politicalActive){const bg=pEl('politicalBackground')?.value||'clean';const bsrc=bg==='canary-shadow'?'Modelo de Sombras · GRAFCAN / Gobierno de Canarias':bg==='canary-topobathy'?'Modelo Topobatimétrico · GRAFCAN / Gobierno de Canarias':bg==='clean'?'Base cartográfica ANAMBRO atenuada':'GEBCO_2026';return [POLITICAL_SCOPE_META[politicalCurrentScope]?.source,bsrc].filter(Boolean).join(' · ');}return base.apply(this,arguments);};}
+
+ window.togglePoliticalTool=async function(){
+  const panel=pEl('politicalPanel');if(!panel)return;
+  const visible=!panel.classList.contains('hidden');
+  if(visible||politicalActive){if(politicalActive)await politicalExit(true,true);panel.classList.add('hidden');return;}
+  closePanels();panel.classList.remove('hidden');
+ };
+
+  window.anambroPoliticalMode={apply:politicalApply,exit:politicalExit,isActive:()=>politicalActive};
 })();
 </script>
 
