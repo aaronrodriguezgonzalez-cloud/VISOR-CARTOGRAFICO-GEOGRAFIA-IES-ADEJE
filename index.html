@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Visor Cartográfico ANAMBRO v0.7 · Aarón Rodríguez González · Docente del Departamento de Geografía e Historia · IES ADEJE</title>
+<title>Visor Cartográfico ANAMBRO v0.13 · Aarón Rodríguez González · Docente del Departamento de Geografía e Historia · IES ADEJE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Satisfy&display=swap" rel="stylesheet">
@@ -2882,11 +2882,12 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
       </section>
 
     </div>
-    <div class="welcomeFooter"><b>ANAMBRO · Versión 0.9 · Curso 2026-2027.</b> Proyecto personal de <b>Aarón Rodríguez González · Geógrafo</b>, <b>docente del Departamento de Geografía e Historia del IES ADEJE</b> y <b>Coordinador de Patrimonio Natural, Social y Cultural Canario</b>, desarrollado de forma independiente en su tiempo libre a partir de necesidades reales del aula y abierto a la comunidad educativa. ANAMBRO continuará ampliando sus capas, fuentes, herramientas, explicaciones y capacidades de creación cartográfica.</div>
+    <div class="welcomeFooter"><b>ANAMBRO · Versión 0.13 · Curso 2026-2027.</b> Proyecto personal de <b>Aarón Rodríguez González · Geógrafo</b>, <b>docente del Departamento de Geografía e Historia del IES ADEJE</b> y <b>Coordinador de Patrimonio Natural, Social y Cultural Canario</b>, desarrollado de forma independiente en su tiempo libre a partir de necesidades reales del aula y abierto a la comunidad educativa. ANAMBRO continuará ampliando sus capas, fuentes, herramientas, explicaciones y capacidades de creación cartográfica.</div>
   </div>
 </div>
 
 <div class="toolbar">
+<button class="tool toolHubBtn" type="button" onclick="togglePanel('toolHubPanel')"><span>☰</span> Menú ANAMBRO</button>
 <button class="tool" onclick="togglePanel('layersPanel')"><span>🗂️</span> Capas</button>
 <button id="globeToggle" class="tool" onclick="toggleGlobe()"><span>🌐</span> Globo 3D</button>
 <button class="tool" onclick="gps()"><span>📍</span> Mi ubicación GPS</button>
@@ -2901,6 +2902,18 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 
 </div>
 
+
+
+<div class="panel hidden anambroHubPanel" id="toolHubPanel"><h3>☰ ANAMBRO · herramientas</h3>
+  <div class="hubIntro">Acceso organizado por tareas. Las herramientas originales siguen disponibles; este menú evita que la barra se convierta en una lista interminable.</div>
+  <div class="hubGrid">
+    <section class="hubCard"><b>🗺️ Cartografía</b><button data-hub="layers">Capas y fondos</button><button data-hub="globe">Globo 3D</button><button data-hub="political">Mapas políticos / mudos</button><button data-hub="print">Compositor / PDF</button></section>
+    <section class="hubCard"><b>📊 Atlas temáticos</b><button data-hub="atlas-world">Atlas mundial · WDI/PNUD</button><button data-hub="atlas-canary">Atlas de Canarias · ISTAC</button></section>
+    <section class="hubCard"><b>🥾 Senderismo y campo</b><button data-hub="gps">Mi ubicación GPS</button><button data-hub="tracks">Tracks GPX/KML</button><button data-hub="profile">Perfil territorial</button><button data-hub="measure">Medir</button></section>
+    <section class="hubCard"><b>🏛️ Historia y patrimonio</b><button data-hub="history">Cartografía histórica</button><button data-hub="heritage">Patrimonio de Canarias</button></section>
+    <section class="hubCard"><b>🎬 Aula</b><button data-hub="animations">Animaciones y explicaciones</button><button data-hub="coords">Localizar coordenadas</button><button data-hub="search">Buscar topónimo</button></section>
+  </div>
+</div>
 
 <div class="panel hidden" id="layersPanel"><h3>Capas</h3>
 <div class="layersRule"><b>Navegación por niveles: </b>ámbito → cartografía/territorio o Geografía Física / Geografía Humana / Historia → subcategoría → capa. Cada ámbito contiene sus propias capas; los elementos realmente transversales quedan aparte.</div>
@@ -3153,6 +3166,13 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
       <small>Una sombra, una distancia y una proporción: cómo un ser humano midió el planeta hace más de 2.200 años con matemáticas elementales.</small>
       <button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/eratostenes/index.html','Eratóstenes y la medida de la Tierra')">▶ Abrir animación interactiva</button>
     </div>
+  </div>
+
+  <div class="explainCard" style="margin-top:9px">
+    <div class="explainCardIcon">🌍</div><div class="explainCardBody"><b>Las estaciones del año</b><small>Traslación, inclinación del eje, estaciones opuestas en ambos hemisferios y duración del día. Cada etapa sustituye a la anterior.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/estaciones/index.html','Las estaciones del año')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard" style="margin-top:9px">
+    <div class="explainCardIcon">🕒</div><div class="explainCardBody"><b>Husos horarios</b><small>Rotación terrestre, Greenwich, 15° por hora, este/oeste, línea de cambio de fecha y ejercicios para practicar.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/husos-horarios/index.html','Husos horarios')">▶ Abrir animación interactiva</button></div>
   </div>
   <div class="explainSoon"><b>Biblioteca didáctica ANAMBRO.</b> Animaciones, simulaciones y explicaciones audiovisuales creadas para el aula y cargadas solo cuando se necesitan.</div>
 </div>
@@ -3607,10 +3627,10 @@ const WORLD_VIEW_BOUNDS=L.latLngBounds([[-84.8,-180],[84.8,180]]);
 const map=L.map('map',{
  zoomControl:false,
  minZoom:0,
- zoomSnap:1,
+ zoomSnap:0.25,
  zoomDelta:1,
- wheelDebounceTime:90,
- wheelPxPerZoomLevel:180,
+ wheelDebounceTime:45,
+ wheelPxPerZoomLevel:360,
  worldCopyJump:false,
  preferCanvas:true
 }).setView([28.30,-16.55],9);
@@ -6143,16 +6163,16 @@ function adminHtml(a){
  if(document.getElementById('ccaaCheck').checked&&a.ccaa)rows.push('<b>Comunidad autónoma:</b> '+escHtml(a.ccaa));
  return rows.length?'<br>'+rows.join('<br>'):'';
 }
-function pointHtml(lat,lon,title='Punto consultado',altText='Consultando altitud…',geo=null,veg=null,topo=null,adm=null,pending=false,climate=null,biome=null,worldGeo=null,landUse=null,shadowInfo=null){
+function pointHtml(lat,lon,title='Punto consultado',altText='Consultando altitud…',geo=null,veg=null,topo=null,adm=null,pending=false,climate=null,biome=null,worldGeo=null,landUse=null,shadowInfo=null,heritage=null){
  const c=coordsDMS(lat,lon),topoHtml=topo?'<br><b>Topónimo próximo:</b> '+escHtml(topo.name)+(Number.isFinite(topo.dist)?' <small>('+fmtDistance(topo.dist)+')</small>':''):'<br><b>Topónimo próximo:</b> '+(pending?'consultando…':'sin dato');
- return '<b>📍 '+title+'</b>'+topoHtml+adminHtml(adm)+'<br><b>Latitud:</b> '+c.lat+'<br><b>Longitud:</b> '+c.lon+'<br><b>Altitud aprox.:</b> '+altText+(pending&&geologyEnabledAt(lat,lon)?'<hr><b>🪨 Geología:</b> consultando…':geologyHtml(geo))+(pending&&(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked))?'<hr><b>🌿 Vegetación:</b> consultando…':vegetationHtml(veg))+(pending&&document.getElementById('worldGeologyCheck')?.checked?'<hr><b>🪨 Geología mundial · Macrostrat:</b> consultando…':macrostratGeologyHtml(worldGeo))+(pending&&climateEnabledAt(lat,lon)?'<hr><b>🌦️ Clima Köppen-Geiger:</b> consultando…':climateHtml(climate))+(pending&&document.getElementById('worldBiomesCheck')?.checked?'<hr><b>🌿 Bioma terrestre:</b> consultando…':biomeDetailHtml(biome))+(pending&&typeof activeBase!=='undefined'&&activeBase===landCanary?'<hr><b>🟫 Ocupación del suelo · GRAFCAN:</b> consultando…':canaryLandUseHtml(landUse)+canaryShadowInfoHtml(shadowInfo))+'<br><small>IGN/CNIG · CartoCiudad · MDT25/IDEE'+(geologyEnabledAt(lat,lon)?' · IGME-CSIC':'')+(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked)?' · MITECO/GRAFCAN':'')+(document.getElementById('worldGeologyCheck')?.checked?' · Macrostrat':'')+(climateEnabledAt(lat,lon)?' · Beck et al.':'')+'</small>';
+ return '<b>📍 '+title+'</b>'+topoHtml+adminHtml(adm)+'<br><b>Latitud:</b> '+c.lat+'<br><b>Longitud:</b> '+c.lon+'<br><b>Altitud aprox.:</b> '+altText+(pending&&geologyEnabledAt(lat,lon)?'<hr><b>🪨 Geología:</b> consultando…':geologyHtml(geo))+(pending&&(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked))?'<hr><b>🌿 Vegetación:</b> consultando…':vegetationHtml(veg))+(pending&&document.getElementById('worldGeologyCheck')?.checked?'<hr><b>🪨 Geología mundial · Macrostrat:</b> consultando…':macrostratGeologyHtml(worldGeo))+(pending&&climateEnabledAt(lat,lon)?'<hr><b>🌦️ Clima Köppen-Geiger:</b> consultando…':climateHtml(climate))+(pending&&document.getElementById('worldBiomesCheck')?.checked?'<hr><b>🌿 Bioma terrestre:</b> consultando…':biomeDetailHtml(biome))+(pending&&typeof activeBase!=='undefined'&&activeBase===landCanary?'<hr><b>🟫 Ocupación del suelo · GRAFCAN:</b> consultando…':canaryLandUseHtml(landUse)+canaryShadowInfoHtml(shadowInfo)+canaryHeritageHtml(heritage,pending))+'<br><small>IGN/CNIG · CartoCiudad · MDT25/IDEE'+(geologyEnabledAt(lat,lon)?' · IGME-CSIC':'')+(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked)?' · MITECO/GRAFCAN':'')+(document.getElementById('worldGeologyCheck')?.checked?' · Macrostrat':'')+(climateEnabledAt(lat,lon)?' · Beck et al.':'')+'</small>';
 }
 let coordMarker=null,coordQuerySeq=0;
 async function showPoint(ll,title='Punto consultado',useMarker=true){
  const seq=++coordQuerySeq,lat=ll.lat,lon=ll.lng,geoOn=geologyEnabledAt(lat,lon),vegOn=['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked),c=coordsDMS(lat,lon);
- const state={z:null,zDone:false,g:null,v:null,t:null,a:null,c:null,b:null,mg:null,lu:null,shadow:null,h:''};
- const render=()=>{if(seq!==coordQuerySeq)return;const ztxt=state.zDone?(state.z===null?'sin dato':state.z.toLocaleString('es-ES')+' m'):'consultando…';if(useMarker&&coordMarker){coordMarker.setPopupContent(pointHtml(lat,lon,title,ztxt,state.g,state.v,state.t,state.a,false,state.c,state.b,state.mg,state.lu,state.shadow)+state.h);coordMarker.openPopup();}status((state.t?state.t.name+' · ':'')+c.lat+' · '+c.lon+' · '+ztxt);};
- if(useMarker){if(coordMarker)map.removeLayer(coordMarker);coordMarker=L.circleMarker(ll,{radius:5}).addTo(map);coordMarker.bindPopup(pointHtml(lat,lon,title,'consultando…',null,null,null,null,true,null,null,null,null,null)+(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length?'<hr><b>👥 Geografía humana:</b> consultando…':''),{maxWidth:430}).openPopup();}
+ const state={z:null,zDone:false,g:null,v:null,t:null,a:null,c:null,b:null,mg:null,lu:null,shadow:null,heritage:null,h:''};
+ const render=()=>{if(seq!==coordQuerySeq)return;const ztxt=state.zDone?(state.z===null?'sin dato':state.z.toLocaleString('es-ES')+' m'):'consultando…';if(useMarker&&coordMarker){coordMarker.setPopupContent(pointHtml(lat,lon,title,ztxt,state.g,state.v,state.t,state.a,false,state.c,state.b,state.mg,state.lu,state.shadow,state.heritage)+state.h);coordMarker.openPopup();}status((state.t?state.t.name+' · ':'')+c.lat+' · '+c.lon+' · '+ztxt);};
+ if(useMarker){if(coordMarker)map.removeLayer(coordMarker);coordMarker=L.circleMarker(ll,{radius:5}).addTo(map);coordMarker.bindPopup(pointHtml(lat,lon,title,'consultando…',null,null,null,null,true,null,null,null,null,null,null)+(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length?'<hr><b>👥 Geografía humana:</b> consultando…':''),{maxWidth:430}).openPopup();}
  status(c.lat+' · '+c.lon+' · consultando altitud…');
  // PRIORIDAD 1: elevación. Se lanza antes que cualquier consulta territorial/temática.
  const pz=elevationAt(lat,lon).then(x=>{state.z=x;state.zDone=true;render();return x;}).catch(()=>{state.zDone=true;render();return null;});
@@ -6170,6 +6190,7 @@ async function showPoint(ll,title='Punto consultado',useMarker=true){
   }
   if(typeof activeBase!=='undefined'&&activeBase===landCanary&&isCanaryPoint(lat,lon)){canaryLandUseAt(lat,lon).then(x=>{state.lu=x;render();}).catch(()=>{state.lu={__error:true};render();});}
   if(typeof activeBase!=='undefined'&&activeBase===shadowCanary&&isCanaryPoint(lat,lon)){canaryShadowInfoAt(lat,lon).then(x=>{state.shadow=x;render();}).catch(()=>{state.shadow={__error:true};render();});}
+  if(typeof canaryHeritageActive==='function'&&canaryHeritageActive()&&isCanaryPoint(lat,lon)){canaryHeritageAt(lat,lon).then(x=>{state.heritage=x;render();}).catch(()=>{state.heritage={__error:true};render();});}
   if(profileIsSpainLatLng(ll)){
    if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length){state.h=humanPointHtmlByISO3('ESP');render();}
    nearestToponymAt(lat,lon).then(x=>{state.t=x;render();});
@@ -12788,8 +12809,8 @@ body.globe-mode #anambroZoomSliderControl{background:rgba(255,255,255,.93)}
  function setMapFromSlider(v){
    const r=mapRange();
    const target=lerp(r.lo,r.hi,v/100);
-   // Leaflet trabaja aquí por niveles enteros: el deslizador salta al nivel válido más próximo.
-   map.setZoom(Math.round(target),{animate:false});
+   // El deslizador 2D trabaja en cuartos de nivel para que la escala cambie progresivamente.
+   map.setZoom(Math.round(target*4)/4,{animate:false});
  }
  function setGlobeFromSlider(v){
    if(typeof globeViewer==='undefined'||!globeViewer)return;
@@ -12819,19 +12840,31 @@ body.globe-mode #anambroZoomSliderControl{background:rgba(255,255,255,.93)}
    try{const h=Math.max(1,globeViewer.camera.positionCartographic.height||1000000),delta=Math.max(25,h*.28);if(dir>0)globeViewer.camera.zoomIn(delta);else globeViewer.camera.zoomOut(delta);globeViewer.scene.requestRender();setTimeout(updateSlider,0);}catch(e){}
    return;
   }
-  if(typeof map==='undefined')return;const r=mapRange(),z=map.getZoom(),next=clamp(Math.round(z)+dir,r.lo,r.hi);if(next!==z)map.setZoom(next,{animate:false});
+  if(typeof map==='undefined')return;const r=mapRange(),z=map.getZoom(),next=clamp(z+dir,r.lo,r.hi);if(next!==z)map.setZoom(next,{animate:false});
  }
  zin?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();stepZoom(1)});
  zout?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();stepZoom(-1)});
- // Un gesto corto de rueda/ratón = un único nivel. Evita saltos de 2–3 niveles en ratones de alta resolución.
+ // Rueda/trackpad suave: acumula el gesto y avanza solo 1/4 de nivel por umbral.
+ // Un toque leve ya no duplica la escala; el punto bajo el cursor sigue siendo el foco.
  if(typeof map!=='undefined'){
    try{map.scrollWheelZoom.disable()}catch(e){}
-   let wheelLocked=false;
+   let wheelAccum=0,wheelReset=0,lastWheelPoint=null;
+   const WHEEL_PX_PER_QUARTER=90;
    map.getContainer().addEventListener('wheel',e=>{
      if(document.body.classList.contains('globe-mode'))return;
-     e.preventDefault();if(wheelLocked||!e.deltaY)return;wheelLocked=true;setTimeout(()=>{wheelLocked=false},190);
-     const dir=e.deltaY<0?1:-1,r=mapRange(),z=map.getZoom(),next=clamp(Math.round(z)+dir,r.lo,r.hi);
-     if(next===z)return;const p=map.mouseEventToContainerPoint(e);map.setZoomAround(p,next,{animate:false});
+     e.preventDefault();
+     if(!Number.isFinite(e.deltaY)||!e.deltaY)return;
+     lastWheelPoint=map.mouseEventToContainerPoint(e);
+     wheelAccum+=e.deltaY;
+     clearTimeout(wheelReset);wheelReset=setTimeout(()=>{wheelAccum=0},180);
+     const r=mapRange();let guard=0;
+     while(Math.abs(wheelAccum)>=WHEEL_PX_PER_QUARTER&&guard++<4){
+       const dir=wheelAccum<0?1:-1,z=map.getZoom();
+       const next=clamp(Math.round((z+dir*.25)*4)/4,r.lo,r.hi);
+       wheelAccum-=Math.sign(wheelAccum)*WHEEL_PX_PER_QUARTER;
+       if(next===z)break;
+       map.setZoomAround(lastWheelPoint,next,{animate:false});
+     }
    },{passive:false});
  }
  if(typeof map!=='undefined')map.on('zoomend zoomlevelschange',updateSlider);
@@ -13795,7 +13828,7 @@ html body .historyPopup .leaflet-popup-close-button{
 (()=>{
  'use strict';
  const KEY='anambro.header.layout.v10';
- const DEFAULT_LAYOUT={"version":3,"height":118,"items":{"iesLogo":{"left":117,"top":12,"width":78,"height":77,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16},"iesText":{"left":219,"top":7,"width":121,"height":91,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16,"html":"\n        <div class=\"brandDept\">IES ADEJE&nbsp;Curso 2026-2027</div>\n        <div class=\"brandVersion\">Versión 0.10 · aula interactiva</div>\n      ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"center","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"0.9px"},"portrait":{"left":377,"top":10,"width":93,"height":81,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16},"authorText":{"left":490,"top":11,"width":242,"height":88,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":15,"html":"\n        <div class=\"brandTeacher\">Aarón Rodríguez González&nbsp;</div><div class=\"brandTeacher\"><span class=\"brandGeo\">Geógrafo</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Profesor de Geografía e Historia</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Coordinador de Patrimonio&nbsp;</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Natural,&nbsp;</span><span style=\"white-space: normal\"><span style=\"color: rgb(66, 98, 123);\">Cultural y Social Canario.</span></span></div><div class=\"brandProfessional\"><br><span><br></span></div>\n      ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"start","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"normal"},"anambroLogo":{"left":877,"top":3,"width":452,"height":108,"z":1,"fit":"contain","zoom":1,"posx":53,"posy":50,"font":27},"descriptor":{"left":1364,"top":13,"width":393,"height":25,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16,"html":"\n    <div class=\"brandDescriptor\">SIG web para el análisis territorial y la cartografía temática 2D/3D</div>\n  ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"center","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"normal"},"roles":{"left":1367,"top":48,"width":390,"height":48,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":8.8,"html":"<b>Cartografía base y temática · consulta espacial · series temporales · perfiles · geodemografía · leyendas dinámicas · exportación de&nbsp; mapas-historia-animaciones explicativas</b>","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(63, 93, 112)","textAlign":"left","fontWeight":"800","fontStyle":"normal","textDecoration":"none","lineHeight":"12.915px","letterSpacing":"normal"},"actions":{"left":1872,"top":22,"width":132,"height":54,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16}}};
+ const DEFAULT_LAYOUT={"version":3,"height":118,"items":{"iesLogo":{"left":117,"top":12,"width":78,"height":77,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16},"iesText":{"left":219,"top":7,"width":121,"height":91,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16,"html":"\n        <div class=\"brandDept\">IES ADEJE&nbsp;Curso 2026-2027</div>\n        <div class=\"brandVersion\">Versión 0.13 · aula interactiva</div>\n      ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"center","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"0.9px"},"portrait":{"left":377,"top":10,"width":93,"height":81,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16},"authorText":{"left":490,"top":11,"width":242,"height":88,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":15,"html":"\n        <div class=\"brandTeacher\">Aarón Rodríguez González&nbsp;</div><div class=\"brandTeacher\"><span class=\"brandGeo\">Geógrafo</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Profesor de Geografía e Historia</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Coordinador de Patrimonio&nbsp;</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Natural,&nbsp;</span><span style=\"white-space: normal\"><span style=\"color: rgb(66, 98, 123);\">Cultural y Social Canario.</span></span></div><div class=\"brandProfessional\"><br><span><br></span></div>\n      ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"start","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"normal"},"anambroLogo":{"left":877,"top":3,"width":452,"height":108,"z":1,"fit":"contain","zoom":1,"posx":53,"posy":50,"font":27},"descriptor":{"left":1364,"top":13,"width":393,"height":25,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16,"html":"\n    <div class=\"brandDescriptor\">SIG web para el análisis territorial y la cartografía temática 2D/3D</div>\n  ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"center","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"normal"},"roles":{"left":1367,"top":48,"width":390,"height":48,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":8.8,"html":"<b>Cartografía base y temática · consulta espacial · series temporales · perfiles · geodemografía · leyendas dinámicas · exportación de&nbsp; mapas-historia-animaciones explicativas</b>","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(63, 93, 112)","textAlign":"left","fontWeight":"800","fontStyle":"normal","textDecoration":"none","lineHeight":"12.915px","letterSpacing":"normal"},"actions":{"left":1872,"top":22,"width":132,"height":54,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16}}};
  const defs=[
   ['iesLogo','.brandInstituteLogoV06','Logo IES','image'],['iesText','.brandLeftText','Texto IES','text'],
   ['portrait','.brandAuthorPortraitV06','Retrato','image'],['authorText','.brandAuthorTextV06','Datos del autor','text'],
@@ -14202,5 +14235,151 @@ html body .historyPopup .leaflet-popup-close-button{
   html body #anambroZoomSliderControl .zoomGlyph{font-size:14px!important}
 }
 </style>
+
+
+<style id="anambro-v013-atlas-hub-heritage-css">
+/* v0.13 · interfaz por tareas + atlas + patrimonio + cierres sistemáticos */
+.anambro-panel-close{position:absolute!important;right:6px!important;top:5px!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;padding:0!important;border:0!important;border-radius:8px!important;background:#17324d!important;color:#fff!important;font:900 21px/1 system-ui!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;z-index:8!important}
+.panel>h3{padding-right:42px!important;min-height:32px;box-sizing:border-box}.panel>h3::after{right:42px!important}
+.anambroHubPanel{width:min(590px,calc(100vw - 70px))!important}.hubIntro{padding:8px 10px;background:#eef6fa;border:1px solid #c9dce8;border-radius:9px;line-height:1.35;margin-bottom:9px}.hubGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.hubCard{border:1px solid #d7e0e6;background:#f8fafb;border-radius:10px;padding:9px;display:grid;gap:5px}.hubCard>b{font:850 12px/1.15 Montserrat,system-ui,sans-serif;color:#17324d;margin-bottom:2px}.hubCard button{border:1px solid #afbdc7;background:#fff;color:#17324d;border-radius:7px;padding:7px 8px;text-align:left;font-weight:750;cursor:pointer}.hubCard button:hover{background:#edf6f5}
+.atlasPanelBlock{margin-top:8px;padding:8px;border:1px solid #ccd8df;border-radius:9px;background:#f8fbfc}.atlasPanelBlock input[type=search],.atlasPanelBlock select{width:100%;box-sizing:border-box;padding:7px;border:1px solid #a8b5be;border-radius:6px;background:#fff}.atlasSearchHint{display:block;color:#5d6c77;margin:4px 0 7px;line-height:1.25}.istacLegendItem{display:flex;align-items:center;gap:6px;margin:3px 0}.istacLegendSw{width:20px;height:11px;border:1px solid #6673;border-radius:2px;flex:0 0 auto}
+.heritageLegend{margin-top:6px;padding:6px 7px;border:1px solid #ddd;border-radius:7px;background:#fff;font-size:10.5px;line-height:1.3}.heritageNote{margin:5px 0;padding:6px 8px;background:#fff8e7;border-left:4px solid #d5a335;border-radius:5px;color:#5b4a27;font-size:10px;line-height:1.3}
+@media(max-width:760px){.hubGrid{grid-template-columns:1fr}.anambroHubPanel{width:auto!important}.toolbar .tool:not(.toolHubBtn):not(#globeToggle):not([onclick*="layersPanel"]){display:none!important}.toolbar{overflow:visible!important}.anambro-panel-close{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;font-size:24px!important}.panel>h3{padding-right:48px!important}}
+</style>
+<script id="anambro-v013-atlas-hub-heritage-js">
+(function(){
+ 'use strict';
+ const esc=(x)=>typeof escHtml==='function'?escHtml(String(x??'')):String(x??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+ const norm=(x)=>String(x??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+
+ /* ----- X de cierre real en TODAS las ventanas .panel ----- */
+ function closePanelSafely(panel){
+  if(!panel)return;
+  if(panel.id==='politicalPanel'&&window.anambroPoliticalMode?.isActive?.()){window.anambroPoliticalMode.exit?.(true,true);}
+  panel.classList.add('hidden');panel.classList.remove('panel-user-moved');panel.style.removeProperty('left');panel.style.removeProperty('top');panel.style.removeProperty('right');panel.style.removeProperty('bottom');
+ }
+ function ensurePanelCloseButtons(){
+  document.querySelectorAll('.panel').forEach(panel=>{
+   const h=panel.querySelector(':scope > h3');if(!h||h.querySelector('.anambro-panel-close'))return;
+   const b=document.createElement('button');b.type='button';b.className='anambro-panel-close';b.setAttribute('aria-label','Cerrar ventana');b.title='Cerrar';b.textContent='×';
+   b.addEventListener('pointerdown',e=>{e.stopPropagation();});
+   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closePanelSafely(panel);});h.appendChild(b);
+  });
+ }
+ ensurePanelCloseButtons();
+ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=[...document.querySelectorAll('.panel:not(.hidden)')].sort((a,b)=>(+(getComputedStyle(a).zIndex)||0)- (+(getComputedStyle(b).zIndex)||0));if(open.length){e.preventDefault();closePanelSafely(open.at(-1));}},true);
+
+ /* ----- Centro de herramientas ----- */
+ function findDetails(root,text){return [...root.querySelectorAll('details')].find(d=>norm(d.querySelector(':scope > summary')?.textContent).includes(norm(text)));}
+ function openLayersPath(scope,section){closePanels();const p=document.getElementById('layersPanel');p?.classList.remove('hidden');const sc=findDetails(p,scope);if(sc)sc.open=true;const sec=sc?findDetails(sc,section):null;if(sec)sec.open=true;return sec||sc;}
+ window.openAnambroHubTarget=function(kind){
+  if(kind==='layers'){togglePanel('layersPanel');return}if(kind==='globe'){closePanels();toggleGlobe();return}if(kind==='political'){closePanels();window.togglePoliticalTool?.();return}if(kind==='print'){closePanels();openLayoutEditor();return}
+  if(kind==='gps'){closePanels();gps();return}if(kind==='tracks'){togglePanel('trackPanel');return}if(kind==='profile'){togglePanel('profilePanel');return}if(kind==='measure'){togglePanel('measurePanel');return}if(kind==='animations'){togglePanel('explainPanel');return}if(kind==='coords'){togglePanel('locPanel');return}if(kind==='search'){togglePanel('searchPanel');return}
+  if(kind==='atlas-world'){const sec=openLayersPath('Mundo','Geografía Humana');sec?.scrollIntoView({block:'nearest'});return}
+  if(kind==='atlas-canary'){const sec=openLayersPath('Canarias','Geografía Humana');sec?.scrollIntoView({block:'nearest'});setTimeout(()=>document.getElementById('istacIndicatorSearch')?.focus(),80);return}
+  if(kind==='heritage'){const sec=openLayersPath('Canarias','Territorio y patrimonio');const h=sec?findDetails(sec,'Patrimonio cultural'):null;if(h)h.open=true;h?.scrollIntoView({block:'nearest'});return}
+  if(kind==='history'){const sec=openLayersPath('Mundo','Historia');sec?.scrollIntoView({block:'nearest'});return}
+ };
+ document.querySelectorAll('#toolHubPanel [data-hub]').forEach(b=>b.addEventListener('click',()=>window.openAnambroHubTarget(b.dataset.hub)));
+
+ /* ----- Atlas mundial: ampliación del catálogo WDI sin cambiar el motor existente ----- */
+ const EXTRA_WDI=[
+  ['Demografía','SP.DYN.CBRT.IN','Natalidad','por 1.000 habitantes',{dec:1,sense:'neutral',zeroBase:true,breakProfile:'mortality'}],
+  ['Demografía','SP.DYN.IMRT.IN','Mortalidad infantil','por 1.000 nacidos vivos',{dec:1,sense:'negative',zeroBase:true,breakProfile:'mortality'}],
+  ['Demografía','SP.POP.0014.TO.ZS','Población de 0–14 años','% de la población',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent'}],
+  ['Demografía','SP.POP.1564.TO.ZS','Población de 15–64 años','% de la población',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent'}],
+  ['Demografía','SP.POP.65UP.TO.ZS','Población de 65 años o más','% de la población',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent'}],
+  ['Demografía','SP.POP.DPND','Índice de dependencia demográfica','% de población en edad de trabajar',{dec:1,sense:'neutral',zeroBase:true,breakProfile:'percent'}],
+  ['Demografía','SP.RUR.TOTL.ZS','Población rural','% de la población',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent'}],
+  ['Economía y globalización','NY.GDP.MKTP.KD.ZG','Crecimiento real del PIB','% anual',{dec:2,sense:'positive',breakProfile:'growth'}],
+  ['Economía y globalización','NY.GDP.PCAP.PP.CD','PIB per cápita PPA','US$ internacionales corrientes',{dec:0,sense:'positive',zeroBase:true,breakProfile:'money-pc'}],
+  ['Economía y globalización','NE.TRD.GNFS.ZS','Comercio exterior','% del PIB',{dec:1,sense:'neutral',zeroBase:true,breakProfile:'percent'}],
+  ['Economía y globalización','BX.KLT.DINV.WD.GD.ZS','Inversión extranjera directa neta','% del PIB',{dec:2,sense:'neutral',breakProfile:'growth'}],
+  ['Economía y globalización','SI.POV.GINI','Índice de Gini','índice 0–100',{dec:1,sense:'negative',domain:[0,100],breakProfile:'percent'}],
+  ['Trabajo','SL.TLF.CACT.ZS','Tasa de actividad','% población de 15+ años',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent'}],
+  ['Trabajo','SL.TLF.CACT.FE.ZS','Tasa de actividad femenina','% población femenina de 15+ años',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent'}],
+  ['Trabajo','SL.UEM.1524.ZS','Desempleo juvenil','% población activa 15–24',{dec:1,sense:'negative',zeroBase:true,breakProfile:'unemployment'}],
+  ['Trabajo','SL.AGR.EMPL.ZS','Empleo en agricultura','% del empleo total',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent-sector'}],
+  ['Trabajo','SL.IND.EMPL.ZS','Empleo en industria','% del empleo total',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent-sector'}],
+  ['Trabajo','SL.SRV.EMPL.ZS','Empleo en servicios','% del empleo total',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent-sector'}],
+  ['Agricultura y territorio','AG.LND.AGRI.ZS','Superficie agrícola','% de la superficie terrestre',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent'}],
+  ['Agricultura y territorio','AG.LND.ARBL.ZS','Tierras cultivables','% de la superficie terrestre',{dec:1,sense:'neutral',domain:[0,100],breakProfile:'percent'}],
+  ['Agricultura y territorio','AG.YLD.CREL.KG','Rendimiento cerealista','kg por hectárea',{dec:0,sense:'positive',zeroBase:true,breakProfile:'population'}],
+  ['Educación y salud','SE.ADT.LITR.ZS','Alfabetización adulta','% población de 15+',{dec:1,sense:'positive',domain:[0,100],breakProfile:'access-percent'}],
+  ['Educación y salud','SE.PRM.ENRR','Escolarización primaria','% bruto',{dec:1,sense:'positive',zeroBase:true,breakProfile:'percent'}],
+  ['Educación y salud','SE.SEC.ENRR','Escolarización secundaria','% bruto',{dec:1,sense:'positive',zeroBase:true,breakProfile:'percent'}],
+  ['Educación y salud','SE.TER.ENRR','Escolarización terciaria','% bruto',{dec:1,sense:'positive',zeroBase:true,breakProfile:'percent'}],
+  ['Educación y salud','SH.STA.BASS.ZS','Saneamiento básico','% de la población',{dec:1,sense:'positive',domain:[0,100],breakProfile:'access-percent'}],
+  ['Educación y salud','SH.XPD.CHEX.GD.ZS','Gasto sanitario corriente','% del PIB',{dec:1,sense:'neutral',zeroBase:true,breakProfile:'percent'}],
+  ['Energía y medio ambiente','EG.FEC.RNEW.ZS','Energías renovables en consumo final','% del consumo total',{dec:1,sense:'positive',domain:[0,100],breakProfile:'percent'}],
+  ['Energía y medio ambiente','EG.ELC.RNEW.ZS','Electricidad de origen renovable','% de la producción eléctrica',{dec:1,sense:'positive',domain:[0,100],breakProfile:'percent'}],
+  ['Energía y medio ambiente','AG.LND.FRST.ZS','Superficie forestal','% de la superficie terrestre',{dec:1,sense:'positive',domain:[0,100],breakProfile:'percent'}],
+  ['Energía y medio ambiente','EN.ATM.PM25.MC.M3','Exposición a PM2,5','µg/m³',{dec:1,sense:'negative',zeroBase:true,breakProfile:'co2'}],
+  ['Tecnología y movilidad','IT.CEL.SETS.P2','Abonos de telefonía móvil','por 100 habitantes',{dec:1,sense:'neutral',zeroBase:true,breakProfile:'percent'}],
+  ['Tecnología y movilidad','ST.INT.ARVL','Llegadas de turistas internacionales','personas',{dec:0,sense:'neutral',compact:true,zeroBase:true,breakProfile:'population'}],
+  ['Tecnología y movilidad','ST.INT.RCPT.CD','Ingresos por turismo internacional','US$ corrientes',{dec:0,sense:'neutral',compact:true,zeroBase:true,breakProfile:'money-total'}],
+  ['Tecnología y movilidad','IS.AIR.PSGR','Transporte aéreo de pasajeros','pasajeros',{dec:0,sense:'neutral',compact:true,zeroBase:true,breakProfile:'population'}],
+  ['Tecnología y movilidad','BX.TRF.PWKR.DT.GD.ZS','Remesas personales recibidas','% del PIB',{dec:2,sense:'neutral',zeroBase:true,breakProfile:'percent'}]
+ ];
+ if(typeof WORLD_HUMAN_INDICATORS!=='undefined'){
+  for(const [cat,code,name,unit,opts] of EXTRA_WDI)WORLD_HUMAN_INDICATORS[code]={name,unit,source:'Banco Mundial · WDI',...opts};
+  const root=document.getElementById('worldHumanControls');
+  if(root&&!document.getElementById('worldHumanSearch')){
+   const search=document.createElement('div');search.className='atlasPanelBlock';search.innerHTML='<b>🔎 Buscar indicador mundial</b><input id="worldHumanSearch" type="search" placeholder="Ej.: empleo, turismo, bosques, natalidad…"><small class="atlasSearchHint">El catálogo combina Banco Mundial/WDI y PNUD. Puedes activar varias variables simultáneamente.</small><div id="worldHumanExtraGroups"></div>';
+   root.insertBefore(search,root.querySelector('#worldHumanStatus'));
+   const groups=search.querySelector('#worldHumanExtraGroups'),by=new Map();for(const x of EXTRA_WDI){if(!by.has(x[0]))by.set(x[0],[]);by.get(x[0]).push(x)}
+   for(const [cat,items] of by){const d=document.createElement('details');d.innerHTML='<summary>'+esc(cat)+'</summary>';for(const [,code,name] of items){const l=document.createElement('label');l.className='sub';l.innerHTML='<input class="worldHumanLayerCheck worldHumanExtra" data-human-indicator="'+esc(code)+'" type="checkbox"> '+esc(name);d.appendChild(l)}groups.appendChild(d)}
+   root.querySelectorAll('.worldHumanExtra').forEach(cb=>cb.addEventListener('change',async()=>{if(cb.checked)await updateHumanIndicator(cb.dataset.humanIndicator);else clearHumanIndicator(cb.dataset.humanIndicator);refreshHumanLegend()}));
+   const inp=search.querySelector('#worldHumanSearch');inp.addEventListener('input',()=>{const q=norm(inp.value);root.querySelectorAll('label.sub').forEach(l=>{const has=l.querySelector('.worldHumanLayerCheck');if(has)l.style.display=!q||norm(l.textContent).includes(q)?'':'none'});});
+  }
+ }
+
+ /* ----- Patrimonio cultural de Canarias · WMS GRAFCAN ----- */
+ const HERITAGE={
+  bic_monumento:{label:'Monumentos BIC',url:'https://idecan2.grafcan.es/ServicioWMS/BIC?',words:['monumento'],fallback:'Monumento'},
+  bic_jardin:{label:'Jardines históricos BIC',url:'https://idecan2.grafcan.es/ServicioWMS/BIC?',words:['jardin'],fallback:'Jardin_Historico'},
+  bic_conjunto:{label:'Conjuntos históricos BIC',url:'https://idecan2.grafcan.es/ServicioWMS/BIC?',words:['conjunto'],fallback:'Conjunto_Historico'},
+  bic_sitio:{label:'Sitios históricos BIC',url:'https://idecan2.grafcan.es/ServicioWMS/BIC?',words:['sitio'],fallback:'Sitio_Historico'},
+  bic_arqueologia:{label:'Zonas arqueológicas BIC',url:'https://idecan2.grafcan.es/ServicioWMS/BIC?',words:['arqueolog'],fallback:'Zona_Arqueologica'},
+  bic_paleo:{label:'Zonas paleontológicas BIC',url:'https://idecan2.grafcan.es/ServicioWMS/BIC?',words:['paleont'],fallback:'Zona_Paleontologica'},
+  esculturas:{label:'Esculturas públicas',url:'https://idecan2.grafcan.es/ServicioWMS/Esculturas?',words:['escultur'],fallback:'Esculturas'},
+  espacios:{label:'Espacios culturales',url:'https://idecan2.grafcan.es/ServicioWMS/EspaciosCulturales?',words:['espacio','cultural'],fallback:'EspaciosCulturales'}
+ };
+ const heritageLayers=new Map(),heritageResolved=new Map();
+ function canaryTerritoryDetails(){const sc=[...document.querySelectorAll('#layersPanel details.layerScope')].find(d=>norm(d.querySelector(':scope>summary')?.textContent).includes('canarias'));return sc?[...sc.querySelectorAll('details.layerSubcategory')].find(d=>norm(d.querySelector(':scope>summary')?.textContent).includes('territorio y patrimonio')):null}
+ async function resolveHeritage(cfg){if(heritageResolved.has(cfg.url+'|'+cfg.words.join(',')))return heritageResolved.get(cfg.url+'|'+cfg.words.join(','));let n=cfg.fallback;try{const join=cfg.url.includes('?')?'&':'?';const r=await fetch(cfg.url+join+'SERVICE=WMS&REQUEST=GetCapabilities',{cache:'force-cache'});if(r.ok){const xml=new DOMParser().parseFromString(await r.text(),'text/xml'),layers=[...xml.querySelectorAll('Layer')],words=cfg.words.map(norm);let best=null,bestScore=-1;for(const layer of layers){const name=layer.querySelector(':scope > Name')?.textContent?.trim(),title=layer.querySelector(':scope > Title')?.textContent?.trim()||'';if(!name)continue;const hay=norm(name+' '+title);let score=0;for(const w of words)if(hay.includes(w))score+=2;if(score>bestScore){bestScore=score;best=name}}if(best&&bestScore>0)n=best}}catch(e){console.warn('Patrimonio GRAFCAN · capacidades WMS',e)}heritageResolved.set(cfg.url+'|'+cfg.words.join(','),n);return n}
+ async function toggleHeritage(key,on){const cfg=HERITAGE[key];if(!cfg)return;if(!on){const l=heritageLayers.get(key);if(l&&map.hasLayer(l))map.removeLayer(l);return}let l=heritageLayers.get(key);if(!l){const name=await resolveHeritage(cfg);l=L.tileLayer.wms(cfg.url,{layers:name,format:'image/png',transparent:true,version:'1.1.1',uppercase:true,noWrap:true,minZoom:4,maxZoom:20,opacity:+(document.getElementById('heritageOpacity')?.value||.82),attribution:'Patrimonio cultural · Gobierno de Canarias / GRAFCAN'});l.__anambroHeritage={key,name,...cfg};heritageLayers.set(key,l)}l.setOpacity(+(document.getElementById('heritageOpacity')?.value||.82));if(!map.hasLayer(l))l.addTo(map)}
+ window.canaryHeritageActive=()=>[...heritageLayers.values()].some(l=>map.hasLayer(l));
+ function heritageWmsQuery(layer,lat,lon){const b=map.getBounds(),sz=map.getSize(),pt=map.latLngToContainerPoint([lat,lon]),m=layer.__anambroHeritage;if(!m)return Promise.resolve(null);const q=new URLSearchParams({SERVICE:'WMS',VERSION:'1.1.1',REQUEST:'GetFeatureInfo',LAYERS:m.name,QUERY_LAYERS:m.name,STYLES:'',SRS:'EPSG:4326',BBOX:[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(','),WIDTH:String(Math.round(sz.x)),HEIGHT:String(Math.round(sz.y)),X:String(Math.max(0,Math.min(sz.x-1,Math.round(pt.x)))),Y:String(Math.max(0,Math.min(sz.y-1,Math.round(pt.y)))),FORMAT:'image/png',INFO_FORMAT:'text/html',FEATURE_COUNT:'8'});return fetch(m.url+q.toString(),{mode:'cors',cache:'no-store'}).then(r=>{if(!r.ok)throw Error(r.status);return r.text()}).then(t=>{const rows=typeof cleanGrafcanInfoTable==='function'?cleanGrafcanInfoTable(t):[];return rows.length?{label:m.label,rows}:null}).catch(()=>null)}
+ window.canaryHeritageAt=async(lat,lon)=>{if(!window.canaryHeritageActive()||!isCanaryPoint(lat,lon))return null;const active=[...heritageLayers.values()].filter(l=>map.hasLayer(l));const ans=(await Promise.all(active.map(l=>heritageWmsQuery(l,lat,lon)))).filter(Boolean);return ans.length?ans:null};
+ window.canaryHeritageHtml=function(v,pending=false){if(!window.canaryHeritageActive())return '';if(pending&&!v)return '<hr><b>🏛️ Patrimonio cultural · Canarias:</b> consultando…';if(!v)return '<hr><b>🏛️ Patrimonio cultural · Canarias:</b> sin elemento identificado en este punto';if(v.__error)return '<hr><b>🏛️ Patrimonio cultural · Canarias:</b> no se pudo completar la consulta';return v.map(x=>'<hr><b>🏛️ '+esc(x.label)+'</b><br>'+x.rows.map(([k,val])=>'<b>'+esc(k)+':</b> '+esc(val)).join('<br>')).join('')};
+ const terr=canaryTerritoryDetails();if(terr&&!document.getElementById('heritageCanaryBlock')){const d=document.createElement('details');d.className='layerSubcategory';d.id='heritageCanaryBlock';d.innerHTML='<summary>🏛️ Patrimonio cultural</summary><div class="layerSubBlock"><small>Inventarios oficiales del Gobierno de Canarias / GRAFCAN.</small><div class="heritageNote">Las localizaciones de las zonas arqueológicas publicadas por IDECanarias son aproximadas por razones de protección de los yacimientos.</div>'+Object.entries(HERITAGE).map(([k,c])=>'<label><input class="heritageCheck" data-heritage="'+k+'" type="checkbox"> '+esc(c.label)+'</label>').join('')+'<small><b>Opacidad</b> <span id="heritageOpacityValue">82 %</span></small><input id="heritageOpacity" type="range" min="0" max="1" step="0.05" value="0.82" style="width:100%"><div class="heritageLegend" id="heritageLegend">Activa una o varias categorías. Toca el mapa para consultar la información publicada.</div></div>';terr.appendChild(d);d.querySelectorAll('.heritageCheck').forEach(c=>c.addEventListener('change',()=>toggleHeritage(c.dataset.heritage,c.checked)));d.querySelector('#heritageOpacity').addEventListener('input',e=>{d.querySelector('#heritageOpacityValue').textContent=Math.round(+e.target.value*100)+' %';for(const l of heritageLayers.values())l.setOpacity(+e.target.value)})}
+
+ /* ----- Atlas municipal de Canarias · ISTAC ----- */
+ const ISTAC_BASE='https://datos.canarias.es/api/estadisticas/indicators/v1.0/';
+ let istacLayer=null,istacMunicipalGeo=null,istacRows=[],istacMeta=null,istacSelectedYear=null,istacCatalog=[];
+ function txt(o){if(o==null)return '';if(typeof o==='string'||typeof o==='number')return String(o);if(Array.isArray(o))return txt(o.find(Boolean));return txt(o.text||o.name||o.title||o.label||o.value||o.code||o.id||'')}
+ function extractItems(j){for(const k of ['items','indicatorsInstances','indicatorInstances','instances','indicatorInstance','data'])if(Array.isArray(j?.[k]))return j[k];if(Array.isArray(j))return j;for(const v of Object.values(j||{})){if(v&&typeof v==='object'){const x=extractItems(v);if(x.length)return x}}return []}
+ function istacCategory(name){const n=norm(name);if(/pobl|nacim|defun|edad|migr|extranj|demograf/.test(n))return 'Demografía';if(/emple|paro|afilia|labor/.test(n))return 'Empleo';if(/turis|aloj|hotel|pernoct|viajer|ocupacion/.test(n))return 'Turismo';if(/cultiv|agri|ganad|pesca|sector prim/.test(n))return 'Sector primario';if(/vehic|transporte|movilidad/.test(n))return 'Movilidad';if(/presup|irpf|ibi|municipal|policia|administr/.test(n))return 'Administración y hacienda';if(/empresa|econom|renta|industr|comerc/.test(n))return 'Economía';return 'Territorio y sociedad'}
+ async function loadIstacCatalog(){const status=document.getElementById('istacStatus');status.textContent='Cargando catálogo oficial Municipios en Cifras…';try{const u=ISTAC_BASE+'indicatorsSystems/C00067A/indicatorsInstances?limit=200&fields=%2Bmetadata';const r=await fetch(u,{cache:'force-cache'});if(!r.ok)throw Error('ISTAC '+r.status);const j=await r.json(),items=extractItems(j);istacCatalog=items.map(x=>({id:String(x.id||x.code||x.uuid||''),name:txt(x.name||x.title||x.indicator?.name||x.indicatorRef?.name||x.metadata?.name||x.id),raw:x})).filter(x=>x.id&&x.name);if(!istacCatalog.length)throw Error('catálogo vacío');renderIstacCatalog();status.textContent=istacCatalog.length+' indicadores/instancias disponibles · ISTAC';}catch(e){console.warn('Atlas ISTAC catálogo',e);istacCatalog=[{id:'POBLACION',name:'Población',direct:true},{id:'NACIMIENTOS',name:'Nacimientos',direct:true},{id:'DEFUNCIONES',name:'Defunciones',direct:true},{id:'EMPLEO_REGISTRADO_HOSTELERIA',name:'Empleo registrado en hostelería',direct:true},{id:'PARQUE_VEHICULOS',name:'Parque de vehículos',direct:true},{id:'ALOJATUR_ABIERTOS',name:'Establecimientos alojativos abiertos',direct:true}];renderIstacCatalog();status.textContent='Catálogo reducido de reserva · pulsa «Recargar catálogo» para reintentar ISTAC.'}}
+ function renderIstacCatalog(){const sel=document.getElementById('istacIndicatorSelect');if(!sel)return;const q=norm(document.getElementById('istacIndicatorSearch')?.value||''),by=new Map();for(const x of istacCatalog){if(q&&!norm(x.name).includes(q))continue;const c=istacCategory(x.name);if(!by.has(c))by.set(c,[]);by.get(c).push(x)}sel.innerHTML='<option value="">— Elige un indicador —</option>';for(const [cat,items] of by){const g=document.createElement('optgroup');g.label=cat;items.sort((a,b)=>a.name.localeCompare(b.name,'es'));for(const x of items){const o=document.createElement('option');o.value=x.id;o.textContent=x.name;g.appendChild(o)}sel.appendChild(g)}}
+ function dimCodes(dim){const r=dim?.representation||dim||{},cat=dim?.category||r?.category||{},idx=cat.index??r.index??dim?.index;if(Array.isArray(idx))return idx.map(String);if(idx&&typeof idx==='object')return Object.entries(idx).sort((a,b)=>Number(a[1])-Number(b[1])).map(x=>String(x[0]));if(Array.isArray(r))return r.map(x=>String(x.code||x.id||x.value||''));return []}
+ function dimLabels(dim){const out=new Map(),r=dim?.representation||dim||{},cat=dim?.category||r?.category||{};for(const arr of [r.representations,r.values,r.items,Array.isArray(r)?r:[]])if(Array.isArray(arr))for(const x of arr){const c=String(x.code||x.id||x.value||'');if(c)out.set(c,txt(x.name||x.label||x.title||c))}const lab=cat.label||r.label;if(lab&&typeof lab==='object')for(const [c,v] of Object.entries(lab))out.set(String(c),txt(v||c));return out}
+ function parseIstacData(j){const dims=j?.dimension||j?.dimensions||{},keys=Array.isArray(j?.id)?j.id:Object.keys(dims);if(!keys.length)return [];const codes=keys.map(k=>dimCodes(dims[k])),sizes=codes.map(x=>x.length||1),labels=keys.map(k=>dimLabels(dims[k]));const obs=j?.observation||j?.observations||j?.value||[];const vals=Array.isArray(obs)?obs:Object.entries(obs).sort((a,b)=>Number(a[0])-Number(b[0])).map(x=>x[1]);const rows=[];for(let n=0;n<vals.length;n++){const raw=typeof vals[n]==='object'?(vals[n]?.value??vals[n]?.obsValue):vals[n],v=Number(raw);if(!Number.isFinite(v))continue;let rem=n,tuple={};for(let i=keys.length-1;i>=0;i--){const size=sizes[i]||1,ix=rem%size;rem=Math.floor(rem/size);const c=codes[i][ix]||String(ix);tuple[keys[i]]={code:c,label:labels[i].get(c)||c}}rows.push({tuple,value:v})}return rows}
+ function geoKeyFromFeature(f){const p=f?.properties||{};for(const k of ['CODIGO','codigo','CODIGO_MUNICIPIO','codmun','CODMUN','CMUN','MUNICIPIO_COD','INE','COD_INE']){const v=String(p[k]??'').trim();if(v)return v}return ''}
+ function geoNameFromFeature(f){const p=f?.properties||{};for(const k of ['MUNICIPIO','municipio','NOMBRE','nombre','NAMEUNIT','name','NOM_MUN']){const v=String(p[k]??'').trim();if(v)return v}return ''}
+ async function loadIstacGeo(){if(istacMunicipalGeo)return istacMunicipalGeo;const urls=['data/admin/municipios-canarias.geojson','https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios.geojson'];let err;for(const u of urls)try{const r=await fetch(u);if(!r.ok)throw Error(r.status);const j=await r.json();if(j?.features?.length){istacMunicipalGeo=j;return j}}catch(e){err=e}throw err||Error('Sin geometría municipal')}
+ function identifyIstacDims(row){const entries=Object.entries(row.tuple),geo=entries.find(([k])=>/geo/i.test(k))||entries.find(([,v])=>/^\d{5}$/.test(v.code))||entries[0],time=entries.find(([k])=>/time|period|year/i.test(k))||entries.find(([,v])=>/^\d{4}$/.test(v.code)),measure=entries.find(([k])=>/measure/i.test(k));return {geo:geo?.[1],time:time?.[1],measure:measure?.[1]}}
+ function istacBreaks(vals){const a=vals.filter(Number.isFinite).sort((a,b)=>a-b);if(!a.length)return [];const q=p=>a[Math.min(a.length-1,Math.floor((a.length-1)*p))];return [a[0],q(.2),q(.4),q(.6),q(.8),a.at(-1)]}
+ const ISTAC_COL=['#fff2b2','#ffd34d','#f28c28','#d94831','#7f0000'];function istacClass(v,b){if(!Number.isFinite(v))return -1;return v<b[1]?0:v<b[2]?1:v<b[3]?2:v<b[4]?3:4}
+ function currentIstacRows(){return istacRows.filter(r=>!istacSelectedYear||String(identifyIstacDims(r).time?.code||identifyIstacDims(r).time?.label||'')===String(istacSelectedYear))}
+ function renderIstac(){if(istacLayer){map.removeLayer(istacLayer);istacLayer=null}if(!istacMunicipalGeo||!istacRows.length)return;const rows=currentIstacRows(),byCode=new Map(),byName=new Map();for(const r of rows){const d=identifyIstacDims(r),c=String(d.geo?.code||'').replace(/^ES/,'');const n=norm(d.geo?.label||'');if(c)byCode.set(c,r.value);if(n)byName.set(n,r.value)}const vals=[...new Set([...byCode.values(),...byName.values()])],br=istacBreaks(vals);istacLayer=L.geoJSON(istacMunicipalGeo,{style:f=>{const c=geoKeyFromFeature(f),n=norm(geoNameFromFeature(f)),v=byCode.get(c)||byCode.get(c.replace(/^0+/,''))||byName.get(n),i=istacClass(v,br);return {color:'#334c5e',weight:.7,opacity:.9,fillColor:i<0?'#b9bdc1':ISTAC_COL[i],fillOpacity:.72}},onEachFeature:(f,l)=>{const c=geoKeyFromFeature(f),name=geoNameFromFeature(f)||'Municipio',n=norm(name),v=byCode.get(c)||byCode.get(c.replace(/^0+/,''))||byName.get(n);l.bindPopup('<b>📊 '+esc(name)+'</b><br><b>'+esc(istacMeta?.name||'Indicador ISTAC')+':</b> '+(Number.isFinite(v)?new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(v):'Sin dato')+'<br><b>Periodo:</b> '+esc(istacSelectedYear||'último disponible')+'<br><small>ISTAC · Municipios en Cifras (C00067A)</small>',{maxWidth:390})}}).addTo(map);const legend=document.getElementById('istacLegend');if(legend){legend.innerHTML='<b>'+esc(istacMeta?.name||'Indicador ISTAC')+'</b><br><small>'+esc(istacSelectedYear||'Último periodo')+' · ISTAC</small>'+br.slice(1,5).map((b,i)=>'<div class="istacLegendItem"><span class="istacLegendSw" style="background:'+ISTAC_COL[i]+'"></span>'+(i===0?'Menos de ':new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(br[i])+' – ')+new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(b)+'</div>').join('')+'<div class="istacLegendItem"><span class="istacLegendSw" style="background:'+ISTAC_COL[4]+'"></span>Más de '+new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(br[4])+'</div>'}if(istacLayer.getBounds().isValid())map.fitBounds(istacLayer.getBounds(),{padding:[16,16],maxZoom:10})}
+ async function loadIstacIndicator(id){const status=document.getElementById('istacStatus'),item=istacCatalog.find(x=>x.id===id);if(!item)return;status.textContent='Cargando '+item.name+'…';try{const geo=await loadIstacGeo();let u=item.direct?ISTAC_BASE+'indicators/'+encodeURIComponent(id)+'/data?fields=-observationsMetadata':ISTAC_BASE+'indicatorsSystems/C00067A/indicatorsInstances/'+encodeURIComponent(id)+'/data?fields=-observationsMetadata';let r=await fetch(u,{cache:'no-store'});if(!r.ok&& !item.direct){u=ISTAC_BASE+'indicators/'+encodeURIComponent(id)+'/data?fields=-observationsMetadata';r=await fetch(u,{cache:'no-store'})}if(!r.ok)throw Error('ISTAC '+r.status);const j=await r.json();istacRows=parseIstacData(j);istacMeta={name:item.name,raw:item.raw};if(!istacRows.length)throw Error('sin observaciones interpretables');const years=[...new Set(istacRows.map(r=>{const t=identifyIstacDims(r).time;return String(t?.code||t?.label||'')}).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));const ys=document.getElementById('istacYearSelect');ys.innerHTML=years.map(y=>'<option value="'+esc(y)+'">'+esc(y)+'</option>').join('');istacSelectedYear=years.at(-1)||null;if(istacSelectedYear)ys.value=istacSelectedYear;renderIstac();status.textContent=item.name+' · '+istacRows.length+' observaciones cargadas'}catch(e){console.error(e);status.textContent='No se pudo cargar este indicador del ISTAC. Prueba otro o recarga el catálogo.'}}
+ const canScope=[...document.querySelectorAll('#layersPanel details.layerScope')].find(d=>norm(d.querySelector(':scope>summary')?.textContent).includes('canarias'));const canHuman=canScope?[...canScope.querySelectorAll('details.layerCategory')].find(d=>norm(d.querySelector(':scope>summary')?.textContent).includes('geografia humana')):null;if(canHuman){canHuman.querySelector('.layerEmpty')?.remove();const box=document.createElement('div');box.className='layerSubBlock atlasPanelBlock';box.id='istacAtlasBlock';box.innerHTML='<b>📊 Atlas estadístico de Canarias · ISTAC</b><small class="atlasSearchHint">Municipios en Cifras (C00067A): indicadores territoriales, demográficos, sociales y económicos.</small><input id="istacIndicatorSearch" type="search" placeholder="Buscar: población, turismo, empleo…"><select id="istacIndicatorSelect"><option>Cargando catálogo…</option></select><div class="row" style="margin-top:5px"><select id="istacYearSelect"><option value="">Periodo</option></select><button class="action" id="istacClearBtn" type="button">Quitar mapa</button></div><button class="action" id="istacReloadBtn" type="button" style="width:100%;margin-top:5px">↻ Recargar catálogo ISTAC</button><small id="istacStatus" style="display:block;margin-top:6px">Preparando atlas…</small><div id="istacLegend" class="miniThemeLegend" style="margin-top:6px"></div>';canHuman.appendChild(box);box.querySelector('#istacIndicatorSearch').addEventListener('input',renderIstacCatalog);box.querySelector('#istacIndicatorSelect').addEventListener('change',e=>loadIstacIndicator(e.target.value));box.querySelector('#istacYearSelect').addEventListener('change',e=>{istacSelectedYear=e.target.value;renderIstac()});box.querySelector('#istacClearBtn').addEventListener('click',()=>{if(istacLayer){map.removeLayer(istacLayer);istacLayer=null}box.querySelector('#istacLegend').innerHTML=''});box.querySelector('#istacReloadBtn').addEventListener('click',loadIstacCatalog);loadIstacCatalog()}
+
+ // Fuentes activas: añadir ISTAC/GRAFCAN patrimonio cuando corresponda sin alterar la lógica previa.
+ if(typeof activeSourcesText==='function'){const prev=activeSourcesText;activeSourcesText=function(){const a=[];const b=prev.apply(this,arguments);if(b)a.push(b);if(istacLayer&&map.hasLayer(istacLayer))a.push('ISTAC · Municipios en Cifras');if(window.canaryHeritageActive())a.push('Gobierno de Canarias / GRAFCAN · Patrimonio cultural');return a.join(' · ')}}
+})();
+</script>
 
 </body></html>
