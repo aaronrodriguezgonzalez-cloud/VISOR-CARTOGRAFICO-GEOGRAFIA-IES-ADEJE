@@ -2726,6 +2726,24 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 }
 </style>
 
+
+<style id="anambro-desktop-map-cursor-fix">
+/* Corrección puntual: el cursor debe permanecer visible sobre el mapa en equipos con ratón/trackpad. */
+@media (hover:hover) and (pointer:fine){
+  html body #map.leaflet-container,
+  html body #map.leaflet-container.leaflet-grab{
+    cursor:grab!important;
+  }
+  html body.leaflet-dragging #map.leaflet-container,
+  html body .leaflet-dragging #map.leaflet-container,
+  html body .leaflet-dragging #map.leaflet-container.leaflet-grab{
+    cursor:grabbing!important;
+  }
+  html body.trackModeActive #map.leaflet-container{
+    cursor:crosshair!important;
+  }
+}
+</style>
 </head><body>
 <div id="map"></div>
 <div id="globe" aria-label="Globo 3D"></div>
