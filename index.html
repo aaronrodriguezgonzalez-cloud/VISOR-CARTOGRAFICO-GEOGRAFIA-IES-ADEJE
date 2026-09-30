@@ -2726,6 +2726,100 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 }
 </style>
 
+
+<script id="anambro-ipad-detect">
+(function(){
+  const ua=navigator.userAgent||'';
+  const platform=navigator.platform||'';
+  const isIPad=/iPad/i.test(ua)||(platform==='MacIntel'&&(navigator.maxTouchPoints||0)>1);
+  window.ANAMBRO_IS_IPAD=!!isIPad;
+  if(isIPad)document.documentElement.classList.add('anambro-ipad');
+})();
+</script>
+<style id="anambro-ipad-ui-fix">
+/* iPad exclusivamente. Escritorio y móvil conservan las reglas originales de v0.15. */
+.layoutViewZoomBlock{display:none}
+@media (min-width:761px){
+ html.anambro-ipad body .brand.brandWide.brandV06.header-free-layout{
+   position:absolute!important;
+   top:8px!important;
+   left:50%!important;
+   right:auto!important;
+   transform:translateX(-50%)!important;
+   display:grid!important;
+   grid-template-columns:150px minmax(0,1fr) 196px!important;
+   grid-template-rows:62px 30px!important;
+   grid-template-areas:"left title right" "left center right"!important;
+   width:calc(100vw - 20px)!important;
+   max-width:none!important;
+   height:92px!important;min-height:92px!important;
+   padding:0 8px!important;overflow:hidden!important;align-items:center!important;
+   box-sizing:border-box!important;z-index:5000!important;background:#fff!important;
+ }
+ html.anambro-ipad body .brandV06.header-free-layout .headerEditFrame{
+   display:contents!important;position:static!important;left:auto!important;top:auto!important;
+   width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
+   transform:none!important;overflow:visible!important;
+ }
+ html.anambro-ipad body .brandV06.header-free-layout>.brandSideLeft,
+ html.anambro-ipad body .brandV06.header-free-layout>.brandSideRight,
+ html.anambro-ipad body .brandV06.header-free-layout .brandInstitutionV06,
+ html.anambro-ipad body .brandV06.header-free-layout .brandAuthorV06{display:revert!important;position:static!important}
+ html.anambro-ipad body .brandV06.header-free-layout>.brandSideLeft{
+   grid-area:left!important;height:92px!important;display:flex!important;align-items:center!important;
+   justify-content:flex-start!important;padding:4px 6px!important;border-right:1px solid rgba(45,80,105,.12)!important;
+   min-width:0!important;box-sizing:border-box!important;
+ }
+ html.anambro-ipad body .brandV06.header-free-layout .brandInstitutionV06{
+   display:grid!important;grid-template-columns:50px minmax(0,1fr)!important;gap:7px!important;align-items:center!important;min-width:0!important
+ }
+ html.anambro-ipad body .brandV06.header-free-layout .brandInstituteLogoV06{width:48px!important;height:48px!important;object-fit:contain!important}
+ html.anambro-ipad body .brandV06.header-free-layout .brandLeftText{display:block!important;min-width:0!important}
+ html.anambro-ipad body .brandV06.header-free-layout .brandDept{font-size:8.5px!important;line-height:1.05!important;white-space:normal!important}
+ html.anambro-ipad body .brandV06.header-free-layout .brandDept b{font-size:11px!important}
+ html.anambro-ipad body .brandV06.header-free-layout .brandVersion{font-size:7.2px!important;line-height:1!important;margin-top:3px!important;padding:2px 4px!important}
+ html.anambro-ipad body .brandV06.header-free-layout .brandAuthorV06{display:none!important}
+ html.anambro-ipad body .brandV06.header-free-layout>.brandTitleTop{
+   grid-area:title!important;display:flex!important;align-items:flex-end!important;justify-content:center!important;
+   height:62px!important;padding:2px 8px 0!important;min-width:0!important;box-sizing:border-box!important
+ }
+ html.anambro-ipad body .brandV06.header-free-layout .brandAnambroIntegratedLogo{
+   display:block!important;width:min(100%,460px)!important;height:58px!important;max-width:100%!important;object-fit:contain!important;transform:none!important
+ }
+ html.anambro-ipad body .brandV06.header-free-layout>.brandCenter{
+   grid-area:center!important;height:30px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+   padding:0 6px 3px!important;min-width:0!important;box-sizing:border-box!important
+ }
+ html.anambro-ipad body .brandV06.header-free-layout .brandDescriptor{
+   display:block!important;font-size:9.3px!important;line-height:1.08!important;text-align:center!important;
+   white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;width:100%!important;color:#0f756b!important
+ }
+ html.anambro-ipad body .brandV06.header-free-layout>.brandSideRight{
+   grid-area:right!important;height:92px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+   padding:4px 0 4px 7px!important;border-left:1px solid rgba(45,80,105,.12)!important;box-sizing:border-box!important;min-width:0!important
+ }
+ html.anambro-ipad body .brandV06.header-free-layout .brandRoles{display:none!important}
+ html.anambro-ipad body .brandV06.header-free-layout .brandActions{display:flex!important;flex-wrap:wrap!important;gap:5px!important;justify-content:center!important;align-content:center!important;position:static!important}
+ html.anambro-ipad body .brandV06.header-free-layout .brandWelcomeBtn{font-size:8.7px!important;line-height:1.05!important;padding:6px 7px!important;min-height:30px!important;white-space:nowrap!important}
+ html.anambro-ipad body .brandV06.header-free-layout .brandHeaderEditBtn{display:none!important}
+ html.anambro-ipad body #headerEditorBar,
+ html.anambro-ipad body #headerEditorInspector,
+ html.anambro-ipad body .headerResizeHandle,
+ html.anambro-ipad body .headerEditHandle{display:none!important}
+ html.anambro-ipad body .toolbar{
+   display:flex!important;visibility:visible!important;opacity:1!important;
+   top:108px!important;left:8px!important;right:auto!important;z-index:5100!important;
+   max-height:calc(100vh - 116px)!important;overflow-y:auto!important;
+ }
+ html.anambro-ipad body .toolbar .tool{display:block!important;visibility:visible!important;opacity:1!important}
+ html.anambro-ipad body .leaflet-top.leaflet-left{top:102px!important}
+ html.anambro-ipad body .layoutViewZoomBlock{display:block!important;margin:8px 0;padding:8px;border:1px solid #cbd7df;border-radius:8px;background:#f7fafc}
+ html.anambro-ipad body .layoutViewZoomControls{display:grid;grid-template-columns:46px 1fr 46px;gap:6px;align-items:center;margin-top:5px}
+ html.anambro-ipad body .layoutViewZoomControls button{min-height:38px;border:1px solid #9caab5;border-radius:7px;background:#fff;color:#17324d;font-weight:900;font-size:18px;cursor:pointer}
+ html.anambro-ipad body #layoutViewFitBtn{font-size:11px!important}
+ html.anambro-ipad body .layoutViewZoomValue{display:block;text-align:center;font-size:10px;color:#536676;font-weight:800;margin-top:4px}
+}
+</style>
 </head><body>
 <div id="map"></div>
 <div id="globe" aria-label="Globo 3D"></div>
@@ -3467,6 +3561,16 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
       <label>Título
         <input id="layoutTitleInput" type="text" value="Mapa elaborado con ANAMBRO">
       </label>
+
+      <div id="layoutViewZoomBlock" class="layoutViewZoomBlock">
+        <b>Vista de la hoja</b>
+        <div class="layoutViewZoomControls">
+          <button type="button" onclick="changeLayoutViewZoom(-0.05)" aria-label="Alejar hoja">−</button>
+          <button id="layoutViewFitBtn" type="button" onclick="fitLayoutViewToWorkspace()">Ajustar hoja</button>
+          <button type="button" onclick="changeLayoutViewZoom(0.05)" aria-label="Acercar hoja">+</button>
+        </div>
+        <span id="layoutViewZoomValue" class="layoutViewZoomValue">100 %</span>
+      </div>
 
       <div class="layoutGrid2">
         <label>Papel
@@ -8081,7 +8185,32 @@ function openLayoutEditor(mode='map'){
   syncLayoutModeUI();
  }
  selectLayoutItem('map');
- setTimeout(async()=>{await refreshLayoutSnapshot();containLayoutMapImage();},80);
+ if(isLayoutIPad())setTimeout(fitLayoutViewToWorkspace,40);
+ setTimeout(async()=>{await refreshLayoutSnapshot();containLayoutMapImage();if(isLayoutIPad())setTimeout(fitLayoutViewToWorkspace,30);},80);
+}
+let layoutViewZoom=1;
+function isLayoutIPad(){return !!window.ANAMBRO_IS_IPAD;}
+function setLayoutViewZoom(value){
+ if(!isLayoutIPad())return;
+ const page=document.getElementById('layoutPage');if(!page)return;
+ const z=Math.max(.25,Math.min(1.15,Number(value)||1));layoutViewZoom=z;
+ // CSS zoom changes the compositor viewport only. PDF export restores 100 % temporarily.
+ page.style.zoom=String(z);
+ page.style.transform='none';
+ page.style.margin='0';
+ const out=document.getElementById('layoutViewZoomValue');if(out)out.textContent=Math.round(z*100)+' %';
+}
+function changeLayoutViewZoom(delta){setLayoutViewZoom(layoutViewZoom+(Number(delta)||0));}
+function fitLayoutViewToWorkspace(){
+ if(!isLayoutIPad())return;
+ const ws=document.querySelector('.layoutWorkspace'),page=document.getElementById('layoutPage');if(!ws||!page)return;
+ const prev=page.style.zoom;page.style.zoom='1';page.style.transform='none';
+ requestAnimationFrame(()=>{
+  const pad=18,availW=Math.max(120,ws.clientWidth-pad*2),availH=Math.max(120,ws.clientHeight-pad*2);
+  const w=Math.max(1,page.offsetWidth),h=Math.max(1,page.offsetHeight);
+  const z=Math.max(.25,Math.min(1,availW/w,availH/h));
+  setLayoutViewZoom(z);
+ });
 }
 function closeLayoutEditor(){
  document.getElementById('layoutOverlay')?.classList.remove('open');
@@ -8327,6 +8456,8 @@ function initLayoutDrag(){
 }
 async function exportLayoutPDF(){
  const page=document.getElementById('layoutPage');
+ const restoreViewZoom=isLayoutIPad()?layoutViewZoom:1;
+ if(isLayoutIPad()){page.style.zoom='1';page.style.transform='none';}
  const exportLegend=document.getElementById('layoutLegendContent');
  if(exportLegend){
   exportLegend.innerHTML=layoutContentMode==='profile'?(document.getElementById('profileBandsContent')?.innerHTML||'<small>Perfil topográfico.</small>'):(typeof layoutExportLegendHTML==='function'?layoutExportLegendHTML():activeLegendHTML());
@@ -8347,6 +8478,7 @@ async function exportLayoutPDF(){
  }catch(e){
   console.error(e);alert('No se pudo generar el PDF: '+e.message);
  }finally{
+  if(isLayoutIPad())setLayoutViewZoom(restoreViewZoom);
   if(btn){btn.disabled=false;btn.textContent='📄 Exportar a PDF';}
  }
 }
@@ -8356,8 +8488,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.getElementById('layoutFontScale')?.addEventListener('input',applyLayoutTypographyControls);
  document.getElementById('layoutFontFamily')?.addEventListener('change',applyLayoutTypographyControls);
  document.getElementById('layoutSelected')?.addEventListener('change',e=>selectLayoutItem(e.target.value));
- document.getElementById('layoutPaper')?.addEventListener('change',updateLayoutPageFormat);
- document.getElementById('layoutOrientation')?.addEventListener('change',updateLayoutPageFormat);
+ document.getElementById('layoutPaper')?.addEventListener('change',()=>{updateLayoutPageFormat();if(isLayoutIPad())setTimeout(fitLayoutViewToWorkspace,0);});
+ document.getElementById('layoutOrientation')?.addEventListener('change',()=>{updateLayoutPageFormat();if(isLayoutIPad())setTimeout(fitLayoutViewToWorkspace,0);});
  document.getElementById('layoutTitleInput')?.addEventListener('input',e=>document.getElementById('layoutTitleBox').textContent=e.target.value||' ');
  document.getElementById('layoutMapImage')?.addEventListener('load',updateLayoutScaleBox);
  syncLayoutInstituteBox();
@@ -13977,11 +14109,6 @@ html body .historyPopup .leaflet-popup-close-button{
  const brand=()=>document.querySelector('.brandV06'),bar=()=>document.getElementById('headerEditorBar'),ins=()=>document.getElementById('headerEditorInspector');
  let editing=false,snapshot=null,selected=null,zseq=20,lastSelection=null;
  const frames=new Map();
- function isIPadUI(){
-  const ua=navigator.userAgent||'';
-  return /iPad/i.test(ua)||((navigator.platform==='MacIntel'||/Macintosh/i.test(ua))&&(navigator.maxTouchPoints||0)>1);
- }
- function useResponsiveHeaderUI(){return window.innerWidth<=760||isIPadUI();}
  function toast(t){const e=document.getElementById('headerEditorToast');if(!e)return;e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1500)}
  function ensureFrames(){
   for(const [key,sel,label,type] of defs){let target=document.querySelector('.brandV06 '+sel);if(!target)continue;let f=target.closest('.headerEditFrame');if(!f){f=document.createElement('div');f.className='headerEditFrame '+(type==='text'?'textFrame ':type==='image'||type==='imagebox'?'mediaFrame ':type==='box'?'boxFrame ':'')+'headerFrame-'+key;f.dataset.key=key;f.dataset.label=label;f.dataset.type=type;target.parentNode.insertBefore(f,target);f.appendChild(target);target.classList.add('headerEditableTarget');if(type==='text'&&!target.dataset.headerOriginalHtml)target.dataset.headerOriginalHtml=target.innerHTML;for(const d of ['nw','n','ne','e','se','s','sw','w']){const h=document.createElement('i');h.className='headerResizeHandle';h.dataset.dir=d;f.appendChild(h)}}frames.set(key,f)}
@@ -13990,7 +14117,7 @@ html body .historyPopup .leaflet-popup-close-button{
  function textStyleData(t){const cs=getComputedStyle(t);return {fontFamily:t.style.fontFamily||cs.fontFamily||'',color:t.style.color||cs.color||'',textAlign:t.style.textAlign||cs.textAlign||'left',fontWeight:t.style.fontWeight||cs.fontWeight||'400',fontStyle:t.style.fontStyle||cs.fontStyle||'normal',textDecoration:t.style.textDecoration||cs.textDecorationLine||'none',lineHeight:t.style.lineHeight||cs.lineHeight||'normal',letterSpacing:t.style.letterSpacing||cs.letterSpacing||'normal'}}
  function readLayout(){const data={version:3,height:Math.round(brand().getBoundingClientRect().height),items:{}};for(const [key] of defs){const f=frames.get(key);if(!f)continue;const v=rectData(f);v.fit=f.style.getPropertyValue('--he-fit')||'contain';v.zoom=parseFloat(f.style.getPropertyValue('--he-zoom'))||1;v.posx=parseFloat(f.style.getPropertyValue('--he-posx'))||50;v.posy=parseFloat(f.style.getPropertyValue('--he-posy'))||50;const t=f.querySelector('.headerEditableTarget');v.font=parseFloat(t?.style.fontSize)||parseFloat(getComputedStyle(t).fontSize)||null;if(f.dataset.type==='text'){v.html=t.innerHTML;Object.assign(v,textStyleData(t))}data.items[key]=v}return data}
  function applyTextStyle(t,v){if(!t||!v)return;if(v.font)t.style.setProperty('font-size',v.font+'px','important');for(const [k,p] of [['fontFamily','font-family'],['color','color'],['textAlign','text-align'],['fontWeight','font-weight'],['fontStyle','font-style'],['textDecoration','text-decoration'],['lineHeight','line-height'],['letterSpacing','letter-spacing']]){if(v[k])t.style.setProperty(p,String(v[k]))}}
- function applyLayout(data){if(!data?.items||useResponsiveHeaderUI())return;const b=brand();b.classList.add('header-free-layout');if(data.height)b.style.height=Math.max(76,+data.height)+'px';for(const [key] of defs){const f=frames.get(key),v=data.items[key];if(!f||!v)continue;Object.assign(f.style,{left:(+v.left||0)+'px',top:(+v.top||0)+'px',width:Math.max(20,+v.width||20)+'px',height:Math.max(16,+v.height||16)+'px',zIndex:String(v.z||1)});f.style.setProperty('--he-fit',v.fit||'contain');f.style.setProperty('--he-zoom',v.zoom||1);f.style.setProperty('--he-posx',(v.posx??50)+'%');f.style.setProperty('--he-posy',(v.posy??50)+'%');const t=f.querySelector('.headerEditableTarget');applyTextStyle(t,v);if(f.dataset.type==='text'&&typeof v.html==='string')t.innerHTML=v.html}}
+ function applyLayout(data){if(!data?.items||window.innerWidth<=760)return;const b=brand();b.classList.add('header-free-layout');if(data.height)b.style.height=Math.max(76,+data.height)+'px';for(const [key] of defs){const f=frames.get(key),v=data.items[key];if(!f||!v)continue;Object.assign(f.style,{left:(+v.left||0)+'px',top:(+v.top||0)+'px',width:Math.max(20,+v.width||20)+'px',height:Math.max(16,+v.height||16)+'px',zIndex:String(v.z||1)});f.style.setProperty('--he-fit',v.fit||'contain');f.style.setProperty('--he-zoom',v.zoom||1);f.style.setProperty('--he-posx',(v.posx??50)+'%');f.style.setProperty('--he-posy',(v.posy??50)+'%');const t=f.querySelector('.headerEditableTarget');applyTextStyle(t,v);if(f.dataset.type==='text'&&typeof v.html==='string')t.innerHTML=v.html}}
  function clearLayout(){const b=brand();b.classList.remove('header-free-layout','header-editing');b.style.removeProperty('height');for(const f of frames.values()){f.classList.remove('selected','textEditing');for(const p of ['left','top','width','height','z-index','--he-fit','--he-zoom','--he-posx','--he-posy'])f.style.removeProperty(p);const t=f.querySelector('.headerEditableTarget');if(t){for(const p of ['font-size','font-family','color','text-align','font-weight','font-style','text-decoration','line-height','letter-spacing'])t.style.removeProperty(p);t.removeAttribute('contenteditable');for(const n of t.querySelectorAll('[style]')){if(n.style.getPropertyPriority('font-size')==='important')n.style.removeProperty('font-size')}}}}
  function selectionInside(t){const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return false;const r=s.getRangeAt(0),a=r.commonAncestorContainer;return t===a||t.contains(a.nodeType===1?a:a.parentElement)}
  function rememberSelection(){const t=selected?.querySelector('.headerEditableTarget'),s=window.getSelection();if(t&&s?.rangeCount&&selectionInside(t))lastSelection=s.getRangeAt(0).cloneRange()}
@@ -14009,7 +14136,7 @@ html body .historyPopup .leaflet-popup-close-button{
  function dragStart(ev,f){if(!editing||ev.button!==0||ev.target.classList.contains('headerResizeHandle')||f.classList.contains('textEditing'))return;selectFrame(f);const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect(),sx=ev.clientX,sy=ev.clientY,sl=r.left-b.left,st=r.top-b.top;ev.preventDefault();try{f.setPointerCapture(ev.pointerId)}catch(_){};const mv=e=>{let l=sl+e.clientX-sx,t=st+e.clientY-sy;l=Math.max(0,Math.min(l,b.width-r.width));t=Math.max(0,Math.min(t,b.height-r.height));f.style.left=Math.round(l)+'px';f.style.top=Math.round(t)+'px';syncInspector()};const up=e=>{f.removeEventListener('pointermove',mv);f.removeEventListener('pointerup',up);f.removeEventListener('pointercancel',up);try{f.releasePointerCapture(e.pointerId)}catch(_){}};f.addEventListener('pointermove',mv);f.addEventListener('pointerup',up);f.addEventListener('pointercancel',up)}
  function resizeStart(ev,f,dir){if(!editing)return;selectFrame(f);const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect(),sx=ev.clientX,sy=ev.clientY,x0=r.left-b.left,y0=r.top-b.top,w0=r.width,h0=r.height;ev.preventDefault();ev.stopPropagation();const h=ev.currentTarget;try{h.setPointerCapture(ev.pointerId)}catch(_){};const mv=e=>{let dx=e.clientX-sx,dy=e.clientY-sy,x=x0,y=y0,w=w0,hg=h0;if(dir.includes('e'))w=w0+dx;if(dir.includes('s'))hg=h0+dy;if(dir.includes('w')){w=w0-dx;x=x0+dx}if(dir.includes('n')){hg=h0-dy;y=y0+dy}w=Math.max(20,w);hg=Math.max(16,hg);x=Math.max(0,Math.min(x,b.width-w));y=Math.max(0,Math.min(y,b.height-hg));Object.assign(f.style,{left:Math.round(x)+'px',top:Math.round(y)+'px',width:Math.round(w)+'px',height:Math.round(hg)+'px'});syncInspector()};const up=e=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);try{h.releasePointerCapture(e.pointerId)}catch(_){}};h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}
  function wire(){for(const f of frames.values()){if(f.dataset.wired)return;f.dataset.wired='1';f.addEventListener('pointerdown',e=>dragStart(e,f));f.addEventListener('click',e=>{if(editing){e.stopPropagation();selectFrame(f)}});f.addEventListener('dblclick',e=>{if(editing&&f.dataset.type==='text'){e.preventDefault();e.stopPropagation();selectFrame(f);beginTextEdit()}});const t=f.querySelector('.headerEditableTarget');t?.addEventListener('mouseup',rememberSelection);t?.addEventListener('keyup',rememberSelection);t?.addEventListener('blur',()=>{if(!ins()?.contains(document.activeElement))endTextEdit(f)});f.querySelectorAll('.headerResizeHandle').forEach(h=>h.addEventListener('pointerdown',e=>resizeStart(e,f,h.dataset.dir)))}}
- function open(){if(useResponsiveHeaderUI()){alert('El editor visual de cabecera está disponible en escritorio.');return}ensureFrames();wire();const b=brand();snapshot=readLayout();b.classList.add('header-editing');editing=true;bar()?.classList.add('open');bar()?.setAttribute('aria-hidden','false');toast('Cabecera desbloqueada: arrastra, redimensiona y formatea')}
+ function open(){if(window.innerWidth<=760){alert('El editor visual de cabecera está disponible en escritorio.');return}ensureFrames();wire();const b=brand();snapshot=readLayout();b.classList.add('header-editing');editing=true;bar()?.classList.add('open');bar()?.setAttribute('aria-hidden','false');toast('Cabecera desbloqueada: arrastra, redimensiona y formatea')}
  function closeEdit(){editing=false;for(const f of frames.values()){f.classList.remove('selected');endTextEdit(f)}selected=null;brand()?.classList.remove('header-editing');bar()?.classList.remove('open');bar()?.setAttribute('aria-hidden','true');ins()?.classList.remove('open');ins()?.setAttribute('aria-hidden','true')}
  function save(){const d=readLayout();localStorage.setItem(KEY,JSON.stringify(d));closeEdit();toast('Diseño, textos y formato guardados')}
  function cancel(){if(snapshot){clearLayout();applyLayout(snapshot)}closeEdit();toast('Cambios descartados')}
@@ -14032,7 +14159,7 @@ html body .historyPopup .leaflet-popup-close-button{
  $('heiEditText')?.addEventListener('click',beginTextEdit);$('heiFront')?.addEventListener('click',()=>{if(selected){selected.style.zIndex=String(++zseq)}});$('heiBack')?.addEventListener('click',()=>{if(selected){selected.style.zIndex='1'}});$('heiClose')?.addEventListener('click',()=>ins()?.classList.remove('open'));
  $('headerEditorSave')?.addEventListener('click',save);$('headerEditorCancel')?.addEventListener('click',cancel);$('headerEditorReset')?.addEventListener('click',reset);$('headerEditorExport')?.addEventListener('click',exportJSON);$('headerEditorImport')?.addEventListener('click',()=>$('headerEditorFile')?.click());$('headerEditorFile')?.addEventListener('change',e=>{importFile(e.target.files?.[0]);e.target.value=''});
  const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(_){return null}})();requestAnimationFrame(()=>applyLayout(saved||DEFAULT_LAYOUT));
- window.addEventListener('resize',()=>{if(useResponsiveHeaderUI()&&editing)closeEdit()});
+ window.addEventListener('resize',()=>{if(window.innerWidth<=760&&editing)closeEdit()});
  window.anambroHeaderEditor={open,save,reset,export:exportJSON};
 })();
 </script>
