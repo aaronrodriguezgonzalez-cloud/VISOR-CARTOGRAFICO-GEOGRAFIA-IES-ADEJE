@@ -2726,100 +2726,6 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 }
 </style>
 
-
-<script id="anambro-ipad-detect">
-(function(){
-  const ua=navigator.userAgent||'';
-  const platform=navigator.platform||'';
-  const isIPad=/iPad/i.test(ua)||(platform==='MacIntel'&&(navigator.maxTouchPoints||0)>1);
-  window.ANAMBRO_IS_IPAD=!!isIPad;
-  if(isIPad)document.documentElement.classList.add('anambro-ipad');
-})();
-</script>
-<style id="anambro-ipad-ui-fix">
-/* iPad exclusivamente. Escritorio y móvil conservan las reglas originales de v0.15. */
-.layoutViewZoomBlock{display:none}
-@media (min-width:761px){
- html.anambro-ipad body .brand.brandWide.brandV06.header-free-layout{
-   position:absolute!important;
-   top:8px!important;
-   left:50%!important;
-   right:auto!important;
-   transform:translateX(-50%)!important;
-   display:grid!important;
-   grid-template-columns:150px minmax(0,1fr) 196px!important;
-   grid-template-rows:62px 30px!important;
-   grid-template-areas:"left title right" "left center right"!important;
-   width:calc(100vw - 20px)!important;
-   max-width:none!important;
-   height:92px!important;min-height:92px!important;
-   padding:0 8px!important;overflow:hidden!important;align-items:center!important;
-   box-sizing:border-box!important;z-index:5000!important;background:#fff!important;
- }
- html.anambro-ipad body .brandV06.header-free-layout .headerEditFrame{
-   display:contents!important;position:static!important;left:auto!important;top:auto!important;
-   width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
-   transform:none!important;overflow:visible!important;
- }
- html.anambro-ipad body .brandV06.header-free-layout>.brandSideLeft,
- html.anambro-ipad body .brandV06.header-free-layout>.brandSideRight,
- html.anambro-ipad body .brandV06.header-free-layout .brandInstitutionV06,
- html.anambro-ipad body .brandV06.header-free-layout .brandAuthorV06{display:revert!important;position:static!important}
- html.anambro-ipad body .brandV06.header-free-layout>.brandSideLeft{
-   grid-area:left!important;height:92px!important;display:flex!important;align-items:center!important;
-   justify-content:flex-start!important;padding:4px 6px!important;border-right:1px solid rgba(45,80,105,.12)!important;
-   min-width:0!important;box-sizing:border-box!important;
- }
- html.anambro-ipad body .brandV06.header-free-layout .brandInstitutionV06{
-   display:grid!important;grid-template-columns:50px minmax(0,1fr)!important;gap:7px!important;align-items:center!important;min-width:0!important
- }
- html.anambro-ipad body .brandV06.header-free-layout .brandInstituteLogoV06{width:48px!important;height:48px!important;object-fit:contain!important}
- html.anambro-ipad body .brandV06.header-free-layout .brandLeftText{display:block!important;min-width:0!important}
- html.anambro-ipad body .brandV06.header-free-layout .brandDept{font-size:8.5px!important;line-height:1.05!important;white-space:normal!important}
- html.anambro-ipad body .brandV06.header-free-layout .brandDept b{font-size:11px!important}
- html.anambro-ipad body .brandV06.header-free-layout .brandVersion{font-size:7.2px!important;line-height:1!important;margin-top:3px!important;padding:2px 4px!important}
- html.anambro-ipad body .brandV06.header-free-layout .brandAuthorV06{display:none!important}
- html.anambro-ipad body .brandV06.header-free-layout>.brandTitleTop{
-   grid-area:title!important;display:flex!important;align-items:flex-end!important;justify-content:center!important;
-   height:62px!important;padding:2px 8px 0!important;min-width:0!important;box-sizing:border-box!important
- }
- html.anambro-ipad body .brandV06.header-free-layout .brandAnambroIntegratedLogo{
-   display:block!important;width:min(100%,460px)!important;height:58px!important;max-width:100%!important;object-fit:contain!important;transform:none!important
- }
- html.anambro-ipad body .brandV06.header-free-layout>.brandCenter{
-   grid-area:center!important;height:30px!important;display:flex!important;align-items:center!important;justify-content:center!important;
-   padding:0 6px 3px!important;min-width:0!important;box-sizing:border-box!important
- }
- html.anambro-ipad body .brandV06.header-free-layout .brandDescriptor{
-   display:block!important;font-size:9.3px!important;line-height:1.08!important;text-align:center!important;
-   white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;width:100%!important;color:#0f756b!important
- }
- html.anambro-ipad body .brandV06.header-free-layout>.brandSideRight{
-   grid-area:right!important;height:92px!important;display:flex!important;align-items:center!important;justify-content:center!important;
-   padding:4px 0 4px 7px!important;border-left:1px solid rgba(45,80,105,.12)!important;box-sizing:border-box!important;min-width:0!important
- }
- html.anambro-ipad body .brandV06.header-free-layout .brandRoles{display:none!important}
- html.anambro-ipad body .brandV06.header-free-layout .brandActions{display:flex!important;flex-wrap:wrap!important;gap:5px!important;justify-content:center!important;align-content:center!important;position:static!important}
- html.anambro-ipad body .brandV06.header-free-layout .brandWelcomeBtn{font-size:8.7px!important;line-height:1.05!important;padding:6px 7px!important;min-height:30px!important;white-space:nowrap!important}
- html.anambro-ipad body .brandV06.header-free-layout .brandHeaderEditBtn{display:none!important}
- html.anambro-ipad body #headerEditorBar,
- html.anambro-ipad body #headerEditorInspector,
- html.anambro-ipad body .headerResizeHandle,
- html.anambro-ipad body .headerEditHandle{display:none!important}
- html.anambro-ipad body .toolbar{
-   display:flex!important;visibility:visible!important;opacity:1!important;
-   top:108px!important;left:8px!important;right:auto!important;z-index:5100!important;
-   max-height:calc(100vh - 116px)!important;overflow-y:auto!important;
- }
- html.anambro-ipad body .toolbar .tool{display:block!important;visibility:visible!important;opacity:1!important}
- html.anambro-ipad body .leaflet-top.leaflet-left{top:102px!important}
- html.anambro-ipad body .layoutViewZoomBlock{display:block!important;margin:8px 0;padding:8px;border:1px solid #cbd7df;border-radius:8px;background:#f7fafc}
- html.anambro-ipad body .layoutViewZoomControls{display:grid;grid-template-columns:46px 1fr 46px;gap:6px;align-items:center;margin-top:5px}
- html.anambro-ipad body .layoutViewZoomControls button{min-height:38px;border:1px solid #9caab5;border-radius:7px;background:#fff;color:#17324d;font-weight:900;font-size:18px;cursor:pointer}
- html.anambro-ipad body #layoutViewFitBtn{font-size:11px!important}
- html.anambro-ipad body .layoutViewZoomValue{display:block;text-align:center;font-size:10px;color:#536676;font-weight:800;margin-top:4px}
-}
-</style>
 </head><body>
 <div id="map"></div>
 <div id="globe" aria-label="Globo 3D"></div>
@@ -3561,16 +3467,6 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
       <label>Título
         <input id="layoutTitleInput" type="text" value="Mapa elaborado con ANAMBRO">
       </label>
-
-      <div id="layoutViewZoomBlock" class="layoutViewZoomBlock">
-        <b>Vista de la hoja</b>
-        <div class="layoutViewZoomControls">
-          <button type="button" onclick="changeLayoutViewZoom(-0.05)" aria-label="Alejar hoja">−</button>
-          <button id="layoutViewFitBtn" type="button" onclick="fitLayoutViewToWorkspace()">Ajustar hoja</button>
-          <button type="button" onclick="changeLayoutViewZoom(0.05)" aria-label="Acercar hoja">+</button>
-        </div>
-        <span id="layoutViewZoomValue" class="layoutViewZoomValue">100 %</span>
-      </div>
 
       <div class="layoutGrid2">
         <label>Papel
@@ -8185,32 +8081,7 @@ function openLayoutEditor(mode='map'){
   syncLayoutModeUI();
  }
  selectLayoutItem('map');
- if(isLayoutIPad())setTimeout(fitLayoutViewToWorkspace,40);
- setTimeout(async()=>{await refreshLayoutSnapshot();containLayoutMapImage();if(isLayoutIPad())setTimeout(fitLayoutViewToWorkspace,30);},80);
-}
-let layoutViewZoom=1;
-function isLayoutIPad(){return !!window.ANAMBRO_IS_IPAD;}
-function setLayoutViewZoom(value){
- if(!isLayoutIPad())return;
- const page=document.getElementById('layoutPage');if(!page)return;
- const z=Math.max(.25,Math.min(1.15,Number(value)||1));layoutViewZoom=z;
- // CSS zoom changes the compositor viewport only. PDF export restores 100 % temporarily.
- page.style.zoom=String(z);
- page.style.transform='none';
- page.style.margin='0';
- const out=document.getElementById('layoutViewZoomValue');if(out)out.textContent=Math.round(z*100)+' %';
-}
-function changeLayoutViewZoom(delta){setLayoutViewZoom(layoutViewZoom+(Number(delta)||0));}
-function fitLayoutViewToWorkspace(){
- if(!isLayoutIPad())return;
- const ws=document.querySelector('.layoutWorkspace'),page=document.getElementById('layoutPage');if(!ws||!page)return;
- const prev=page.style.zoom;page.style.zoom='1';page.style.transform='none';
- requestAnimationFrame(()=>{
-  const pad=18,availW=Math.max(120,ws.clientWidth-pad*2),availH=Math.max(120,ws.clientHeight-pad*2);
-  const w=Math.max(1,page.offsetWidth),h=Math.max(1,page.offsetHeight);
-  const z=Math.max(.25,Math.min(1,availW/w,availH/h));
-  setLayoutViewZoom(z);
- });
+ setTimeout(async()=>{await refreshLayoutSnapshot();containLayoutMapImage();},80);
 }
 function closeLayoutEditor(){
  document.getElementById('layoutOverlay')?.classList.remove('open');
@@ -8456,8 +8327,6 @@ function initLayoutDrag(){
 }
 async function exportLayoutPDF(){
  const page=document.getElementById('layoutPage');
- const restoreViewZoom=isLayoutIPad()?layoutViewZoom:1;
- if(isLayoutIPad()){page.style.zoom='1';page.style.transform='none';}
  const exportLegend=document.getElementById('layoutLegendContent');
  if(exportLegend){
   exportLegend.innerHTML=layoutContentMode==='profile'?(document.getElementById('profileBandsContent')?.innerHTML||'<small>Perfil topográfico.</small>'):(typeof layoutExportLegendHTML==='function'?layoutExportLegendHTML():activeLegendHTML());
@@ -8478,7 +8347,6 @@ async function exportLayoutPDF(){
  }catch(e){
   console.error(e);alert('No se pudo generar el PDF: '+e.message);
  }finally{
-  if(isLayoutIPad())setLayoutViewZoom(restoreViewZoom);
   if(btn){btn.disabled=false;btn.textContent='📄 Exportar a PDF';}
  }
 }
@@ -8488,8 +8356,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.getElementById('layoutFontScale')?.addEventListener('input',applyLayoutTypographyControls);
  document.getElementById('layoutFontFamily')?.addEventListener('change',applyLayoutTypographyControls);
  document.getElementById('layoutSelected')?.addEventListener('change',e=>selectLayoutItem(e.target.value));
- document.getElementById('layoutPaper')?.addEventListener('change',()=>{updateLayoutPageFormat();if(isLayoutIPad())setTimeout(fitLayoutViewToWorkspace,0);});
- document.getElementById('layoutOrientation')?.addEventListener('change',()=>{updateLayoutPageFormat();if(isLayoutIPad())setTimeout(fitLayoutViewToWorkspace,0);});
+ document.getElementById('layoutPaper')?.addEventListener('change',updateLayoutPageFormat);
+ document.getElementById('layoutOrientation')?.addEventListener('change',updateLayoutPageFormat);
  document.getElementById('layoutTitleInput')?.addEventListener('input',e=>document.getElementById('layoutTitleBox').textContent=e.target.value||' ');
  document.getElementById('layoutMapImage')?.addEventListener('load',updateLayoutScaleBox);
  syncLayoutInstituteBox();
@@ -14117,7 +13985,8 @@ html body .historyPopup .leaflet-popup-close-button{
  function textStyleData(t){const cs=getComputedStyle(t);return {fontFamily:t.style.fontFamily||cs.fontFamily||'',color:t.style.color||cs.color||'',textAlign:t.style.textAlign||cs.textAlign||'left',fontWeight:t.style.fontWeight||cs.fontWeight||'400',fontStyle:t.style.fontStyle||cs.fontStyle||'normal',textDecoration:t.style.textDecoration||cs.textDecorationLine||'none',lineHeight:t.style.lineHeight||cs.lineHeight||'normal',letterSpacing:t.style.letterSpacing||cs.letterSpacing||'normal'}}
  function readLayout(){const data={version:3,height:Math.round(brand().getBoundingClientRect().height),items:{}};for(const [key] of defs){const f=frames.get(key);if(!f)continue;const v=rectData(f);v.fit=f.style.getPropertyValue('--he-fit')||'contain';v.zoom=parseFloat(f.style.getPropertyValue('--he-zoom'))||1;v.posx=parseFloat(f.style.getPropertyValue('--he-posx'))||50;v.posy=parseFloat(f.style.getPropertyValue('--he-posy'))||50;const t=f.querySelector('.headerEditableTarget');v.font=parseFloat(t?.style.fontSize)||parseFloat(getComputedStyle(t).fontSize)||null;if(f.dataset.type==='text'){v.html=t.innerHTML;Object.assign(v,textStyleData(t))}data.items[key]=v}return data}
  function applyTextStyle(t,v){if(!t||!v)return;if(v.font)t.style.setProperty('font-size',v.font+'px','important');for(const [k,p] of [['fontFamily','font-family'],['color','color'],['textAlign','text-align'],['fontWeight','font-weight'],['fontStyle','font-style'],['textDecoration','text-decoration'],['lineHeight','line-height'],['letterSpacing','letter-spacing']]){if(v[k])t.style.setProperty(p,String(v[k]))}}
- function applyLayout(data){if(!data?.items||window.innerWidth<=760)return;const b=brand();b.classList.add('header-free-layout');if(data.height)b.style.height=Math.max(76,+data.height)+'px';for(const [key] of defs){const f=frames.get(key),v=data.items[key];if(!f||!v)continue;Object.assign(f.style,{left:(+v.left||0)+'px',top:(+v.top||0)+'px',width:Math.max(20,+v.width||20)+'px',height:Math.max(16,+v.height||16)+'px',zIndex:String(v.z||1)});f.style.setProperty('--he-fit',v.fit||'contain');f.style.setProperty('--he-zoom',v.zoom||1);f.style.setProperty('--he-posx',(v.posx??50)+'%');f.style.setProperty('--he-posy',(v.posy??50)+'%');const t=f.querySelector('.headerEditableTarget');applyTextStyle(t,v);if(f.dataset.type==='text'&&typeof v.html==='string')t.innerHTML=v.html}}
+ function isIPadHeaderDevice(){return /iPad/i.test(navigator.userAgent||'')||((navigator.platform==='MacIntel'||/Macintosh/i.test(navigator.userAgent||''))&&(navigator.maxTouchPoints||0)>1)}
+ function applyLayout(data){if(!data?.items||window.innerWidth<=760||isIPadHeaderDevice())return;const b=brand();b.classList.add('header-free-layout');if(data.height)b.style.height=Math.max(76,+data.height)+'px';const bw=b.getBoundingClientRect().width||window.innerWidth;for(const [key] of defs){const f=frames.get(key),v=data.items[key];if(!f||!v)continue;let w=Math.max(20,+v.width||20),h=Math.max(16,+v.height||16),left=(+v.left||0),top=(+v.top||0);if(key==='actions'){w=Math.min(Math.max(w,132),Math.max(80,bw-16));left=Math.min(left,Math.max(8,bw-w-8));}Object.assign(f.style,{left:left+'px',top:top+'px',width:w+'px',height:h+'px',zIndex:String(v.z||1)});f.style.setProperty('--he-fit',v.fit||'contain');f.style.setProperty('--he-zoom',v.zoom||1);f.style.setProperty('--he-posx',(v.posx??50)+'%');f.style.setProperty('--he-posy',(v.posy??50)+'%');const t=f.querySelector('.headerEditableTarget');applyTextStyle(t,v);if(f.dataset.type==='text'&&typeof v.html==='string')t.innerHTML=v.html}}
  function clearLayout(){const b=brand();b.classList.remove('header-free-layout','header-editing');b.style.removeProperty('height');for(const f of frames.values()){f.classList.remove('selected','textEditing');for(const p of ['left','top','width','height','z-index','--he-fit','--he-zoom','--he-posx','--he-posy'])f.style.removeProperty(p);const t=f.querySelector('.headerEditableTarget');if(t){for(const p of ['font-size','font-family','color','text-align','font-weight','font-style','text-decoration','line-height','letter-spacing'])t.style.removeProperty(p);t.removeAttribute('contenteditable');for(const n of t.querySelectorAll('[style]')){if(n.style.getPropertyPriority('font-size')==='important')n.style.removeProperty('font-size')}}}}
  function selectionInside(t){const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return false;const r=s.getRangeAt(0),a=r.commonAncestorContainer;return t===a||t.contains(a.nodeType===1?a:a.parentElement)}
  function rememberSelection(){const t=selected?.querySelector('.headerEditableTarget'),s=window.getSelection();if(t&&s?.rangeCount&&selectionInside(t))lastSelection=s.getRangeAt(0).cloneRange()}
@@ -14726,4 +14595,156 @@ html body .leaflet-popup-content{padding-top:5px}
 })();
 </script>
 
+
+
+<!-- ANAMBRO v0.15 · corrección aislada de cabecera escritorio/iPad -->
+<style id="anambro-v015-header-ipad-fix2">
+/* Escritorio: el bloque editable de acciones nunca puede desbordar la cabecera. */
+@media (min-width:1181px){
+  html:not(.anambro-ipad) body .brandV06.header-free-layout .headerFrame-actions{overflow:hidden!important}
+  html:not(.anambro-ipad) body .brandV06.header-free-layout .headerFrame-actions>.brandActions{
+    width:100%!important;height:100%!important;box-sizing:border-box!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;
+    gap:2px!important;flex-wrap:nowrap!important;overflow:hidden!important;margin:0!important;padding:0!important
+  }
+  html:not(.anambro-ipad) body .brandV06.header-free-layout .headerFrame-actions .brandWelcomeBtn{
+    width:100%!important;max-width:100%!important;min-height:0!important;height:auto!important;
+    margin:0!important;padding:3px 5px!important;font-size:7.6px!important;line-height:1.05!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;box-sizing:border-box!important
+  }
+}
+
+/* iPad/iPadOS: nunca se reutiliza la geometría absoluta del editor de escritorio. */
+html.anambro-ipad body .brand.brandWide.brandV06,
+html.anambro-ipad body .brand.brandWide.brandV06.header-free-layout{
+  position:fixed!important;z-index:5000!important;top:0!important;left:0!important;right:0!important;
+  width:100%!important;max-width:none!important;height:118px!important;min-height:118px!important;
+  margin:0!important;padding:6px 9px!important;box-sizing:border-box!important;transform:none!important;
+  display:grid!important;grid-template-columns:minmax(330px,43%) minmax(250px,37%) minmax(150px,20%)!important;
+  grid-template-rows:76px 30px!important;grid-template-areas:"left title right" "left center right"!important;
+  column-gap:8px!important;row-gap:0!important;align-items:center!important;overflow:hidden!important;
+  border:0!important;border-bottom:1px solid rgba(28,67,94,.16)!important;border-radius:0!important;
+  background:linear-gradient(180deg,#fff 0%,#fbfdfe 66%,#f3f8fa 100%)!important;
+  box-shadow:0 3px 10px rgba(13,47,68,.10)!important
+}
+html.anambro-ipad body .brandV06 .headerEditFrame,
+html.anambro-ipad body .brandV06.header-free-layout .headerEditFrame{
+  display:contents!important;position:static!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important;
+  min-width:0!important;min-height:0!important;margin:0!important;transform:none!important;overflow:visible!important
+}
+html.anambro-ipad body .brandV06>.brandSideLeft{
+  grid-area:left!important;display:grid!important;grid-template-columns:minmax(126px,.82fr) minmax(180px,1.18fr)!important;
+  align-items:center!important;gap:8px!important;position:static!important;width:100%!important;height:106px!important;
+  margin:0!important;padding:3px 8px 3px 0!important;border:0!important;border-right:1px solid rgba(45,80,105,.13)!important;
+  box-sizing:border-box!important;overflow:hidden!important
+}
+html.anambro-ipad body .brandV06 .brandInstitutionV06{
+  display:grid!important;grid-template-columns:46px minmax(0,1fr)!important;gap:6px!important;align-items:center!important;
+  position:static!important;min-width:0!important;margin:0!important;padding:0!important
+}
+html.anambro-ipad body .brandV06 .brandInstituteLogoV06{
+  display:block!important;width:44px!important;height:44px!important;max-width:44px!important;max-height:44px!important;
+  object-fit:contain!important;margin:0!important;transform:none!important
+}
+html.anambro-ipad body .brandV06 .brandLeftText{display:block!important;visibility:visible!important;min-width:0!important;margin:0!important;padding:0!important}
+html.anambro-ipad body .brandV06 .brandDept{display:block!important;font-size:8.2px!important;line-height:1.08!important;text-align:left!important;white-space:normal!important;margin:0!important}
+html.anambro-ipad body .brandV06 .brandDept b{display:block!important;font-size:11px!important;line-height:1!important}
+html.anambro-ipad body .brandV06 .brandVersion{display:inline-flex!important;position:static!important;font-size:6.8px!important;line-height:1!important;padding:2px 4px!important;margin-top:3px!important}
+html.anambro-ipad body .brandV06 .brandAuthorV06{
+  display:grid!important;visibility:visible!important;grid-template-columns:48px minmax(0,1fr)!important;gap:7px!important;align-items:center!important;
+  position:static!important;min-width:0!important;margin:0!important;padding:0!important
+}
+html.anambro-ipad body .brandV06 .brandAuthorPortraitV06{
+  display:block!important;visibility:visible!important;width:46px!important;height:46px!important;max-width:46px!important;max-height:46px!important;
+  object-fit:cover!important;border-radius:10px!important;margin:0!important;transform:none!important
+}
+html.anambro-ipad body .brandV06 .brandAuthorTextV06{display:block!important;visibility:visible!important;min-width:0!important;margin:0!important;padding:0!important}
+html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandTeacher{
+  display:block!important;visibility:visible!important;font-size:10px!important;line-height:1.05!important;text-align:left!important;
+  white-space:normal!important;overflow:visible!important;text-overflow:clip!important;margin:0!important
+}
+html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandProfessional{
+  display:block!important;visibility:visible!important;font-size:7.1px!important;line-height:1.08!important;text-align:left!important;
+  white-space:normal!important;overflow:visible!important;max-height:none!important;margin-top:2px!important
+}
+html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandProfessional b,
+html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandProfessional span{display:inline!important}
+html.anambro-ipad body .brandV06>.brandTitleTop{
+  grid-area:title!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  position:static!important;width:100%!important;height:76px!important;min-width:0!important;margin:0!important;padding:2px 6px!important;
+  border:0!important;overflow:hidden!important;box-sizing:border-box!important
+}
+html.anambro-ipad body .brandV06 .brandAnambroIntegratedLogo{
+  display:block!important;width:100%!important;height:72px!important;max-width:100%!important;max-height:72px!important;
+  object-fit:contain!important;object-position:center!important;margin:0!important;transform:none!important;border:0!important;box-shadow:none!important
+}
+html.anambro-ipad body .brandV06>.brandCenter{
+  grid-area:center!important;display:flex!important;visibility:visible!important;align-items:center!important;justify-content:center!important;
+  position:static!important;width:100%!important;height:30px!important;min-width:0!important;margin:0!important;padding:0 5px 3px!important;
+  border:0!important;overflow:hidden!important;box-sizing:border-box!important
+}
+html.anambro-ipad body .brandV06 .brandDescriptor{
+  display:block!important;visibility:visible!important;width:100%!important;font-size:8.2px!important;line-height:1.08!important;
+  text-align:center!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;margin:0!important
+}
+html.anambro-ipad body .brandV06>.brandSideRight{
+  grid-area:right!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;
+  position:static!important;width:100%!important;height:106px!important;min-width:0!important;margin:0!important;padding:3px 0 3px 7px!important;
+  border:0!important;overflow:hidden!important;box-sizing:border-box!important;gap:4px!important
+}
+html.anambro-ipad body .brandV06 .brandRoles{
+  display:block!important;visibility:visible!important;max-width:100%!important;font-size:6.9px!important;line-height:1.08!important;
+  text-align:left!important;white-space:normal!important;overflow:visible!important;margin:0!important;color:#3f5d70!important
+}
+html.anambro-ipad body .brandV06 .brandActions{
+  display:grid!important;grid-template-columns:1fr!important;gap:3px!important;position:static!important;width:100%!important;
+  margin:0!important;padding:0!important;overflow:hidden!important
+}
+html.anambro-ipad body .brandV06 .brandWelcomeBtn{
+  display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;max-width:100%!important;
+  min-height:0!important;height:21px!important;margin:0!important;padding:3px 4px!important;font-size:7px!important;line-height:1!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;border-radius:999px!important;box-sizing:border-box!important
+}
+html.anambro-ipad body .brandV06 .brandHeaderEditBtn{display:none!important}
+html.anambro-ipad body #headerEditorBar,
+html.anambro-ipad body #headerEditorInspector,
+html.anambro-ipad body .headerResizeHandle,
+html.anambro-ipad body .headerEditHandle{display:none!important}
+html.anambro-ipad body .toolbar{top:126px!important;display:flex!important;visibility:visible!important}
+html.anambro-ipad body .leaflet-top.leaflet-left{top:120px!important}
+
+@media (max-width:900px){
+  html.anambro-ipad body .brand.brandWide.brandV06,
+  html.anambro-ipad body .brand.brandWide.brandV06.header-free-layout{
+    height:132px!important;min-height:132px!important;padding:5px 6px!important;
+    grid-template-columns:minmax(300px,49%) minmax(230px,31%) minmax(130px,20%)!important;
+    grid-template-rows:88px 32px!important
+  }
+  html.anambro-ipad body .brandV06>.brandSideLeft,
+  html.anambro-ipad body .brandV06>.brandSideRight{height:120px!important}
+  html.anambro-ipad body .brandV06>.brandSideLeft{grid-template-columns:minmax(112px,.78fr) minmax(170px,1.22fr)!important;gap:5px!important}
+  html.anambro-ipad body .brandV06 .brandInstitutionV06{grid-template-columns:40px minmax(0,1fr)!important;gap:4px!important}
+  html.anambro-ipad body .brandV06 .brandInstituteLogoV06{width:38px!important;height:38px!important;max-width:38px!important;max-height:38px!important}
+  html.anambro-ipad body .brandV06 .brandAuthorV06{grid-template-columns:42px minmax(0,1fr)!important;gap:5px!important}
+  html.anambro-ipad body .brandV06 .brandAuthorPortraitV06{width:40px!important;height:40px!important;max-width:40px!important;max-height:40px!important}
+  html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandTeacher{font-size:8.8px!important}
+  html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandProfessional{font-size:6.3px!important}
+  html.anambro-ipad body .brandV06>.brandTitleTop{height:88px!important}
+  html.anambro-ipad body .brandV06 .brandAnambroIntegratedLogo{height:82px!important;max-height:82px!important}
+  html.anambro-ipad body .brandV06>.brandCenter{height:32px!important}
+  html.anambro-ipad body .brandV06 .brandRoles{font-size:6.2px!important}
+  html.anambro-ipad body .brandV06 .brandWelcomeBtn{height:20px!important;font-size:6.4px!important}
+  html.anambro-ipad body .toolbar{top:140px!important}
+  html.anambro-ipad body .leaflet-top.leaflet-left{top:136px!important}
+}
+</style>
+<script id="anambro-v015-ipad-detector-fix2">
+(()=>{
+  const isIPad=()=>/iPad/i.test(navigator.userAgent||'')||((navigator.platform==='MacIntel'||/Macintosh/i.test(navigator.userAgent||''))&&(navigator.maxTouchPoints||0)>1);
+  if(!isIPad())return;
+  document.documentElement.classList.add('anambro-ipad');
+  const mark=()=>document.body&&document.body.classList.add('anambro-ipad');
+  if(document.body)mark();else document.addEventListener('DOMContentLoaded',mark,{once:true});
+})();
+</script>
 </body></html>
