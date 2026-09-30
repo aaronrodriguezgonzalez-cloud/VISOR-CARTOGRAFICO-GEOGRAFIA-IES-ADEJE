@@ -1,197 +1,156 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ANAMBRO · Eratóstenes y la medida de la Tierra</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>ANAMBRO · Insolación y latitud</title>
 <style>
-:root{--ink:#edf8ff;--muted:#a9c0cf;--bg:#06121d;--panel:#0d2232;--gold:#ffe27a;--sun:#ffd35c;--accent:#ff996b;--green:#78aa6c;--blue:#2b7ba5;--red:#ff655f;--cyan:#8fe7ff}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Inter,Montserrat,system-ui,sans-serif;color:var(--ink)}button,input{font:inherit}.app{height:100%;display:grid;grid-template-rows:48px minmax(0,1fr) 48px}.top{display:flex;align-items:center;gap:10px;padding:7px 12px;background:#091a28;border-bottom:1px solid #29485e}.brand{font-weight:950;letter-spacing:.06em}.brand span{color:#70d0c2}.title{flex:1;text-align:center;font-size:13px;font-weight:850}.controls{display:flex;gap:5px}.controls button,.stepBtn{border:1px solid #45687e;background:#102b3e;color:#fff;border-radius:7px;padding:6px 9px;font-weight:800;cursor:pointer}.controls button:hover,.stepBtn:hover,.stepBtn.active{background:#14506d}.stage{display:grid;grid-template-columns:minmax(0,1fr) 325px;gap:8px;padding:8px;min-height:0}.visual{position:relative;overflow:hidden;border:1px solid #29485e;border-radius:14px;background:radial-gradient(circle at 50% 14%,#18364b 0,#091827 48%,#050d16 100%)}.stars{position:absolute;inset:0;opacity:.3;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:73px 61px}.side{overflow:auto;border:1px solid #29485e;border-radius:14px;background:var(--panel);padding:14px}.side h2{margin:0 0 8px;font-size:18px}.side p{font-size:12px;line-height:1.5;color:#d4e6f0}.quote{margin:12px 0;padding:10px;border-left:3px solid var(--gold);background:#102c3f;border-radius:8px;font-size:12px;line-height:1.45}.fact{margin-top:10px;padding:9px;border:1px solid #31556b;background:#0a1b29;border-radius:9px;font-size:11px;line-height:1.4;color:#cfe4ef}.math{margin-top:12px;padding:10px;border:1px solid #45687e;border-radius:10px;background:#081722}.eq{font-size:19px;font-weight:950;color:var(--gold);margin:5px 0}.small{font-size:10px;color:var(--muted);line-height:1.35}.try{margin-top:12px;border-top:1px solid #36566b;padding-top:10px}.tryGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.try input{width:100%;padding:6px;border-radius:6px;border:1px solid #45687e;background:#06121d;color:#fff}.calcBtn{width:100%;margin-top:7px;border:0;border-radius:7px;padding:7px;background:#0f766e;color:#fff;font-weight:900;cursor:pointer}.result{margin-top:7px;font-weight:950;color:var(--gold)}.bottom{display:flex;align-items:center;gap:5px;padding:7px 10px;background:#091a28;border-top:1px solid #29485e;overflow-x:auto}.stepBtn{white-space:nowrap;font-size:9.5px}.caption{position:absolute;z-index:5;left:14px;right:14px;bottom:14px;background:rgba(3,12,20,.9);border:1px solid rgba(153,204,233,.35);border-radius:11px;padding:9px 11px;text-align:center;font-size:12px;font-weight:820;line-height:1.35}.label{fill:#fff;paint-order:stroke;stroke:#06101a;stroke-width:4;font-size:13px;font-weight:850}.subLabel{fill:#cfe9f7;paint-order:stroke;stroke:#06101a;stroke-width:3;font-size:10px;font-weight:750}.gold{fill:var(--gold);paint-order:stroke;stroke:#06101a;stroke-width:4;font-weight:950}.red{fill:var(--red);paint-order:stroke;stroke:#06101a;stroke-width:4;font-weight:950}.earth{fill:var(--blue);stroke:#c9efff;stroke-width:3}.land{fill:var(--green);stroke:#4d8147;stroke-width:1}.cityDot{filter:drop-shadow(0 0 6px rgba(255,255,255,.6))}.ray{stroke:var(--gold);stroke-width:3;stroke-dasharray:12 9;animation:rays 1.8s linear infinite}.rayStrong{stroke:#fff09a;stroke-width:5;stroke-dasharray:12 8;animation:rays 1.8s linear infinite}.radius{stroke:#ddecf5;stroke-width:2.5;stroke-dasharray:6 5}.gnomon{stroke:#fff;stroke-width:5;stroke-linecap:round}.shadow{stroke:#02080d;stroke-width:8;stroke-linecap:round}.angle{fill:none;stroke:#ffbf43;stroke-width:4}.wedge{fill:rgba(255,210,80,.25);stroke:#ffd45e;stroke-width:2}.sceneGroup{display:none}.sceneGroup.active{display:block}.panelBox{fill:#0b2130;stroke:#4b7188;stroke-width:2}.ground{stroke:#d9edf8;stroke-width:4}.water{fill:#2a92bc}.building{fill:#d7b985;stroke:#725839;stroke-width:1.5}.roof{fill:#a26d3f}.palm{stroke:#5b3b20;stroke-width:4;stroke-linecap:round}.palmLeaf{stroke:#78aa6c;stroke-width:4;stroke-linecap:round}.wellWall{fill:#b99662;stroke:#6e5233;stroke-width:2}.wellDark{fill:#021018}.scroll{fill:#ead7a5;stroke:#9b7b3f;stroke-width:2}.think{fill:#fff;stroke:#53788e;stroke-width:2}.bigQuestion{fill:#fff;font-size:25px;font-weight:950;text-anchor:middle;paint-order:stroke;stroke:#06101a;stroke-width:5}.answer{fill:#ffe27a;font-size:28px;font-weight:950;text-anchor:middle;paint-order:stroke;stroke:#06101a;stroke-width:5}.caseTitle{fill:#fff;font-size:14px;font-weight:900;text-anchor:middle}.caseNote{fill:#cfe9f7;font-size:11px;font-weight:750;text-anchor:middle}.arcEarth{fill:none;stroke:#79afd0;stroke-width:9}.arcSurface{fill:none;stroke:#d9edf8;stroke-width:4}.drawSphere{fill:none;stroke:#c9efff;stroke-width:4;stroke-dasharray:1260;stroke-dashoffset:1260}.sceneGroup.active .drawSphere{animation:drawSphere 2.2s ease forwards}.fadeLand{opacity:0}.sceneGroup.active .fadeLand{animation:fadeLand .9s 1.45s ease forwards}.pulse{animation:pulse 1.5s ease-in-out infinite}.fiftyTick{stroke:#7898aa;stroke-width:1.5}.fiftyTick.hot{stroke:#ffe27a;stroke-width:5}.reflectionWord{fill:#fff;font-size:23px;font-weight:900;text-anchor:middle}.reflectionSmall{fill:#cfe9f7;font-size:14px;font-weight:750;text-anchor:middle}.finalQuote{fill:#ffe27a;font-size:25px;font-weight:950;text-anchor:middle}.badge{fill:#102f42;stroke:#65b9d5;stroke-width:1.5}.badgeText{fill:#eaf7ff;font-size:12px;font-weight:850;text-anchor:middle}.arrowLine{stroke:#8fe7ff;stroke-width:3;marker-end:url(#arrow)}
-@keyframes rays{to{stroke-dashoffset:-42}}@keyframes drawSphere{to{stroke-dashoffset:0}}@keyframes fadeLand{to{opacity:1}}@keyframes pulse{50%{opacity:.35}}
-@media(max-width:850px){.stage{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}.side{max-height:31vh}.title{font-size:11px}.caption{font-size:10px}.visual svg{min-height:390px}.app{grid-template-rows:46px minmax(0,1fr) 46px}}
-@media(max-width:520px){.top{padding:6px}.brand{font-size:11px}.title{display:none}.controls button{padding:5px 7px;font-size:10px}.stage{padding:5px;gap:5px}.side{padding:9px}.side h2{font-size:14px}.side p,.quote{font-size:10.5px}.caption{font-size:9.5px;left:7px;right:7px;bottom:7px}.stepBtn{font-size:8.5px;padding:5px 7px}}
+:root{--bg:#081522;--panel:#102536;--ink:#f7fbff;--muted:#a9c0d1;--sun:#ffd447;--ray:#ffe681;--earth:#1976a8;--land:#79b86b;--accent:#32c4ad;--hot:#ff8b4f;--cold:#88c8ff}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Montserrat,Inter,system-ui,-apple-system,sans-serif}
+button{font:inherit}.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:0}.top{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(180deg,#102637,#0b1b29);border-bottom:1px solid #294457}.brand{font-weight:950;letter-spacing:.2px;color:#fff}.brand span{color:var(--accent)}.title{font-size:13px;color:#cfe0ec}.topControls{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}.top button,.phaseBtn{border:1px solid #456277;background:#132c3e;color:#eef8ff;border-radius:999px;padding:7px 11px;font-weight:800;cursor:pointer}.top button.active,.phaseBtn.active{background:#eaf8ff;color:#17324d;border-color:#fff}.stage{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:10px;padding:10px}.visual{position:relative;min-height:0;border:1px solid #29475b;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 25% 40%,#173249 0,#0b1b29 46%,#07121c 100%)}svg{display:block;width:100%;height:100%}.side{min-height:0;overflow:auto;border:1px solid #29475b;border-radius:16px;background:rgba(16,37,54,.92);padding:13px}.side h2{font-size:18px;margin:0 0 7px}.side p{font-size:12px;line-height:1.42;color:#c6d8e5;margin:6px 0}.fact{margin-top:10px;padding:9px 10px;border-radius:10px;background:#0a1e2d;border-left:4px solid var(--accent)}.fact strong{display:block;color:#fff;margin-bottom:3px}.readout{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.metric{padding:8px;border-radius:9px;background:#152f42;border:1px solid #315168}.metric small{display:block;color:#91afc3;font-size:9px;text-transform:uppercase;letter-spacing:.5px}.metric b{font-size:16px}.energy{margin-top:10px}.energyBar{height:12px;border-radius:99px;background:#243e50;overflow:hidden}.energyFill{height:100%;width:50%;background:linear-gradient(90deg,#5bc0eb,#ffd447,#ff7b54);border-radius:99px;transition:width .55s ease}.bottom{display:flex;gap:7px;align-items:center;padding:9px 12px;background:#0b1c2a;border-top:1px solid #294457;overflow-x:auto}.bottom .phaseBtn{white-space:nowrap}.bottom .hint{margin-left:auto;color:#91aabd;font-size:10px;white-space:nowrap}.personHit{cursor:pointer}.person .body,.person .limb{stroke:#f9fcff;stroke-width:3;stroke-linecap:round}.person .head{fill:#f9fcff;stroke:#17324d;stroke-width:1.5}.person .ground{stroke:#fff;stroke-width:3;opacity:.95}.personTag{font-size:10px;font-weight:850;fill:#f4f9fc;text-anchor:middle;dominant-baseline:middle;paint-order:stroke;stroke:#07121c;stroke-width:4;stroke-linejoin:round;pointer-events:none}.person.selected .head{fill:#ffd447}.person.selected .body,.person.selected .limb{stroke:#ffd447}.person.selected .ground{stroke:#ffd447;stroke-width:5}.latitudeLine{stroke:#9cd1ef;stroke-width:1;opacity:.34;stroke-dasharray:4 5}.ray{stroke:var(--ray);stroke-width:3;opacity:.72;stroke-dasharray:12 9;animation:rays 2.2s linear infinite}.ray.focus{stroke:#ffd447;stroke-width:5;opacity:1}.ray.blocked{stroke:#ff7c68;stroke-dasharray:7 7;opacity:.65}.sunGlow{filter:drop-shadow(0 0 18px rgba(255,212,71,.55))}.axis{stroke:#dcecf7;stroke-width:2;stroke-dasharray:6 5;opacity:.7}.terminator{fill:#06101a;opacity:.72}.earthEdge{fill:#176b96;stroke:#bde8ff;stroke-width:2.5}.land{fill:#69a965;opacity:.88}.angleArc{fill:none;stroke:#ffd447;stroke-width:3}.angleText{fill:#ffd447;font-size:12px;font-weight:900;paint-order:stroke;stroke:#07121c;stroke-width:3}.nightLabel{fill:#ff9080;font-size:12px;font-weight:900;paint-order:stroke;stroke:#07121c;stroke-width:4}.footprint{fill:#ffcf4f;opacity:.22;stroke:#ffd447;stroke-width:2}.caption{position:absolute;left:14px;right:14px;bottom:14px;background:rgba(5,15,24,.86);border:1px solid rgba(133,181,211,.35);border-radius:12px;padding:9px 11px;text-align:center;font-size:12px;font-weight:800;line-height:1.35;backdrop-filter:blur(3px)}
+@keyframes rays{to{stroke-dashoffset:-42}}
+@media(max-width:850px){.stage{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}.side{max-height:30vh;padding:9px}.side h2{font-size:14px}.side p{font-size:10.5px}.readout{grid-template-columns:repeat(4,1fr)}.metric b{font-size:12px}.metric{padding:6px}.visual{min-height:320px}.title{display:none}.bottom .hint{display:none}}
+@media(max-width:520px){.top{padding:7px 8px}.brand{font-size:12px}.top button{padding:5px 8px;font-size:10px}.stage{padding:5px;gap:5px}.visual{border-radius:10px;min-height:300px}.side{border-radius:10px}.bottom{padding:6px}.phaseBtn{font-size:10px;padding:5px 8px}.personTag{font-size:8px}.caption{font-size:10px;left:7px;right:7px;bottom:7px;padding:6px}}
+
+/* v2 · foco didáctico, escala semántica de rayos y viñeta local */
+#scene.focusMode .earthEdge{opacity:.18!important}
+#scene.focusMode .land{opacity:.08!important}
+#scene.focusMode #earthRotator .axis,
+#scene.focusMode #earthRotator .latitudeLine,
+#scene.focusMode #nightHalf{opacity:.06!important}
+#scene.focusMode #baseRays .ray{opacity:.035!important}
+#scene.focusMode .personHit{opacity:.07!important}
+#scene.focusMode .personHit.selected{opacity:1!important}
+#scene.focusMode .personTag{opacity:.05!important}
+#scene.focusMode .personTag.focusKeep{opacity:1!important}
+#scene.focusMode .dynamicRay{opacity:.045!important}
+#scene.focusMode .dynamicRay.focusKeep{opacity:1!important}
+#scene.focusMode .focusKeep{opacity:1!important}
+.localNormal{stroke:#ffffff;stroke-width:3.5;stroke-dasharray:7 5;opacity:.95}
+.shadowLine{stroke:#07121c;stroke-width:8;stroke-linecap:round;paint-order:stroke;stroke:#02070b}
+.focusHint{fill:#fff;font-size:10px;font-weight:850;paint-order:stroke;stroke:#07121c;stroke-width:4}
+.focusInset{position:absolute;z-index:8;top:14px;right:14px;width:min(330px,38%);background:rgba(6,18,29,.96);border:1px solid rgba(180,222,245,.5);border-radius:14px;padding:9px 10px 8px;box-shadow:0 10px 30px rgba(0,0,0,.34);backdrop-filter:blur(4px)}
+.focusInset.hidden{display:none}.focusInsetTitle{font-size:11px;font-weight:950;color:#fff;margin:0 0 4px;text-align:center}.focusInset svg{width:100%;height:auto;display:block}.focusInset .flatGround{stroke:#eaf7ff;stroke-width:3}.focusInset .flatPerson{stroke:#fff;stroke-width:4;stroke-linecap:round}.focusInset .flatHead{fill:#ffd447;stroke:#fff;stroke-width:1.5}.focusInset .flatRay{stroke-width:5;stroke-linecap:round}.focusInset .flatShadow{stroke:#05090c;stroke-width:9;stroke-linecap:round}.focusInset .flatHorizon{stroke:#93abc0;stroke-width:1.5;stroke-dasharray:6 5}.focusInset .flatAngle{fill:none;stroke:#fff;stroke-width:2}.focusInset text{font-family:Montserrat,Inter,system-ui,sans-serif}.focusInset .insetLabel{fill:#eaf7ff;font-size:11px;font-weight:800}.focusInset .insetAngleText{fill:#ffd447;font-size:14px;font-weight:950;paint-order:stroke;stroke:#07121c;stroke-width:3}
+@media(max-width:850px){.focusInset{width:min(300px,46%);top:8px;right:8px;padding:7px}.focusInsetTitle{font-size:10px}}
+@media(max-width:520px){.focusInset{left:7px;right:7px;top:7px;width:auto}.focusInset svg{max-height:160px}.caption{bottom:5px}}
+
 </style>
 </head>
-<body><div class="app">
-<header class="top"><div class="brand">ANAMBRO <span>· aula</span></div><div class="title">Eratóstenes · de una sombra a la medida de la Tierra</div><div class="controls"><button id="play">▶ Explicación</button><button id="pause">⏸</button><button id="restart">↺</button></div></header>
-<main class="stage"><section class="visual"><div class="stars"></div>
-<svg id="scene" viewBox="0 0 980 620" width="100%" height="100%" aria-label="Animación del razonamiento de Eratóstenes">
-<defs>
- <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8fe7ff"/></marker>
- <clipPath id="globeClip"><circle cx="520" cy="310" r="200"/></clipPath>
- <g id="egyptTown">
-  <rect class="building" x="0" y="22" width="42" height="30" rx="2"/><path class="roof" d="M-3 22 L21 7 L45 22 Z"/>
-  <rect class="building" x="50" y="29" width="35" height="23"/><path class="roof" d="M47 29 L67 17 L88 29 Z"/>
-  <rect class="building" x="93" y="18" width="46" height="34"/><path class="roof" d="M90 18 L116 3 L142 18 Z"/>
-  <rect x="13" y="34" width="8" height="18" fill="#5b3b20"/><rect x="61" y="38" width="8" height="14" fill="#5b3b20"/><rect x="110" y="31" width="9" height="21" fill="#5b3b20"/>
-  <line class="palm" x1="151" y1="52" x2="154" y2="20"/><line class="palmLeaf" x1="154" y1="20" x2="142" y2="12"/><line class="palmLeaf" x1="154" y1="20" x2="167" y2="11"/><line class="palmLeaf" x1="154" y1="20" x2="171" y2="22"/>
- </g>
- <g id="eratosthenesFig">
-  <circle cx="0" cy="-62" r="12" fill="#e7bb8c" stroke="#fff" stroke-width="1.5"/>
-  <path d="M-16 -48 L16 -48 L24 0 L-24 0 Z" fill="#e9e1cf" stroke="#9c8869" stroke-width="2"/>
-  <line x1="-10" y1="0" x2="-15" y2="32" stroke="#e7bb8c" stroke-width="6" stroke-linecap="round"/><line x1="10" y1="0" x2="15" y2="32" stroke="#e7bb8c" stroke-width="6" stroke-linecap="round"/>
-  <line x1="-14" y1="-38" x2="-36" y2="-18" stroke="#e7bb8c" stroke-width="6" stroke-linecap="round"/><line x1="14" y1="-38" x2="37" y2="-18" stroke="#e7bb8c" stroke-width="6" stroke-linecap="round"/>
-  <path d="M-10 -71 Q0 -84 10 -71" fill="none" stroke="#6a4628" stroke-width="5" stroke-linecap="round"/>
- </g>
- <g id="worldLand" class="land">
-  <!-- siluetas simplificadas de continentes reales, centradas en África/Europa -->
-  <path d="M467 195 L492 177 L521 180 L539 197 L558 205 L569 229 L561 252 L575 275 L566 303 L548 325 L542 356 L526 389 L507 411 L491 395 L483 362 L468 340 L457 305 L444 279 L448 244 Z"/>
-  <path d="M443 183 L458 163 L480 154 L502 158 L520 148 L544 155 L560 170 L548 189 L525 188 L507 199 L483 194 L466 204 Z"/>
-  <path d="M548 163 L579 144 L616 148 L648 164 L685 165 L706 185 L691 205 L660 211 L646 233 L616 229 L596 245 L574 232 L565 207 L544 197 Z"/>
-  <path d="M554 250 L580 246 L600 260 L597 286 L578 300 L561 284 Z"/>
-  <path d="M406 216 L382 196 L357 199 L337 220 L345 244 L369 251 L384 273 L406 264 L420 238 Z"/>
-  <path d="M404 278 L423 292 L429 320 L419 346 L425 373 L409 397 L392 378 L386 347 L371 328 L378 301 Z"/>
-  <path d="M682 300 L707 293 L727 309 L716 328 L692 330 Z"/>
-  <path d="M386 160 L401 145 L413 151 L410 169 L394 177 Z"/>
- </g>
- <g id="globe">
-  <circle class="earth" cx="520" cy="310" r="200"/>
-  <g clip-path="url(#globeClip)"><use href="#worldLand"/></g>
-  <circle cx="520" cy="310" r="200" fill="none" stroke="#c9efff" stroke-width="3"/>
- </g>
-</defs>
-
-<!-- 0 · Dos lugares sobre superficies planas -->
-<g id="scene0" class="sceneGroup active">
- <text class="bigQuestion" x="490" y="70">Empecemos sin suponer que la Tierra es redonda</text>
- <rect class="panelBox" x="55" y="120" width="390" height="330" rx="20"/><rect class="panelBox" x="535" y="120" width="390" height="330" rx="20"/>
- <text class="label" x="250" y="155" text-anchor="middle">Siena / Siene (actual Asuán)</text><text class="label" x="730" y="155" text-anchor="middle">Alejandría</text>
- <rect class="water" x="82" y="343" width="330" height="34" rx="17" opacity=".8"/><rect class="water" x="562" y="343" width="330" height="34" rx="17" opacity=".8"/>
- <line class="ground" x1="85" y1="343" x2="415" y2="343"/><line class="ground" x1="565" y1="343" x2="895" y2="343"/>
- <use href="#egyptTown" transform="translate(135 280) scale(1.18)"/><use href="#egyptTown" transform="translate(615 280) scale(1.18)"/>
- <text class="subLabel" x="250" y="405" text-anchor="middle">Dos ciudades egipcias reales</text><text class="subLabel" x="730" y="405" text-anchor="middle">Dos superficies locales aparentemente planas</text>
-</g>
-
-<!-- 1 · Eratóstenes lee la noticia del pozo -->
-<g id="scene1" class="sceneGroup">
- <text class="label" x="225" y="78" text-anchor="middle">Alejandría</text><line class="ground" x1="55" y1="450" x2="455" y2="450"/><use href="#egyptTown" transform="translate(75 382) scale(.9)"/>
- <use href="#eratosthenesFig" transform="translate(310 418)"/>
- <g transform="translate(342 318)"><rect class="scroll" x="-67" y="-34" width="134" height="68" rx="5"/><circle class="scroll" cx="-67" cy="0" r="9"/><circle class="scroll" cx="67" cy="0" r="9"/><line x1="-45" y1="-15" x2="44" y2="-15" stroke="#715d37" stroke-width="2"/><line x1="-45" y1="0" x2="36" y2="0" stroke="#715d37" stroke-width="2"/><line x1="-45" y1="15" x2="47" y2="15" stroke="#715d37" stroke-width="2"/></g>
- <rect class="panelBox" x="500" y="78" width="430" height="390" rx="20"/><text class="label" x="715" y="112" text-anchor="middle">Viñeta · Siena · 21 de junio · mediodía</text>
- <line class="ground" x1="565" y1="365" x2="865" y2="365"/><rect class="wellWall" x="650" y="365" width="130" height="34"/><rect class="wellDark" x="678" y="365" width="74" height="118"/><rect class="wellWall" x="650" y="399" width="28" height="84"/><rect class="wellWall" x="752" y="399" width="28" height="84"/>
- <circle cx="715" cy="465" r="18" fill="#5eb7db" opacity=".85"/><line class="rayStrong" x1="690" y1="145" x2="690" y2="463"/><line class="rayStrong" x1="715" y1="145" x2="715" y2="463"/><line class="rayStrong" x1="740" y1="145" x2="740" y2="463"/>
- <circle cx="715" cy="160" r="34" fill="#ffd35c"/><text x="715" y="166" text-anchor="middle" fill="#684b00" font-size="12" font-weight="950">SOL</text><text class="gold" x="715" y="525" text-anchor="middle" font-size="18">La luz alcanza el fondo del pozo</text>
-</g>
-
-<!-- 2 · El experimento de Alejandría -->
-<g id="scene2" class="sceneGroup">
- <text class="bigQuestion" x="490" y="70">¿Sucederá lo mismo aquí, en Alejandría?</text><use href="#egyptTown" transform="translate(90 405) scale(.9)"/><line class="ground" x1="60" y1="474" x2="920" y2="474"/>
- <use href="#eratosthenesFig" transform="translate(285 440)"/><g class="think"><ellipse cx="335" cy="265" rx="142" ry="64"/><circle cx="285" cy="330" r="12"/><circle cx="300" cy="312" r="8"/></g><text class="label" x="335" y="250" text-anchor="middle">Mismo día. Misma hora.</text><text class="gold" x="335" y="278" text-anchor="middle" font-size="18">¿Habrá sombra?</text>
- <line class="gnomon" x1="650" y1="474" x2="650" y2="325"/><line class="shadow" x1="650" y1="474" x2="765" y2="474"/><line class="rayStrong" x1="430" y1="160" x2="650" y2="325"/><line class="ray" x1="500" y1="160" x2="720" y2="325"/><circle cx="435" cy="148" r="36" fill="#ffd35c"/><text x="435" y="154" text-anchor="middle" fill="#684b00" font-size="12" font-weight="950">SOL</text><text class="red" x="720" y="442" font-size="22">¡Sí hay sombra!</text>
-</g>
-
-<!-- 3 · La observación imposible -->
-<g id="scene3" class="sceneGroup">
- <text class="bigQuestion" x="490" y="64">¿Cómo puede haber sombra en un lugar y en el otro no?</text>
- <rect class="panelBox" x="45" y="105" width="420" height="360" rx="18"/><rect class="panelBox" x="515" y="105" width="420" height="360" rx="18"/>
- <text class="label" x="255" y="140" text-anchor="middle">Siena</text><text class="label" x="725" y="140" text-anchor="middle">Alejandría</text>
- <line class="ground" x1="95" y1="342" x2="415" y2="342"/><rect class="wellWall" x="190" y="342" width="125" height="30"/><rect class="wellDark" x="215" y="342" width="75" height="90"/><rect class="wellWall" x="190" y="372" width="25" height="60"/><rect class="wellWall" x="290" y="372" width="25" height="60"/><line class="rayStrong" x1="240" y1="170" x2="240" y2="425"/><line class="rayStrong" x1="265" y1="170" x2="265" y2="425"/><text class="gold" x="255" y="455" text-anchor="middle" font-size="17">Sin sombra</text>
- <line class="ground" x1="565" y1="342" x2="885" y2="342"/><line class="gnomon" x1="725" y1="342" x2="725" y2="218"/><line class="shadow" x1="725" y1="342" x2="820" y2="342"/><line class="rayStrong" x1="590" y1="170" x2="725" y2="218"/><line class="ray" x1="650" y1="170" x2="785" y2="218"/><text class="red" x="725" y="393" text-anchor="middle" font-size="17">Sombra visible</text>
- <rect class="badge" x="330" y="485" width="320" height="46" rx="23"/><text class="badgeText" x="490" y="514">21 de junio · mediodía · al mismo tiempo</text>
-</g>
-
-<!-- 4 · Modelo de Tierra plana -->
-<g id="scene4" class="sceneGroup">
- <text class="bigQuestion" x="490" y="58">Probemos la hipótesis de una Tierra plana</text>
- <rect class="panelBox" x="42" y="90" width="896" height="210" rx="18"/><text class="caseTitle" x="490" y="120">CASO A · rayos perpendiculares</text><line class="ground" x1="110" y1="250" x2="870" y2="250"/><line class="gnomon" x1="330" y1="250" x2="330" y2="172"/><line class="gnomon" x1="650" y1="250" x2="650" y2="172"/><line class="rayStrong" x1="330" y1="135" x2="330" y2="172"/><line class="rayStrong" x1="650" y1="135" x2="650" y2="172"/><text class="subLabel" x="330" y="276" text-anchor="middle">Siena</text><text class="subLabel" x="650" y="276" text-anchor="middle">Alejandría</text><text class="gold" x="490" y="291" text-anchor="middle" font-size="16">Resultado: ningún palo proyecta sombra</text>
- <rect class="panelBox" x="42" y="326" width="896" height="210" rx="18"/><text class="caseTitle" x="490" y="356">CASO B · rayos oblicuos pero paralelos</text><line class="ground" x1="110" y1="487" x2="870" y2="487"/><line class="gnomon" x1="330" y1="487" x2="330" y2="409"/><line class="gnomon" x1="650" y1="487" x2="650" y2="409"/><line class="rayStrong" x1="230" y1="372" x2="330" y2="409"/><line class="rayStrong" x1="550" y1="372" x2="650" y2="409"/><line class="shadow" x1="330" y1="487" x2="405" y2="487"/><line class="shadow" x1="650" y1="487" x2="725" y2="487"/><text class="subLabel" x="330" y="513" text-anchor="middle">Siena</text><text class="subLabel" x="650" y="513" text-anchor="middle">Alejandría</text><text class="gold" x="490" y="527" text-anchor="middle" font-size="16">Resultado: la misma sombra en los dos</text>
-</g>
-
-<!-- 5 · La contradicción obliga a curvar -->
-<g id="scene5" class="sceneGroup">
- <text class="bigQuestion" x="490" y="105">Pero eso NO es lo que observamos</text><text class="bigQuestion" x="490" y="160">Entonces… ¿cómo puede ser?</text>
- <path class="arcSurface" d="M170 430 Q490 250 810 430"/><line class="arrowLine" x1="490" y1="230" x2="490" y2="320"/><text class="answer" x="490" y="505">La superficie de la Tierra tiene que ser CURVA</text><text class="subLabel" x="490" y="540" text-anchor="middle">No cambian los rayos solares: cambia la orientación del suelo en cada lugar.</text>
-</g>
-
-<!-- 6 · Sobre una superficie curva sí es posible -->
-<g id="scene6" class="sceneGroup">
- <text class="bigQuestion" x="490" y="58">En una superficie curva, sí encaja</text>
- <path class="arcEarth" d="M155 535 Q490 185 825 535"/><path class="arcSurface" d="M155 535 Q490 185 825 535"/>
- <!-- Siena: punto superior del arco -->
- <circle class="cityDot" cx="520" cy="240" r="8" fill="#ffd35c"/><line class="gnomon" x1="520" y1="240" x2="520" y2="155"/><line class="rayStrong" x1="520" y1="85" x2="520" y2="155"/><text class="label" x="545" y="220">Siena</text><text class="gold" x="570" y="278" font-size="15">sin sombra</text>
- <!-- Alejandría a 7,2 grados sobre el mismo arco -->
- <circle class="cityDot" cx="442.3" cy="244.9" r="8" fill="#ff996b"/><line class="gnomon" x1="442.3" y1="244.9" x2="431.7" y2="160.6"/><line class="rayStrong" x1="431.7" y1="85" x2="431.7" y2="160.6"/><line class="shadow" x1="442.3" y1="244.9" x2="511.7" y2="236.1"/><text class="label" x="335" y="216">Alejandría</text><text class="red" x="330" y="278" font-size="15">sombra visible</text>
- <line class="radius" x1="520" y1="240" x2="520" y2="430" opacity=".5"/><line class="radius" x1="442.3" y1="244.9" x2="466" y2="433" opacity=".5"/>
- <text class="subLabel" x="490" y="500" text-anchor="middle">Los rayos siguen siendo paralelos. Los palos no: cada uno es perpendicular a su suelo local.</text>
-</g>
-
-<!-- 7 · prolongar la curva hasta una esfera -->
-<g id="scene7" class="sceneGroup">
- <text class="bigQuestion" x="490" y="65">¿Qué forma obtengo si prolongo la curvatura?</text>
- <path class="arcSurface pulse" d="M300 278 Q520 93 740 278"/>
- <circle class="drawSphere" cx="520" cy="310" r="200"/>
- <g class="fadeLand"><circle class="earth" cx="520" cy="310" r="197" opacity=".9"/><g clip-path="url(#globeClip)"><use href="#worldLand"/></g><circle cx="520" cy="310" r="200" fill="none" stroke="#c9efff" stroke-width="3"/>
- <circle class="cityDot" cx="520" cy="110" r="7" fill="#ffd35c"/><circle class="cityDot" cx="494.9" cy="111.6" r="7" fill="#ff996b"/><line x1="520" y1="110" x2="610" y2="88" stroke="#fff"/><text class="label" x="620" y="92">Siena</text><line x1="494.9" y1="111.6" x2="385" y2="93" stroke="#fff"/><text class="label" x="280" y="98">Alejandría</text></g>
- <text class="answer" x="490" y="565">Una esfera</text>
-</g>
-
-<!-- 8 · 7,2 grados al centro -->
-<g id="scene8" class="sceneGroup">
- <use href="#globe"/>
- <circle class="cityDot" cx="520" cy="110" r="7" fill="#ffd35c"/><circle class="cityDot" cx="494.9" cy="111.6" r="7" fill="#ff996b"/>
- <line class="radius" x1="520" y1="310" x2="520" y2="110"/><line class="radius" x1="520" y1="310" x2="494.9" y2="111.6"/><circle cx="520" cy="310" r="5" fill="#fff"/>
- <path class="angle" d="M520 252 A58 58 0 0 0 512.7 252.5"/><text class="gold" x="456" y="250" font-size="22">7,2°</text><text class="label" x="545" y="332">Centro de la Tierra</text>
- <line class="rayStrong" x1="494.9" y1="45" x2="494.9" y2="111.6"/><line class="gnomon" x1="494.9" y1="111.6" x2="491.7" y2="86.8"/><path class="angle" d="M494.9 89 A23 23 0 0 0 492 89.2"/><text class="gold" x="420" y="78" font-size="16">7,2°</text>
- <text class="subLabel" x="490" y="548" text-anchor="middle">El ángulo medido en Alejandría reaparece entre las dos verticales prolongadas hasta el centro.</text>
-</g>
-
-<!-- 9 · 1/50 -->
-<g id="scene9" class="sceneGroup">
- <circle cx="355" cy="315" r="185" fill="#0b2130" stroke="#c9efff" stroke-width="3"/><g id="fiftyTicks"></g><path class="wedge" d="M355 315 L355 130 A185 185 0 0 0 331.8 131.5 Z"/>
- <text class="gold" x="355" y="307" text-anchor="middle" font-size="30">360°</text><text class="label" x="355" y="338" text-anchor="middle">una vuelta completa</text>
- <text class="answer" x="735" y="205">7,2° = 1/50</text><text class="gold" x="735" y="270" text-anchor="middle" font-size="26">360 ÷ 7,2 = 50</text><text class="label" x="735" y="320" text-anchor="middle">El arco Siena–Alejandría</text><text class="label" x="735" y="345" text-anchor="middle">es una cincuentava parte</text><text class="label" x="735" y="370" text-anchor="middle">de la circunferencia.</text>
-</g>
-
-<!-- 10 · 800 km -->
-<g id="scene10" class="sceneGroup">
- <use href="#globe"/><circle class="cityDot" cx="520" cy="110" r="8" fill="#ffd35c"/><circle class="cityDot" cx="494.9" cy="111.6" r="8" fill="#ff996b"/>
- <path d="M494.9 111.6 A200 200 0 0 1 520 110" fill="none" stroke="#ffdf67" stroke-width="12" stroke-linecap="round"/>
- <line x1="494.9" y1="111.6" x2="350" y2="76" stroke="#fff"/><text class="label" x="220" y="80">Alejandría</text><line x1="520" y1="110" x2="660" y2="77" stroke="#fff"/><text class="label" x="670" y="82">Siena</text>
- <rect class="badge" x="335" y="520" width="370" height="58" rx="29"/><text class="gold" x="520" y="557" text-anchor="middle" font-size="26">Siena ↔ Alejandría = 800 km</text>
-</g>
-
-<!-- 11 · cálculo -->
-<g id="scene11" class="sceneGroup">
- <text class="label" x="490" y="112" text-anchor="middle" font-size="18">Si 800 km representan 1/50 de la circunferencia…</text><text class="gold" x="490" y="230" text-anchor="middle" font-size="46">800 × 50</text><text class="gold" x="490" y="315" text-anchor="middle" font-size="62">= 40.000 km</text><text class="label" x="490" y="365" text-anchor="middle" font-size="20">circunferencia de la Tierra</text><use href="#globe" transform="translate(302.8 353.4) scale(.36)"/>
-</g>
-
-<!-- 12 · reflexión final -->
-<g id="scene12" class="sceneGroup">
- <text class="reflectionWord" x="180" y="150">🧠 CEREBRO</text><text class="reflectionWord" x="490" y="150">📐 MATEMÁTICAS</text><text class="reflectionWord" x="800" y="150">│ DOS PALOS</text>
- <line x1="110" y1="190" x2="870" y2="190" stroke="#45687e" stroke-width="2"/>
- <text class="reflectionSmall" x="490" y="255">Sin satélites. Sin GPS. Sin salir del mundo para mirarlo desde fuera.</text><text class="reflectionSmall" x="490" y="300">Observó una sombra, se hizo una pregunta y utilizó geometría elemental.</text>
- <text class="finalQuote" x="490" y="390">El motor de la genialidad humana es la curiosidad.</text><text class="reflectionSmall" x="490" y="435">Observar · Preguntar · Pensar · Calcular · Comprender el mundo</text>
- <text class="gold" x="490" y="520" text-anchor="middle" font-size="30">≈ 40.000 km</text>
-</g>
-</svg>
-<div id="caption" class="caption"></div></section>
-<aside class="side"><h2 id="sideTitle"></h2><p id="sideText"></p><div class="quote" id="quote"></div><div class="fact" id="fact"></div><div class="math hidden" id="mathBox"><div class="eq">7,2° = 1/50 de 360°</div><div class="eq">800 km × 50 = 40.000 km</div></div><div class="try hidden" id="tryBox"><b>🧠 Hazlo tú</b><p>Cambia el ángulo o la distancia y comprueba la proporción.</p><div class="tryGrid"><label><span class="small">Ángulo (°)</span><input id="angleInput" type="number" value="7.2" step="0.1"></label><label><span class="small">Distancia (km)</span><input id="distInput" type="number" value="800" step="10"></label></div><button class="calcBtn" id="calc">Calcular circunferencia</button><div class="result" id="result">≈ 40.000 km</div></div></aside></main>
-<footer class="bottom">
-<button class="stepBtn active" data-step="0">1 · Dos ciudades</button><button class="stepBtn" data-step="1">2 · El pozo</button><button class="stepBtn" data-step="2">3 · Experimento</button><button class="stepBtn" data-step="3">4 · La sorpresa</button><button class="stepBtn" data-step="4">5 · Tierra plana</button><button class="stepBtn" data-step="5">6 · La pregunta</button><button class="stepBtn" data-step="6">7 · Curvatura</button><button class="stepBtn" data-step="7">8 · Esfera</button><button class="stepBtn" data-step="8">9 · 7,2°</button><button class="stepBtn" data-step="9">10 · 1/50</button><button class="stepBtn" data-step="10">11 · 800 km</button><button class="stepBtn" data-step="11">12 · Cálculo</button><button class="stepBtn" data-step="12">13 · Curiosidad</button>
-</footer></div>
+<body>
+<div class="app">
+ <header class="top"><div class="brand">ANAMBRO <span>· Aula</span></div><div class="title">Insolación y latitud · ¿Por qué el Sol no calienta igual toda la Tierra?</div><div class="topControls"><button id="playBtn">▶ Explicación</button><button id="pauseBtn">⏸</button><button id="restartBtn">↺ Reiniciar</button></div></header>
+ <main class="stage">
+  <section class="visual">
+   <svg id="scene" viewBox="0 0 980 620" role="img" aria-label="Animación de la incidencia solar según la latitud">
+    <defs><clipPath id="earthClip"><circle cx="650" cy="310" r="205"/></clipPath></defs>
+    <g id="sun" class="sunGlow"><circle cx="88" cy="310" r="65" fill="#ffd447"/><circle cx="88" cy="310" r="48" fill="#ffe681"/><text x="88" y="315" text-anchor="middle" font-size="18" font-weight="950" fill="#704d00">SOL</text></g>
+    <g id="baseRays"></g>
+    <circle class="earthEdge" cx="650" cy="310" r="205"/>
+    <g id="earthRotator" clip-path="url(#earthClip)">
+      <path class="land" d="M530 260c45-70 88-72 117-49 25 20 21 43 64 56 41 13 72 50 41 80-28 27-55 7-74 34-25 36-77 38-95 2-18-37-67-38-70-82-1-17 5-29 17-41z"/>
+      <path class="land" d="M703 151c33 8 73 30 73 59 0 22-30 30-46 16-18-16-26-47-27-75z" opacity=".75"/>
+      <line id="axis" class="axis" x1="650" y1="70" x2="650" y2="550"/>
+      <g id="latGuides"></g>
+    </g>
+    <rect id="nightHalf" class="terminator" x="650" y="100" width="220" height="420" clip-path="url(#earthClip)"/>
+    <circle cx="650" cy="310" r="205" fill="none" stroke="#bde8ff" stroke-width="2.5"/>
+    <g id="dynamicRays"></g><g id="annotations"></g><g id="people"></g><g id="labels"></g>
+   </svg>
+   <div id="caption" class="caption">Los rayos solares llegan prácticamente paralelos. La curvatura terrestre hace que no incidan con el mismo ángulo en todas las latitudes.</div>
+    <div id="focusInset" class="focusInset hidden" aria-live="polite">
+      <div id="focusInsetTitle" class="focusInsetTitle">Vista local</div>
+      <svg viewBox="0 0 320 185" role="img" aria-label="Vista local de la altura solar y la sombra">
+        <line class="flatHorizon" x1="22" y1="139" x2="298" y2="139"/>
+        <line class="flatGround" x1="22" y1="140" x2="298" y2="140"/>
+        <line id="insetShadow" class="flatShadow" x1="170" y1="140" x2="220" y2="140"/>
+        <line class="flatPerson" x1="170" y1="140" x2="170" y2="91"/>
+        <line class="flatPerson" x1="170" y1="111" x2="157" y2="122"/>
+        <line class="flatPerson" x1="170" y1="111" x2="183" y2="122"/>
+        <circle class="flatHead" cx="170" cy="82" r="9"/>
+        <line id="insetRay" class="flatRay" x1="55" y1="65" x2="168" y2="91"/>
+        <circle id="insetSun" cx="55" cy="65" r="18" fill="#ffd447" stroke="#fff1a6" stroke-width="2"/>
+        <line id="insetVertical" x1="170" y1="140" x2="170" y2="52" stroke="#fff" stroke-width="2" stroke-dasharray="6 5" opacity=".8"/>
+        <path id="insetAngle" class="flatAngle" d=""/>
+        <text id="insetAltText" class="insetAngleText" x="92" y="127">90°</text>
+        <text class="insetLabel" x="22" y="160">horizonte local</text>
+        <text id="insetShadowText" class="insetLabel" x="210" y="126">sombra</text>
+      </svg>
+    </div>
+  </section>
+  <aside class="side">
+   <h2 id="infoTitle">🌍 Insolación desigual</h2>
+   <p id="infoText">Selecciona una de las personas del planeta. Verás la altura del Sol sobre su horizonte y cómo cambia la energía recibida por unidad de superficie.</p>
+   <div class="fact"><strong id="factTitle">Idea clave</strong><span id="factText">No es la distancia al Sol lo que explica el contraste Ecuador–polos: es, sobre todo, el ángulo con el que llega la radiación.</span></div>
+   <div class="readout"><div class="metric"><small>Latitud</small><b id="metricLat">0°</b></div><div class="metric"><small>Altura solar</small><b id="metricAlt">90°</b></div><div class="metric"><small>Incidencia</small><b id="metricInc">Perpendicular</b></div><div class="metric"><small>Situación</small><b id="metricDay">Día</b></div></div>
+   <div class="energy"><small style="color:#91afc3">ENERGÍA CONCENTRADA POR UNIDAD DE SUPERFICIE</small><div class="energyBar"><div id="energyFill" class="energyFill"></div></div><p id="energyText">Cerca del punto subsolar, la misma energía se concentra sobre una superficie menor.</p></div>
+  </aside>
+ </main>
+ <footer class="bottom"><button class="phaseBtn active" data-phase="march">🌱 Equinoccio de marzo</button><button class="phaseBtn" data-phase="june">☀️ Solsticio de junio</button><button class="phaseBtn" data-phase="september">🍂 Equinoccio de septiembre</button><button class="phaseBtn" data-phase="december">☀️ Solsticio de diciembre</button><span class="hint">Pulsa una persona para comparar latitudes.</span></footer>
+</div>
 <script>
 (()=>{
- const $=id=>document.getElementById(id);let step=0,timer=null;
- const steps=[
-  {title:'🏜️ Dos lugares reales',text:'No empezamos suponiendo una Tierra esférica. Solo tenemos dos ciudades egipcias, Siena y Alejandría, y dos superficies locales que a simple vista parecen planas.',cap:'Primero: dos ciudades reales de Egipto. Todavía no damos por supuesta la forma de la Tierra.',fact:'Siena (actual Asuán) está al sur de Alejandría.',quote:'¿Qué podemos averiguar observando solamente el Sol y las sombras?',ms:5200},
-  {title:'📜 La noticia de Siena',text:'En Alejandría, Eratóstenes conoce una observación llamativa: el 21 de junio, al mediodía, la luz del Sol alcanza el fondo de un pozo en Siena.',cap:'21 de junio · Siena: los rayos entran perpendicularmente en el pozo y llegan hasta el fondo.',fact:'En Siena, el Sol está prácticamente en el cenit al mediodía del solsticio.',quote:'Una observación aparentemente pequeña puede abrir una pregunta enorme.',ms:5800},
-  {title:'🧪 ¿Y en Alejandría?',text:'Eratóstenes se pregunta si ocurrirá lo mismo en su ciudad. Decide colocar un palo vertical en Alejandría el mismo día y a la misma hora.',cap:'Mismo día. Misma hora. Un palo vertical en Alejandría… y aparece una sombra.',fact:'El palo de Alejandría sí proyecta una sombra.',quote:'¿Por qué aquí hay sombra si en Siena el Sol cae verticalmente?',ms:5600},
-  {title:'❓ La contradicción',text:'Al mismo tiempo, Siena no presenta sombra apreciable y Alejandría sí. La diferencia solo puede estar en el ángulo con el que los rayos encuentran la superficie local.',cap:'Siena: sin sombra. Alejandría: sombra. ¿Cómo puede suceder al mismo tiempo?',fact:'Los rayos solares llegan prácticamente paralelos a la Tierra.',quote:'No necesitamos cambiar el Sol: necesitamos explicar por qué cambia el ángulo respecto al suelo.',ms:5900},
-  {title:'▱ Probemos una Tierra plana',text:'Si las dos ciudades estuvieran sobre una misma superficie plana y los rayos fueran paralelos, solo hay dos posibilidades: o no habría sombra en ninguna, o ambas tendrían exactamente la misma sombra.',cap:'En una superficie plana, rayos paralelos producen el mismo ángulo de incidencia en los dos palos.',fact:'Tierra plana + rayos paralelos no reproduce la observación real.',quote:'El modelo plano falla.',ms:6500},
-  {title:'💡 ¿Cómo puede ser?',text:'Pero la realidad es distinta: Siena y Alejandría no muestran la misma sombra. Si los rayos siguen siendo paralelos, la orientación del suelo no puede ser la misma en ambos lugares.',cap:'La observación obliga a cambiar el modelo: la superficie de la Tierra debe ser curva.',fact:'La curvatura explica que dos verticales locales tengan orientaciones diferentes.',quote:'La superficie de la Tierra es curva.',ms:5600},
-  {title:'🌐 Sobre una superficie curva',text:'Ahora colocamos los dos palos sobre una misma superficie curva. Los rayos siguen siendo paralelos, pero cada palo es perpendicular a su propio suelo local.',cap:'Siena y Alejandría sobre la misma curvatura: un palo no proyecta sombra y el otro sí.',fact:'En Siena el rayo coincide con la vertical local; en Alejandría forma un ángulo.',quote:'Ahora la observación encaja sin cambiar la dirección de los rayos solares.',ms:6500},
-  {title:'🌍 De la curva a la esfera',text:'Prolongamos esa curvatura de forma continua. La línea se cierra y obtenemos una esfera. Siena y Alejandría forman parte de la misma superficie terrestre.',cap:'Prolongamos la curva hasta cerrar la Tierra: aparece una esfera con los continentes reales.',fact:'La curvatura local pertenece a una superficie esférica.',quote:'La forma global aparece al prolongar la geometría local.',ms:6000},
-  {title:'📐 Los 7,2°',text:'La sombra de Alejandría permite medir una diferencia angular de 7,2°. Prolongamos las verticales de Siena y Alejandría hasta el centro de la Tierra: allí aparece el mismo ángulo.',cap:'El ángulo de 7,2° medido en Alejandría se proyecta hasta el centro de la Tierra.',fact:'Ángulo en Alejandría = ángulo central entre Siena y Alejandría.',quote:'La geometría de una sombra se convierte en geometría planetaria.',math:true,ms:6200},
-  {title:'⭕ Una cincuentava parte',text:'Una circunferencia completa tiene 360°. Como 360 ÷ 7,2 = 50, el arco entre Siena y Alejandría representa 1/50 de toda la circunferencia terrestre.',cap:'7,2° es exactamente 1/50 de 360°.',fact:'7,2° × 50 = 360°.',quote:'Si conocemos la distancia de ese pequeño arco, podemos reconstruir la vuelta completa.',math:true,ms:6100},
-  {title:'📏 La distancia',text:'Ahora necesitamos una longitud. Para esta explicación usamos 800 kilómetros entre Siena y Alejandría.',cap:'Siena ↔ Alejandría = 800 km, y esos 800 km representan 1/50 de la circunferencia.',fact:'800 km corresponden al arco de 7,2°.',quote:'Ya tenemos el ángulo y la distancia. Solo falta una multiplicación.',math:true,ms:5600},
-  {title:'✨ La Tierra medida',text:'Si 800 km son 1/50 de la circunferencia, multiplicamos por 50. El resultado es 40.000 km.',cap:'800 × 50 = 40.000 km. El tamaño del mundo aparece a partir de una sombra.',fact:'Circunferencia terrestre ≈ 40.000 km.',quote:'Una pregunta, una sombra y matemáticas elementales bastaron para medir el mundo.',math:true,try:true,ms:6500},
-  {title:'🧠 El verdadero motor',text:'Eratóstenes no necesitó satélites ni GPS. Necesitó observación, dos lugares, un palo, una sombra, matemáticas elementales y un cerebro dispuesto a hacerse preguntas.',cap:'El motor de la genialidad humana es la curiosidad.',fact:'Observar · Preguntar · Pensar · Calcular · Comprender.',quote:'La curiosidad convierte una sombra en una medida del planeta.',math:true,ms:9000}
- ];
- function buildFiftieths(){const g=$('fiftyTicks');if(!g)return;const cx=355,cy=315,r1=169,r2=185;for(let i=0;i<50;i++){const a=(-90+i*7.2)*Math.PI/180,x1=cx+r1*Math.cos(a),y1=cy+r1*Math.sin(a),x2=cx+r2*Math.cos(a),y2=cy+r2*Math.sin(a),l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('class','fiftyTick'+(i===0?' hot':''));g.appendChild(l);}}
- function setStep(n){step=Math.max(0,Math.min(steps.length-1,n));document.querySelectorAll('.sceneGroup').forEach((g,i)=>g.classList.toggle('active',i===step));const d=steps[step];$('sideTitle').textContent=d.title;$('sideText').textContent=d.text;$('caption').textContent=d.cap;$('fact').innerHTML='<b>Clave:</b> '+d.fact;$('quote').innerHTML='<b>Idea:</b> '+d.quote;$('mathBox').classList.toggle('hidden',!d.math);$('tryBox').classList.toggle('hidden',!d.try);document.querySelectorAll('.stepBtn').forEach(b=>b.classList.toggle('active',+b.dataset.step===step));}
- function stop(){if(timer){clearTimeout(timer);timer=null;}}
- function play(){stop();setStep(0);const advance=()=>{if(step>=steps.length-1){stop();return;}timer=setTimeout(()=>{setStep(step+1);advance();},steps[step].ms||5200);};advance();}
- document.querySelectorAll('.stepBtn').forEach(b=>b.onclick=()=>{stop();setStep(+b.dataset.step)});$('play').onclick=play;$('pause').onclick=stop;$('restart').onclick=()=>{stop();setStep(0)};$('calc').onclick=()=>{const a=+$('angleInput').value,d=+$('distInput').value;if(!(a>0&&a<360&&d>0)){$('result').textContent='Introduce valores válidos.';return}$('result').textContent='≈ '+Math.round(d*360/a).toLocaleString('es-ES')+' km'};
- buildFiftieths();setStep(0);
+ const C={cx:650,cy:310,r:205};
+ const latitudes=[{id:'np',lat:90,label:'Polo Norte'},{id:'ac',lat:66.56,label:'Círculo Polar Ártico'},{id:'tn',lat:45,label:'Latitud templada · 45° N'},{id:'tc',lat:23.44,label:'Trópico de Cáncer'},{id:'eq',lat:0,label:'Ecuador'},{id:'tcap',lat:-23.44,label:'Trópico de Capricornio'},{id:'ts',lat:-45,label:'Latitud templada · 45° S'},{id:'aac',lat:-66.56,label:'Círculo Polar Antártico'},{id:'sp',lat:-90,label:'Polo Sur'}];
+ const phases={march:{tilt:0,decl:0,label:'Equinoccio de marzo'},june:{tilt:-23.44,decl:23.44,label:'Solsticio de junio'},september:{tilt:0,decl:0,label:'Equinoccio de septiembre'},december:{tilt:23.44,decl:-23.44,label:'Solsticio de diciembre'}};
+ let phase='march',selected='eq',focusMode=false,timer=null,storyIndex=0;
+ const NS='http://www.w3.org/2000/svg';
+ const $=id=>document.getElementById(id); const svgEl=(tag,a={})=>{const e=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(a))e.setAttribute(k,v);return e;};
+ const rad=d=>d*Math.PI/180,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ function rotatedNormal(lat,tilt){const a=rad(lat+tilt),nx=-Math.cos(a),ny=-Math.sin(a);return {nx,ny,x:C.cx+C.r*nx,y:C.cy+C.r*ny};}
+ function solarAltitude(lat){return 90-Math.abs(lat-phases[phase].decl);}
+ function mix(c1,c2,t){const a=c1.match(/\w\w/g).map(x=>parseInt(x,16)),b=c2.match(/\w\w/g).map(x=>parseInt(x,16));return '#'+a.map((v,i)=>Math.round(v+(b[i]-v)*t).toString(16).padStart(2,'0')).join('');}
+ function semanticRay(alt){const t=clamp(alt/90,0,1);let color;if(t<.34)color=mix('#fff3b0','#ffd166',t/.34);else if(t<.70)color=mix('#ffd166','#f8961e',(t-.34)/.36);else color=mix('#f8961e','#e63946',(t-.70)/.30);return {color,t,width:2.5+3.5*t,opacity:.30+.70*t};}
+ function buildBase(){
+  const g=$('baseRays');g.innerHTML='';for(let y=120;y<=500;y+=47){const dy=y-C.cy;const x2=Math.abs(dy)<C.r?C.cx-Math.sqrt(C.r*C.r-dy*dy)-3:940;g.appendChild(svgEl('line',{x1:155,y1:y,x2:x2,y2:y,class:'ray',stroke:'#fff0ae',opacity:'.14'}));}
+  const guides=$('latGuides');guides.innerHTML='';for(const p of latitudes){const a=rad(p.lat);const x=C.cx-C.r*Math.cos(a),y=C.cy-C.r*Math.sin(a);const x2=C.cx+C.r*.17*Math.cos(a),y2=C.cy+C.r*.17*Math.sin(a);guides.appendChild(svgEl('line',{x1:x,y1:y,x2:x2,y2:y2,class:'latitudeLine'}));}
+  render();
+ }
+ function personGroup(p){
+  const {nx,ny,x,y}=rotatedNormal(p.lat,phases[phase].tilt),tx=-ny,ty=nx;const cls='person personHit'+(focusMode&&p.id===selected?' selected focusKeep':'');const g=svgEl('g',{class:cls,'data-id':p.id});
+  const sx=x+nx*2,sy=y+ny*2,bx=x+nx*26,by=y+ny*26,hx=x+nx*37,hy=y+ny*37;
+  g.appendChild(svgEl('line',{x1:x+tx*12,y1:y+ty*12,x2:x-tx*12,y2:y-ty*12,class:'ground'}));
+  g.appendChild(svgEl('line',{x1:sx,y1:sy,x2:bx,y2:by,class:'body'}));
+  g.appendChild(svgEl('line',{x1:x+nx*9,y1:y+ny*9,x2:x+nx*1+tx*8,y2:y+ny*1+ty*8,class:'limb'}));
+  g.appendChild(svgEl('line',{x1:x+nx*9,y1:y+ny*9,x2:x+nx*1-tx*8,y2:y+ny*1-ty*8,class:'limb'}));
+  g.appendChild(svgEl('line',{x1:x+nx*17,y1:y+ny*17,x2:x+nx*8+tx*9,y2:y+ny*8+ty*9,class:'limb'}));
+  g.appendChild(svgEl('line',{x1:x+nx*17,y1:y+ny*17,x2:x+nx*8-tx*9,y2:y+ny*8-ty*9,class:'limb'}));
+  g.appendChild(svgEl('circle',{cx:hx,cy:hy,r:7,class:'head'}));
+  g.addEventListener('click',ev=>{ev.stopPropagation();selected=p.id;focusMode=true;stop();render();});
+  return {g,head:{x:hx,y:hy},normal:{nx,ny},tangent:{tx,ty},surface:{x,y}};
+ }
+ function render(){
+  const tilt=phases[phase].tilt;$('earthRotator').setAttribute('transform',`rotate(${tilt} ${C.cx} ${C.cy})`);$('scene').classList.toggle('focusMode',focusMode);
+  $('people').innerHTML='';$('dynamicRays').innerHTML='';$('annotations').innerHTML='';$('labels').innerHTML='';
+  const peopleRoot=$('people'),labelsRoot=$('labels');
+  latitudes.forEach(p=>{const obj=personGroup(p);peopleRoot.appendChild(obj.g);const alt=solarAltitude(p.lat),visible=alt>0.05,rayRoot=$('dynamicRays');
+   if(visible){const sem=semanticRay(alt),isFocus=focusMode&&p.id===selected;const line=svgEl('line',{x1:160,y1:obj.head.y,x2:obj.head.x-8,y2:obj.head.y,class:'ray dynamicRay'+(isFocus?' focusKeep':''),stroke:sem.color,'stroke-width':isFocus?Math.max(6.5,sem.width):sem.width,opacity:isFocus?1:sem.opacity});rayRoot.appendChild(line);}
+   else{const dy=obj.head.y-C.cy,hitX=Math.abs(dy)<C.r?C.cx-Math.sqrt(C.r*C.r-dy*dy)-4:C.cx-C.r-4;rayRoot.appendChild(svgEl('line',{x1:160,y1:obj.head.y,x2:hitX,y2:obj.head.y,class:'ray blocked dynamicRay'+(focusMode&&p.id===selected?' focusKeep':''),stroke:'#fff3b0'}));}
+   const tx=obj.surface.x+obj.normal.nx*64,ty=obj.surface.y+obj.normal.ny*64;const t=svgEl('text',{x:tx,y:ty,class:'personTag'+(focusMode&&p.id===selected?' focusKeep':'')});t.textContent=p.label;labelsRoot.appendChild(t);
+   if(p.id===selected)annotate(p,obj,alt,visible);
+  });
+  document.querySelectorAll('.phaseBtn').forEach(b=>b.classList.toggle('active',b.dataset.phase===phase));updateInfo();updateInset();
+ }
+ function annotate(p,obj,alt,visible){
+  const a=$('annotations');if(!visible){const t=svgEl('text',{x:obj.head.x+18,y:obj.head.y-12,class:'nightLabel'+(focusMode?' focusKeep':'')});t.textContent=alt<0?'Noche polar · el Sol no sale':'Sol en el horizonte';a.appendChild(t);if(focusMode){a.appendChild(svgEl('line',{x1:obj.surface.x,y1:obj.surface.y,x2:obj.surface.x+obj.normal.nx*80,y2:obj.surface.y+obj.normal.ny*80,class:'localNormal focusKeep'}));}return;}
+  const ang=clamp(alt,0,90),start=-180,end=-180+ang,r=35,p1=[obj.surface.x+r*Math.cos(rad(start)),obj.surface.y+r*Math.sin(rad(start))],p2=[obj.surface.x+r*Math.cos(rad(end)),obj.surface.y+r*Math.sin(rad(end))];
+  a.appendChild(svgEl('path',{d:`M ${p1[0]} ${p1[1]} A ${r} ${r} 0 0 1 ${p2[0]} ${p2[1]}`,class:'angleArc'+(focusMode?' focusKeep':'')}));const t=svgEl('text',{x:obj.surface.x-48,y:obj.surface.y-16,class:'angleText'+(focusMode?' focusKeep':'')});t.textContent=Math.round(alt)+'°';a.appendChild(t);
+  if(focusMode){
+   a.appendChild(svgEl('line',{x1:obj.surface.x,y1:obj.surface.y,x2:obj.surface.x+obj.normal.nx*82,y2:obj.surface.y+obj.normal.ny*82,class:'localNormal focusKeep'}));
+   const shadowLen=alt>=89.5?0:Math.min(118,36/Math.tan(rad(Math.max(2,alt))));const proj=obj.tangent.tx;const sign=Math.abs(proj)<.0001?1:Math.sign(proj);const ex=obj.surface.x+obj.tangent.tx*sign*shadowLen,ey=obj.surface.y+obj.tangent.ty*sign*shadowLen;
+   a.appendChild(svgEl('line',{x1:obj.surface.x,y1:obj.surface.y,x2:ex,y2:ey,class:'shadowLine focusKeep'}));
+   const hint=svgEl('text',{x:obj.surface.x+obj.normal.nx*96,y:obj.surface.y+obj.normal.ny*96,class:'focusHint focusKeep'});hint.textContent='perpendicular local';a.appendChild(hint);
+  }else{const spread=Math.min(95,16/Math.max(.18,Math.sin(rad(alt))));a.appendChild(svgEl('rect',{x:obj.surface.x-4,y:obj.surface.y+22,width:spread,height:10,rx:5,class:'footprint',transform:`rotate(${Math.atan2(obj.normal.ny,obj.normal.nx)*180/Math.PI+90} ${obj.surface.x} ${obj.surface.y})`}));}
+ }
+ function selectedObj(){return latitudes.find(x=>x.id===selected)||latitudes.find(x=>x.id==='eq')||latitudes[0];}
+ function updateInset(){const box=$('focusInset');if(!focusMode){box.classList.add('hidden');return;}box.classList.remove('hidden');const p=selectedObj(),alt=solarAltitude(p.lat),vis=alt>0.05,sem=semanticRay(Math.max(0,alt));$('focusInsetTitle').textContent=p.label+' · '+phases[phase].label;const bx=170,by=140,R=108,shown=clamp(alt,0,90),sx=bx-R*Math.cos(rad(shown)),sy=by-R*Math.sin(rad(shown));$('insetSun').setAttribute('cx',sx);$('insetSun').setAttribute('cy',sy);$('insetRay').setAttribute('x1',sx+12);$('insetRay').setAttribute('y1',sy+8);$('insetRay').setAttribute('x2',168);$('insetRay').setAttribute('y2',91);$('insetRay').setAttribute('stroke',sem.color);const sh=vis&&alt<89.5?Math.min(112,48/Math.tan(rad(Math.max(3,alt)))):0;$('insetShadow').setAttribute('x2',170+sh);$('insetShadow').setAttribute('opacity',vis?'1':'.18');$('insetShadowText').setAttribute('x',Math.min(276,180+sh));$('insetShadowText').textContent=sh<4?'sombra casi nula':vis?'sombra':'sin sombra directa';$('insetAltText').textContent=vis?shown.toFixed(shown===90?0:1)+'°':'Sol bajo el horizonte';const rr=42,a0=Math.PI,a1=Math.PI+rad(shown),x0=bx+rr*Math.cos(a0),y0=by+rr*Math.sin(a0),x1=bx+rr*Math.cos(a1),y1=by+rr*Math.sin(a1);$('insetAngle').setAttribute('d',vis?`M ${x0} ${y0} A ${rr} ${rr} 0 0 0 ${x1} ${y1}`:'');}
+ function updateInfo(){const p=selectedObj(),alt=solarAltitude(p.lat),vis=alt>0.05,energy=vis?Math.max(0,Math.sin(rad(alt))):0,abs=Math.abs(p.lat);$('metricLat').textContent=(p.lat===0?'0°':Math.abs(p.lat).toFixed(abs===90?0:1)+'° '+(p.lat>0?'N':'S'));$('metricAlt').textContent=vis?Math.max(0,alt).toFixed(alt===90?0:1)+'°':Math.abs(alt)<.1?'0°':'< 0°';$('metricInc').textContent=!vis?(Math.abs(alt)<.1?'Rasante':'Sin incidencia'):alt>=89.5?'Perpendicular':alt>80?'Casi perpendicular':alt>35?'Oblicua':'Muy oblicua';$('metricDay').textContent=vis?'Día':Math.abs(alt)<.1?'Horizonte':'Noche polar';$('energyFill').style.width=(energy*100).toFixed(0)+'%';$('infoTitle').textContent='☀️ '+p.label;$('infoText').textContent=vis?`En ${phases[phase].label.toLowerCase()}, la altura solar al mediodía en esta latitud es aproximadamente ${Math.max(0,alt).toFixed(1)}°. Cuanto más bajo está el Sol, más oblicua es la radiación.`:Math.abs(alt)<.1?`En ${phases[phase].label.toLowerCase()}, el Sol queda justo en el horizonte: los rayos llegan rasantes.`:`En ${phases[phase].label.toLowerCase()}, el Sol permanece por debajo del horizonte en esta posición: la radiación directa no alcanza a la persona.`;$('energyText').textContent=energy>.8?'La energía llega muy concentrada: una cantidad similar de radiación se reparte sobre poca superficie.':energy>.3?'La energía se reparte sobre una superficie mayor que cerca del punto subsolar.':vis?'La incidencia rasante reparte mucho la energía y además alarga el recorrido por la atmósfera.':'Sin radiación solar directa, no hay aporte energético directo en ese momento.';
+  $('factTitle').textContent=phase==='march'?'Marzo: máximo sobre el Ecuador':phase==='september'?'Septiembre: máximo sobre el Ecuador':phase==='june'?'Junio: máximo sobre el Trópico de Cáncer':'Diciembre: máximo sobre el Trópico de Capricornio';$('factText').textContent=phase==='march'?'El rayo perpendicular —rojo intenso— cae sobre el Ecuador. Hacia latitudes mayores, la incidencia se vuelve más oblicua y el color pasa por naranja hasta amarillo pálido.':phase==='september'?'El rayo perpendicular vuelve al Ecuador. La escala de color sigue la incidencia, no una latitud fija.':phase==='june'?'El punto subsolar está en el Trópico de Cáncer: allí aparece el rojo de máxima incidencia, y desde ese punto los rayos se vuelven progresivamente más oblicuos.':'El punto subsolar está en el Trópico de Capricornio: allí aparece el rojo de máxima incidencia, y desde ese punto los rayos se vuelven progresivamente más oblicuos.';
+ }
+ function setPhase(p){phase=p;render();$('caption').textContent=p==='march'?'Equinoccio de marzo: el rayo perpendicular cae sobre el Ecuador. La gradación rojo → naranja → amarillo pálido sigue la pérdida de perpendicularidad.':p==='september'?'Equinoccio de septiembre: el rayo perpendicular vuelve al Ecuador; la gradación de colores se organiza desde ese punto subsolar.':p==='june'?'Solsticio de junio: el máximo de incidencia se desplaza al Trópico de Cáncer, que ahora recibe el rayo rojo perpendicular.':'Solsticio de diciembre: el máximo de incidencia se desplaza al Trópico de Capricornio, que ahora recibe el rayo rojo perpendicular.';}
+ const story=[['march','eq','Marzo: el rojo de máxima incidencia coincide con el Ecuador, donde el Sol culmina perpendicularmente.'],['march','tn','En las latitudes templadas la radiación llega oblicua: el color pierde intensidad y la energía se reparte sobre más superficie.'],['march','ac','Cerca de los círculos polares, la incidencia es muy baja y los rayos pasan a tonos amarillos pálidos.'],['june','tc','Junio: el máximo ya no está en el Ecuador. El rayo perpendicular y rojo se desplaza al Trópico de Cáncer.'],['june','tn','En las latitudes templadas del norte el Sol asciende, pero sigue sin alcanzar la perpendicularidad del Trópico de Cáncer.'],['june','sp','Mientras tanto, el Polo Sur queda en noche polar.'],['september','eq','Septiembre: el punto subsolar regresa al Ecuador y con él vuelve el rayo rojo perpendicular.'],['december','tcap','Diciembre: el rayo perpendicular se desplaza al Trópico de Capricornio.'],['december','ts','Las latitudes templadas del sur reciben ahora una radiación más elevada.'],['december','np','El Polo Norte queda en noche polar.']];
+ function runStory(){stop();focusMode=false;storyIndex=0;$('playBtn').classList.add('active');const step=()=>{if(storyIndex>=story.length){stop();$('caption').textContent='Conclusión: el máximo de insolación sigue al punto subsolar. La incidencia pierde intensidad progresivamente al alejarse de él.';return;}const [ph,id,cap]=story[storyIndex];phase=ph;selected=id;focusMode=false;render();$('caption').textContent=cap;storyIndex++;};step();timer=setInterval(step,3800);}
+ function stop(){if(timer){clearInterval(timer);timer=null;}$('playBtn').classList.remove('active');}
+ document.querySelectorAll('.phaseBtn').forEach(b=>b.addEventListener('click',()=>{stop();setPhase(b.dataset.phase);}));$('playBtn').onclick=runStory;$('pauseBtn').onclick=stop;$('restartBtn').onclick=()=>{stop();phase='march';selected='eq';focusMode=false;storyIndex=0;setPhase('march');};$('scene').addEventListener('click',ev=>{if(focusMode&&!ev.target.closest('.personHit')){focusMode=false;render();$('caption').textContent='Vista general restaurada. Pulsa una persona para aislar su rayo, su perpendicular local y su sombra.';}});
+ buildBase();
 })();
 </script>
 </body></html>
