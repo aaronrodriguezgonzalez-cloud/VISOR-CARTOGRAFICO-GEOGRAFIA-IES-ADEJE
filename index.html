@@ -3078,7 +3078,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 </details>
 <details class="layerScope"><summary>🌍 Mundo</summary>
 <div class="layerScopeInner"><details class="layerSubcategory"><summary>🗺️ Cartografía base</summary><label><input data-base-choice="worldsat" name="baseWorld" type="radio"/> <b>Imagen aérea/satélite mundial · Esri World Imagery</b></label>
-<label><input data-base-choice="eoxsat" name="baseWorld" type="radio"/> <b>Sentinel-2 Cloudless 2025 · Copernicus / EOX</b></label>
+<label><input checked="" data-base-choice="eoxsat" name="baseWorld" type="radio"/> <b>Sentinel-2 Cloudless 2025 · Copernicus / EOX</b></label>
 <label><input data-base-choice="osm" name="baseWorld" type="radio"/> <b>OpenStreetMap</b></label><div class="layerSubBlock"><small>Las bases satelitales Esri y EOxCloudless se sincronizan también con el globo 3D.</small></div></details><details class="layerSubcategory"><summary>🌐 Límites, divisiones, topónimos y servicios</summary><label><input id="countriesCheck" type="checkbox"/> <b>Fronteras internacionales</b></label>
 <label class="sub"><input id="countryLabelsCheck" type="checkbox"/> Nombres de países</label>
 <label><input id="worldAdmin1Check" type="checkbox"/> <b>Divisiones infraestatales de 1.er nivel</b></label><div class="layerSubBlock"><small>Regiones, estados, comunidades, provincias y equivalentes · World Bank.</small></div>
@@ -3725,7 +3725,7 @@ function activeSourceKeys(){
  }
  if(document.body.classList.contains('globe-mode')&&!document.getElementById('worldHistoryCheck')?.checked&&!(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)){
    const globeBase=document.querySelector('input[name="baseWorld"]:checked')?.dataset?.baseChoice;
-   s.add(globeBase==='eoxsat'?'eoxcloudless':'esri');
+   s.add(globeBase==='worldsat'?'esri':'eoxcloudless');
  }
  return [...s];
 }
@@ -6481,7 +6481,7 @@ function startTrackBuilder(){
  if(document.body.classList.contains('globe-mode')){alert('El generador de tracks funciona en el mapa 2D. Cambia primero a la vista de mapa.');return;}
  if((importedTrackSegments.length||trackBuildWaypoints.length)&&!confirm('Hay un track visible. ¿Quieres iniciar uno nuevo y sustituirlo?'))return;
  removeImportedTrack(true);trackBuildWaypoints=[];trackBuildSegments=[];trackBuildMarkers=[];trackBuildGroup=L.layerGroup().addTo(map);trackBuildActive=true;measureMode=null;profileMode=false;document.body.classList.add('trackModeActive');
- document.getElementById('trackBuildStartBtn').disabled=true;document.getElementById('trackBuildStartBtn').textContent='● Generando…';document.getElementById('trackBuildFinishBtn').disabled=false;document.getElementById('trackBuildClearBtn').disabled=false;trackBuildStatus('<b>Modo Generar track activo.</b> Marca el punto inicial sobre el mapa.');status('GENERAR TRACK · marca el punto inicial');
+ document.getElementById('trackBuildStartBtn').disabled=true;document.getElementById('trackBuildStartBtn').textContent='● Generando…';document.getElementById('trackBuildFinishBtn').disabled=false;document.getElementById('trackBuildClearBtn').disabled=false;trackBuildStatus('<b>Modo Generar track activo.</b> Marca el punto inicial sobre el mapa o toca un lugar buscado para usar su coordenada exacta.');status('GENERAR TRACK · marca el punto inicial o toca un lugar buscado');
 }
 function finishTrackBuilder(){if(!trackBuildActive)return;trackBuildActive=false;document.body.classList.remove('trackModeActive');document.getElementById('trackBuildStartBtn').disabled=false;document.getElementById('trackBuildStartBtn').textContent='▶ Generar track';document.getElementById('trackBuildFinishBtn').disabled=true;syncGeneratedTrackToMainState();trackBuildStatus(trackBuildSegments.length?'Track terminado. El perfil utilizará el recorrido completo. Los puntos de control siguen siendo arrastrables para corregir el trazado.':'Generación detenida.');status('Track terminado');}
 function undoTrackBuilderPoint(){
@@ -6503,7 +6503,7 @@ function startProfile(){
  measureMode=null;profileMode=true;profilePts=[];profileClosed=false;if(profileLayer)map.removeLayer(profileLayer);profileLayer=L.layerGroup().addTo(map);profileLine=null;profileHandles=[];
  document.querySelectorAll('.panel').forEach(p=>{if(p.id!=='profilePanel')p.classList.add('hidden')});document.getElementById('profilePanel').classList.remove('hidden');
  document.getElementById('profileResult').innerHTML='<b>Resultado:</b> —';document.getElementById('profileBox').style.display='none';
- status('PERFIL TOPOGRÁFICO · marca tantos puntos como necesites · las capas temáticas activas no bloquean el trazado · pulsa «Generar perfil»');
+ status('PERFIL TOPOGRÁFICO · marca puntos sobre el mapa o toca un lugar buscado para fijarlo exactamente · pulsa «Generar perfil»');
 }
 function profileHandleIcon(endpoint){return L.divIcon({className:'',html:'<div style="width:'+(endpoint?18:12)+'px;height:'+(endpoint?18:12)+'px;border-radius:50%;background:'+(endpoint?'#fff':'#17324d')+';border:'+(endpoint?'4px solid #17324d':'2px solid #fff')+';box-shadow:0 1px 5px #0008;box-sizing:border-box"></div>',iconSize:[endpoint?18:12,endpoint?18:12],iconAnchor:[endpoint?9:6,endpoint?9:6]});}
 function addProfilePoint(ll){
@@ -8472,21 +8472,83 @@ function finishMeasure(){if(document.body.classList.contains('globe-mode')&&glob
 function clearMeasure(){if(globeMeasureEntities.length)clearGlobeMeasure();measureMode=null;measureKind=null;measurePts=[];if(measureLayer)map.removeLayer(measureLayer);measureLayer=null;measureShape=null;measureHandles=[];document.getElementById('measureResult').innerHTML='<b>Resultado:</b> —';status('Medición borrada');}
 
 
-// Lugares buscados: capa persistente durante la sesión y gestión individual
+// Lugares buscados: persistentes durante la sesión, sincronizados entre mapa 2D y globo 3D.
 const searchedPlaces = L.layerGroup().addTo(map);
 const placeRecords = [];
 let placeSeq = 0;
+let globeSearchedPlaceInfoId = null;
 
 function esc(s){
  return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 }
+function shortPlaceLabel(name){
+ const t=String(name||'Lugar').split(',')[0].trim();
+ return t.length>34?t.slice(0,31)+'…':t;
+}
+function searchedPlacePopupHTML(p){
+ return '<b>📍 '+esc(p.name)+'</b><br>'+p.lat.toFixed(6)+', '+p.lon.toFixed(6)+
+  '<br><button class="action" style="margin-top:7px;width:100%" onclick="deletePlace('+p.id+')">✕ Eliminar punto</button>';
+}
+function removeSearchedPlaceGlobeEntity(p){
+ if(!p?.globeEntity)return;
+ try{if(typeof globeViewer!=='undefined'&&globeViewer)globeViewer.entities.remove(p.globeEntity);}catch(e){}
+ p.globeEntity=null;
+}
+function ensureSearchedPlaceGlobeEntity(p){
+ if(!p||!p.visible||typeof globeViewer==='undefined'||!globeViewer||!window.Cesium)return null;
+ if(p.globeEntity)return p.globeEntity;
+ const e=globeViewer.entities.add({
+  position:Cesium.Cartesian3.fromDegrees(p.lon,p.lat,80),
+  point:{pixelSize:13,color:Cesium.Color.fromCssColorString('#e53935'),outlineColor:Cesium.Color.WHITE,outlineWidth:3,disableDepthTestDistance:0},
+  label:{text:'📍 '+shortPlaceLabel(p.name),font:'700 12px Montserrat, Arial, sans-serif',fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.BLACK,outlineWidth:3,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString('#17324d').withAlpha(.78),pixelOffset:new Cesium.Cartesian2(0,-24),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,disableDepthTestDistance:0}
+ });
+ e.__anambroSearchedPlaceId=p.id;
+ p.globeEntity=e;
+ return e;
+}
+function syncSearchedPlacesGlobe(){
+ if(typeof globeViewer==='undefined'||!globeViewer||!window.Cesium)return;
+ placeRecords.forEach(p=>{if(p.visible)ensureSearchedPlaceGlobeEntity(p);else removeSearchedPlaceGlobeEntity(p);});
+ try{globeViewer.scene.requestRender()}catch(e){}
+}
+function setPlaceVisible(p,on){
+ p.visible=!!on;
+ if(p.visible){if(!searchedPlaces.hasLayer(p.marker))p.marker.addTo(searchedPlaces);ensureSearchedPlaceGlobeEntity(p);}
+ else{if(searchedPlaces.hasLayer(p.marker))searchedPlaces.removeLayer(p.marker);removeSearchedPlaceGlobeEntity(p);}
+}
+function showSearchedPlaceGlobe(p,screenPos=null){
+ if(!p||typeof globeViewer==='undefined'||!globeViewer||!window.Cesium)return;
+ const box=document.getElementById('globeInfo');if(!box)return;
+ globeSearchedPlaceInfoId=p.id;
+ globeInfoCartesian=Cesium.Cartesian3.fromDegrees(p.lon,p.lat,500);
+ box.classList.remove('empty');
+ box.innerHTML='<button class="globeInfoClose" onclick="globeSearchedPlaceInfoId=null;globeInfoCartesian=null;this.parentElement.classList.add(\'empty\')">×</button>'+searchedPlacePopupHTML(p);
+ requestAnimationFrame(()=>{if(screenPos&&typeof placeGlobeInfoAtCanvasPoint==='function')placeGlobeInfoAtCanvasPoint(screenPos);else if(typeof positionGlobeInfo==='function')positionGlobeInfo();});
+}
+function useSearchedPlaceForActiveTool(p){
+ if(!p)return false;
+ const ll=L.latLng(p.lat,p.lon);
+ if(document.body.classList.contains('globe-mode')&&typeof globeProfileMode!=='undefined'&&globeProfileMode){
+  globeProfilePts.push(ll);redrawGlobeProfile();
+  document.getElementById('profileResult').innerHTML='<b>Resultado:</b> '+(globeProfilePts.length>1?fmtDistance(measurePerimeter(globeProfilePts,false)):'—');
+  status('Perfil · punto fijado exactamente en '+p.name);return true;
+ }
+ if(typeof profileMode!=='undefined'&&profileMode){addProfilePoint(ll);status('Perfil · punto fijado exactamente en '+p.name);return true;}
+ if(typeof trackBuildActive!=='undefined'&&trackBuildActive){addTrackBuilderPoint(ll);status('Track · punto fijado exactamente en '+p.name);return true;}
+ return false;
+}
 function addSearchedPlace(name,lat,lon){
  const id=++placeSeq;
- const marker=L.marker([lat,lon]).bindPopup('<b>'+esc(name)+'</b><br>'+lat.toFixed(6)+', '+lon.toFixed(6));
+ const p={id,name,lat:+lat,lon:+lon,marker:null,globeEntity:null,visible:true};
+ const marker=L.marker([p.lat,p.lon],{bubblingMouseEvents:false});
+ p.marker=marker;
+ marker.bindPopup(()=>searchedPlacePopupHTML(p));
+ marker.on('click',()=>{if(useSearchedPlaceForActiveTool(p))marker.closePopup();});
  marker.addTo(searchedPlaces);
- placeRecords.push({id,name,lat,lon,marker,visible:true});
+ placeRecords.push(p);
+ ensureSearchedPlaceGlobeEntity(p);
  renderPlaces();updateLegend();
- return marker;
+ return p;
 }
 function renderPlaces(){
  const box=document.getElementById('placesList');
@@ -8497,10 +8559,17 @@ function renderPlaces(){
    row.style.cssText='display:grid;grid-template-columns:22px 1fr 28px;gap:4px;align-items:center;border-top:1px solid #eee;padding:4px 0';
    const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=p.visible;
    cb.title='Mostrar/ocultar';
-   cb.onchange=()=>{p.visible=cb.checked;if(p.visible)p.marker.addTo(searchedPlaces);else searchedPlaces.removeLayer(p.marker);syncPlacesMaster();};
+   cb.onchange=()=>{setPlaceVisible(p,cb.checked);syncPlacesMaster();};
    const go=document.createElement('button'); go.type='button'; go.textContent=p.name;
    go.style.cssText='border:0;background:transparent;text-align:left;padding:3px;cursor:pointer;font-size:11px';
-   go.onclick=()=>{map.setView([p.lat,p.lon],16);if(!p.visible){p.visible=true;p.marker.addTo(searchedPlaces);renderPlaces();}p.marker.openPopup();closePanels();};
+   go.onclick=()=>{
+    if(!p.visible){setPlaceVisible(p,true);renderPlaces();}
+    if(document.body.classList.contains('globe-mode')&&typeof globeViewer!=='undefined'&&globeViewer&&window.Cesium){
+      const h=Math.max(85000,globeViewer.camera.positionCartographic?.height||85000);
+      globeViewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.lon,p.lat,h),duration:.8,complete:()=>showSearchedPlaceGlobe(p)});
+    }else{map.setView([p.lat,p.lon],16);p.marker.openPopup();}
+    closePanels();
+   };
    const del=document.createElement('button'); del.type='button'; del.textContent='🗑️'; del.title='Eliminar';
    del.style.cssText='border:0;background:transparent;cursor:pointer;padding:3px';
    del.onclick=()=>deletePlace(p.id);
@@ -8515,15 +8584,23 @@ function syncPlacesMaster(){
  master.indeterminate=!master.checked && placeRecords.some(p=>p.visible);
 }
 document.getElementById('placesMaster').onchange=e=>{
- placeRecords.forEach(p=>{p.visible=e.target.checked;if(p.visible)p.marker.addTo(searchedPlaces);else searchedPlaces.removeLayer(p.marker);});
+ placeRecords.forEach(p=>setPlaceVisible(p,e.target.checked));
  renderPlaces();
 };
 function deletePlace(id){
  const i=placeRecords.findIndex(p=>p.id===id);if(i<0)return;
- searchedPlaces.removeLayer(placeRecords[i].marker);placeRecords.splice(i,1);renderPlaces();updateLegend();
+ const p=placeRecords[i];
+ if(searchedPlaces.hasLayer(p.marker))searchedPlaces.removeLayer(p.marker);
+ removeSearchedPlaceGlobeEntity(p);
+ if(globeSearchedPlaceInfoId===id){globeSearchedPlaceInfoId=null;try{globeInfoCartesian=null;document.getElementById('globeInfo')?.classList.add('empty');}catch(e){}}
+ placeRecords.splice(i,1);renderPlaces();updateLegend();
+ try{if(typeof globeViewer!=='undefined'&&globeViewer)globeViewer.scene.requestRender()}catch(e){}
 }
 function deleteAllPlaces(){
- placeRecords.forEach(p=>searchedPlaces.removeLayer(p.marker));placeRecords.length=0;renderPlaces();updateLegend();status('Lugares buscados eliminados');
+ placeRecords.forEach(p=>{if(searchedPlaces.hasLayer(p.marker))searchedPlaces.removeLayer(p.marker);removeSearchedPlaceGlobeEntity(p);});
+ placeRecords.length=0;globeSearchedPlaceInfoId=null;
+ try{globeInfoCartesian=null;document.getElementById('globeInfo')?.classList.add('empty');}catch(e){}
+ renderPlaces();updateLegend();status('Lugares buscados eliminados');
 }
 
 
@@ -8705,18 +8782,19 @@ async function selectCandidate(x,name,globeMode=document.body.classList.contains
  if(globeMode){
   closePanels();
   if(!globeViewer)return;
-  // Si se busca en España/Canarias, al llegar se verá NGBE; fuera, la capa mundial.
+  const place=addSearchedPlace(name,lat,lon);
+  // La búsqueda queda fijada también en el globo y persiste al volver al mapa 2D.
   const h=85000;
   globeViewer.camera.flyTo({
    destination:Cesium.Cartesian3.fromDegrees(lon,lat,h),
    duration:1.2,
    complete:()=>{
     syncGlobeToponymLayers();
-    globeInfoCartesian=Cesium.Cartesian3.fromDegrees(lon,lat,500);
-    showGlobePoint(L.latLng(lat,lon));
+    ensureSearchedPlaceGlobeEntity(place);
+    showSearchedPlaceGlobe(place);
    }
   });
-  status('Localizado en el globo: '+name);
+  status('Localizado y fijado en el globo: '+name);
  }else{
   const targetZoom=globalResult?Math.max(8,Math.min(13,map.getZoom()+2)):16;
   map.setView([lat,lon],targetZoom);
@@ -8764,7 +8842,7 @@ function finishGlobeMeasure(){if(!globeMeasureMode)return;redrawGlobeMeasure();g
 function clearGlobeMeasure(reset=true){if(globeViewer)for(const e of globeMeasureEntities)globeViewer.entities.remove(e);globeMeasureEntities=[];globeMeasurePts=[];if(reset)globeMeasureMode=null;if(globeViewer)globeViewer.scene.requestRender();}
 function redrawGlobeProfile(){if(!globeViewer)return;for(const e of globeProfileEntities)globeViewer.entities.remove(e);globeProfileEntities=[];globeProfileHandles=[];globeProfileLine=null;globeProfilePts.forEach((p,i)=>{const endpoint=i===0||i===globeProfilePts.length-1,e=globeEntityPoint(p,endpoint?Cesium.Color.YELLOW:Cesium.Color.ORANGE,endpoint?i:null);globeProfileEntities.push(e);if(endpoint)globeProfileHandles.push(e);});if(globeProfilePts.length>1){globeProfileLine=globeEntityLine(globeProfilePts,Cesium.Color.YELLOW,false);globeProfileEntities.push(globeProfileLine);}globeViewer.scene.requestRender();}
 function updateGlobeProfileFast(){if(globeProfileLine)globeProfileLine.polyline.positions=Cesium.Cartesian3.fromDegreesArray(globeProfilePts.flatMap(p=>[p.lng,p.lat]));const d=measurePerimeter(globeProfilePts,false);document.getElementById('profileResult').innerHTML='<b>Resultado:</b> '+fmtDistance(d)+' · suelta el extremo para recalcular';status('Perfil · '+fmtDistance(d));globeViewer.scene.requestRender();}
-function startGlobeProfile(){globeMeasureMode=null;globeProfileMode=true;globeProfilePts=[];clearGlobeProfile(false);document.querySelectorAll('.panel').forEach(p=>{if(p.id!=='profilePanel')p.classList.add('hidden')});document.getElementById('profilePanel').classList.remove('hidden');document.getElementById('profileResult').innerHTML='<b>Resultado:</b> —';document.getElementById('profileBox').style.display='none';status('PERFIL EN GLOBO · marca al menos dos puntos · altimetría + biomas + geología');}
+function startGlobeProfile(){globeMeasureMode=null;globeProfileMode=true;globeProfilePts=[];clearGlobeProfile(false);document.querySelectorAll('.panel').forEach(p=>{if(p.id!=='profilePanel')p.classList.add('hidden')});document.getElementById('profilePanel').classList.remove('hidden');document.getElementById('profileResult').innerHTML='<b>Resultado:</b> —';document.getElementById('profileBox').style.display='none';status('PERFIL EN GLOBO · marca puntos sobre el terreno o toca lugares buscados para fijarlos exactamente · altimetría + biomas + geología');}
 async function finishGlobeProfile(){if(globeProfilePts.length<2){alert('Marca al menos dos puntos para generar el perfil.');return;}globeProfileMode=false;redrawGlobeProfile();lastProfileSource='globe';lastProfileCountries=[];await finishProfileFromPoints(globeProfilePts.slice());}
 function clearGlobeProfile(reset=true){if(globeViewer)for(const e of globeProfileEntities)globeViewer.entities.remove(e);globeProfileEntities=[];globeProfileHandles=[];globeProfileLine=null;globeProfilePts=[];if(reset)globeProfileMode=false;if(globeViewer)globeViewer.scene.requestRender();}
 function countryName(p){return p.ADMIN||p.NAME_ES||p.NAME_EN||p.NAME||p.SOVEREIGNT||p.BRK_NAME||'Territorio sin identificar';}
@@ -10048,10 +10126,14 @@ function installGlobeClickTools(){if(globeClickHandler||!globeViewer)return;glob
  globeClickHandler.setInputAction(async()=>{if(globeDragIndex<0)return;globeDragIndex=-1;globeViewer.scene.screenSpaceCameraController.enableRotate=true;await finishGlobeProfile();},Cesium.ScreenSpaceEventType.LEFT_UP);
  globeClickHandler.setInputAction(ev=>{
   if(globeDragIndex>=0)return;
+  const picked=globeViewer.scene.pick(ev.position),ent=Cesium.defined(picked)?picked.id:null;
+  if(Number.isInteger(ent?.__anambroSearchedPlaceId)){
+   const p=placeRecords.find(x=>x.id===ent.__anambroSearchedPlaceId);
+   if(p){if(useSearchedPlaceForActiveTool(p))return;showSearchedPlaceGlobe(p,ev.position);return;}
+  }
   const ll=globePickLatLng(ev.position);if(!ll)return;
   if(globeProfileMode){globeProfilePts.push(ll);redrawGlobeProfile();document.getElementById('profileResult').innerHTML='<b>Resultado:</b> '+(globeProfilePts.length>1?fmtDistance(measurePerimeter(globeProfilePts,false)):'—');return;}
   if(globeMeasureMode){globeMeasurePts.push(ll);redrawGlobeMeasure();return;}
-  const picked=globeViewer.scene.pick(ev.position),ent=Cesium.defined(picked)?picked.id:null;
   if(ent?.__anambroHistoricalEvent){showHistoricalEventGlobe(ent.event,ev.position);return;}
   if(document.getElementById('worldHistoryCheck')?.checked){if(ent?.__anambroHistory)showHistoryGlobeEntity(ent,ev.position);else showHistoryGlobeEmpty(ev.position);return;}
   if(ent?.__anambroRadioGarden){showRadioGardenGlobePlace(ent.place,ev.position);return;}
@@ -10067,7 +10149,8 @@ function installGlobeClickTools(){if(globeClickHandler||!globeViewer)return;glob
 }
 function selectedWorldSatelliteChoice(){
  const v=document.querySelector('input[name="baseWorld"]:checked')?.dataset?.baseChoice;
- return v==='eoxsat'?'eoxsat':'worldsat';
+ // EOxCloudless es el fondo mundial por defecto; Esri solo si se selecciona expresamente.
+ return v==='worldsat'?'worldsat':'eoxsat';
 }
 function globeSatelliteProvider(choice){
  if(choice==='eoxsat')return new Cesium.UrlTemplateImageryProvider({
@@ -10174,6 +10257,7 @@ async function ensureGlobe(){
   globeViewer.scene.maximumRenderTimeChange=Infinity;
   configureGlobeMobileQuality();
   installGlobeClickTools();
+  syncSearchedPlacesGlobe();
   if(!globeInfoPostRenderInstalled){
    globeViewer.scene.postRender.addEventListener(()=>{if(globeInfoCartesian)positionGlobeInfo();});
    globeInfoPostRenderInstalled=true;
@@ -11950,9 +12034,9 @@ toggleGlobe=async function(){await __anambroToggleGlobeBase();if(document.body.c
    return;
   }
   map.getContainer().style.background='';
-  // La base mundial sigue siendo Esri salvo cuando el usuario selecciona explícitamente EOxCloudless.
+  // EOxCloudless es la base mundial predeterminada. Esri queda disponible como alternativa explícita.
   // Las capas IGN/PNOA, cuando se eligen, se superponen únicamente sobre territorio español mediante la máscara anterior.
-  const worldBase=(typeof worldEox!=='undefined'&&activeBase===worldEox)?worldEox:worldImagery;
+  const worldBase=(activeBase===worldImagery)?worldImagery:(typeof worldEox!=='undefined'?worldEox:worldImagery);
   const otherWorldBase=worldBase===worldImagery?(typeof worldEox!=='undefined'?worldEox:null):worldImagery;
   if(otherWorldBase&&map.hasLayer(otherWorldBase))map.removeLayer(otherWorldBase);
   if(!map.hasLayer(worldBase))worldBase.addTo(map);
@@ -16170,6 +16254,41 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   html body #anambroHeader:not(.header-editing) .brandRoles{font-size:7.6px!important}
 }
 </style>
+<style id="anambro-header-laptop-1200-1399-v016">
+/* Portátiles Full HD con escalado 125–150 %: 4 zonas completas, sin ocultar contenido.
+   No afecta a <=1199 px ni a >=1400 px. */
+@media (min-width:1200px) and (max-width:1399px) and (orientation:landscape){
+  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
+    padding:5px 9px!important;
+    grid-template-columns:minmax(150px,.82fr) minmax(210px,1.08fr) minmax(330px,1.55fr) minmax(205px,1.05fr)!important;
+    grid-template-rows:minmax(62px,auto) auto!important;
+    column-gap:8px!important;row-gap:1px!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{
+    display:grid!important;visibility:visible!important;opacity:1!important;
+    grid-template-columns:42px minmax(0,1fr)!important;gap:6px!important;padding-right:6px!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{width:42px!important;height:42px!important}
+  html body #anambroHeader:not(.header-editing) .brandLeftText{display:block!important;visibility:visible!important;opacity:1!important}
+  html body #anambroHeader:not(.header-editing) .brandDept{display:block!important;font-size:7.7px!important;line-height:1.07!important;letter-spacing:0!important}
+  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:9.8px!important}
+  html body #anambroHeader:not(.header-editing) .brandVersion{font-size:6.2px!important;padding:2px 4px!important;margin-top:3px!important}
+  html body #anambroHeader:not(.header-editing) .brandAuthorV06{
+    display:grid!important;visibility:visible!important;opacity:1!important;
+    grid-template-columns:46px minmax(0,1fr)!important;gap:6px!important;padding-right:6px!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{display:block!important;width:46px!important;height:46px!important;border-radius:9px!important}
+  html body #anambroHeader:not(.header-editing) .brandAuthorTextV06{display:block!important;visibility:visible!important;opacity:1!important}
+  html body #anambroHeader:not(.header-editing) .brandTeacher{display:block!important;font-size:9.4px!important;line-height:1.04!important}
+  html body #anambroHeader:not(.header-editing) .brandProfessional{display:block!important;font-size:6.8px!important;line-height:1.08!important;margin-top:2px!important}
+  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{width:100%!important;height:60px!important}
+  html body #anambroHeader:not(.header-editing) .brandDescriptor{font-size:7.8px!important;line-height:1.05!important}
+  html body #anambroHeader:not(.header-editing)>.brandSideRight{padding-left:6px!important;gap:4px!important}
+  html body #anambroHeader:not(.header-editing) .brandRoles{display:block!important;font-size:6.9px!important;line-height:1.1!important}
+  html body #anambroHeader:not(.header-editing) .brandActions{grid-template-columns:1fr 1fr!important;gap:3px!important}
+  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{font-size:6.8px!important;line-height:1.04!important;min-height:23px!important;padding:4px 3px!important}
+}
+</style>
 <script id="anambro-header-public-lock-v016">
 (()=>{
   try{localStorage.removeItem('anambro.header.layout.v10')}catch(_){ }
@@ -16198,4 +16317,5 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 })();
 </script>
 
+<!-- ANAMBRO v0.16 patch: portátil 1200–1399 + EOx por defecto + lugares buscados 2D/3D con snapping -->
 </body></html>
