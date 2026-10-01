@@ -3078,7 +3078,8 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 </details>
 <details class="layerScope"><summary>🌍 Mundo</summary>
 <div class="layerScopeInner"><details class="layerSubcategory"><summary>🗺️ Cartografía base</summary><label><input data-base-choice="worldsat" name="baseWorld" type="radio"/> <b>Imagen aérea/satélite mundial · Esri World Imagery</b></label>
-<label><input data-base-choice="osm" name="baseWorld" type="radio"/> <b>OpenStreetMap</b></label><div class="layerSubBlock"><small>El mismo mosaico de imágenes que utiliza el globo 3D.</small></div></details><details class="layerSubcategory"><summary>🌐 Límites, divisiones, topónimos y servicios</summary><label><input id="countriesCheck" type="checkbox"/> <b>Fronteras internacionales</b></label>
+<label><input data-base-choice="eoxsat" name="baseWorld" type="radio"/> <b>Sentinel-2 Cloudless 2025 · Copernicus / EOX</b></label>
+<label><input data-base-choice="osm" name="baseWorld" type="radio"/> <b>OpenStreetMap</b></label><div class="layerSubBlock"><small>Las bases satelitales Esri y EOxCloudless se sincronizan también con el globo 3D.</small></div></details><details class="layerSubcategory"><summary>🌐 Límites, divisiones, topónimos y servicios</summary><label><input id="countriesCheck" type="checkbox"/> <b>Fronteras internacionales</b></label>
 <label class="sub"><input id="countryLabelsCheck" type="checkbox"/> Nombres de países</label>
 <label><input id="worldAdmin1Check" type="checkbox"/> <b>Divisiones infraestatales de 1.er nivel</b></label><div class="layerSubBlock"><small>Regiones, estados, comunidades, provincias y equivalentes · World Bank.</small></div>
 <label><input id="worldAdmin2Check" type="checkbox"/> <b>Divisiones infraestatales de 2.º nivel</b></label><div class="layerSubBlock"><small>Departamentos, distritos, condados, provincias secundarias, municipios y equivalentes · World Bank.</small></div>
@@ -3433,6 +3434,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 
   <details><summary>🌍 Fuentes mundiales</summary>
     <div class="sourceItem sourceOk"><b>Esri World Imagery</b> · mosaico mundial de imágenes aéreas y satelitales empleado como fondo tanto en el mapamundi 2D como en el globo 3D.<br><small>La atribución específica de proveedores puede variar según la zona y la escala.</small></div>
+    <div class="sourceItem sourceOk"><b>EOxCloudless 2025 · Sentinel-2</b> · mosaico mundial sin nubes derivado de datos Copernicus Sentinel-2, disponible como base alternativa en el mapa 2D y el globo 3D.<br><small>Uso educativo no comercial bajo CC BY-NC-SA 4.0 con atribución: EOxCloudless by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2025).</small><br><a href="https://cloudless.eox.at/documentation/license" target="_blank" rel="noopener">Licencia EOxCloudless</a></div>
     
     <div class="sourceItem sourceOk"><b>Banco Mundial · World Development Indicators</b> · población, demografía, urbanización, PIB, estructura sectorial, empleo, salud, migraciones, emisiones y acceso a servicios.<br><small>Datos internacionales comparables; la disponibilidad temporal varía por indicador y país. Licencia de datos WDI: CC BY 4.0.</small><br><a href="https://data.worldbank.org/indicator" target="_blank" rel="noopener">World Development Indicators</a></div>
 <div class="sourceItem sourceOk"><b>PNUD · Human Development Reports</b> · Índice de Desarrollo Humano (IDH), serie temporal 1990–2023.<br><small>Human Development Report 2025.</small><br><a href="https://hdr.undp.org/data-center" target="_blank" rel="noopener">Human Development Data Center</a></div>
@@ -3670,6 +3672,7 @@ const ANAMBRO_SOURCES={
  osm:{short:'© OpenStreetMap contributors · ODbL'},
  openfreemap:{short:'OpenFreeMap © OpenMapTiles · Data from OpenStreetMap'},
  esri:{short:'Esri World Imagery'},
+ eoxcloudless:{short:'EOxCloudless 2025 · EOX / Copernicus Sentinel-2 · CC BY-NC-SA 4.0'},
  gebco:{short:'GEBCO_2026 · relieve batimétrico sombreado · GEBCO Compilation Group'},
  terrarium:{short:'AWS/Mapzen Terrarium · elevation data'},
  radiogarden:{short:'Radio Garden · integración no oficial · emisiones en directo'},
@@ -3695,7 +3698,9 @@ function activeSourceKeys(){
    (typeof adminProv!=='undefined'&&has(adminProv))||
    (typeof adminMun!=='undefined'&&has(adminMun));
  if(ignVisible)s.add('ign');
- if(typeof worldImagery!=='undefined'&&has(worldImagery))s.add('esri');
+ const eoxVisible=(typeof worldEox!=='undefined'&&has(worldEox));
+ if(eoxVisible)s.add('eoxcloudless');
+ if(typeof worldImagery!=='undefined'&&has(worldImagery)&&!eoxVisible)s.add('esri');
  if(typeof osm!=='undefined'&&has(osm))s.add('osm');
 
  if((typeof vegetation!=='undefined'&&has(vegetation))||(typeof vegetationCanaryPotential!=='undefined'&&has(vegetationCanaryPotential)))s.add('grafcan');
@@ -3718,7 +3723,10 @@ function activeSourceKeys(){
    if(humanActive.some(ind=>ind!=='UNDP_HDI'))s.add('worldbank');
    if(humanActive.includes('UNDP_HDI'))s.add('undp');
  }
- if(document.body.classList.contains('globe-mode')&&!document.getElementById('worldHistoryCheck')?.checked&&!(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length))s.add('esri');
+ if(document.body.classList.contains('globe-mode')&&!document.getElementById('worldHistoryCheck')?.checked&&!(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)){
+   const globeBase=document.querySelector('input[name="baseWorld"]:checked')?.dataset?.baseChoice;
+   s.add(globeBase==='eoxsat'?'eoxcloudless':'esri');
+ }
  return [...s];
 }
 function activeSourcesText(){return activeSourceKeys().map(k=>ANAMBRO_SOURCES[k]?.short).filter(Boolean).join(' · ');}
@@ -3805,6 +3813,10 @@ const historic=L.tileLayer('https://www.ign.es/wmts/primera-edicion-mtn?SERVICE=
 const worldImagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false',{
  noWrap:true,minZoom:0,maxZoom:23,maxNativeZoom:23,
  attribution:'Esri World Imagery'
+});
+const worldEox=L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/g/{z}/{y}/{x}.jpg',{
+ noWrap:true,minZoom:0,maxZoom:23,maxNativeZoom:14,
+ attribution:'EOxCloudless 2025 · EOX IT Services GmbH · modified Copernicus Sentinel data 2025'
 });
 
 // Capas temáticas mundiales: se cargan únicamente al activarlas.
@@ -5669,7 +5681,7 @@ document.getElementById('vegetationPotentialCanaryCheck').onchange=e=>{if(e.targ
 document.getElementById('transportOpacity').oninput=e=>transport.setOpacity(+e.target.value);
 document.getElementById('adminOpacity').oninput=e=>[adminCCAA,adminProv,adminMun].forEach(l=>l.setOpacity(+e.target.value));
 
-const bases={raster,pnoa,street,osm,hybrid,lidar,shadowCanary,landCanary,land,historic,worldsat:worldImagery};
+const bases={raster,pnoa,street,osm,hybrid,lidar,shadowCanary,landCanary,land,historic,worldsat:worldImagery,eoxsat:worldEox};
 let activeBase=hybrid;
 hybrid.addTo(map);
 document.querySelectorAll('input[data-base-choice]').forEach(r=>r.addEventListener('change',()=>{
@@ -5679,6 +5691,7 @@ document.querySelectorAll('input[data-base-choice]').forEach(r=>r.addEventListen
  const mosWrap=document.getElementById('canaryLandLegendWrap');if(mosWrap)mosWrap.style.display=value==='landCanary'?'block':'none';
  if(value==='landCanary'&&typeof loadCanaryMosLegend==='function')loadCanaryMosLegend();
  if(typeof updateLegend==='function')setTimeout(updateLegend,0);
+ if(typeof syncGlobeSatelliteBase==='function')syncGlobeSatelliteBase();
  bringGeologyToFront();
  if(document.getElementById('toponymyCheck')?.checked)toponymy.bringToFront();
  status('Fondo: '+r.parentElement.textContent.trim());
@@ -8730,7 +8743,7 @@ setTimeout(updateLegend,100);
 
 
 // v4.0 · Globo 3D cargado únicamente cuando el usuario lo solicita.
-let globeViewer=null,globeLoading=false,globeTerrainProvider=null,globeSatelliteLayer=null,globeHistoryBaseSource=null;
+let globeViewer=null,globeLoading=false,globeTerrainProvider=null,globeSatelliteLayer=null,globeSatelliteChoice=null,globeHistoryBaseSource=null;
 function loadCssOnce(href){if(document.querySelector('link[data-globe-css]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href=href;l.dataset.globeCss='1';document.head.appendChild(l);}
 function loadScriptOnce(src){return new Promise((resolve,reject)=>{const old=document.querySelector('script[data-globe-js]');if(old){if(window.Cesium)return resolve();old.addEventListener('load',resolve,{once:true});old.addEventListener('error',reject,{once:true});return;}const sc=document.createElement('script');sc.src=src;sc.dataset.globeJs='1';sc.onload=resolve;sc.onerror=reject;document.head.appendChild(sc);});}
 
@@ -10052,6 +10065,31 @@ function installGlobeClickTools(){if(globeClickHandler||!globeViewer)return;glob
   showGlobePoint(ll,ev.position);
  },Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
+function selectedWorldSatelliteChoice(){
+ const v=document.querySelector('input[name="baseWorld"]:checked')?.dataset?.baseChoice;
+ return v==='eoxsat'?'eoxsat':'worldsat';
+}
+function globeSatelliteProvider(choice){
+ if(choice==='eoxsat')return new Cesium.UrlTemplateImageryProvider({
+  url:'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/g/{z}/{y}/{x}.jpg',
+  credit:'EOxCloudless 2025 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2025)',maximumLevel:14
+ });
+ return new Cesium.UrlTemplateImageryProvider({
+  url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false',
+  credit:'Esri World Imagery',maximumLevel:23
+ });
+}
+function syncGlobeSatelliteBase(){
+ if(!globeViewer||!window.Cesium)return;
+ const next=selectedWorldSatelliteChoice();
+ if(globeSatelliteLayer&&globeSatelliteChoice===next)return;
+ const visible=globeSatelliteLayer?globeSatelliteLayer.show:true;
+ if(globeSatelliteLayer){try{globeViewer.imageryLayers.remove(globeSatelliteLayer,true)}catch(e){}}
+ globeSatelliteLayer=globeViewer.imageryLayers.addImageryProvider(globeSatelliteProvider(next),0);
+ globeSatelliteLayer.show=visible;globeSatelliteChoice=next;
+ try{globeViewer.scene.requestRender()}catch(e){}
+}
+
 async function ensureGlobe(){
  if(globeViewer||globeLoading)return;globeLoading=true;status('Cargando globo 3D…');
  try{
@@ -10079,12 +10117,8 @@ async function ensureGlobe(){
    globeViewer.scene.preRender.addEventListener(()=>{if(globeViewer?.scene?.globe&&globeViewer.scene.globe.depthTestAgainstTerrain!==true)globeViewer.scene.globe.depthTestAgainstTerrain=true;});
    globeViewer.__anambroOcclusionGuard=true;
   }
-  // Imagen satelital mundial: PNOA es excelente para España, pero no sirve como fondo planetario.
-  const sat=new Cesium.UrlTemplateImageryProvider({
-   url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false',
-   credit:'Esri World Imagery',maximumLevel:23
-  });
-  globeSatelliteLayer=globeViewer.imageryLayers.addImageryProvider(sat);
+  // Imagen satelital mundial: se respeta la base satelital elegida (Esri o EOxCloudless).
+  syncGlobeSatelliteBase();
   // Red geográfica del globo: red ordinaria blanca, Ecuador/Greenwich destacados y trópicos diferenciados.
   const gridSoft=Cesium.Color.WHITE.withAlpha(0.42);
   const gridMain=Cesium.Color.fromCssColorString('#ff7043').withAlpha(0.98); // Ecuador, Greenwich y antimeridiano
@@ -11911,15 +11945,19 @@ toggleGlobe=async function(){await __anambroToggleGlobeBase();if(document.body.c
   if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length){
    if(map.hasLayer(activeBase))map.removeLayer(activeBase);
    if(map.hasLayer(worldImagery))map.removeLayer(worldImagery);
+   if(typeof worldEox!=='undefined'&&map.hasLayer(worldEox))map.removeLayer(worldEox);
    map.getContainer().style.background='#86cbe5';map.getContainer().style.backgroundColor='#86cbe5';
    return;
   }
   map.getContainer().style.background='';
-  // Esri World Imagery queda SIEMPRE como base mundial, exactamente igual que en el globo.
+  // La base mundial sigue siendo Esri salvo cuando el usuario selecciona explícitamente EOxCloudless.
   // Las capas IGN/PNOA, cuando se eligen, se superponen únicamente sobre territorio español mediante la máscara anterior.
-  if(!map.hasLayer(worldImagery))worldImagery.addTo(map);
-  try{worldImagery.bringToBack();}catch(e){}
-  if(activeBase!==worldImagery&&!map.hasLayer(activeBase))activeBase.addTo(map);
+  const worldBase=(typeof worldEox!=='undefined'&&activeBase===worldEox)?worldEox:worldImagery;
+  const otherWorldBase=worldBase===worldImagery?(typeof worldEox!=='undefined'?worldEox:null):worldImagery;
+  if(otherWorldBase&&map.hasLayer(otherWorldBase))map.removeLayer(otherWorldBase);
+  if(!map.hasLayer(worldBase))worldBase.addTo(map);
+  try{worldBase.bringToBack();}catch(e){}
+  if(activeBase!==worldBase&&!map.hasLayer(activeBase))activeBase.addTo(map);
  }
  function globePickAt(x,y){
   if(!globeViewer||!window.Cesium)return null;
