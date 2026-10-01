@@ -2735,327 +2735,24 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 @media(max-width:760px){#istacAtlasBlock{padding:9px!important}#istacAtlasBlock select,#istacAtlasBlock input[type=search],#istacAtlasBlock .action{min-height:40px;font-size:11px}}
 </style>
 
-<!-- ANAMBRO v0.16: contrato de cabecera crítico cargado antes del primer pintado -->
-<style id="anambro-header-contract-v016">
-/*
-  ANAMBRO v0.16 · CONTRATO DEFINITIVO DE CABECERA RESPONSIVA
-  -----------------------------------------------------------
-  Parche EXCLUSIVO de cabecera.
-  - Escritorio: conserva la composición que ya funcionaba.
-  - Portátil / tablet horizontal: 4 zonas en una sola fila.
-  - Tablet vertical: 2 x 2 compacto.
-  - Móvil: composición vertical compacta con todo el contenido.
-  - El editor de cabecera desaparece de la interfaz pública.
-*/
-:root{--anambro-header-height:118px}
-
-/* Blindaje común: ninguna regla histórica puede volver a ocultar saltos o reactivar el editor. */
-html body #anambroHeader:not(.header-editing) .brandDept br{display:block!important}
-html body #anambroHeader .brandHeaderEditBtn{display:none!important}
-html body #headerEditorBar,
-html body #headerEditorInspector,
-html body #headerEditorToast,
-html body .headerResizeHandle,
-html body .headerEditHandle{display:none!important}
-
-/* =========================
-   ESCRITORIO GRANDE >=1200
-   Se conserva el diseño bueno.
-   ========================= */
-html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
-  position:fixed!important;
-  z-index:5000!important;
-  inset:0 0 auto 0!important;
-  top:0!important;left:0!important;right:0!important;
-  transform:none!important;
-  width:100%!important;max-width:none!important;
-  height:auto!important;min-height:0!important;
-  margin:0!important;
-  box-sizing:border-box!important;
-  padding:8px clamp(10px,1.3vw,24px)!important;
-  display:grid!important;
-  grid-template-columns:minmax(180px,.78fr) minmax(280px,1.18fr) minmax(380px,1.72fr) minmax(280px,1.22fr)!important;
-  grid-template-rows:minmax(72px,auto) auto!important;
-  grid-template-areas:
-    "institution author title right"
-    "institution author descriptor right"!important;
-  column-gap:clamp(10px,1.25vw,24px)!important;
-  row-gap:2px!important;
-  align-items:center!important;
-  overflow:visible!important;
-  border:0!important;
-  border-bottom:1px solid rgba(28,67,94,.16)!important;
-  border-radius:0!important;
-  background:linear-gradient(180deg,#fff 0%,#fbfdfe 68%,#f3f8fa 100%)!important;
-  box-shadow:0 3px 10px rgba(13,47,68,.10)!important;
-  font-family:Montserrat,system-ui,-apple-system,sans-serif!important;
-}
-html body #anambroHeader:not(.header-editing)>.brandSideLeft{display:contents!important}
-html body #anambroHeader:not(.header-editing) .headerEditFrame{display:contents!important;position:static!important;width:auto!important;height:auto!important;left:auto!important;top:auto!important;transform:none!important;margin:0!important}
-
-/* ZONA 1 · IES / curso / versión */
-html body #anambroHeader:not(.header-editing) .brandInstitutionV06{
-  grid-area:institution!important;position:static!important;transform:none!important;
-  display:grid!important;grid-template-columns:clamp(46px,3.5vw,62px) minmax(0,1fr)!important;
-  align-items:center!important;gap:clamp(7px,.7vw,12px)!important;
-  min-width:0!important;width:auto!important;height:auto!important;
-  padding:3px clamp(7px,.7vw,12px) 3px 0!important;margin:0!important;
-  border-right:1px solid rgba(45,80,105,.13)!important;box-sizing:border-box!important;overflow:visible!important
-}
-html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06,
-html body #anambroHeader:not(.header-editing) .brandLeftText,
-html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06,
-html body #anambroHeader:not(.header-editing) .brandAuthorTextV06{
-  grid-area:auto!important;grid-column:auto!important;grid-row:auto!important;order:0!important;justify-self:auto!important;align-self:auto!important
-}
-html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{
-  display:block!important;position:static!important;transform:none!important;
-  width:clamp(46px,3.5vw,62px)!important;height:clamp(46px,3.5vw,62px)!important;
-  max-width:none!important;max-height:none!important;object-fit:contain!important;margin:0!important;font-size:0!important;color:transparent!important
-}
-html body #anambroHeader:not(.header-editing) .brandLeftText{display:block!important;min-width:0!important;margin:0!important;padding:0!important;text-align:left!important}
-html body #anambroHeader:not(.header-editing) .brandDept{
-  display:block!important;margin:0!important;color:#17324d!important;
-  font-size:clamp(9px,.63vw,12px)!important;line-height:1.12!important;font-weight:800!important;
-  white-space:normal!important;overflow:visible!important;text-align:left!important;letter-spacing:.02em!important
-}
-html body #anambroHeader:not(.header-editing) .brandDept b{display:inline!important;font-size:1.08em!important;font-weight:900!important}
-html body #anambroHeader:not(.header-editing) .brandVersion{
-  display:inline-flex!important;position:static!important;align-items:center!important;
-  margin-top:5px!important;padding:3px 7px!important;border-radius:999px!important;
-  background:#edf5f8!important;border:1px solid #c4d6de!important;color:#365a70!important;
-  font-size:clamp(7px,.5vw,9px)!important;line-height:1!important;font-weight:800!important;white-space:nowrap!important
-}
-
-/* ZONA 2 · autor / cargos */
-html body #anambroHeader:not(.header-editing) .brandAuthorV06{
-  grid-area:author!important;position:static!important;transform:none!important;
-  display:grid!important;grid-template-columns:clamp(54px,4.2vw,72px) minmax(0,1fr)!important;
-  align-items:center!important;gap:clamp(8px,.8vw,14px)!important;
-  min-width:0!important;width:auto!important;height:auto!important;
-  margin:0!important;padding:3px clamp(7px,.7vw,12px) 3px 0!important;
-  border-right:1px solid rgba(45,80,105,.13)!important;box-sizing:border-box!important;overflow:visible!important
-}
-html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{
-  display:block!important;position:static!important;transform:none!important;
-  width:clamp(54px,4.2vw,72px)!important;height:clamp(54px,4.2vw,72px)!important;
-  max-width:none!important;max-height:none!important;object-fit:cover!important;border-radius:12px!important;
-  border:2px solid #b9d7dc!important;box-shadow:0 1px 4px rgba(0,0,0,.10)!important;margin:0!important;font-size:0!important;color:transparent!important
-}
-html body #anambroHeader:not(.header-editing) .brandAuthorTextV06{display:block!important;min-width:0!important;margin:0!important;padding:0!important;text-align:left!important}
-html body #anambroHeader:not(.header-editing) .brandTeacher{
-  display:block!important;margin:0!important;color:#17324d!important;font-weight:900!important;
-  font-size:clamp(10.5px,.78vw,14px)!important;line-height:1.08!important;
-  white-space:normal!important;overflow:visible!important;text-overflow:clip!important;text-align:left!important
-}
-html body #anambroHeader:not(.header-editing) .brandGeo{display:inline!important;color:#17324d!important}
-html body #anambroHeader:not(.header-editing) .brandProfessional{
-  display:block!important;margin-top:4px!important;color:#42627b!important;font-weight:700!important;
-  font-size:clamp(8px,.57vw,10.5px)!important;line-height:1.15!important;
-  white-space:normal!important;overflow:visible!important;max-height:none!important;text-align:left!important
-}
-
-/* ZONA 3 · identidad ANAMBRO */
-html body #anambroHeader:not(.header-editing)>.brandTitleTop,
-html body #anambroHeader:not(.header-editing)>.headerEditFrame>.brandTitleTop{
-  grid-area:title!important;position:static!important;transform:none!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  width:100%!important;height:auto!important;min-width:0!important;min-height:0!important;
-  margin:0!important;padding:0 clamp(4px,.5vw,10px)!important;border:0!important;overflow:visible!important;box-sizing:border-box!important
-}
-html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{
-  display:block!important;position:static!important;transform:none!important;
-  width:min(100%,clamp(360px,34vw,620px))!important;height:clamp(62px,5vw,86px)!important;
-  max-width:100%!important;max-height:none!important;object-fit:contain!important;object-position:center!important;
-  margin:0 auto!important;border:0!important;box-shadow:none!important;font-size:0!important;color:transparent!important
-}
-html body #anambroHeader:not(.header-editing)>.brandCenter,
-html body #anambroHeader:not(.header-editing)>.headerEditFrame>.brandCenter{
-  grid-area:descriptor!important;position:static!important;transform:none!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  width:100%!important;height:auto!important;min-width:0!important;margin:0!important;padding:0 4px 2px!important;
-  border:0!important;overflow:visible!important;box-sizing:border-box!important
-}
-html body #anambroHeader:not(.header-editing) .brandDescriptor{
-  display:block!important;width:100%!important;margin:0!important;color:#42627b!important;font-weight:800!important;
-  font-size:clamp(8.5px,.65vw,11.5px)!important;line-height:1.1!important;text-align:center!important;
-  white-space:normal!important;overflow:visible!important;text-overflow:clip!important
-}
-
-/* ZONA 4 · descripción funcional + controles */
-html body #anambroHeader:not(.header-editing)>.brandSideRight{
-  grid-area:right!important;position:static!important;transform:none!important;
-  display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;
-  width:auto!important;height:auto!important;min-width:0!important;margin:0!important;padding:3px 0 3px clamp(7px,.7vw,12px)!important;
-  border:0!important;box-sizing:border-box!important;overflow:visible!important;gap:7px!important
-}
-html body #anambroHeader:not(.header-editing) .brandRoles{
-  display:block!important;position:static!important;transform:none!important;max-width:none!important;
-  margin:0!important;color:#3f5d70!important;font-weight:800!important;
-  font-size:clamp(7.5px,.55vw,10px)!important;line-height:1.2!important;text-align:left!important;
-  white-space:normal!important;overflow:visible!important
-}
-html body #anambroHeader:not(.header-editing) .brandActions{
-  display:grid!important;position:static!important;transform:none!important;
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important;
-  width:100%!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important
-}
-html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{
-  display:flex!important;position:static!important;align-items:center!important;justify-content:center!important;
-  min-width:0!important;width:100%!important;max-width:none!important;height:auto!important;min-height:28px!important;
-  margin:0!important;padding:5px 6px!important;border-radius:999px!important;box-sizing:border-box!important;
-  font-size:clamp(7px,.48vw,9px)!important;line-height:1.08!important;font-weight:850!important;text-align:center!important;
-  white-space:normal!important;overflow:visible!important;text-overflow:clip!important
-}
-
-/* El resto de la interfaz siempre empieza debajo de la altura REAL de la cabecera. */
-body .toolbar{top:calc(var(--anambro-header-height,118px) + 8px)!important}
-body .leaflet-top.leaflet-left{top:var(--anambro-header-height,118px)!important}
-body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important}
-
-/* =====================================================
-   PORTÁTIL / TABLET HORIZONTAL (900–1199): 4 ZONAS
-   ===================================================== */
-@media (min-width:900px) and (max-width:1199px) and (orientation:landscape){
-  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
-    padding:5px 8px!important;
-    grid-template-columns:minmax(145px,.82fr) minmax(205px,1.12fr) minmax(285px,1.55fr) minmax(195px,1.08fr)!important;
-    grid-template-rows:minmax(62px,auto) auto!important;
-    grid-template-areas:
-      "institution author title right"
-      "institution author descriptor right"!important;
-    column-gap:8px!important;row-gap:1px!important;align-items:center!important
-  }
-  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{grid-template-columns:42px minmax(0,1fr)!important;gap:5px!important;padding-right:6px!important}
-  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{width:42px!important;height:42px!important}
-  html body #anambroHeader:not(.header-editing) .brandDept{font-size:7.7px!important;line-height:1.08!important;letter-spacing:0!important}
-  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:10px!important}
-  html body #anambroHeader:not(.header-editing) .brandVersion{font-size:6.4px!important;padding:2px 4px!important;margin-top:3px!important}
-  html body #anambroHeader:not(.header-editing) .brandAuthorV06{grid-template-columns:44px minmax(0,1fr)!important;gap:6px!important;padding-right:6px!important}
-  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{width:44px!important;height:44px!important;border-radius:10px!important}
-  html body #anambroHeader:not(.header-editing) .brandTeacher{font-size:9.2px!important;line-height:1.04!important}
-  html body #anambroHeader:not(.header-editing) .brandProfessional{font-size:6.9px!important;line-height:1.08!important;margin-top:2px!important}
-  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{width:100%!important;height:58px!important}
-  html body #anambroHeader:not(.header-editing) .brandDescriptor{font-size:7.7px!important;line-height:1.05!important}
-  html body #anambroHeader:not(.header-editing)>.brandSideRight{padding-left:6px!important;gap:4px!important}
-  html body #anambroHeader:not(.header-editing) .brandRoles{font-size:6.8px!important;line-height:1.1!important}
-  html body #anambroHeader:not(.header-editing) .brandActions{grid-template-columns:1fr 1fr!important;gap:3px!important}
-  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{font-size:6.8px!important;line-height:1.05!important;min-height:24px!important;padding:4px 3px!important}
-}
-
-/* =====================================================
-   TABLET VERTICAL (600–1199): 2 x 2 COMPACTO
-   ===================================================== */
-@media (min-width:600px) and (max-width:1199px) and (orientation:portrait){
-  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
-    padding:6px 9px!important;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-    grid-template-rows:auto auto auto!important;
-    grid-template-areas:
-      "institution author"
-      "title right"
-      "descriptor right"!important;
-    column-gap:10px!important;row-gap:4px!important;align-items:center!important
-  }
-  html body #anambroHeader:not(.header-editing) .brandInstitutionV06,
-  html body #anambroHeader:not(.header-editing) .brandAuthorV06{border-right:0!important;border-bottom:1px solid rgba(45,80,105,.11)!important;padding:3px 5px 6px!important}
-  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{grid-template-columns:44px minmax(0,1fr)!important;gap:6px!important}
-  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{width:44px!important;height:44px!important}
-  html body #anambroHeader:not(.header-editing) .brandDept{font-size:8.5px!important;line-height:1.08!important;letter-spacing:0!important}
-  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:10.5px!important}
-  html body #anambroHeader:not(.header-editing) .brandVersion{font-size:6.9px!important;margin-top:3px!important;padding:2px 5px!important}
-  html body #anambroHeader:not(.header-editing) .brandAuthorV06{grid-template-columns:48px minmax(0,1fr)!important;gap:7px!important}
-  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{width:48px!important;height:48px!important}
-  html body #anambroHeader:not(.header-editing) .brandTeacher{font-size:9.8px!important;line-height:1.06!important}
-  html body #anambroHeader:not(.header-editing) .brandProfessional{font-size:7.3px!important;line-height:1.09!important;margin-top:2px!important}
-  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{width:min(100%,470px)!important;height:60px!important}
-  html body #anambroHeader:not(.header-editing) .brandDescriptor{font-size:8px!important;line-height:1.06!important}
-  html body #anambroHeader:not(.header-editing)>.brandSideRight{padding:5px 2px 3px 9px!important;border-left:1px solid rgba(45,80,105,.11)!important;gap:5px!important}
-  html body #anambroHeader:not(.header-editing) .brandRoles{font-size:7.4px!important;line-height:1.12!important}
-  html body #anambroHeader:not(.header-editing) .brandActions{grid-template-columns:1fr 1fr!important;gap:4px!important}
-  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{font-size:7.2px!important;min-height:25px!important;padding:4px!important}
-}
-
-/* =====================================================
-   TABLET PEQUEÑA / MÓVIL HORIZONTAL (600–899): 4 ZONAS
-   ===================================================== */
-@media (min-width:600px) and (max-width:899px) and (orientation:landscape){
-  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
-    padding:4px 6px!important;
-    grid-template-columns:minmax(112px,.8fr) minmax(160px,1.08fr) minmax(220px,1.5fr) minmax(155px,1.05fr)!important;
-    grid-template-rows:minmax(52px,auto) auto!important;
-    grid-template-areas:
-      "institution author title right"
-      "institution author descriptor right"!important;
-    column-gap:6px!important;row-gap:0!important
-  }
-  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{grid-template-columns:34px minmax(0,1fr)!important;gap:4px!important;padding-right:4px!important}
-  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{width:34px!important;height:34px!important}
-  html body #anambroHeader:not(.header-editing) .brandDept{font-size:6.5px!important;line-height:1.04!important;letter-spacing:0!important}
-  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:8px!important}
-  html body #anambroHeader:not(.header-editing) .brandVersion{font-size:5.7px!important;margin-top:2px!important;padding:2px 3px!important}
-  html body #anambroHeader:not(.header-editing) .brandAuthorV06{grid-template-columns:36px minmax(0,1fr)!important;gap:4px!important;padding-right:4px!important}
-  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{width:36px!important;height:36px!important;border-radius:8px!important}
-  html body #anambroHeader:not(.header-editing) .brandTeacher{font-size:7.7px!important;line-height:1.02!important}
-  html body #anambroHeader:not(.header-editing) .brandProfessional{font-size:5.8px!important;line-height:1.04!important;margin-top:1px!important}
-  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{width:100%!important;height:48px!important}
-  html body #anambroHeader:not(.header-editing) .brandDescriptor{font-size:6.4px!important;line-height:1!important}
-  html body #anambroHeader:not(.header-editing)>.brandSideRight{padding-left:4px!important;gap:2px!important}
-  html body #anambroHeader:not(.header-editing) .brandRoles{font-size:5.7px!important;line-height:1.05!important}
-  html body #anambroHeader:not(.header-editing) .brandActions{grid-template-columns:1fr 1fr!important;gap:2px!important}
-  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{font-size:5.8px!important;line-height:1!important;min-height:20px!important;padding:3px 2px!important}
-}
-
-/* =========================
-   MÓVIL <=599: VERTICAL
-   ========================= */
+<style id="anambro-header-mobile-critical-v016">
 @media (max-width:599px){
-  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
-    padding:6px 10px 7px!important;
-    grid-template-columns:minmax(0,1fr)!important;
-    grid-template-rows:auto auto auto auto auto!important;
-    grid-template-areas:
-      "title"
-      "descriptor"
-      "institution"
-      "author"
-      "right"!important;
-    row-gap:3px!important;column-gap:0!important;align-items:center!important
-  }
-  html body #anambroHeader:not(.header-editing)>.brandTitleTop{padding:0 3px!important}
-  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{width:min(100%,430px)!important;height:54px!important}
-  html body #anambroHeader:not(.header-editing)>.brandCenter{padding:0 3px 4px!important}
-  html body #anambroHeader:not(.header-editing) .brandDescriptor{font-size:8.4px!important;line-height:1.08!important}
-  html body #anambroHeader:not(.header-editing) .brandInstitutionV06,
-  html body #anambroHeader:not(.header-editing) .brandAuthorV06{
-    width:100%!important;border:0!important;border-top:1px solid rgba(45,80,105,.10)!important;padding:5px 6px 3px!important
-  }
-  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{grid-template-columns:48px minmax(0,1fr)!important;gap:7px!important}
-  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{width:48px!important;height:48px!important}
-  html body #anambroHeader:not(.header-editing) .brandDept{font-size:9.5px!important;line-height:1.08!important;letter-spacing:0!important}
-  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:11.5px!important}
-  html body #anambroHeader:not(.header-editing) .brandVersion{font-size:7.7px!important;margin-top:4px!important;padding:3px 7px!important}
-  html body #anambroHeader:not(.header-editing) .brandAuthorV06{grid-template-columns:52px minmax(0,1fr)!important;gap:8px!important}
-  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{display:block!important;width:52px!important;height:52px!important;border-radius:11px!important}
-  html body #anambroHeader:not(.header-editing) .brandTeacher{display:block!important;font-size:10.8px!important;line-height:1.06!important}
-  html body #anambroHeader:not(.header-editing) .brandProfessional{display:block!important;font-size:8.1px!important;line-height:1.1!important;margin-top:2px!important}
-  html body #anambroHeader:not(.header-editing)>.brandSideRight{width:100%!important;padding:5px 6px 0!important;border:0!important;border-top:1px solid rgba(45,80,105,.10)!important;gap:5px!important}
-  html body #anambroHeader:not(.header-editing) .brandRoles{display:block!important;font-size:8px!important;line-height:1.12!important;text-align:center!important}
-  html body #anambroHeader:not(.header-editing) .brandActions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:5px!important}
-  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{display:flex!important;font-size:8px!important;line-height:1.05!important;min-height:30px!important;padding:5px 4px!important}
-}
-
-/* Móvil muy estrecho: ligera compactación, sin ocultar contenido. */
-@media (max-width:380px){
-  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{height:49px!important}
-  html body #anambroHeader:not(.header-editing) .brandDept{font-size:9px!important}
-  html body #anambroHeader:not(.header-editing) .brandTeacher{font-size:10.2px!important}
-  html body #anambroHeader:not(.header-editing) .brandProfessional{font-size:7.7px!important}
-  html body #anambroHeader:not(.header-editing) .brandRoles{font-size:7.6px!important}
+ html body #anambroHeader.brand.brandWide.brandV06{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  grid-template-areas:"title title" "descriptor descriptor" "institution author" "right right"!important;
+  grid-template-rows:auto auto auto auto!important;height:auto!important;min-height:0!important;
+  padding:4px 6px 5px!important;column-gap:6px!important;row-gap:2px!important
+ }
+ html body #anambroHeader .brandAnambroIntegratedLogo{height:43px!important;max-height:43px!important}
+ html body #anambroHeader .brandInstitutionV06{grid-area:institution!important}
+ html body #anambroHeader .brandAuthorV06{grid-area:author!important}
+ html body #anambroHeader>.brandTitleTop,html body #anambroHeader>.headerEditFrame>.brandTitleTop{grid-area:title!important}
+ html body #anambroHeader>.brandCenter,html body #anambroHeader>.headerEditFrame>.brandCenter{grid-area:descriptor!important}
+ html body #anambroHeader>.brandSideRight,html body #anambroHeader>.headerEditFrame>.brandSideRight{grid-area:right!important}
+ html body #anambroHeader .brandHeaderEditBtn{display:none!important}
 }
 </style>
-</head><!-- ANAMBRO v0.16: cabecera pública única; sin editor ni CSS legado posterior -->
-<body>
+</head><body>
 <div id="map"></div>
 <div id="globe" aria-label="Globo 3D"></div>
 <div id="globeScaleBox" aria-label="Escala del globo 3D">
@@ -3677,6 +3374,32 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   <div id="politicalStatus" class="politicalStatus">Modo político inactivo.</div>
 </div>
 
+<div id="headerEditorBar" aria-hidden="true"><b>✥ Cabecera</b><span>Haz clic en un elemento · arrástralo libremente · usa los tiradores para redimensionar · doble clic en un texto para editarlo</span><button class="save" id="headerEditorSave" type="button">Guardar</button><button id="headerEditorCancel" type="button">Cancelar</button><button id="headerEditorExport" type="button">Exportar JSON</button><button id="headerEditorImport" type="button">Importar JSON</button><button class="danger" id="headerEditorReset" type="button">Restablecer</button><input id="headerEditorFile" type="file" accept="application/json,.json" hidden></div>
+<div id="headerEditorInspector" aria-hidden="true">
+  <div class="heiHead"><b id="heiTitle">Elemento</b><button id="heiClose" type="button">×</button></div>
+  <div class="heiGrid heiGeometry">
+    <label>X<input id="heiX" type="number" step="1"></label><label>Y<input id="heiY" type="number" step="1"></label><label>Ancho<input id="heiW" type="number" min="20" step="1"></label><label>Alto<input id="heiH" type="number" min="16" step="1"></label>
+  </div>
+  <div id="heiTextTools" class="heiBlock">
+    <button id="heiEditText" type="button">✎ Editar texto directamente</button>
+    <label>Fuente<select id="heiFontFamily"><option value="Montserrat">Montserrat</option><option value="Arial">Arial / Helvetica</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option><option value="system-ui">Sistema</option></select></label>
+    <label>Tamaño de texto<input id="heiFont" type="range" min="7" max="40" step="0.5"></label>
+    <label>Color<input id="heiTextColor" type="color" value="#17324d"></label>
+    <div class="heiFormatRow"><button id="heiBold" type="button" title="Negrita"><b>B</b></button><button id="heiItalic" type="button" title="Cursiva"><i>I</i></button><button id="heiUnderline" type="button" title="Subrayado"><u>U</u></button></div>
+    <div class="heiFormatRow"><button id="heiAlignLeft" type="button">⇤ Izq.</button><button id="heiAlignCenter" type="button">↔ Centro</button><button id="heiAlignRight" type="button">Der. ⇥</button></div>
+    <label>Interlineado<input id="heiLineHeight" type="range" min="0.8" max="2" step="0.05" value="1.15"></label>
+    <label>Espaciado<input id="heiLetterSpacing" type="range" min="-1" max="4" step="0.1" value="0"></label>
+    <small>Si estás editando y seleccionas solo una parte del texto, negrita/cursiva/subrayado, fuente y color se aplican a esa selección. Sin selección, se aplican al bloque completo.</small>
+  </div>
+  <div id="heiImageTools" class="heiBlock">
+    <label>Ajuste<select id="heiFit"><option value="contain">Encajar entero</option><option value="cover">Recortar para llenar</option></select></label>
+    <label>Zoom<input id="heiZoom" type="range" min="0.5" max="3" step="0.05" value="1"></label>
+    <label>Posición horizontal<input id="heiImgX" type="range" min="0" max="100" step="1" value="50"></label>
+    <label>Posición vertical<input id="heiImgY" type="range" min="0" max="100" step="1" value="50"></label>
+  </div>
+  <div class="heiGrid"><button id="heiFront" type="button">Traer delante</button><button id="heiBack" type="button">Enviar detrás</button></div>
+</div>
+<div id="headerEditorToast" class="headerEditorToast"></div>
 <div id="explanationOverlay" class="explanationOverlay" aria-hidden="true">
   <div class="explanationShell">
     <div class="explanationHead"><b id="explanationTitle">Explicación ANAMBRO</b><button type="button" onclick="closeAnambroExplanation()" aria-label="Cerrar">×</button></div>
@@ -12783,6 +12506,201 @@ async function humanPointHtmlFromISO2(iso2){const iso3=await humanISO3FromISO2(i
 </script>
 
 
+<style id="anambro-mobile-header-fix-20260927-late">
+@media (max-width:760px){
+  html body .brand.brandWide{
+    position:fixed!important;
+    z-index:1500!important;
+    top:0!important;left:0!important;right:0!important;
+    width:100%!important;max-width:none!important;
+    height:84px!important;min-height:84px!important;
+    margin:0!important;padding:4px 6px!important;box-sizing:border-box!important;
+    display:grid!important;
+    grid-template-columns:40px minmax(0,1fr) auto!important;
+    grid-template-rows:36px 18px 18px!important;
+    grid-template-areas:
+      "left title right"
+      "left center right"
+      "left center right"!important;
+    align-items:center!important;column-gap:6px!important;row-gap:1px!important;
+    overflow:hidden!important;border:0!important;border-bottom:1px solid rgba(28,67,94,.16)!important;
+    background:linear-gradient(180deg,#ffffff 0%,#fbfdfe 68%,#f3f8fa 100%)!important;
+    box-shadow:0 3px 10px rgba(13,47,68,.08)!important;
+  }
+  html body .brandWide>.brandSideLeft{
+    grid-area:left!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    width:40px!important;min-width:40px!important;height:100%!important;padding:0!important;margin:0!important;
+    border:0!important;
+  }
+  html body .brandWide .brandSideLeft img{
+    display:block!important;width:32px!important;height:32px!important;flex:0 0 32px!important;object-fit:contain!important;
+  }
+  html body .brandWide .brandLeftText,
+  html body .brandWide .brandVersion,
+  html body .brandWide .brandRoles{display:none!important;}
+  html body .brandWide>.brandTitleTop{
+    grid-area:title!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    min-width:0!important;height:36px!important;padding:0!important;margin:0!important;border:0!important;
+  }
+  html body .brandWide .brandAnambroIntegratedLogo{
+    display:block!important;width:100%!important;height:34px!important;max-height:34px!important;
+    object-fit:contain!important;object-position:center left!important;border:0!important;box-shadow:none!important;background:transparent!important;
+  }
+  html body .brandWide>.brandCenter{
+    grid-area:center!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;
+    min-width:0!important;height:37px!important;padding:0 2px 0 0!important;margin:0!important;gap:2px!important;
+    text-align:left!important;border:0!important;
+  }
+  html body .brandWide .brandDescriptor{
+    display:block!important;max-width:100%!important;margin:0!important;
+    font-size:7.6px!important;line-height:1.05!important;font-weight:800!important;color:#0f756b!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  }
+  html body .brandWide .brandTeacher{
+    display:block!important;max-width:100%!important;margin:0!important;
+    font-size:9.6px!important;line-height:1.05!important;font-weight:900!important;color:#17324d!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  }
+  html body .brandWide .brandGeo{display:inline!important;}
+  html body .brandWide .brandProfessional{
+    display:block!important;max-width:100%!important;margin:0!important;
+    font-size:6.8px!important;line-height:1.02!important;font-weight:700!important;color:#344f63!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  }
+  html body .brandWide .brandProfessional b,
+  html body .brandWide .brandProfessional span{display:inline!important;}
+  html body .brandWide>.brandSideRight{
+    grid-area:right!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:stretch!important;
+    width:auto!important;height:100%!important;padding:0 0 0 4px!important;margin:0!important;gap:4px!important;border:0!important;
+  }
+  html body .brandWide .brandActions{
+    display:flex!important;flex-direction:column!important;gap:4px!important;margin:0!important;position:static!important;flex-wrap:nowrap!important;
+  }
+  html body .brandWide .brandWelcomeBtn{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    min-height:18px!important;padding:4px 7px!important;margin:0!important;
+    font-size:7.8px!important;line-height:1!important;white-space:nowrap!important;border-radius:999px!important;
+    box-shadow:0 1px 4px rgba(20,50,75,.14)!important;
+  }
+  html body .toolbar{top:90px!important;}
+  html body .leaflet-top.leaflet-left{top:86px!important;}
+}
+@media (max-width:430px){
+  html body .brand.brandWide{height:80px!important;min-height:80px!important;grid-template-columns:36px minmax(0,1fr) auto!important;grid-template-rows:34px 16px 16px!important;padding:4px 5px!important;}
+  html body .brandWide>.brandSideLeft{width:36px!important;min-width:36px!important;}
+  html body .brandWide .brandSideLeft img{width:28px!important;height:28px!important;flex-basis:28px!important;}
+  html body .brandWide .brandAnambroIntegratedLogo{height:30px!important;max-height:30px!important;}
+  html body .brandWide .brandDescriptor{font-size:7.1px!important;}
+  html body .brandWide .brandTeacher{font-size:8.9px!important;}
+  html body .brandWide .brandProfessional{font-size:6.2px!important;}
+  html body .brandWide .brandWelcomeBtn{font-size:7.2px!important;padding:4px 6px!important;}
+  html body .toolbar{top:86px!important;}
+  html body .leaflet-top.leaflet-left{top:82px!important;}
+}
+</style>
+
+
+<style id="anambro-mobile-header-readable-final">
+/* Móvil: compacto, pero legible de verdad. Esta regla prevalece sobre todos los parches anteriores. */
+@media (max-width:760px){
+  html body .brand.brandWide{
+    position:fixed!important;z-index:1500!important;top:0!important;left:0!important;right:0!important;
+    width:100%!important;max-width:none!important;height:98px!important;min-height:98px!important;
+    margin:0!important;padding:5px 6px!important;box-sizing:border-box!important;transform:none!important;
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr) 100px!important;
+    grid-template-rows:43px 45px!important;
+    grid-template-areas:
+      "left title right"
+      "center center right"!important;
+    column-gap:6px!important;row-gap:0!important;align-items:center!important;overflow:hidden!important;
+    border:0!important;border-bottom:1px solid rgba(28,67,94,.16)!important;border-radius:0!important;
+    background:linear-gradient(180deg,#fff 0%,#fbfdfe 70%,#f3f8fa 100%)!important;
+    box-shadow:0 3px 10px rgba(13,47,68,.08)!important;
+  }
+  html body .brandWide>.brandSideLeft{
+    grid-area:left!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    width:42px!important;min-width:42px!important;height:43px!important;padding:0!important;margin:0!important;border:0!important;
+  }
+  html body .brandWide .brandSideLeft img{
+    display:block!important;width:34px!important;height:34px!important;flex:0 0 34px!important;object-fit:contain!important;
+  }
+  html body .brandWide .brandLeftText,
+  html body .brandWide .brandVersion,
+  html body .brandWide .brandRoles{display:none!important;}
+  html body .brandWide>.brandTitleTop{
+    grid-area:title!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    width:100%!important;min-width:0!important;height:43px!important;padding:0 2px!important;margin:0!important;border:0!important;
+  }
+  html body .brandWide .brandAnambroIntegratedLogo{
+    display:block!important;width:100%!important;height:41px!important;max-height:41px!important;
+    object-fit:contain!important;object-position:center!important;border:0!important;box-shadow:none!important;background:transparent!important;
+  }
+  html body .brandWide>.brandCenter{
+    grid-area:center!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    width:100%!important;min-width:0!important;height:45px!important;padding:1px 4px 2px!important;margin:0!important;gap:2px!important;
+    text-align:center!important;border:0!important;overflow:hidden!important;
+  }
+  html body .brandWide .brandDescriptor{
+    display:block!important;width:100%!important;margin:0!important;
+    font-size:8.7px!important;line-height:1.05!important;font-weight:800!important;color:#0f756b!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  }
+  html body .brandWide .brandTeacher{
+    display:block!important;width:100%!important;margin:0!important;
+    font-size:12px!important;line-height:1.05!important;font-weight:900!important;color:#17324d!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  }
+  html body .brandWide .brandGeo{display:inline!important;}
+  html body .brandWide .brandProfessional{
+    display:block!important;width:100%!important;margin:0!important;
+    font-size:7.9px!important;line-height:1.08!important;font-weight:750!important;color:#344f63!important;
+    white-space:normal!important;overflow:hidden!important;text-overflow:clip!important;max-height:18px!important;
+  }
+  html body .brandWide .brandProfessional b,
+  html body .brandWide .brandProfessional span{display:inline!important;}
+  html body .brandWide>.brandSideRight{
+    grid-area:right!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;
+    width:100px!important;min-width:100px!important;height:88px!important;padding:0!important;margin:0!important;gap:6px!important;border:0!important;
+  }
+  html body .brandWide .brandActions{
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;
+    gap:6px!important;margin:0!important;position:static!important;flex-wrap:nowrap!important;
+  }
+  html body .brandWide .brandWelcomeBtn{
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    min-height:27px!important;padding:5px 7px!important;margin:0!important;
+    font-size:9px!important;line-height:1.05!important;font-weight:800!important;white-space:nowrap!important;border-radius:999px!important;
+    box-shadow:0 1px 5px rgba(20,50,75,.14)!important;
+  }
+  html body .toolbar{top:104px!important;}
+  html body .leaflet-top.leaflet-left{top:100px!important;}
+}
+@media (max-width:430px){
+  html body .brand.brandWide{
+    height:96px!important;min-height:96px!important;grid-template-columns:38px minmax(0,1fr) 92px!important;grid-template-rows:42px 44px!important;
+    padding:5px!important;column-gap:5px!important;
+  }
+  html body .brandWide>.brandSideLeft{width:38px!important;min-width:38px!important;height:42px!important;}
+  html body .brandWide .brandSideLeft img{width:31px!important;height:31px!important;flex-basis:31px!important;}
+  html body .brandWide>.brandTitleTop{height:42px!important;}
+  html body .brandWide .brandAnambroIntegratedLogo{height:39px!important;max-height:39px!important;}
+  html body .brandWide>.brandCenter{height:44px!important;padding-left:2px!important;padding-right:2px!important;}
+  html body .brandWide .brandDescriptor{font-size:8.1px!important;}
+  html body .brandWide .brandTeacher{font-size:11px!important;}
+  html body .brandWide .brandProfessional{font-size:7.3px!important;max-height:17px!important;}
+  html body .brandWide>.brandSideRight{width:92px!important;min-width:92px!important;height:86px!important;gap:5px!important;}
+  html body .brandWide .brandActions{gap:5px!important;}
+  html body .brandWide .brandWelcomeBtn{min-height:25px!important;font-size:8.4px!important;padding:5px 5px!important;}
+  html body .toolbar{top:102px!important;}
+  html body .leaflet-top.leaflet-left{top:98px!important;}
+}
+</style>
+
+
+
+
+
 <script id="anambro-safe-provider-zoomin-cap-v2">
 /*
   Límite de ZOOM-IN por proveedor, sin intervenir en el zoom-out.
@@ -14116,6 +14034,76 @@ html body .historyPopup .leaflet-popup-close-button{
 
 
 
+<script id="anambro-v010-header-editor">
+(()=>{
+ 'use strict';
+ const KEY='anambro.header.layout.v10';
+ const DEFAULT_LAYOUT={"version":3,"height":118,"items":{"iesLogo":{"left":117,"top":12,"width":78,"height":77,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16},"iesText":{"left":219,"top":7,"width":121,"height":91,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16,"html":"\n        <div class=\"brandDept\">IES ADEJE&nbsp;Curso 2026-2027</div>\n        <div class=\"brandVersion\">Versión 0.16 · aula interactiva</div>\n      ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"center","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"0.9px"},"portrait":{"left":377,"top":10,"width":93,"height":81,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16},"authorText":{"left":490,"top":11,"width":242,"height":88,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":15,"html":"\n        <div class=\"brandTeacher\">Aarón Rodríguez González&nbsp;</div><div class=\"brandTeacher\"><span class=\"brandGeo\">Geógrafo</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Profesor de Geografía e Historia</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Coordinador de Patrimonio&nbsp;</span></div><div class=\"brandTeacher\"><span class=\"brandGeo\">Natural,&nbsp;</span><span style=\"white-space: normal\"><span style=\"color: rgb(66, 98, 123);\">Cultural y Social Canario.</span></span></div><div class=\"brandProfessional\"><br><span><br></span></div>\n      ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"start","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"normal"},"anambroLogo":{"left":877,"top":3,"width":452,"height":108,"z":1,"fit":"contain","zoom":1,"posx":53,"posy":50,"font":27},"descriptor":{"left":1364,"top":13,"width":393,"height":25,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16,"html":"\n    <div class=\"brandDescriptor\">SIG web para el análisis territorial y la cartografía temática 2D/3D</div>\n  ","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(0, 0, 0)","textAlign":"center","fontWeight":"400","fontStyle":"normal","textDecoration":"none","lineHeight":"normal","letterSpacing":"normal"},"roles":{"left":1367,"top":48,"width":390,"height":48,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":8.8,"html":"<b>Cartografía base y temática · consulta espacial · series temporales · perfiles · geodemografía · leyendas dinámicas · exportación de&nbsp; mapas-historia-animaciones explicativas</b>","fontFamily":"system-ui, -apple-system, sans-serif","color":"rgb(63, 93, 112)","textAlign":"left","fontWeight":"800","fontStyle":"normal","textDecoration":"none","lineHeight":"12.915px","letterSpacing":"normal"},"actions":{"left":1872,"top":22,"width":132,"height":54,"z":1,"fit":"contain","zoom":1,"posx":50,"posy":50,"font":16}}};
+ const defs=[
+  ['iesLogo','.brandInstituteLogoV06','Logo IES','image'],['iesText','.brandLeftText','Texto IES','text'],
+  ['portrait','.brandAuthorPortraitV06','Retrato','image'],['authorText','.brandAuthorTextV06','Datos del autor','text'],
+  ['anambroLogo','.brandTitleTop','Logo ANAMBRO','imagebox'],['descriptor','.brandCenter','Descriptor','text'],
+  ['roles','.brandRoles','Funciones','text'],['actions','.brandActions','Botones','box']
+ ];
+ const brand=()=>document.querySelector('.brandV06'),bar=()=>document.getElementById('headerEditorBar'),ins=()=>document.getElementById('headerEditorInspector');
+ let editing=false,snapshot=null,selected=null,zseq=20,lastSelection=null;
+ const frames=new Map();
+ function toast(t){const e=document.getElementById('headerEditorToast');if(!e)return;e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1500)}
+ function ensureFrames(){
+  for(const [key,sel,label,type] of defs){let target=document.querySelector('.brandV06 '+sel);if(!target)continue;let f=target.closest('.headerEditFrame');if(!f){f=document.createElement('div');f.className='headerEditFrame '+(type==='text'?'textFrame ':type==='image'||type==='imagebox'?'mediaFrame ':type==='box'?'boxFrame ':'')+'headerFrame-'+key;f.dataset.key=key;f.dataset.label=label;f.dataset.type=type;target.parentNode.insertBefore(f,target);f.appendChild(target);target.classList.add('headerEditableTarget');if(type==='text'&&!target.dataset.headerOriginalHtml)target.dataset.headerOriginalHtml=target.innerHTML;for(const d of ['nw','n','ne','e','se','s','sw','w']){const h=document.createElement('i');h.className='headerResizeHandle';h.dataset.dir=d;f.appendChild(h)}}frames.set(key,f)}
+ }
+ function rectData(f){const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect();return {left:Math.round(r.left-b.left),top:Math.round(r.top-b.top),width:Math.round(r.width),height:Math.round(r.height),z:+(f.style.zIndex||1)}}
+ function textStyleData(t){const cs=getComputedStyle(t);return {fontFamily:t.style.fontFamily||cs.fontFamily||'',color:t.style.color||cs.color||'',textAlign:t.style.textAlign||cs.textAlign||'left',fontWeight:t.style.fontWeight||cs.fontWeight||'400',fontStyle:t.style.fontStyle||cs.fontStyle||'normal',textDecoration:t.style.textDecoration||cs.textDecorationLine||'none',lineHeight:t.style.lineHeight||cs.lineHeight||'normal',letterSpacing:t.style.letterSpacing||cs.letterSpacing||'normal'}}
+ function readLayout(){const data={version:3,height:Math.round(brand().getBoundingClientRect().height),items:{}};for(const [key] of defs){const f=frames.get(key);if(!f)continue;const v=rectData(f);v.fit=f.style.getPropertyValue('--he-fit')||'contain';v.zoom=parseFloat(f.style.getPropertyValue('--he-zoom'))||1;v.posx=parseFloat(f.style.getPropertyValue('--he-posx'))||50;v.posy=parseFloat(f.style.getPropertyValue('--he-posy'))||50;const t=f.querySelector('.headerEditableTarget');v.font=parseFloat(t?.style.fontSize)||parseFloat(getComputedStyle(t).fontSize)||null;if(f.dataset.type==='text'){v.html=t.innerHTML;Object.assign(v,textStyleData(t))}data.items[key]=v}return data}
+ function applyTextStyle(t,v){if(!t||!v)return;if(v.font)t.style.setProperty('font-size',v.font+'px','important');for(const [k,p] of [['fontFamily','font-family'],['color','color'],['textAlign','text-align'],['fontWeight','font-weight'],['fontStyle','font-style'],['textDecoration','text-decoration'],['lineHeight','line-height'],['letterSpacing','letter-spacing']]){if(v[k])t.style.setProperty(p,String(v[k]))}}
+ function isIPadHeaderDevice(){return /iPad/i.test(navigator.userAgent||'')||((navigator.platform==='MacIntel'||/Macintosh/i.test(navigator.userAgent||''))&&(navigator.maxTouchPoints||0)>1)}
+ function applyLayout(data){if(!data?.items||window.innerWidth<=760||isIPadHeaderDevice())return;const b=brand();b.classList.add('header-free-layout');if(data.height)b.style.height=Math.max(76,+data.height)+'px';const bw=b.getBoundingClientRect().width||window.innerWidth;for(const [key] of defs){const f=frames.get(key),v=data.items[key];if(!f||!v)continue;let w=Math.max(20,+v.width||20),h=Math.max(16,+v.height||16),left=(+v.left||0),top=(+v.top||0);if(key==='actions'){w=Math.min(Math.max(w,132),Math.max(80,bw-16));left=Math.min(left,Math.max(8,bw-w-8));}Object.assign(f.style,{left:left+'px',top:top+'px',width:w+'px',height:h+'px',zIndex:String(v.z||1)});f.style.setProperty('--he-fit',v.fit||'contain');f.style.setProperty('--he-zoom',v.zoom||1);f.style.setProperty('--he-posx',(v.posx??50)+'%');f.style.setProperty('--he-posy',(v.posy??50)+'%');const t=f.querySelector('.headerEditableTarget');applyTextStyle(t,v);if(f.dataset.type==='text'&&typeof v.html==='string')t.innerHTML=v.html}}
+ function clearLayout(){const b=brand();b.classList.remove('header-free-layout','header-editing');b.style.removeProperty('height');for(const f of frames.values()){f.classList.remove('selected','textEditing');for(const p of ['left','top','width','height','z-index','--he-fit','--he-zoom','--he-posx','--he-posy'])f.style.removeProperty(p);const t=f.querySelector('.headerEditableTarget');if(t){for(const p of ['font-size','font-family','color','text-align','font-weight','font-style','text-decoration','line-height','letter-spacing'])t.style.removeProperty(p);t.removeAttribute('contenteditable');for(const n of t.querySelectorAll('[style]')){if(n.style.getPropertyPriority('font-size')==='important')n.style.removeProperty('font-size')}}}}
+ function selectionInside(t){const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return false;const r=s.getRangeAt(0),a=r.commonAncestorContainer;return t===a||t.contains(a.nodeType===1?a:a.parentElement)}
+ function rememberSelection(){const t=selected?.querySelector('.headerEditableTarget'),s=window.getSelection();if(t&&s?.rangeCount&&selectionInside(t))lastSelection=s.getRangeAt(0).cloneRange()}
+ function restoreSelection(){if(!lastSelection)return false;const s=window.getSelection();try{s.removeAllRanges();s.addRange(lastSelection);return true}catch(_){return false}}
+ function selectFrame(f){if(!editing||!f)return;for(const x of frames.values())x.classList.toggle('selected',x===f);selected=f;lastSelection=null;syncInspector();ins()?.classList.add('open');ins()?.setAttribute('aria-hidden','false')}
+ function syncInspector(){if(!selected)return;const v=rectData(selected),$=id=>document.getElementById(id);$('heiTitle').textContent=selected.dataset.label||'Elemento';$('heiX').value=v.left;$('heiY').value=v.top;$('heiW').value=v.width;$('heiH').value=v.height;const t=selected.querySelector('.headerEditableTarget'),isText=selected.dataset.type==='text',isImage=selected.dataset.type==='image'||selected.dataset.type==='imagebox';$('heiTextTools').style.display=isText?'grid':'none';$('heiImageTools').style.display=isImage?'grid':'none';if(isText){const cs=getComputedStyle(t);$('heiFont').value=parseFloat(t.style.fontSize)||parseFloat(cs.fontSize)||11;const fam=(t.style.fontFamily||cs.fontFamily||'Montserrat').replace(/["']/g,'');$('heiFontFamily').value=[...$('heiFontFamily').options].some(o=>fam.toLowerCase().includes(o.value.toLowerCase()))?[...$('heiFontFamily').options].find(o=>fam.toLowerCase().includes(o.value.toLowerCase())).value:'Montserrat';try{$('heiTextColor').value=rgbToHex(cs.color)}catch(_){};$('heiLineHeight').value=parseFloat(cs.lineHeight)/Math.max(1,parseFloat(cs.fontSize))||1.15;$('heiLetterSpacing').value=parseFloat(cs.letterSpacing)||0}if(isImage){$('heiFit').value=selected.style.getPropertyValue('--he-fit')||'contain';$('heiZoom').value=parseFloat(selected.style.getPropertyValue('--he-zoom'))||1;$('heiImgX').value=parseFloat(selected.style.getPropertyValue('--he-posx'))||50;$('heiImgY').value=parseFloat(selected.style.getPropertyValue('--he-posy'))||50}}
+ function rgbToHex(c){const m=String(c).match(/\d+(?:\.\d+)?/g);if(!m||m.length<3)return '#17324d';return '#'+m.slice(0,3).map(x=>Math.max(0,Math.min(255,Math.round(+x))).toString(16).padStart(2,'0')).join('')}
+ function setGeom(){if(!selected)return;const b=brand().getBoundingClientRect(),$=id=>+document.getElementById(id).value;let x=Math.max(0,$('heiX')),y=Math.max(0,$('heiY')),w=Math.max(20,$('heiW')),h=Math.max(16,$('heiH'));x=Math.min(x,Math.max(0,b.width-w));y=Math.min(y,Math.max(0,b.height-h));Object.assign(selected.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'})}
+ function beginTextEdit(){if(!selected||selected.dataset.type!=='text')return;const t=selected.querySelector('.headerEditableTarget');selected.classList.add('textEditing');t.setAttribute('contenteditable','true');t.focus();const r=document.createRange();r.selectNodeContents(t);const s=window.getSelection();s.removeAllRanges();s.addRange(r);rememberSelection()}
+ function endTextEdit(f){if(!f)return;f.classList.remove('textEditing');f.querySelector('.headerEditableTarget')?.removeAttribute('contenteditable');lastSelection=null}
+ function applyTextCommand(cmd,value,wholeStyle){if(!selected||selected.dataset.type!=='text')return;const t=selected.querySelector('.headerEditableTarget'),had=selectionInside(t)||restoreSelection();if(had){t.setAttribute('contenteditable','true');t.focus();restoreSelection();try{document.execCommand(cmd,false,value)}catch(_){}rememberSelection();return}if(wholeStyle)wholeStyle(t)}
+ function textNodesForScaling(t){return [t,...t.querySelectorAll('*')].filter(n=>{const fs=parseFloat(getComputedStyle(n).fontSize);return Number.isFinite(fs)&&fs>0;});}
+ function prepareTextScaleBasis(t){const nodes=textNodesForScaling(t),root=parseFloat(getComputedStyle(t).fontSize)||16;t.__anambroFontBasis={root,nodes:nodes.map(n=>[n,parseFloat(getComputedStyle(n).fontSize)||root])};return t.__anambroFontBasis;}
+ function applyHeaderFontSize(px){if(!selected||selected.dataset.type!=='text')return;const t=selected.querySelector('.headerEditableTarget');px=Math.max(6,Math.min(80,+px||16));const had=selectionInside(t)||restoreSelection();if(had){t.setAttribute('contenteditable','true');t.focus();restoreSelection();try{document.execCommand('fontSize',false,'7');for(const f of t.querySelectorAll('font[size="7"]')){f.removeAttribute('size');f.style.setProperty('font-size',px+'px','important');}}catch(_){}rememberSelection();return;}const basis=prepareTextScaleBasis(t),ratio=px/Math.max(1,basis.root);for(const [n,fs] of basis.nodes)n.style.setProperty('font-size',Math.max(5,fs*ratio).toFixed(2)+'px','important');t.style.setProperty('font-size',px+'px','important');t.__anambroFontBasis=null;}
+ function setTextTreeStyle(t,prop,value,priority='important'){for(const n of [t,...t.querySelectorAll('*')]){if(n.nodeType===1)n.style.setProperty(prop,value,priority)}}
+ function dragStart(ev,f){if(!editing||ev.button!==0||ev.target.classList.contains('headerResizeHandle')||f.classList.contains('textEditing'))return;selectFrame(f);const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect(),sx=ev.clientX,sy=ev.clientY,sl=r.left-b.left,st=r.top-b.top;ev.preventDefault();try{f.setPointerCapture(ev.pointerId)}catch(_){};const mv=e=>{let l=sl+e.clientX-sx,t=st+e.clientY-sy;l=Math.max(0,Math.min(l,b.width-r.width));t=Math.max(0,Math.min(t,b.height-r.height));f.style.left=Math.round(l)+'px';f.style.top=Math.round(t)+'px';syncInspector()};const up=e=>{f.removeEventListener('pointermove',mv);f.removeEventListener('pointerup',up);f.removeEventListener('pointercancel',up);try{f.releasePointerCapture(e.pointerId)}catch(_){}};f.addEventListener('pointermove',mv);f.addEventListener('pointerup',up);f.addEventListener('pointercancel',up)}
+ function resizeStart(ev,f,dir){if(!editing)return;selectFrame(f);const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect(),sx=ev.clientX,sy=ev.clientY,x0=r.left-b.left,y0=r.top-b.top,w0=r.width,h0=r.height;ev.preventDefault();ev.stopPropagation();const h=ev.currentTarget;try{h.setPointerCapture(ev.pointerId)}catch(_){};const mv=e=>{let dx=e.clientX-sx,dy=e.clientY-sy,x=x0,y=y0,w=w0,hg=h0;if(dir.includes('e'))w=w0+dx;if(dir.includes('s'))hg=h0+dy;if(dir.includes('w')){w=w0-dx;x=x0+dx}if(dir.includes('n')){hg=h0-dy;y=y0+dy}w=Math.max(20,w);hg=Math.max(16,hg);x=Math.max(0,Math.min(x,b.width-w));y=Math.max(0,Math.min(y,b.height-hg));Object.assign(f.style,{left:Math.round(x)+'px',top:Math.round(y)+'px',width:Math.round(w)+'px',height:Math.round(hg)+'px'});syncInspector()};const up=e=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);try{h.releasePointerCapture(e.pointerId)}catch(_){}};h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}
+ function wire(){for(const f of frames.values()){if(f.dataset.wired)return;f.dataset.wired='1';f.addEventListener('pointerdown',e=>dragStart(e,f));f.addEventListener('click',e=>{if(editing){e.stopPropagation();selectFrame(f)}});f.addEventListener('dblclick',e=>{if(editing&&f.dataset.type==='text'){e.preventDefault();e.stopPropagation();selectFrame(f);beginTextEdit()}});const t=f.querySelector('.headerEditableTarget');t?.addEventListener('mouseup',rememberSelection);t?.addEventListener('keyup',rememberSelection);t?.addEventListener('blur',()=>{if(!ins()?.contains(document.activeElement))endTextEdit(f)});f.querySelectorAll('.headerResizeHandle').forEach(h=>h.addEventListener('pointerdown',e=>resizeStart(e,f,h.dataset.dir)))}}
+ function open(){if(window.innerWidth<=760){alert('El editor visual de cabecera está disponible en escritorio.');return}ensureFrames();wire();const b=brand();snapshot=readLayout();b.classList.add('header-editing');editing=true;bar()?.classList.add('open');bar()?.setAttribute('aria-hidden','false');toast('Cabecera desbloqueada: arrastra, redimensiona y formatea')}
+ function closeEdit(){editing=false;for(const f of frames.values()){f.classList.remove('selected');endTextEdit(f)}selected=null;brand()?.classList.remove('header-editing');bar()?.classList.remove('open');bar()?.setAttribute('aria-hidden','true');ins()?.classList.remove('open');ins()?.setAttribute('aria-hidden','true')}
+ function save(){const d=readLayout();localStorage.setItem(KEY,JSON.stringify(d));closeEdit();clearLayout();toast('Contenido guardado; la composición pública sigue el diseño responsivo estable')}
+ function cancel(){clearLayout();closeEdit();toast('Cambios descartados')}
+ function reset(){localStorage.removeItem(KEY);clearLayout();closeEdit();toast('Cabecera restablecida al diseño responsivo estable')}
+ function exportJSON(){const d=readLayout();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));a.download='ANAMBRO_cabecera_v10.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1200)}
+ function importFile(file){if(!file)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d?.items)throw new Error('Formato incorrecto');ensureFrames();clearLayout();applyLayout(d);localStorage.setItem(KEY,JSON.stringify(d));toast('Diseño importado')}catch(e){alert('No se pudo importar: '+e.message)}};rd.readAsText(file)}
+ ensureFrames();wire();
+ const $=id=>document.getElementById(id);
+ ['heiX','heiY','heiW','heiH'].forEach(id=>$(id)?.addEventListener('input',setGeom));
+ $('heiFont')?.addEventListener('input',e=>applyHeaderFontSize(e.target.value));
+ $('heiFontFamily')?.addEventListener('change',e=>applyTextCommand('fontName',e.target.value,t=>setTextTreeStyle(t,'font-family',e.target.value)));
+ $('heiTextColor')?.addEventListener('input',e=>applyTextCommand('foreColor',e.target.value,t=>setTextTreeStyle(t,'color',e.target.value)));
+ $('heiBold')?.addEventListener('mousedown',e=>e.preventDefault());$('heiItalic')?.addEventListener('mousedown',e=>e.preventDefault());$('heiUnderline')?.addEventListener('mousedown',e=>e.preventDefault());
+ $('heiBold')?.addEventListener('click',()=>applyTextCommand('bold',null,t=>setTextTreeStyle(t,'font-weight',(parseInt(getComputedStyle(t).fontWeight)>=600?'400':'700'))));
+ $('heiItalic')?.addEventListener('click',()=>applyTextCommand('italic',null,t=>setTextTreeStyle(t,'font-style',(getComputedStyle(t).fontStyle==='italic'?'normal':'italic'))));
+ $('heiUnderline')?.addEventListener('click',()=>applyTextCommand('underline',null,t=>setTextTreeStyle(t,'text-decoration',(getComputedStyle(t).textDecorationLine.includes('underline')?'none':'underline'))));
+ $('heiAlignLeft')?.addEventListener('click',()=>{if(selected)setTextTreeStyle(selected.querySelector('.headerEditableTarget'),'text-align','left')});$('heiAlignCenter')?.addEventListener('click',()=>{if(selected)setTextTreeStyle(selected.querySelector('.headerEditableTarget'),'text-align','center')});$('heiAlignRight')?.addEventListener('click',()=>{if(selected)setTextTreeStyle(selected.querySelector('.headerEditableTarget'),'text-align','right')});
+ $('heiLineHeight')?.addEventListener('input',e=>{if(selected)setTextTreeStyle(selected.querySelector('.headerEditableTarget'),'line-height',e.target.value)});$('heiLetterSpacing')?.addEventListener('input',e=>{if(selected)setTextTreeStyle(selected.querySelector('.headerEditableTarget'),'letter-spacing',e.target.value+'px')});
+ $('heiFit')?.addEventListener('change',e=>selected?.style.setProperty('--he-fit',e.target.value));$('heiZoom')?.addEventListener('input',e=>selected?.style.setProperty('--he-zoom',e.target.value));$('heiImgX')?.addEventListener('input',e=>selected?.style.setProperty('--he-posx',e.target.value+'%'));$('heiImgY')?.addEventListener('input',e=>selected?.style.setProperty('--he-posy',e.target.value+'%'));
+ $('heiEditText')?.addEventListener('click',beginTextEdit);$('heiFront')?.addEventListener('click',()=>{if(selected){selected.style.zIndex=String(++zseq)}});$('heiBack')?.addEventListener('click',()=>{if(selected){selected.style.zIndex='1'}});$('heiClose')?.addEventListener('click',()=>ins()?.classList.remove('open'));
+ $('headerEditorSave')?.addEventListener('click',save);$('headerEditorCancel')?.addEventListener('click',cancel);$('headerEditorReset')?.addEventListener('click',reset);$('headerEditorExport')?.addEventListener('click',exportJSON);$('headerEditorImport')?.addEventListener('click',()=>$('headerEditorFile')?.click());$('headerEditorFile')?.addEventListener('change',e=>{importFile(e.target.files?.[0]);e.target.value=''});
+ const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(_){return null}})();requestAnimationFrame(()=>{clearLayout();});
+ window.addEventListener('resize',()=>{if(window.innerWidth<=760&&editing)closeEdit()});
+ window.anambroHeaderEditor={open,save,reset,export:exportJSON};
+})();
+</script>
+
 <script id="anambro-v03-aula-politico-runtime">
 (function(){
  'use strict';
@@ -14358,6 +14346,106 @@ html body .historyPopup .leaflet-popup-close-button{
 })();
 </script>
 
+
+
+<style id="anambro-v012-mobile-landscape-header-final">
+/* v0.12 · Cabecera móvil horizontal: composición deliberadamente mínima y estable.
+   No reutiliza posiciones/tamaños del editor de escritorio. Este bloque va al final
+   para prevalecer sobre todos los parches responsive históricos. */
+@media (orientation:landscape) and (max-height:650px){
+  html body .brand.brandWide.brandV06,
+  html body .brand.brandWide.brandV06.header-free-layout{
+    position:fixed!important;z-index:1500!important;top:0!important;left:0!important;right:0!important;
+    width:100%!important;max-width:none!important;height:58px!important;min-height:58px!important;
+    margin:0!important;padding:3px 7px!important;box-sizing:border-box!important;transform:none!important;
+    display:grid!important;grid-template-columns:44px minmax(0,1fr) 86px!important;
+    grid-template-rows:52px!important;grid-template-areas:"left title right"!important;
+    column-gap:7px!important;row-gap:0!important;align-items:center!important;overflow:hidden!important;
+    border:0!important;border-bottom:1px solid rgba(28,67,94,.16)!important;border-radius:0!important;
+    background:linear-gradient(180deg,#fff 0%,#f7fbfc 100%)!important;
+    box-shadow:0 2px 8px rgba(13,47,68,.10)!important;
+  }
+  html body .brandV06.header-free-layout .headerEditFrame{
+    display:contents!important;position:static!important;left:auto!important;top:auto!important;
+    width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
+    margin:0!important;transform:none!important;overflow:visible!important;
+  }
+  html body .brandV06 .headerFrame-portrait,
+  html body .brandV06 .headerFrame-authorText,
+  html body .brandV06 .headerFrame-iesText,
+  html body .brandV06 .headerFrame-descriptor,
+  html body .brandV06 .headerFrame-roles,
+  html body .brandV06 .brandAuthorV06,
+  html body .brandV06 .brandLeftText,
+  html body .brandV06 .brandRoles,
+  html body .brandV06>.brandCenter{display:none!important;visibility:hidden!important}
+
+  html body .brandV06>.brandSideLeft{
+    grid-area:left!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    position:static!important;width:44px!important;min-width:44px!important;height:52px!important;
+    margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;
+  }
+  html body .brandV06 .brandInstitutionV06{
+    display:flex!important;align-items:center!important;justify-content:center!important;position:static!important;
+    width:44px!important;height:52px!important;margin:0!important;padding:0!important;
+  }
+  html body .brandV06 .brandInstituteLogoV06{
+    display:block!important;width:36px!important;height:36px!important;max-width:36px!important;max-height:36px!important;
+    margin:0!important;padding:0!important;object-fit:contain!important;transform:none!important;box-shadow:none!important;
+  }
+
+  html body .brandV06>.brandTitleTop{
+    grid-area:title!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    position:static!important;width:100%!important;min-width:0!important;height:52px!important;
+    margin:0!important;padding:0 4px!important;border:0!important;overflow:hidden!important;
+  }
+  html body .brandV06 .brandAnambroIntegratedLogo{
+    display:block!important;width:min(100%,430px)!important;height:50px!important;max-width:100%!important;max-height:50px!important;
+    margin:0 auto!important;padding:0!important;object-fit:contain!important;object-position:center!important;
+    transform:none!important;border:0!important;box-shadow:none!important;background:transparent!important;
+  }
+
+  html body .brandV06>.brandSideRight{
+    grid-area:right!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    position:static!important;width:86px!important;min-width:86px!important;height:52px!important;
+    margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;
+  }
+  html body .brandV06 .brandActions{
+    display:grid!important;grid-template-columns:38px 38px!important;gap:5px!important;
+    position:static!important;margin:0!important;padding:0!important;align-items:center!important;justify-content:center!important;
+  }
+  html body .brandV06 .brandWelcomeBtn{
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;
+    margin:0!important;padding:0!important;border-radius:10px!important;font-size:0!important;line-height:1!important;
+    white-space:nowrap!important;overflow:hidden!important;
+  }
+  html body .brandV06 .brandWelcomeBtn:first-child::before{content:"👋"!important;font-size:18px!important;line-height:1!important}
+  html body .brandV06 .brandSourcesBtn::before{content:"ⓘ"!important;font-size:18px!important;line-height:1!important}
+  html body .brandV06 .brandHeaderEditBtn{display:none!important}
+
+  html body .toolbar{top:64px!important}
+  html body .leaflet-top.leaflet-left{top:60px!important}
+}
+
+/* El deslizador de zoom nunca comparte el lateral izquierdo con la barra de herramientas
+   en móvil/tablet: se desplaza al borde derecho. */
+@media (max-width:1180px){
+  html body #anambroZoomSliderControl{
+    left:auto!important;right:8px!important;bottom:auto!important;top:112px!important;
+    transform:none!important;width:34px!important;height:144px!important;padding:6px 4px!important;
+  }
+  html body #anambroZoomSlider{height:98px!important;width:22px!important}
+}
+@media (orientation:landscape) and (max-height:650px){
+  html body #anambroZoomSliderControl{
+    left:auto!important;right:8px!important;top:66px!important;bottom:auto!important;
+    width:32px!important;height:132px!important;padding:5px 3px!important;border-radius:10px!important;
+  }
+  html body #anambroZoomSlider{height:88px!important;width:20px!important}
+  html body #anambroZoomSliderControl .zoomGlyph{font-size:14px!important}
+}
+</style>
 
 
 <style id="anambro-v014-atlas-hub-heritage-css">
@@ -15512,6 +15600,531 @@ html body .leaflet-popup-content{padding-top:5px}
 </script>
 
 <!-- ANAMBRO v0.16 · Atlas territorial ISTAC multiescala + corrección de cabecera heredada -->
+<style id="anambro-v015-header-ipad-fix2">
+/* Escritorio: el bloque editable de acciones nunca puede desbordar la cabecera. */
+@media (min-width:1181px){
+  html:not(.anambro-ipad) body .brandV06.header-free-layout .headerFrame-actions{overflow:hidden!important}
+  html:not(.anambro-ipad) body .brandV06.header-free-layout .headerFrame-actions>.brandActions{
+    width:100%!important;height:100%!important;box-sizing:border-box!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;
+    gap:2px!important;flex-wrap:nowrap!important;overflow:hidden!important;margin:0!important;padding:0!important
+  }
+  html:not(.anambro-ipad) body .brandV06.header-free-layout .headerFrame-actions .brandWelcomeBtn{
+    width:100%!important;max-width:100%!important;min-height:0!important;height:auto!important;
+    margin:0!important;padding:3px 5px!important;font-size:7.6px!important;line-height:1.05!important;
+    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;box-sizing:border-box!important
+  }
+}
+
+/* iPad/iPadOS: nunca se reutiliza la geometría absoluta del editor de escritorio. */
+html.anambro-ipad body .brand.brandWide.brandV06,
+html.anambro-ipad body .brand.brandWide.brandV06.header-free-layout{
+  position:fixed!important;z-index:5000!important;top:0!important;left:0!important;right:0!important;
+  width:100%!important;max-width:none!important;height:118px!important;min-height:118px!important;
+  margin:0!important;padding:6px 9px!important;box-sizing:border-box!important;transform:none!important;
+  display:grid!important;grid-template-columns:minmax(330px,43%) minmax(250px,37%) minmax(150px,20%)!important;
+  grid-template-rows:76px 30px!important;grid-template-areas:"left title right" "left center right"!important;
+  column-gap:8px!important;row-gap:0!important;align-items:center!important;overflow:hidden!important;
+  border:0!important;border-bottom:1px solid rgba(28,67,94,.16)!important;border-radius:0!important;
+  background:linear-gradient(180deg,#fff 0%,#fbfdfe 66%,#f3f8fa 100%)!important;
+  box-shadow:0 3px 10px rgba(13,47,68,.10)!important
+}
+html.anambro-ipad body .brandV06 .headerEditFrame,
+html.anambro-ipad body .brandV06.header-free-layout .headerEditFrame{
+  display:contents!important;position:static!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important;
+  min-width:0!important;min-height:0!important;margin:0!important;transform:none!important;overflow:visible!important
+}
+html.anambro-ipad body .brandV06>.brandSideLeft{
+  grid-area:left!important;display:grid!important;grid-template-columns:minmax(126px,.82fr) minmax(180px,1.18fr)!important;
+  align-items:center!important;gap:8px!important;position:static!important;width:100%!important;height:106px!important;
+  margin:0!important;padding:3px 8px 3px 0!important;border:0!important;border-right:1px solid rgba(45,80,105,.13)!important;
+  box-sizing:border-box!important;overflow:hidden!important
+}
+html.anambro-ipad body .brandV06 .brandInstitutionV06{
+  display:grid!important;grid-template-columns:46px minmax(0,1fr)!important;gap:6px!important;align-items:center!important;
+  position:static!important;min-width:0!important;margin:0!important;padding:0!important
+}
+html.anambro-ipad body .brandV06 .brandInstituteLogoV06{
+  display:block!important;width:44px!important;height:44px!important;max-width:44px!important;max-height:44px!important;
+  object-fit:contain!important;margin:0!important;transform:none!important
+}
+html.anambro-ipad body .brandV06 .brandLeftText{display:block!important;visibility:visible!important;min-width:0!important;margin:0!important;padding:0!important}
+html.anambro-ipad body .brandV06 .brandDept{display:block!important;font-size:8.2px!important;line-height:1.08!important;text-align:left!important;white-space:normal!important;margin:0!important}
+html.anambro-ipad body .brandV06 .brandDept b{display:block!important;font-size:11px!important;line-height:1!important}
+html.anambro-ipad body .brandV06 .brandVersion{display:inline-flex!important;position:static!important;font-size:6.8px!important;line-height:1!important;padding:2px 4px!important;margin-top:3px!important}
+html.anambro-ipad body .brandV06 .brandAuthorV06{
+  display:grid!important;visibility:visible!important;grid-template-columns:48px minmax(0,1fr)!important;gap:7px!important;align-items:center!important;
+  position:static!important;min-width:0!important;margin:0!important;padding:0!important
+}
+html.anambro-ipad body .brandV06 .brandAuthorPortraitV06{
+  display:block!important;visibility:visible!important;width:46px!important;height:46px!important;max-width:46px!important;max-height:46px!important;
+  object-fit:cover!important;border-radius:10px!important;margin:0!important;transform:none!important
+}
+html.anambro-ipad body .brandV06 .brandAuthorTextV06{display:block!important;visibility:visible!important;min-width:0!important;margin:0!important;padding:0!important}
+html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandTeacher{
+  display:block!important;visibility:visible!important;font-size:10px!important;line-height:1.05!important;text-align:left!important;
+  white-space:normal!important;overflow:visible!important;text-overflow:clip!important;margin:0!important
+}
+html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandProfessional{
+  display:block!important;visibility:visible!important;font-size:7.1px!important;line-height:1.08!important;text-align:left!important;
+  white-space:normal!important;overflow:visible!important;max-height:none!important;margin-top:2px!important
+}
+html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandProfessional b,
+html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandProfessional span{display:inline!important}
+html.anambro-ipad body .brandV06>.brandTitleTop{
+  grid-area:title!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  position:static!important;width:100%!important;height:76px!important;min-width:0!important;margin:0!important;padding:2px 6px!important;
+  border:0!important;overflow:hidden!important;box-sizing:border-box!important
+}
+html.anambro-ipad body .brandV06 .brandAnambroIntegratedLogo{
+  display:block!important;width:100%!important;height:72px!important;max-width:100%!important;max-height:72px!important;
+  object-fit:contain!important;object-position:center!important;margin:0!important;transform:none!important;border:0!important;box-shadow:none!important
+}
+html.anambro-ipad body .brandV06>.brandCenter{
+  grid-area:center!important;display:flex!important;visibility:visible!important;align-items:center!important;justify-content:center!important;
+  position:static!important;width:100%!important;height:30px!important;min-width:0!important;margin:0!important;padding:0 5px 3px!important;
+  border:0!important;overflow:hidden!important;box-sizing:border-box!important
+}
+html.anambro-ipad body .brandV06 .brandDescriptor{
+  display:block!important;visibility:visible!important;width:100%!important;font-size:8.2px!important;line-height:1.08!important;
+  text-align:center!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;margin:0!important
+}
+html.anambro-ipad body .brandV06>.brandSideRight{
+  grid-area:right!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;
+  position:static!important;width:100%!important;height:106px!important;min-width:0!important;margin:0!important;padding:3px 0 3px 7px!important;
+  border:0!important;overflow:hidden!important;box-sizing:border-box!important;gap:4px!important
+}
+html.anambro-ipad body .brandV06 .brandRoles{
+  display:block!important;visibility:visible!important;max-width:100%!important;font-size:6.9px!important;line-height:1.08!important;
+  text-align:left!important;white-space:normal!important;overflow:visible!important;margin:0!important;color:#3f5d70!important
+}
+html.anambro-ipad body .brandV06 .brandActions{
+  display:grid!important;grid-template-columns:1fr!important;gap:3px!important;position:static!important;width:100%!important;
+  margin:0!important;padding:0!important;overflow:hidden!important
+}
+html.anambro-ipad body .brandV06 .brandWelcomeBtn{
+  display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;max-width:100%!important;
+  min-height:0!important;height:21px!important;margin:0!important;padding:3px 4px!important;font-size:7px!important;line-height:1!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;border-radius:999px!important;box-sizing:border-box!important
+}
+html.anambro-ipad body .brandV06 .brandHeaderEditBtn{display:none!important}
+html.anambro-ipad body #headerEditorBar,
+html.anambro-ipad body #headerEditorInspector,
+html.anambro-ipad body .headerResizeHandle,
+html.anambro-ipad body .headerEditHandle{display:none!important}
+html.anambro-ipad body .toolbar{top:126px!important;display:flex!important;visibility:visible!important}
+html.anambro-ipad body .leaflet-top.leaflet-left{top:120px!important}
+
+@media (max-width:900px){
+  html.anambro-ipad body .brand.brandWide.brandV06,
+  html.anambro-ipad body .brand.brandWide.brandV06.header-free-layout{
+    height:132px!important;min-height:132px!important;padding:5px 6px!important;
+    grid-template-columns:minmax(300px,49%) minmax(230px,31%) minmax(130px,20%)!important;
+    grid-template-rows:88px 32px!important
+  }
+  html.anambro-ipad body .brandV06>.brandSideLeft,
+  html.anambro-ipad body .brandV06>.brandSideRight{height:120px!important}
+  html.anambro-ipad body .brandV06>.brandSideLeft{grid-template-columns:minmax(112px,.78fr) minmax(170px,1.22fr)!important;gap:5px!important}
+  html.anambro-ipad body .brandV06 .brandInstitutionV06{grid-template-columns:40px minmax(0,1fr)!important;gap:4px!important}
+  html.anambro-ipad body .brandV06 .brandInstituteLogoV06{width:38px!important;height:38px!important;max-width:38px!important;max-height:38px!important}
+  html.anambro-ipad body .brandV06 .brandAuthorV06{grid-template-columns:42px minmax(0,1fr)!important;gap:5px!important}
+  html.anambro-ipad body .brandV06 .brandAuthorPortraitV06{width:40px!important;height:40px!important;max-width:40px!important;max-height:40px!important}
+  html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandTeacher{font-size:8.8px!important}
+  html.anambro-ipad body .brandV06 .brandAuthorTextV06 .brandProfessional{font-size:6.3px!important}
+  html.anambro-ipad body .brandV06>.brandTitleTop{height:88px!important}
+  html.anambro-ipad body .brandV06 .brandAnambroIntegratedLogo{height:82px!important;max-height:82px!important}
+  html.anambro-ipad body .brandV06>.brandCenter{height:32px!important}
+  html.anambro-ipad body .brandV06 .brandRoles{font-size:6.2px!important}
+  html.anambro-ipad body .brandV06 .brandWelcomeBtn{height:20px!important;font-size:6.4px!important}
+  html.anambro-ipad body .toolbar{top:140px!important}
+  html.anambro-ipad body .leaflet-top.leaflet-left{top:136px!important}
+}
+</style>
+<script id="anambro-v015-ipad-detector-fix2">
+(()=>{
+  const isIPad=()=>/iPad/i.test(navigator.userAgent||'')||((navigator.platform==='MacIntel'||/Macintosh/i.test(navigator.userAgent||''))&&(navigator.maxTouchPoints||0)>1);
+  if(!isIPad())return;
+  document.documentElement.classList.add('anambro-ipad');
+  const mark=()=>document.body&&document.body.classList.add('anambro-ipad');
+  if(document.body)mark();else document.addEventListener('DOMContentLoaded',mark,{once:true});
+})();
+</script>
+
+<style id="anambro-header-contract-v016">
+/*
+  ANAMBRO v0.16 · CONTRATO DEFINITIVO DE CABECERA RESPONSIVA
+  -----------------------------------------------------------
+  Parche EXCLUSIVO de cabecera.
+  - Escritorio: conserva la composición que ya funcionaba.
+  - Portátil / tablet horizontal: 4 zonas en una sola fila.
+  - Tablet vertical: 2 x 2 compacto.
+  - Móvil: composición vertical compacta con todo el contenido.
+  - El editor de cabecera desaparece de la interfaz pública.
+*/
+:root{--anambro-header-height:118px}
+
+/* Blindaje común: ninguna regla histórica puede volver a ocultar saltos o reactivar el editor. */
+html body #anambroHeader:not(.header-editing) .brandDept br{display:block!important}
+html body #anambroHeader .brandHeaderEditBtn{display:none!important}
+html body #headerEditorBar,
+html body #headerEditorInspector,
+html body #headerEditorToast,
+html body .headerResizeHandle,
+html body .headerEditHandle{display:none!important}
+
+/* =========================
+   ESCRITORIO GRANDE >=1200
+   Se conserva el diseño bueno.
+   ========================= */
+html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
+  position:fixed!important;
+  z-index:5000!important;
+  inset:0 0 auto 0!important;
+  top:0!important;left:0!important;right:0!important;
+  transform:none!important;
+  width:100%!important;max-width:none!important;
+  height:auto!important;min-height:0!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  padding:8px clamp(10px,1.3vw,24px)!important;
+  display:grid!important;
+  grid-template-columns:minmax(180px,.78fr) minmax(280px,1.18fr) minmax(380px,1.72fr) minmax(280px,1.22fr)!important;
+  grid-template-rows:minmax(72px,auto) auto!important;
+  grid-template-areas:
+    "institution author title right"
+    "institution author descriptor right"!important;
+  column-gap:clamp(10px,1.25vw,24px)!important;
+  row-gap:2px!important;
+  align-items:center!important;
+  overflow:visible!important;
+  border:0!important;
+  border-bottom:1px solid rgba(28,67,94,.16)!important;
+  border-radius:0!important;
+  background:linear-gradient(180deg,#fff 0%,#fbfdfe 68%,#f3f8fa 100%)!important;
+  box-shadow:0 3px 10px rgba(13,47,68,.10)!important;
+  font-family:Montserrat,system-ui,-apple-system,sans-serif!important;
+}
+html body #anambroHeader:not(.header-editing)>.brandSideLeft{display:contents!important}
+html body #anambroHeader:not(.header-editing) .headerEditFrame{display:contents!important;position:static!important;width:auto!important;height:auto!important;left:auto!important;top:auto!important;transform:none!important;margin:0!important}
+
+/* ZONA 1 · IES / curso / versión */
+html body #anambroHeader:not(.header-editing) .brandInstitutionV06{
+  grid-area:institution!important;position:static!important;transform:none!important;
+  display:grid!important;grid-template-columns:clamp(46px,3.5vw,62px) minmax(0,1fr)!important;
+  align-items:center!important;gap:clamp(7px,.7vw,12px)!important;
+  min-width:0!important;width:auto!important;height:auto!important;
+  padding:3px clamp(7px,.7vw,12px) 3px 0!important;margin:0!important;
+  border-right:1px solid rgba(45,80,105,.13)!important;box-sizing:border-box!important;overflow:visible!important
+}
+html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06,
+html body #anambroHeader:not(.header-editing) .brandLeftText,
+html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06,
+html body #anambroHeader:not(.header-editing) .brandAuthorTextV06{
+  grid-area:auto!important;grid-column:auto!important;grid-row:auto!important;order:0!important;justify-self:auto!important;align-self:auto!important
+}
+html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{
+  display:block!important;position:static!important;transform:none!important;
+  width:clamp(46px,3.5vw,62px)!important;height:clamp(46px,3.5vw,62px)!important;
+  max-width:none!important;max-height:none!important;object-fit:contain!important;margin:0!important;font-size:0!important;color:transparent!important
+}
+html body #anambroHeader:not(.header-editing) .brandLeftText{display:block!important;min-width:0!important;margin:0!important;padding:0!important;text-align:left!important}
+html body #anambroHeader:not(.header-editing) .brandDept{
+  display:block!important;margin:0!important;color:#17324d!important;
+  font-size:clamp(9px,.63vw,12px)!important;line-height:1.12!important;font-weight:800!important;
+  white-space:normal!important;overflow:visible!important;text-align:left!important;letter-spacing:.02em!important
+}
+html body #anambroHeader:not(.header-editing) .brandDept b{display:inline!important;font-size:1.08em!important;font-weight:900!important}
+html body #anambroHeader:not(.header-editing) .brandVersion{
+  display:inline-flex!important;position:static!important;align-items:center!important;
+  margin-top:5px!important;padding:3px 7px!important;border-radius:999px!important;
+  background:#edf5f8!important;border:1px solid #c4d6de!important;color:#365a70!important;
+  font-size:clamp(7px,.5vw,9px)!important;line-height:1!important;font-weight:800!important;white-space:nowrap!important
+}
+
+/* ZONA 2 · autor / cargos */
+html body #anambroHeader:not(.header-editing) .brandAuthorV06{
+  grid-area:author!important;position:static!important;transform:none!important;
+  display:grid!important;grid-template-columns:clamp(54px,4.2vw,72px) minmax(0,1fr)!important;
+  align-items:center!important;gap:clamp(8px,.8vw,14px)!important;
+  min-width:0!important;width:auto!important;height:auto!important;
+  margin:0!important;padding:3px clamp(7px,.7vw,12px) 3px 0!important;
+  border-right:1px solid rgba(45,80,105,.13)!important;box-sizing:border-box!important;overflow:visible!important
+}
+html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{
+  display:block!important;position:static!important;transform:none!important;
+  width:clamp(54px,4.2vw,72px)!important;height:clamp(54px,4.2vw,72px)!important;
+  max-width:none!important;max-height:none!important;object-fit:cover!important;border-radius:12px!important;
+  border:2px solid #b9d7dc!important;box-shadow:0 1px 4px rgba(0,0,0,.10)!important;margin:0!important;font-size:0!important;color:transparent!important
+}
+html body #anambroHeader:not(.header-editing) .brandAuthorTextV06{display:block!important;min-width:0!important;margin:0!important;padding:0!important;text-align:left!important}
+html body #anambroHeader:not(.header-editing) .brandTeacher{
+  display:block!important;margin:0!important;color:#17324d!important;font-weight:900!important;
+  font-size:clamp(10.5px,.78vw,14px)!important;line-height:1.08!important;
+  white-space:normal!important;overflow:visible!important;text-overflow:clip!important;text-align:left!important
+}
+html body #anambroHeader:not(.header-editing) .brandGeo{display:inline!important;color:#17324d!important}
+html body #anambroHeader:not(.header-editing) .brandProfessional{
+  display:block!important;margin-top:4px!important;color:#42627b!important;font-weight:700!important;
+  font-size:clamp(8px,.57vw,10.5px)!important;line-height:1.15!important;
+  white-space:normal!important;overflow:visible!important;max-height:none!important;text-align:left!important
+}
+
+/* ZONA 3 · identidad ANAMBRO */
+html body #anambroHeader:not(.header-editing)>.brandTitleTop,
+html body #anambroHeader:not(.header-editing)>.headerEditFrame>.brandTitleTop{
+  grid-area:title!important;position:static!important;transform:none!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;height:auto!important;min-width:0!important;min-height:0!important;
+  margin:0!important;padding:0 clamp(4px,.5vw,10px)!important;border:0!important;overflow:visible!important;box-sizing:border-box!important
+}
+html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{
+  display:block!important;position:static!important;transform:none!important;
+  width:min(100%,clamp(360px,34vw,620px))!important;height:clamp(62px,5vw,86px)!important;
+  max-width:100%!important;max-height:none!important;object-fit:contain!important;object-position:center!important;
+  margin:0 auto!important;border:0!important;box-shadow:none!important;font-size:0!important;color:transparent!important
+}
+html body #anambroHeader:not(.header-editing)>.brandCenter,
+html body #anambroHeader:not(.header-editing)>.headerEditFrame>.brandCenter{
+  grid-area:descriptor!important;position:static!important;transform:none!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;height:auto!important;min-width:0!important;margin:0!important;padding:0 4px 2px!important;
+  border:0!important;overflow:visible!important;box-sizing:border-box!important
+}
+html body #anambroHeader:not(.header-editing) .brandDescriptor{
+  display:block!important;width:100%!important;margin:0!important;color:#42627b!important;font-weight:800!important;
+  font-size:clamp(8.5px,.65vw,11.5px)!important;line-height:1.1!important;text-align:center!important;
+  white-space:normal!important;overflow:visible!important;text-overflow:clip!important
+}
+
+/* ZONA 4 · descripción funcional + controles */
+html body #anambroHeader:not(.header-editing)>.brandSideRight{
+  grid-area:right!important;position:static!important;transform:none!important;
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;
+  width:auto!important;height:auto!important;min-width:0!important;margin:0!important;padding:3px 0 3px clamp(7px,.7vw,12px)!important;
+  border:0!important;box-sizing:border-box!important;overflow:visible!important;gap:7px!important
+}
+html body #anambroHeader:not(.header-editing) .brandRoles{
+  display:block!important;position:static!important;transform:none!important;max-width:none!important;
+  margin:0!important;color:#3f5d70!important;font-weight:800!important;
+  font-size:clamp(7.5px,.55vw,10px)!important;line-height:1.2!important;text-align:left!important;
+  white-space:normal!important;overflow:visible!important
+}
+html body #anambroHeader:not(.header-editing) .brandActions{
+  display:grid!important;position:static!important;transform:none!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important;
+  width:100%!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important
+}
+html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{
+  display:flex!important;position:static!important;align-items:center!important;justify-content:center!important;
+  min-width:0!important;width:100%!important;max-width:none!important;height:auto!important;min-height:28px!important;
+  margin:0!important;padding:5px 6px!important;border-radius:999px!important;box-sizing:border-box!important;
+  font-size:clamp(7px,.48vw,9px)!important;line-height:1.08!important;font-weight:850!important;text-align:center!important;
+  white-space:normal!important;overflow:visible!important;text-overflow:clip!important
+}
+
+/* El resto de la interfaz siempre empieza debajo de la altura REAL de la cabecera. */
+body .toolbar{top:calc(var(--anambro-header-height,118px) + 8px)!important}
+body .leaflet-top.leaflet-left{top:var(--anambro-header-height,118px)!important}
+body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important}
+
+/* =====================================================
+   PORTÁTIL / TABLET HORIZONTAL (900–1199): 4 ZONAS
+   ===================================================== */
+@media (min-width:900px) and (max-width:1199px) and (orientation:landscape){
+  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
+    padding:5px 8px!important;
+    grid-template-columns:minmax(145px,.82fr) minmax(205px,1.12fr) minmax(285px,1.55fr) minmax(195px,1.08fr)!important;
+    grid-template-rows:minmax(62px,auto) auto!important;
+    grid-template-areas:
+      "institution author title right"
+      "institution author descriptor right"!important;
+    column-gap:8px!important;row-gap:1px!important;align-items:center!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{grid-template-columns:42px minmax(0,1fr)!important;gap:5px!important;padding-right:6px!important}
+  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{width:42px!important;height:42px!important}
+  html body #anambroHeader:not(.header-editing) .brandDept{font-size:7.7px!important;line-height:1.08!important;letter-spacing:0!important}
+  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:10px!important}
+  html body #anambroHeader:not(.header-editing) .brandVersion{font-size:6.4px!important;padding:2px 4px!important;margin-top:3px!important}
+  html body #anambroHeader:not(.header-editing) .brandAuthorV06{grid-template-columns:44px minmax(0,1fr)!important;gap:6px!important;padding-right:6px!important}
+  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{width:44px!important;height:44px!important;border-radius:10px!important}
+  html body #anambroHeader:not(.header-editing) .brandTeacher{font-size:9.2px!important;line-height:1.04!important}
+  html body #anambroHeader:not(.header-editing) .brandProfessional{font-size:6.9px!important;line-height:1.08!important;margin-top:2px!important}
+  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{width:100%!important;height:58px!important}
+  html body #anambroHeader:not(.header-editing) .brandDescriptor{font-size:7.7px!important;line-height:1.05!important}
+  html body #anambroHeader:not(.header-editing)>.brandSideRight{padding-left:6px!important;gap:4px!important}
+  html body #anambroHeader:not(.header-editing) .brandRoles{font-size:6.8px!important;line-height:1.1!important}
+  html body #anambroHeader:not(.header-editing) .brandActions{grid-template-columns:1fr 1fr!important;gap:3px!important}
+  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{font-size:6.8px!important;line-height:1.05!important;min-height:24px!important;padding:4px 3px!important}
+}
+
+/* =====================================================
+   TABLET VERTICAL (600–1199): 2 x 2 COMPACTO
+   ===================================================== */
+@media (min-width:600px) and (max-width:1199px) and (orientation:portrait){
+  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
+    padding:6px 9px!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-rows:auto auto auto!important;
+    grid-template-areas:
+      "institution author"
+      "title right"
+      "descriptor right"!important;
+    column-gap:10px!important;row-gap:4px!important;align-items:center!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandInstitutionV06,
+  html body #anambroHeader:not(.header-editing) .brandAuthorV06{border-right:0!important;border-bottom:1px solid rgba(45,80,105,.11)!important;padding:3px 5px 6px!important}
+  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{grid-template-columns:44px minmax(0,1fr)!important;gap:6px!important}
+  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{width:44px!important;height:44px!important}
+  html body #anambroHeader:not(.header-editing) .brandDept{font-size:8.5px!important;line-height:1.08!important;letter-spacing:0!important}
+  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:10.5px!important}
+  html body #anambroHeader:not(.header-editing) .brandVersion{font-size:6.9px!important;margin-top:3px!important;padding:2px 5px!important}
+  html body #anambroHeader:not(.header-editing) .brandAuthorV06{grid-template-columns:48px minmax(0,1fr)!important;gap:7px!important}
+  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{width:48px!important;height:48px!important}
+  html body #anambroHeader:not(.header-editing) .brandTeacher{font-size:9.8px!important;line-height:1.06!important}
+  html body #anambroHeader:not(.header-editing) .brandProfessional{font-size:7.3px!important;line-height:1.09!important;margin-top:2px!important}
+  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{width:min(100%,470px)!important;height:60px!important}
+  html body #anambroHeader:not(.header-editing) .brandDescriptor{font-size:8px!important;line-height:1.06!important}
+  html body #anambroHeader:not(.header-editing)>.brandSideRight{padding:5px 2px 3px 9px!important;border-left:1px solid rgba(45,80,105,.11)!important;gap:5px!important}
+  html body #anambroHeader:not(.header-editing) .brandRoles{font-size:7.4px!important;line-height:1.12!important}
+  html body #anambroHeader:not(.header-editing) .brandActions{grid-template-columns:1fr 1fr!important;gap:4px!important}
+  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{font-size:7.2px!important;min-height:25px!important;padding:4px!important}
+}
+
+/* =====================================================
+   TABLET PEQUEÑA / MÓVIL HORIZONTAL (600–899): 4 ZONAS
+   ===================================================== */
+@media (min-width:600px) and (max-width:899px) and (orientation:landscape){
+  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
+    padding:4px 6px!important;
+    grid-template-columns:minmax(112px,.8fr) minmax(160px,1.08fr) minmax(220px,1.5fr) minmax(155px,1.05fr)!important;
+    grid-template-rows:minmax(52px,auto) auto!important;
+    grid-template-areas:
+      "institution author title right"
+      "institution author descriptor right"!important;
+    column-gap:6px!important;row-gap:0!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{grid-template-columns:34px minmax(0,1fr)!important;gap:4px!important;padding-right:4px!important}
+  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{width:34px!important;height:34px!important}
+  html body #anambroHeader:not(.header-editing) .brandDept{font-size:6.5px!important;line-height:1.04!important;letter-spacing:0!important}
+  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:8px!important}
+  html body #anambroHeader:not(.header-editing) .brandVersion{font-size:5.7px!important;margin-top:2px!important;padding:2px 3px!important}
+  html body #anambroHeader:not(.header-editing) .brandAuthorV06{grid-template-columns:36px minmax(0,1fr)!important;gap:4px!important;padding-right:4px!important}
+  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{width:36px!important;height:36px!important;border-radius:8px!important}
+  html body #anambroHeader:not(.header-editing) .brandTeacher{font-size:7.7px!important;line-height:1.02!important}
+  html body #anambroHeader:not(.header-editing) .brandProfessional{font-size:5.8px!important;line-height:1.04!important;margin-top:1px!important}
+  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{width:100%!important;height:48px!important}
+  html body #anambroHeader:not(.header-editing) .brandDescriptor{font-size:6.4px!important;line-height:1!important}
+  html body #anambroHeader:not(.header-editing)>.brandSideRight{padding-left:4px!important;gap:2px!important}
+  html body #anambroHeader:not(.header-editing) .brandRoles{font-size:5.7px!important;line-height:1.05!important}
+  html body #anambroHeader:not(.header-editing) .brandActions{grid-template-columns:1fr 1fr!important;gap:2px!important}
+  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{font-size:5.8px!important;line-height:1!important;min-height:20px!important;padding:3px 2px!important}
+}
+
+/* =========================
+   MÓVIL <=599: VERTICAL
+   ========================= */
+@media (max-width:599px){
+  /* MÓVIL · parche exclusivo: 4 zonas visibles en una cabecera compacta */
+  html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
+    padding:4px 6px 5px!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-rows:auto auto auto auto!important;
+    grid-template-areas:
+      "title title"
+      "descriptor descriptor"
+      "institution author"
+      "right right"!important;
+    column-gap:6px!important;row-gap:2px!important;align-items:center!important;
+    min-height:0!important;height:auto!important
+  }
+  html body #anambroHeader:not(.header-editing)>.brandTitleTop,
+  html body #anambroHeader:not(.header-editing)>.headerEditFrame>.brandTitleTop{
+    padding:0 2px!important;min-height:0!important;height:auto!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{
+    width:min(100%,390px)!important;height:43px!important;max-height:43px!important
+  }
+  html body #anambroHeader:not(.header-editing)>.brandCenter,
+  html body #anambroHeader:not(.header-editing)>.headerEditFrame>.brandCenter{
+    padding:0 2px 2px!important;min-height:0!important;height:auto!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandDescriptor{
+    font-size:7.5px!important;line-height:1.04!important;white-space:normal!important
+  }
+
+  /* Zonas 1 y 2 comparten una sola fila: IES a la izquierda, autor a la derecha. */
+  html body #anambroHeader:not(.header-editing) .brandInstitutionV06,
+  html body #anambroHeader:not(.header-editing) .brandAuthorV06{
+    width:100%!important;height:auto!important;min-height:0!important;
+    margin:0!important;padding:3px 4px!important;border:0!important;
+    border-top:1px solid rgba(45,80,105,.10)!important;
+    align-self:stretch!important;box-sizing:border-box!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandInstitutionV06{
+    grid-template-columns:34px minmax(0,1fr)!important;gap:5px!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandInstituteLogoV06{
+    width:34px!important;height:34px!important;max-width:34px!important;max-height:34px!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandDept{
+    font-size:7.4px!important;line-height:1.04!important;letter-spacing:0!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandDept b{font-size:9.1px!important}
+  html body #anambroHeader:not(.header-editing) .brandVersion{
+    font-size:6.2px!important;line-height:1!important;margin-top:2px!important;padding:2px 4px!important;
+    white-space:normal!important
+  }
+
+  html body #anambroHeader:not(.header-editing) .brandAuthorV06{
+    grid-template-columns:38px minmax(0,1fr)!important;gap:5px!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandAuthorPortraitV06{
+    display:block!important;width:38px!important;height:38px!important;max-width:38px!important;max-height:38px!important;border-radius:8px!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandTeacher{
+    display:block!important;font-size:8.7px!important;line-height:1.03!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandProfessional{
+    display:block!important;font-size:6.5px!important;line-height:1.06!important;margin-top:1px!important
+  }
+
+  /* Zona 4: descripción y dos botones, sin tercera fila ni editor. */
+  html body #anambroHeader:not(.header-editing)>.brandSideRight,
+  html body #anambroHeader:not(.header-editing)>.headerEditFrame>.brandSideRight{
+    width:100%!important;height:auto!important;min-height:0!important;
+    padding:3px 3px 0!important;margin:0!important;border:0!important;
+    border-top:1px solid rgba(45,80,105,.10)!important;gap:3px!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandRoles{
+    display:block!important;font-size:6.9px!important;line-height:1.04!important;text-align:center!important;margin:0!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandActions{
+    display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important;margin:0!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandWelcomeBtn{
+    display:flex!important;min-height:23px!important;height:23px!important;
+    font-size:7.3px!important;line-height:1!important;padding:3px 4px!important;margin:0!important
+  }
+  html body #anambroHeader:not(.header-editing) .brandHeaderEditBtn{display:none!important}
+}
+
+
+/* Móvil muy estrecho: ligera compactación, sin ocultar contenido. */
+@media (max-width:380px){
+  html body #anambroHeader:not(.header-editing) .brandAnambroIntegratedLogo{height:49px!important}
+  html body #anambroHeader:not(.header-editing) .brandDept{font-size:9px!important}
+  html body #anambroHeader:not(.header-editing) .brandTeacher{font-size:10.2px!important}
+  html body #anambroHeader:not(.header-editing) .brandProfessional{font-size:7.7px!important}
+  html body #anambroHeader:not(.header-editing) .brandRoles{font-size:7.6px!important}
+}
+</style>
+<script id="anambro-header-public-lock-v016">
+(()=>{
+  try{localStorage.removeItem('anambro.header.layout.v10')}catch(_){ }
+  document.querySelectorAll('.brandHeaderEditBtn,#headerEditorBar,#headerEditorInspector,#headerEditorToast').forEach(el=>el.remove());
+  try{window.anambroHeaderEditor=undefined}catch(_){ }
+})();
+</script>
 <script id="anambro-header-height-runtime-v016">
 (()=>{
   const root=document.documentElement;
