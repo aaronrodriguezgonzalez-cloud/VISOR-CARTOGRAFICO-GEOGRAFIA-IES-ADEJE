@@ -14050,6 +14050,7 @@ html body .historyPopup .leaflet-popup-close-button{
  const frames=new Map();
  function toast(t){const e=document.getElementById('headerEditorToast');if(!e)return;e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1500)}
  function ensureFrames(){
+  if(window.innerWidth<=760)return;
   for(const [key,sel,label,type] of defs){let target=document.querySelector('.brandV06 '+sel);if(!target)continue;let f=target.closest('.headerEditFrame');if(!f){f=document.createElement('div');f.className='headerEditFrame '+(type==='text'?'textFrame ':type==='image'||type==='imagebox'?'mediaFrame ':type==='box'?'boxFrame ':'')+'headerFrame-'+key;f.dataset.key=key;f.dataset.label=label;f.dataset.type=type;target.parentNode.insertBefore(f,target);f.appendChild(target);target.classList.add('headerEditableTarget');if(type==='text'&&!target.dataset.headerOriginalHtml)target.dataset.headerOriginalHtml=target.innerHTML;for(const d of ['nw','n','ne','e','se','s','sw','w']){const h=document.createElement('i');h.className='headerResizeHandle';h.dataset.dir=d;f.appendChild(h)}}frames.set(key,f)}
  }
  function rectData(f){const b=brand().getBoundingClientRect(),r=f.getBoundingClientRect();return {left:Math.round(r.left-b.left),top:Math.round(r.top-b.top),width:Math.round(r.width),height:Math.round(r.height),z:+(f.style.zIndex||1)}}
@@ -16027,13 +16028,13 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   /* MÓVIL · parche exclusivo: 4 zonas visibles en una cabecera compacta */
   html body #anambroHeader.brand.brandWide.brandV06:not(.header-editing){
     padding:4px 6px 5px!important;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-columns:minmax(0,1fr)!important;
     grid-template-rows:auto auto auto auto!important;
     grid-template-areas:
-      "title title"
-      "descriptor descriptor"
-      "institution author"
-      "right right"!important;
+      "title"
+      "descriptor"
+      "left"
+      "right"!important;
     column-gap:6px!important;row-gap:2px!important;align-items:center!important;
     min-height:0!important;height:auto!important
   }
@@ -16052,12 +16053,25 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
     font-size:7.5px!important;line-height:1.04!important;white-space:normal!important
   }
 
-  /* Zonas 1 y 2 comparten una sola fila: IES a la izquierda, autor a la derecha. */
+  /* Zonas 1 y 2 comparten una sola fila real. La rejilla está en el contenedor izquierdo,
+     para no depender de display:contents ni de la estructura del editor histórico. */
+  html body #anambroHeader:not(.header-editing)>.brandSideLeft{
+    grid-area:left!important;display:grid!important;
+    grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)!important;
+    gap:6px!important;align-items:stretch!important;
+    width:100%!important;height:auto!important;min-height:0!important;
+    margin:0!important;padding:2px 0!important;border:0!important;
+    border-top:1px solid rgba(45,80,105,.10)!important;box-sizing:border-box!important
+  }
+  html body #anambroHeader:not(.header-editing)>.brandSideLeft>.brandInstitutionV06,
+  html body #anambroHeader:not(.header-editing)>.brandSideLeft>.brandAuthorV06{
+    grid-area:auto!important;min-width:0!important
+  }
   html body #anambroHeader:not(.header-editing) .brandInstitutionV06,
   html body #anambroHeader:not(.header-editing) .brandAuthorV06{
     width:100%!important;height:auto!important;min-height:0!important;
     margin:0!important;padding:3px 4px!important;border:0!important;
-    border-top:1px solid rgba(45,80,105,.10)!important;
+    border-top:0!important;
     align-self:stretch!important;box-sizing:border-box!important
   }
   html body #anambroHeader:not(.header-editing) .brandInstitutionV06{
