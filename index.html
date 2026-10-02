@@ -3020,7 +3020,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <div class="layerSubBlock atlasPanelBlock" id="istacAtlasBlock">
 <b>🏝️ Canarias · Atlas territorial ANAMBRO</b>
 <small class="atlasSearchHint">Datos oficiales del ISTAC · motor territorial multiescala. La geometría y el tratamiento cartográfico se adaptan al nivel territorial disponible.</small>
-<label><small><b>Nivel territorial</b></small><select id="istacLevelSelect"><option value="municipality">Municipios</option><option value="section">Secciones censales · 2025</option><option value="entity">Entidades de población · 2025</option><option value="nucleus">Núcleos de población · 2025</option></select></label>
+<label><small><b>Nivel territorial</b></small><select id="istacLevelSelect"><option value="municipality">Municipios</option><option value="section">Secciones censales · 2025</option><option value="entity">Entidades de población · datos 2025</option><option value="nucleus">Núcleos de población · datos 2025</option></select></label>
 <input id="istacIndicatorSearch" type="search" placeholder="Buscar: población, envejecimiento, turismo, empleo, renta…"/>
 <select id="istacIndicatorSelect"><option value="">Preparando catálogo ISTAC…</option></select>
 <div class="row" style="margin-top:5px"><select id="istacYearSelect"><option value="__latest__">Último disponible</option></select><button class="action" id="istacClearBtn" type="button">Quitar mapa</button></div>
@@ -14727,8 +14727,10 @@ html body .leaflet-popup-content{padding-top:5px}
  // respaldo. Los indicadores viajan por CSV, mucho más ligero que repetir toda la geometría.
  const ISTAC_SECTION_2025_GEO_LOCAL='data/istac/secciones_20250101_anambro.geojson';
  const ISTAC_SECTION_2025_GEO_GENERAL_URL='https://datos.canarias.es/catalogos/estadisticas/dataset/6323a1f0-58c9-4b79-bd51-162658977e6c/resource/d47337a5-2432-4d5c-ae22-4c2e116fd6e5/download/secciones_20250101_generalizada.json';
+ const ISTAC_SECTION_2025_GEO_FULL_URL='https://datos.canarias.es/catalogos/estadisticas/dataset/6323a1f0-58c9-4b79-bd51-162658977e6c/resource/a5af3757-82ea-4d4f-9bee-2b94251209fe/download/secciones_20250101.json';
  const ISTAC_SECTION_2025_DATA_CSV='https://datos.canarias.es/api/estadisticas/geographical-resources/indicadoresdemograficos/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Secciones-20250101&outputFormat=csv';
  const ISTAC_SECTION_2025_GEO_URL='https://datos.canarias.es/api/estadisticas/geographical-resources/indicadoresdemograficos/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Secciones-20250101&outputFormat=application/json';
+ const ISTAC_SECTION_GEOMETRY_REPAIR_CODE='3503401004';
  const ISTAC_TERRITORY_LEVELS={
   municipality:{id:'municipality',label:'Municipios',singular:'Municipio',plural:'municipios',periodLabel:'Último disponible por municipio',sourceLabel:'ISTAC · Municipios en Cifras (C00067A)',maxZoom:10},
   section:{id:'section',label:'Secciones censales · 2025',singular:'Sección censal',plural:'secciones censales',periodLabel:'01/01/2025',sourceLabel:'ISTAC · Indicadores demográficos. Secciones de Canarias · 01/01/2025',maxZoom:13}
@@ -15208,8 +15210,35 @@ html body .leaflet-popup-content{padding-top:5px}
   for(const f of geo.features){f.properties=f.properties||{};const c=istacSectionFeatureCode(f),nm=c?byCode.get(c):'';if(nm)f.properties.__istacSectionName=nm}
   return geo;
  }
+ function istacSectionFeatureGeometryUsable(f){
+  if(!f||istacSectionFeatureCode(f)!==ISTAC_SECTION_GEOMETRY_REPAIR_CODE||!f.geometry)return false;
+  const g=f.geometry,c=g.coordinates;
+  return (g.type==='Polygon'||g.type==='MultiPolygon')&&Array.isArray(c)&&c.length>0;
+ }
+ async function istacEnsureSectionGeometryRepair(geo){
+  if(!geo?.features?.length)return geo;
+  const ix=geo.features.findIndex(f=>istacSectionFeatureCode(f)===ISTAC_SECTION_GEOMETRY_REPAIR_CODE);
+  if(ix>=0&&istacSectionFeatureGeometryUsable(geo.features[ix]))return geo;
+  let replacement=null,lastErr=null;
+  const filtered=ISTAC_SECTION_2025_GEO_URL+'&CQL_FILTER='+encodeURIComponent("CUSEC='"+ISTAC_SECTION_GEOMETRY_REPAIR_CODE+"'");
+  for(const [url,label] of [[filtered,'WFS filtrado ISTAC'],[ISTAC_SECTION_2025_GEO_FULL_URL,'GeoJSON completo oficial ISTAC']]){
+   try{
+    const r=await fetch(url,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error(label+' '+r.status);
+    const j=await r.json();if(j?.type!=='FeatureCollection'||!Array.isArray(j.features))throw Error(label+' no es GeoJSON válido');
+    replacement=j.features.find(istacSectionFeatureGeometryUsable)||null;
+    if(replacement){
+     if(ix>=0)geo.features[ix]=replacement;else geo.features.push(replacement);
+     istacSectionGeoSource+=(istacSectionGeoSource?' + ':'')+'reparación geométrica '+ISTAC_SECTION_GEOMETRY_REPAIR_CODE;
+     return geo;
+    }
+    throw Error(label+' no contiene '+ISTAC_SECTION_GEOMETRY_REPAIR_CODE);
+   }catch(e){lastErr=e;console.warn('Atlas ISTAC · reparación sección '+ISTAC_SECTION_GEOMETRY_REPAIR_CODE+' · '+label,e)}
+  }
+  console.warn('Atlas ISTAC · no se pudo complementar la geometría de '+ISTAC_SECTION_GEOMETRY_REPAIR_CODE,lastErr);
+  return geo;
+ }
  async function loadIstacSectionGeo(){
-  if(istacSectionGeo)return istacSectionGeo;
+  if(istacSectionGeo)return istacEnsureSectionGeometryRepair(istacSectionGeo);
   const candidates=[];
   if(typeof location!=='undefined'&&location.protocol!=='file:')candidates.push([ISTAC_SECTION_2025_GEO_LOCAL,'GeoJSON ANAMBRO local']);
   candidates.push([ISTAC_SECTION_2025_GEO_GENERAL_URL,'GeoJSON generalizado oficial ISTAC']);
@@ -15219,7 +15248,7 @@ html body .leaflet-popup-content{padding-top:5px}
    try{
     const r=await fetch(url,{mode:url.startsWith('http')?'cors':'same-origin',cache:'force-cache'});if(!r.ok)throw Error(label+' '+r.status);
     const j=await r.json();if(j?.type!=='FeatureCollection'||!Array.isArray(j.features)||j.features.length<100)throw Error(label+' incompleto');
-    istacSectionGeo=j;istacSectionGeoSource=label;return j;
+    istacSectionGeo=j;istacSectionGeoSource=label;await istacEnsureSectionGeometryRepair(j);return j;
    }catch(e){lastErr=e;console.warn('Atlas ISTAC · secciones · '+label,e)}
   }
   throw lastErr||Error('No se pudo cargar la geometría de secciones censales');
@@ -16574,7 +16603,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   if(!levelSel.querySelector('option[value="nucleus"]'))levelSel.insertAdjacentHTML('beforeend','<option value="nucleus">Núcleos de población · 2025</option>');
  }
  const ISTAC_FINE_WFS='https://datos.canarias.es/api/estadisticas/geographical-resources/indicadoresdemograficos/ows';
- const fineGeoCache=new Map(),fineDataCache=new Map(),fineTypeCache=new Map(),fineSourceCache=new Map();
+ const fineGeoCache=new Map(),fineDataCache=new Map(),fineTypeCache=new Map(),fineSourceCache=new Map(),fineGeoErrorCache=new Map();
  const fineTypeFallbacks={
   entity:['Entidades-20250101','EntidadesSingulares-20250101','Entidades_Singulares-20250101','EntidadesPoblacion-20250101','Entidades_Poblacion-20250101'],
   nucleus:['Nucleos-20250101','Núcleos-20250101','NucleosPoblacion-20250101','Nucleos_Poblacion-20250101','NucleosYDiseminados-20250101']
@@ -16647,6 +16676,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  async function loadFineGeo(level=istacTerritoryLevel){
   if(level==='section')return loadOriginalSectionGeo();
   if(fineGeoCache.has(level))return fineGeoCache.get(level);
+  if(fineGeoErrorCache.has(level))throw fineGeoErrorCache.get(level);
   let lastErr=null;
   for(const type of await fineTypeCandidates(level)){
    try{
@@ -16655,7 +16685,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
     fineTypeCache.set(level,type);fineGeoCache.set(level,j);fineSourceCache.set(level,'WFS ISTAC · '+type);return j;
    }catch(e){lastErr=e;console.warn('Atlas ISTAC · '+level+' · geometría',type,e)}
   }
-  throw lastErr||Error('No se pudo cargar '+ISTAC_TERRITORY_LEVELS[level].label);
+  const err=lastErr||Error('No se pudo cargar '+ISTAC_TERRITORY_LEVELS[level].label);fineGeoErrorCache.set(level,err);throw err;
  }
  async function loadFineData(level=istacTerritoryLevel){
   if(level==='section')return loadOriginalSectionData();
@@ -16891,10 +16921,20 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 
  // Los límites municipales blancos son referencia, no heredan la opacidad de la coropleta.
  document.getElementById('istacOpacity')?.addEventListener('input',()=>{try{showMunicipalReference()}catch(_){}});
+
+ // Puente explícito: estas funciones viven dentro de este IIFE; el parche final necesita
+ // acceder a ellas sin duplicar el motor ni depender de variables fuera de alcance.
+ window.__anambroIstacFineBridge={loadFineGeo,loadFineData,fineCodeFromObject,fineNameFromObject,fineGeoCache,fineDataCache,fineTypeCache,fineSourceCache,fineGeoErrorCache,wfsUrl};
+ window.loadFineGeo=loadFineGeo;
+ window.loadFineData=loadFineData;
+ window.fineCodeFromObject=fineCodeFromObject;
+ window.fineNameFromObject=fineNameFromObject;
+ window.fineGeoCache=fineGeoCache;
+ window.fineDataCache=fineDataCache;
+ window.fineTypeCache=fineTypeCache;
+ window.fineSourceCache=fineSourceCache;
 })();
 </script>
-
-</body></html>
 
 <script id="anambro-istac-correccion-03-20261002">
 (function(){
@@ -16940,34 +16980,13 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   }catch(e){console.warn('ANAMBRO · '+level+' WMS',e)}
  }
 
- /* 3) Vector de entidades/núcleos: el parche anterior preguntaba al WFS de indicadores
-       demográficos (que NO contiene estas geometrías). Ahora se intenta CARTO_EST,
-       que es el servicio donde GRAFCAN publica realmente ENT2001 / NUC2001. */
- const GRAFCAN_CARTO_EST='https://idecan2.grafcan.es/ServicioWMS/CARTO_EST';
- function grafcanFineType(level){return level==='entity'?'ENT2001':level==='nucleus'?'NUC2001':''}
- function grafcanWfsUrl(type,format){return GRAFCAN_CARTO_EST+'?service=WFS&version=1.1.0&request=GetFeature&typeName='+encodeURIComponent(type)+'&srsName=EPSG:4326&outputFormat='+encodeURIComponent(format)}
-
- if(typeof loadFineGeo==='function'){
-  const prevLoadFineGeo=loadFineGeo;
-  loadFineGeo=async function(level=istacTerritoryLevel){
-   if(level!=='entity'&&level!=='nucleus')return prevLoadFineGeo(level);
-   if(typeof fineGeoCache!=='undefined'&&fineGeoCache.has(level))return fineGeoCache.get(level);
-   const type=grafcanFineType(level);let lastErr=null;
-   for(const url of [grafcanWfsUrl(type,'application/json'),grafcanWfsUrl(type,'json'),grafcanWfsUrl(type,'application/vnd.geo+json')]){
-    try{
-     const r=await fetch(url,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);
-     const j=await r.json();if(j?.type!=='FeatureCollection'||!Array.isArray(j.features)||j.features.length<10)throw Error('GeoJSON incompleto');
-     if(typeof fineTypeCache!=='undefined')fineTypeCache.set(level,type);
-     if(typeof fineGeoCache!=='undefined')fineGeoCache.set(level,j);
-     if(typeof fineSourceCache!=='undefined')fineSourceCache.set(level,'GRAFCAN · CARTO_EST · '+type);
-     return j;
-    }catch(e){lastErr=e}
-   }
-   // Conservamos la ruta anterior como último recurso, pero ya no es la primera opción.
-   try{return await prevLoadFineGeo(level)}catch(e){lastErr=e}
-   throw lastErr||Error('No se pudo obtener geometría vectorial para '+level);
-  };
- }
+ /* 3) Vector de entidades/núcleos.
+       CARTO_EST es un WMS: NO se vuelve a consultar ese URL como si fuera WFS.
+       Si el WFS geográfico del ISTAC publica una geometría vectorial reconocible, usamos
+       el cargador fino original expuesto por el puente del parche anterior. En caso contrario,
+       se mantienen visibles los límites oficiales GRAFCAN (ENT2001/NUC2001) como referencia. */
+ const fineBridge=window.__anambroIstacFineBridge||null;
+ if(fineBridge&&typeof window.loadFineGeo!=='function')window.loadFineGeo=fineBridge.loadFineGeo;
 
  /* 4) Código INE canónico de 11 dígitos para entidades/núcleos. */
  function unit11(v){
@@ -17052,7 +17071,12 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
    await loadUnits2025Decoded();
    istacCatalog=UNIT_CORE_INDICATORS.map(x=>({...x,category:'Demografía · '+istacTerritoryCfg().label,territoryLevel:istacTerritoryLevel,period:'2025',verified:true}));
    renderIstacCatalog();if(sel)sel.value='';
-   if(status)status.textContent=(geo?.features?.length?geo.features.length+' polígonos · ':'')+istacCatalog.length+' indicadores básicos · ISTAC 2025 · '+istacTerritoryCfg().label+'.';
+   if(status){
+    const vectorOk=!!geo?.features?.length;
+    status.textContent=vectorOk
+     ?geo.features.length+' polígonos vectoriales · '+istacCatalog.length+' indicadores básicos · ISTAC 2025 · '+istacTerritoryCfg().label+'.'
+     :'Límites oficiales GRAFCAN visibles ('+(istacTerritoryLevel==='entity'?'ENT2001':'NUC2001')+'). Datos ISTAC 2025 cargados; no se mezclan como coropleta hasta disponer de geometría vectorial enlazable.';
+   }
    return geo||{type:'FeatureCollection',features:[]};
   };
  }
@@ -17069,36 +17093,26 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
     istacAllRows=territorialRows;istacRows=territorialRows;istacMeta={name:item.name,raw:item,id:item.id,datasetUrl:ISTAC_UNITS_2025_JSONSTAT,territoryLevel:istacTerritoryLevel};istacChosenMeasure=item.id;istacSelectedYear='2025';
     const built=buildIstacLayer(geo,territorialRows);commitIstacRender(built);istacActiveItemId=id;showMunicipalWmsReference();
     if(status)status.textContent=item.name+' · '+built.matched+'/'+built.total+' '+istacTerritoryPlural()+' con datos · 2025.';
-   }catch(e){console.error('ANAMBRO · ISTAC unidades 2025',e);if(status)status.textContent='No se pudo representar '+item.name+': '+(e?.message||e)+'.';if(legend)legend.innerHTML='<small>'+esc(e?.message||'Error de carga')+'</small>';showFineWmsBoundary(istacTerritoryLevel);showMunicipalWmsReference()}
+   }catch(e){
+    console.error('ANAMBRO · ISTAC unidades 2025',e);
+    const wms=istacTerritoryLevel==='entity'?'ENT2001':'NUC2001';
+    if(status)status.textContent=item.name+' · datos ISTAC 2025 disponibles, pero no hay geometría vectorial enlazable en el servicio consultado. Se mantienen los límites GRAFCAN '+wms+' como referencia.';
+    if(legend)legend.innerHTML='<small><b>'+esc(item.name)+'</b><br>Datos: ISTAC 2025. Delimitación visible: GRAFCAN '+wms+' (2001). No se colorea la delimitación de 2001 como si fuera una geometría 2025.</small>';
+    showFineWmsBoundary(istacTerritoryLevel);showMunicipalWmsReference();
+   }
   };
  }
 
- /* 6) Sección 3503401004: conservar el polígono y distinguir ausencia de registro de un valor 0.
-       El WFS oficial devuelve 707 geometrías y 706 secciones con indicador: esta es la única sin fila.
-       Se representa como "sin población / no aplicable" en vez de dejar un agujero visual. */
- const ZERO_OR_EMPTY_SECTION='3503401004';
- function isCountLikeIstac(){
-  const n=norm(istacMeta?.name||''),k=String(istacChosenMeasure||istacMeta?.raw?.property||'').toLowerCase();
-  return !/%|media|mediana|indice|índice|ratio|tasa|edad media|edad mediana/.test(n+' '+k);
- }
- const prevBuildIstacJoin=typeof buildIstacJoin==='function'?buildIstacJoin:null;
- if(prevBuildIstacJoin){
-  buildIstacJoin=function(rows){
-   const base=prevBuildIstacJoin(rows);if(istacTerritoryLevel!=='section')return base;
-   const prev=base.rowForFeature;
-   base.rowForFeature=function(f){
-    const r=prev(f);if(r)return r;
-    const c=istacSectionFeatureCode(f);if(c===ZERO_OR_EMPTY_SECTION&&isCountLikeIstac())return {geoCode:c,geoLabel:'Sección '+c,period:'2025',timeLabel:'2025',measureCode:istacChosenMeasure||'',measureLabel:istacMeta?.name||'',value:0,__anambroZeroPopulation:true,tuple:{}};
-    return null;
-   };
-   return base;
-  };
- }
+ /* 6) Sección 3503401004.
+       La geometría se repara en el cargador de secciones. Si un indicador no trae fila
+       estadística para esta sección, ANAMBRO conserva el polígono y lo muestra como "Sin dato";
+       nunca convierte una ausencia de registro en un valor 0 inventado. */
+ const SECTION_WITH_GEOMETRY_REPAIR='3503401004';
  const prevPopup=typeof istacPopupHTML==='function'?istacPopupHTML:null;
  if(prevPopup){
   istacPopupHTML=function(f,row){
-   if(istacTerritoryLevel==='section'&&istacSectionFeatureCode(f)===ZERO_OR_EMPTY_SECTION&&row?.__anambroZeroPopulation){
-    return '<b>📊 Sección '+ZERO_OR_EMPTY_SECTION+'</b><br><b>'+esc(istacMeta?.name||'Indicador ISTAC')+':</b> 0<br><b>Año / periodo:</b> 2025<br><small>Sección sin registro demográfico en el recurso de indicadores; para variables de recuento se representa como 0 en lugar de dejar un hueco cartográfico.</small><br><small>'+esc(istacTerritoryCfg().sourceLabel)+'</small>';
+   if(istacTerritoryLevel==='section'&&istacSectionFeatureCode(f)===SECTION_WITH_GEOMETRY_REPAIR&&!row){
+    return '<b>📊 Sección '+SECTION_WITH_GEOMETRY_REPAIR+'</b><br><b>'+esc(istacMeta?.name||'Indicador ISTAC')+':</b> Sin dato<br><b>Año / periodo:</b> 2025<br><small>El polígono se conserva aunque este indicador no contenga una fila estadística para la sección.</small><br><small>'+esc(istacTerritoryCfg().sourceLabel)+'</small>';
    }
    return prevPopup(f,row);
   };
@@ -17122,3 +17136,6 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 
 })();
 </script>
+
+</body>
+</html>
