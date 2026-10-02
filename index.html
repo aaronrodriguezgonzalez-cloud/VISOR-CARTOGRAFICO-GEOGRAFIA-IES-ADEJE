@@ -14864,14 +14864,18 @@ html body .leaflet-popup-content{padding-top:5px}
   {id:'fine:65-plus',name:'Población · 65 años y más',category:'Demografía',kind:'age',min:65,max:Infinity,period:'2025'}
  ];
  let istacFineWmsLayer=null,istacMunicipalWhiteReference=null,istacFineDecoded=null,istacFineLoadToken=0;
+ let istacFineRasterLayer=null,istacFineRasterToken=0,istacFineRasterTimer=null;
+ let istacFineInfoCache=new Map(),istacFineLastRasterSnapshot=null;
  function istacFineLevel(){return istacTerritoryLevel==='entity'||istacTerritoryLevel==='nucleus'}
  function ensureIstacFinePanes(){
+  if(!map.getPane('istacFineRasterPane')){const p=map.createPane('istacFineRasterPane');p.style.zIndex='643';p.style.pointerEvents='none'}
   if(!map.getPane('istacFineWmsPane')){const p=map.createPane('istacFineWmsPane');p.style.zIndex='644';p.style.pointerEvents='none'}
   if(!map.getPane('istacMunicipalWhitePane')){const p=map.createPane('istacMunicipalWhitePane');p.style.zIndex='654';p.style.pointerEvents='none'}
  }
  function clearIstacFineWms(){if(istacFineWmsLayer){try{map.removeLayer(istacFineWmsLayer)}catch(_){}istacFineWmsLayer=null}}
+ function clearIstacFineRaster(){++istacFineRasterToken;if(istacFineRasterTimer){clearTimeout(istacFineRasterTimer);istacFineRasterTimer=null}if(istacFineRasterLayer){try{map.removeLayer(istacFineRasterLayer)}catch(_){}istacFineRasterLayer=null}istacFineLastRasterSnapshot=null}
  function clearIstacMunicipalWhite(){if(istacMunicipalWhiteReference){try{map.removeLayer(istacMunicipalWhiteReference)}catch(_){}istacMunicipalWhiteReference=null}}
- function clearIstacFineReferences(){clearIstacFineWms();clearIstacMunicipalWhite()}
+ function clearIstacFineReferences(){clearIstacFineRaster();clearIstacFineWms();clearIstacMunicipalWhite()}
  function showIstacFineWms(level=istacTerritoryLevel){
   clearIstacFineWms();
   const cfg=ISTAC_TERRITORY_LEVELS[level],layerName=cfg?.wmsLayer;if(!layerName)return null;
@@ -14931,6 +14935,131 @@ html body .leaflet-popup-content{padding-top:5px}
   }
   return [...sums].map(([code,value])=>({geoCode:code,geoLabel:labels.get(code)||code,period:'2025',timeLabel:'2025',measureCode:item.id,measureLabel:item.name,value,tuple:{}}));
  }
+
+
+ /* v0.18 · Coropleta raster para ENT2001/NUC2001.
+    CARTO_EST es WMS (imagen), no GeoJSON. Para poder colorear por los datos ISTAC
+    sin inventar geometrías, ANAMBRO segmenta la imagen de límites del viewport y
+    usa GetFeatureInfo de GRAFCAN para identificar cada recinto visible. */
+ function fineNameVariants(v){
+  const raw=String(v??'').trim();if(!raw)return [];
+  const out=new Set(),push=x=>{x=norm(String(x||'').replace(/\b(?:entidad|nucleo|núcleo)\s+(?:singular\s+)?(?:de\s+poblacion|de\s+población)?\b/gi,' ').replace(/\bdiseminado\b/gi,' ').replace(/\s+/g,' ').trim());if(x&&x.length>1)out.add(x)};
+  push(raw);for(const x of raw.split(/\s*(?:>|·|\/|\||;)\s*/))push(x);
+  for(const x of raw.split(/\s+-\s+|\s*,\s*/))push(x);
+  return [...out];
+ }
+ function fineBuildLookup(rows,level=istacTerritoryLevel){
+  const byCode=new Map(),byName=new Map(),codes=[];
+  for(const r of rows||[]){
+   const code=fineCanonicalCode(r.geoCode,level);if(code){byCode.set(code,r);codes.push([code,r])}
+   for(const n of fineNameVariants(r.geoLabel)){if(!byName.has(n))byName.set(n,[]);byName.get(n).push(r)}
+  }
+  return {byCode,byName,codes,rows:rows||[]};
+ }
+ function fineWmsSnapshot(level=istacTerritoryLevel){
+  const b=map.getBounds(),sz=map.getSize(),w=Math.max(64,Math.min(1800,Math.round(sz.x))),h=Math.max(64,Math.min(1200,Math.round(sz.y))),layer=level==='entity'?'ENT2001':'NUC2001';
+  return {level,layer,w,h,bounds:L.latLngBounds(b.getSouthWest(),b.getNorthEast()),west:b.getWest(),south:b.getSouth(),east:b.getEast(),north:b.getNorth()};
+ }
+ function fineWmsBaseParams(snap){return {SERVICE:'WMS',VERSION:'1.1.1',SRS:'EPSG:4326',BBOX:[snap.west,snap.south,snap.east,snap.north].join(','),WIDTH:String(snap.w),HEIGHT:String(snap.h),LAYERS:snap.layer,STYLES:''}}
+ function fineWmsGetMapUrl(snap){const p={...fineWmsBaseParams(snap),REQUEST:'GetMap',FORMAT:'image/png',TRANSPARENT:'TRUE'};return ISTAC_FINE_WMS_URL+new URLSearchParams(p).toString()}
+ function fineWmsInfoUrl(snap,x,y,format){const p={...fineWmsBaseParams(snap),REQUEST:'GetFeatureInfo',QUERY_LAYERS:snap.layer,INFO_FORMAT:format,FEATURE_COUNT:'5',X:String(Math.max(0,Math.min(snap.w-1,Math.round(x)))),Y:String(Math.max(0,Math.min(snap.h-1,Math.round(y))))};return ISTAC_FINE_WMS_URL+new URLSearchParams(p).toString()}
+ function fineFlatProps(obj,out={},prefix=''){
+  if(obj==null)return out;
+  if(Array.isArray(obj)){obj.slice(0,8).forEach((v,i)=>fineFlatProps(v,out,prefix+(prefix?'.':'')+i));return out}
+  if(typeof obj==='object'){for(const [k,v] of Object.entries(obj)){const key=prefix?prefix+'.'+k:k;if(v!=null&&typeof v==='object')fineFlatProps(v,out,key);else if(v!=null&&String(v).trim())out[key]=String(v).trim()}return out}
+  if(prefix)out[prefix]=String(obj).trim();return out;
+ }
+ function fineParseInfoText(txt,type=''){
+  txt=String(txt||'').trim();if(!txt)return null;
+  if(/json/i.test(type)||/^[\[{]/.test(txt)){
+   try{const j=JSON.parse(txt),f=j?.features?.[0]||j?.feature?.[0]||j?.results?.[0]||j;const props=f?.properties||f?.attributes||f;const o=fineFlatProps(props);if(Object.keys(o).length)return o}catch(_){ }
+  }
+  if(/html/i.test(type)||/<(?:html|table|tr|td|th)\b/i.test(txt)){
+   try{const d=new DOMParser().parseFromString(txt,'text/html'),o={};for(const tr of d.querySelectorAll('tr')){const c=[...tr.querySelectorAll('th,td')].map(x=>x.textContent.trim()).filter(Boolean);if(c.length>=2)o[c[0]]=c.slice(1).join(' · ')}if(Object.keys(o).length)return o;txt=d.body?.innerText||txt}catch(_){ }
+  }
+  if(/xml|gml/i.test(type)||/^<\?xml|<gml:/i.test(txt)){
+   try{const d=new DOMParser().parseFromString(txt,'application/xml'),o={};for(const el of d.querySelectorAll('*')){if(el.children.length)continue;const v=el.textContent?.trim();if(v)o[el.localName||el.nodeName]=v}if(Object.keys(o).length)return o}catch(_){ }
+  }
+  const o={};for(const line of txt.split(/\r?\n/)){const m=line.match(/^\s*([^:=\t]{1,80})\s*(?:=|:|\t)\s*(.*?)\s*$/);if(m&&m[2])o[m[1].trim()]=m[2].trim()}
+  if(Object.keys(o).length)return o;
+  return {'texto':txt.replace(/\s+/g,' ').slice(0,1200)};
+ }
+ async function fineGetFeatureInfo(snap,x,y){
+  const formats=['application/json','text/html','text/plain','application/vnd.ogc.gml'];let last=null;
+  for(const fmt of formats){
+   try{const r=await fetch(fineWmsInfoUrl(snap,x,y,fmt),{mode:'cors',cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const txt=await r.text();if(/ServiceException|ExceptionReport/i.test(txt))throw Error('formato '+fmt+' rechazado');const props=fineParseInfoText(txt,r.headers.get('content-type')||fmt);if(props&&Object.keys(props).length)return props}catch(e){last=e}
+  }
+  throw last||Error('GetFeatureInfo sin respuesta');
+ }
+ function fineHumanFromProps(props,rx){
+  const es=Object.entries(props||{});
+  for(const [k,v] of es){if(!rx.test(k))continue;const s=String(v||'').trim();if(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(s)&&!/^(?:35|38)?\d+$/.test(s))return s}
+  return '';
+ }
+ function fineResolveInfo(props,lookup,level=istacTerritoryLevel){
+  const entries=Object.entries(props||{}),canonical=[];
+  for(const [k,v] of entries){
+   const str=String(v||''),d=str.replace(/\D/g,'');
+   const c=fineCanonicalCode(str,level);if(c)canonical.push(c);
+   if(d.length>=11){for(let i=0;i<=d.length-11;i++){const t=d.slice(i,i+11);if(/^(35|38)\d{9}$/.test(t)){const q=fineCanonicalCode(t,level);if(q)canonical.push(q)}}}
+  }
+  for(const c of canonical){if(lookup.byCode.has(c)){const row=lookup.byCode.get(c);return {row,code:c,name:fineHumanFromProps(props,/nom|name|etiq|entidad|nucleo|núcleo/i)||row.geoLabel||c,municipality:fineHumanFromProps(props,/munic|nom.*mun|nmun/i),props}}}
+  // Si GRAFCAN expone por separado municipio/entidad/núcleo, reducir por segmentos INE.
+  let mun='',ent='',nuc='';
+  for(const [k,v] of entries){const d=String(v||'').replace(/\D/g,'');if(!d)continue;if(/mun|cmun|cumun/i.test(k)&&d.length>=3&&d.length<=5)mun=d.padStart(5,'0');if(/ent|cent/i.test(k)&&!/(name|nom|etiq)/i.test(k)&&d.length<=4)ent=d;if(/nuc|cnuc/i.test(k)&&!/(name|nom|etiq)/i.test(k)&&d.length<=4)nuc=d}
+  if(mun){let cand=lookup.codes.filter(([c])=>c.startsWith(mun));if(ent)cand=cand.filter(([c])=>c.slice(5,9).endsWith(ent.padStart(Math.min(4,ent.length),'0'))||c.slice(7,9)===ent.padStart(2,'0'));if(level==='nucleus'&&nuc)cand=cand.filter(([c])=>c.slice(9,11)===nuc.padStart(2,'0'));if(cand.length===1){const [code,row]=cand[0];return {row,code,name:fineHumanFromProps(props,/nom|name|etiq|entidad|nucleo|núcleo/i)||row.geoLabel||code,municipality:fineHumanFromProps(props,/munic|nom.*mun|nmun/i),props}}}
+  const names=[];for(const [k,v] of entries){if(!/nom|name|etiq|entidad|nucleo|núcleo|texto/i.test(k))continue;names.push(...fineNameVariants(v))}for(const n of names){const arr=lookup.byName.get(n);if(arr?.length===1){const row=arr[0],code=fineCanonicalCode(row.geoCode,level);return {row,code,name:fineHumanFromProps(props,/nom|name|etiq|entidad|nucleo|núcleo/i)||row.geoLabel||code,municipality:fineHumanFromProps(props,/munic|nom.*mun|nmun/i),props}}}
+  return {row:null,code:canonical[0]||'',name:fineHumanFromProps(props,/nom|name|etiq|entidad|nucleo|núcleo/i)||'',municipality:fineHumanFromProps(props,/munic|nom.*mun|nmun/i),props};
+ }
+ async function fineLoadBoundaryBitmap(snap){
+  const r=await fetch(fineWmsGetMapUrl(snap),{mode:'cors',cache:'no-store'});if(!r.ok)throw Error('GRAFCAN GetMap HTTP '+r.status);const blob=await r.blob();return await createImageBitmap(blob);
+ }
+ function fineSegmentBoundary(img,snap){
+  const c=document.createElement('canvas');c.width=snap.w;c.height=snap.h;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,snap.w,snap.h);ctx.drawImage(img,0,0,snap.w,snap.h);const dat=ctx.getImageData(0,0,snap.w,snap.h),n=snap.w*snap.h,mask=new Uint8Array(n),src=dat.data;
+  for(let i=0,p=0;i<n;i++,p+=4)if(src[p+3]>24)mask[i]=1;
+  // Engrosar un píxel para cerrar pequeños huecos del antialiasing del WMS.
+  const dil=new Uint8Array(mask);for(let y=1;y<snap.h-1;y++)for(let x=1;x<snap.w-1;x++){const i=y*snap.w+x;if(!mask[i])continue;dil[i-1]=dil[i+1]=dil[i-snap.w]=dil[i+snap.w]=1} 
+  const labels=new Int32Array(n),queue=new Int32Array(n);for(let i=0;i<n;i++)if(dil[i])labels[i]=-1;
+  const regions=[];let id=0;
+  for(let start=0;start<n;start++){
+   if(labels[start]!==0)continue;id++;let qh=0,qt=0;queue[qt++]=start;labels[start]=id;let area=0,sx=0,sy=0,touch=false,first=start;
+   while(qh<qt){const idx=queue[qh++],x=idx%snap.w,y=(idx/snap.w)|0;area++;sx+=x;sy+=y;if(x===0||y===0||x===snap.w-1||y===snap.h-1)touch=true;
+    if(x>0){const j=idx-1;if(labels[j]===0){labels[j]=id;queue[qt++]=j}}if(x<snap.w-1){const j=idx+1;if(labels[j]===0){labels[j]=id;queue[qt++]=j}}if(y>0){const j=idx-snap.w;if(labels[j]===0){labels[j]=id;queue[qt++]=j}}if(y<snap.h-1){const j=idx+snap.w;if(labels[j]===0){labels[j]=id;queue[qt++]=j}}
+   }
+   let cx=Math.max(0,Math.min(snap.w-1,Math.round(sx/area))),cy=Math.max(0,Math.min(snap.h-1,Math.round(sy/area))),ci=cy*snap.w+cx;if(labels[ci]!==id){ci=first;cx=ci%snap.w;cy=(ci/snap.w)|0}
+   regions.push({id,area,touch,cx,cy});
+  }
+  return {labels,regions,canvas:c};
+ }
+ function fineColorRGBA(hex,a){const h=hex.replace('#',''),v=parseInt(h.length===3?h.split('').map(x=>x+x).join(''):h,16);return [(v>>16)&255,(v>>8)&255,v&255,Math.round(255*a)]}
+ function updateIstacFineLegend(breaks,matched,total,item){
+  const legend=document.getElementById('istacLegend');if(!legend)return;if(!breaks?.length){legend.innerHTML='<b>'+esc(item?.name||'Indicador ISTAC')+'</b><br><small>Datos ISTAC 2025 cargados, pero no se pudieron enlazar recintos visibles.</small>';return}
+  const lines=[];for(let i=0;i<5;i++){const lo=breaks[i],hi=breaks[i+1],label=i===0?'Menos de '+istacFmt(hi):i===4?'Más de '+istacFmt(breaks[4]):istacFmt(lo)+' – '+istacFmt(hi);lines.push('<div class="istacLegendItem"><span class="istacLegendSw" style="background:'+ISTAC_COL[i]+'"></span>'+label+'</div>')}
+  legend.innerHTML='<b>'+esc(item?.name||'Indicador ISTAC')+'</b><br><small>2025 · ISTAC · '+esc(istacTerritoryCfg().label)+'</small>'+lines.join('')+'<small style="display:block;margin-top:4px">'+matched+'/'+total+' recintos visibles enlazados · límites GRAFCAN '+esc(istacTerritoryCfg().wmsLayer)+'.</small>';
+ }
+ async function renderIstacFineChoropleth(item,rows=istacRows){
+  if(!istacFineLevel()||!rows?.length)return null;ensureIstacFinePanes();const token=++istacFineRasterToken,snap=fineWmsSnapshot(),lookup=fineBuildLookup(rows,snap.level),vals=rows.map(r=>+r.value).filter(Number.isFinite),breaks=istacBreaks(vals);if(!breaks.length)throw Error('ISTAC no devolvió valores numéricos para '+item.name);
+  const bitmap=await fineLoadBoundaryBitmap(snap);if(token!==istacFineRasterToken||snap.level!==istacTerritoryLevel)return null;const seg=fineSegmentBoundary(bitmap,snap);try{bitmap.close?.()}catch(_){ }
+  const largest=[...seg.regions].sort((a,b)=>b.area-a.area)[0]?.id||-1,minArea=Math.max(14,Math.round((snap.w*snap.h)/250000)),candidates=seg.regions.filter(r=>r.id!==largest&&r.area>=minArea&&r.area<snap.w*snap.h*.42).sort((a,b)=>b.area-a.area).slice(0,320);
+  const resolved=new Map();let cursor=0;
+  async function worker(){while(cursor<candidates.length){const r=candidates[cursor++];if(token!==istacFineRasterToken)return;try{const props=await fineGetFeatureInfo(snap,r.cx,r.cy),info=fineResolveInfo(props,lookup,snap.level);resolved.set(r.id,info);if(info.code||info.name)istacFineInfoCache.set(snap.level+'|'+(info.code||norm(info.name)),info)}catch(_){resolved.set(r.id,null)}}}
+  await Promise.all(Array.from({length:Math.min(8,candidates.length||1)},()=>worker()));if(token!==istacFineRasterToken||snap.level!==istacTerritoryLevel)return null;
+  const out=document.createElement('canvas');out.width=snap.w;out.height=snap.h;const ctx=out.getContext('2d'),im=ctx.createImageData(snap.w,snap.h),od=im.data,classes=new Int8Array(seg.regions.length+1);classes.fill(-2);let matched=0;
+  for(const r of candidates){const info=resolved.get(r.id),row=info?.row,cl=istacClass(row?.value,breaks);classes[r.id]=cl;if(cl>=0)matched++}
+  const op=+(document.getElementById('istacOpacity')?.value||.72),cols=ISTAC_COL.map(c=>fineColorRGBA(c,op)),nodata=fineColorRGBA('#c7cbcf',.16);
+  for(let i=0,p=0;i<seg.labels.length;i++,p+=4){const id=seg.labels[i];if(id<=0)continue;const cl=classes[id];if(cl===-2)continue;const c=cl>=0?cols[cl]:nodata;od[p]=c[0];od[p+1]=c[1];od[p+2]=c[2];od[p+3]=c[3]}
+  ctx.putImageData(im,0,0);const url=out.toDataURL('image/png');if(istacFineRasterLayer){try{map.removeLayer(istacFineRasterLayer)}catch(_){} }istacFineRasterLayer=L.imageOverlay(url,snap.bounds,{pane:'istacFineRasterPane',opacity:1,interactive:false}).addTo(map);try{istacFineWmsLayer?.bringToFront?.();istacMunicipalWhiteReference?.bringToFront?.()}catch(_){ }
+  istacFineLastRasterSnapshot={snap,lookup,breaks,item,matched,total:candidates.length};updateIstacFineLegend(breaks,matched,candidates.length,item);return istacFineLastRasterSnapshot;
+ }
+ function scheduleIstacFineRaster(){if(!istacFineLevel()||!istacRows?.length||!istacActiveItemId)return;if(istacFineRasterTimer)clearTimeout(istacFineRasterTimer);istacFineRasterTimer=setTimeout(()=>{const item=istacCatalog.find(x=>x.id===istacActiveItemId)||{name:istacMeta?.name||'Indicador ISTAC'};renderIstacFineChoropleth(item,istacRows).catch(e=>console.warn('Atlas ISTAC · coropleta fina',e))},260)}
+ function fineInfoPopupHTML(info){
+  const row=info?.row,name=info?.name||row?.geoLabel||info?.code||istacTerritorySingular(),mun=info?.municipality||'';let h='<b>📍 '+esc(name)+'</b><br><b>Unidad:</b> '+esc(istacTerritorySingular());if(info?.code)h+='<br><b>Código:</b> '+esc(info.code);if(mun&&norm(mun)!==norm(name))h+='<br><b>Municipio:</b> '+esc(mun);if(istacMeta?.name)h+='<br><b>'+esc(istacMeta.name)+':</b> '+istacFmt(row?.value);if(row?.period)h+='<br><b>Año:</b> '+esc(row.period);if(!row&&istacMeta?.name)h+='<br><small>Sin dato ISTAC enlazado para este recinto.</small>';h+='<br><small>Delimitación: GRAFCAN '+esc(istacTerritoryCfg().wmsLayer)+' · Datos: ISTAC 2025</small>';return h;
+ }
+ async function finePopupAt(latlng){
+  if(!istacFineLevel())return;const snap=fineWmsSnapshot(),pt=map.latLngToContainerPoint(latlng),lookup=fineBuildLookup(istacRows||[],snap.level);try{const props=await fineGetFeatureInfo(snap,pt.x,pt.y),info=fineResolveInfo(props,lookup,snap.level);if(!(info.name||info.code||info.row))return;L.popup({maxWidth:420}).setLatLng(latlng).setContent(fineInfoPopupHTML(info)).openOn(map)}catch(e){console.warn('Atlas ISTAC · identificación GRAFCAN',e)}
+ }
+ if(!window.__anambroIstacFineClickBound){window.__anambroIstacFineClickBound=true;map.on('click',e=>{if(istacFineLevel())finePopupAt(e.latlng)})}
+ if(!window.__anambroIstacFineMoveBound){window.__anambroIstacFineMoveBound=true;map.on('moveend zoomend',()=>scheduleIstacFineRaster())}
  async function loadIstacFineIndicator(id){
   const status=document.getElementById('istacStatus'),legend=document.getElementById('istacLegend'),sel=document.getElementById('istacIndicatorSelect');
   const item=istacCatalog.find(x=>x.id===id);if(!item)return;
@@ -14939,12 +15068,13 @@ html body .leaflet-popup-content{padding-top:5px}
   showIstacFineWms();try{await showIstacMunicipalWhite()}catch(e){console.warn('Atlas ISTAC · municipios blancos',e)}
   try{
    const decoded=await loadIstacFineDecoded();if(token!==istacFineLoadToken||!istacFineLevel())return;
-   const rows=aggregateIstacFineRows(decoded,item);
+   const rows=aggregateIstacFineRows(decoded,item);if(!rows.length)throw Error('el cubo ISTAC 2025 no devolvió unidades compatibles con '+istacTerritoryCfg().label);
    istacAllRows=decoded.rows;istacRows=rows;istacMeta={name:item.name,raw:item,id:item.id,datasetUrl:ISTAC_FINE_DATA_URL,territoryLevel:istacTerritoryLevel};istacChosenMeasure=item.id;istacSelectedYear='2025';istacActiveItemId=id;
    const ys=document.getElementById('istacYearSelect');if(ys){ys.innerHTML='<option value="2025">2025</option>';ys.value='2025';ys.disabled=true}
    if(sel)sel.value=id;
-   if(status)status.textContent=item.name+' · '+rows.length+' '+istacTerritoryPlural()+' con dato ISTAC 2025 · delimitación GRAFCAN '+istacTerritoryCfg().wmsLayer+' mantenida.';
-   if(legend)legend.innerHTML='<small><b>'+esc(item.name)+'</b> · ISTAC 2025.<br>Delimitación visible: GRAFCAN '+esc(istacTerritoryCfg().wmsLayer)+'.<br>Límites municipales: blanco.</small>';
+   if(status)status.textContent=item.name+' · datos ISTAC 2025 cargados · construyendo coropleta sobre '+istacTerritoryCfg().wmsLayer+'…';
+   try{const rr=await renderIstacFineChoropleth(item,rows);if(token!==istacFineLoadToken||!istacFineLevel())return;if(status&&rr)status.textContent=item.name+' · '+rr.matched+'/'+rr.total+' recintos visibles enlazados · ISTAC 2025 · GRAFCAN '+istacTerritoryCfg().wmsLayer+'.';}
+   catch(re){console.error('Atlas ISTAC · coropleta fina',re);if(status)status.textContent=item.name+' · '+rows.length+' unidades ISTAC cargadas, pero no se pudo colorear la delimitación GRAFCAN: '+(re?.message||re)+'.';if(legend)legend.innerHTML='<small><b>'+esc(item.name)+'</b> · datos ISTAC 2025 cargados.<br>No se pudo generar la coropleta sobre '+esc(istacTerritoryCfg().wmsLayer)+': '+esc(re?.message||re)+'.</small>'}
   }catch(e){
    console.error('Atlas ISTAC · nivel fino',e);if(sel)sel.value=id;
    if(status)status.textContent='No se pudieron cargar los datos de '+item.name+': '+(e?.message||e)+'. La delimitación '+istacTerritoryCfg().wmsLayer+' permanece visible.';
@@ -15380,6 +15510,8 @@ html body .leaflet-popup-content{padding-top:5px}
   try{
    if(level==='section'){
     const geo=await loadIstacSectionCatalog();showIstacBoundary(geo);
+    // La referencia municipal blanca debe estar también sobre las secciones censales.
+    try{await showIstacMunicipalWhite()}catch(e){console.warn('Atlas ISTAC · municipios blancos sobre secciones',e)}
    }else if(level==='entity'||level==='nucleus'){
     // Primero dibujar, SIN esperar a los datos: al seleccionar debe verse inmediatamente.
     showIstacFineWms(level);
@@ -15887,9 +16019,9 @@ html body .leaflet-popup-content{padding-top:5px}
   box.querySelector('#istacYearSelect')?.addEventListener('change',e=>{istacSelectedYear=e.target.value||'__latest__';try{renderLoadedIstac()}catch(err){console.error(err);const s=box.querySelector('#istacStatus');if(s)s.textContent='No se pudo representar este periodo: '+(err?.message||err)}});
   box.querySelector('#istacLatestBtn')?.addEventListener('click',()=>{if(istacTerritoryLevel==='section')return;istacSelectedYear='__latest__';const y=box.querySelector('#istacYearSelect');if(y)y.value='__latest__';try{renderLoadedIstac()}catch(err){console.error(err)}});
   box.querySelector('#istacLabelsCheck')?.addEventListener('change',renderIstacLabels);
-  box.querySelector('#istacOpacity')?.addEventListener('input',e=>{const v=+e.target.value,o=box.querySelector('#istacOpacityValue');if(o)o.textContent=Math.round(v*100)+' %';if(istacLayer)istacLayer.eachLayer(l=>{if(l.setStyle)l.setStyle({fillOpacity:l.__istacHasData?v:.18})})});
+  box.querySelector('#istacOpacity')?.addEventListener('input',e=>{const v=+e.target.value,o=box.querySelector('#istacOpacityValue');if(o)o.textContent=Math.round(v*100)+' %';if(istacLayer)istacLayer.eachLayer(l=>{if(l.setStyle)l.setStyle({fillOpacity:l.__istacHasData?v:.18})});if(istacFineLevel()&&istacRows?.length)scheduleIstacFineRaster()});
   box.querySelector('#istacClearBtn')?.addEventListener('click',clearIstacAtlas);
-  box.querySelector('#istacReloadBtn')?.addEventListener('click',()=>istacTerritoryLevel==='section'?loadIstacSectionCatalog():istacFineLevel()?(showIstacFineWms(),showIstacMunicipalWhite(),loadIstacFineCatalog()):loadIstacCatalog());
+  box.querySelector('#istacReloadBtn')?.addEventListener('click',()=>istacTerritoryLevel==='section'?(loadIstacSectionCatalog().then(g=>{showIstacBoundary(g);return showIstacMunicipalWhite()}).catch(e=>console.warn('Atlas ISTAC · recarga secciones',e))):istacFineLevel()?(showIstacFineWms(),showIstacMunicipalWhite(),loadIstacFineCatalog()):loadIstacCatalog());
   istacApplyLevelUI();istacCatalog=mergeIstacCatalog();renderIstacCatalog();loadIstacCatalog();
  }
 
