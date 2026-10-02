@@ -17375,6 +17375,236 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  const prevClear3=typeof clearIstacAtlas==='function'?clearIstacAtlas:null;
  if(prevClear3){clearIstacAtlas=function(){clearFineWmsBoundary();clearMunicipalWmsReference();return prevClear3()}}
 
+
+ /* ============================================================
+    v0.19 · CLASIFICACIÓN TERRITORIAL OFICIAL ISTAC 2025
+    Entidades / núcleos: el cubo E30243A_000022 usa la clasificación
+    CL_AREA_ES70_EN_20250101. No se fuerzan ya códigos INE de 11 dígitos.
+    ============================================================ */
+ const ISTAC_FINE_CLASS_2025_URL='https://datos.canarias.es/api/estadisticas/structural-resources/v1.0/codelists/ISTAC/CL_AREA_ES70_EN_20250101/01.000/codes.json?fields=+description';
+ let istacFineClass2025=null,istacFineClass2025Promise=null;
+
+ function fineClassRefId(v){
+  if(v==null)return '';
+  if(typeof v==='object'){
+   const x=v.id??v.code??v.value??v.urn??v.href??v.selfLink?.href??v.selfLink??'';
+   return fineClassRefId(x);
+  }
+  let s=String(v).trim();if(!s)return '';
+  try{s=decodeURIComponent(s)}catch(_){ }
+  const urn=s.match(/CL_AREA_ES70_EN_20250101\([^)]*\)\.([^\s?#]+)/i);if(urn)return urn[1];
+  const url=s.match(/\/codes\/([^/?#]+)(?:[/?#]|$)/i);if(url)return url[1];
+  return s.replace(/^.*\)\./,'').replace(/^.*\/codes\//,'').trim();
+ }
+ function fineClassParentId(o){
+  const p=o?.parent??o?.parentCode??o?.parentId??o?.visualisationParent??o?.visualizationParent??o?.hierarchyParent??o?.parentRef??'';
+  return fineClassRefId(p?.urn??p?.id??p?.code??p?.href??p);
+ }
+ function fineClassNameOf(o){return istacText(o?.name??o?.label??o?.title??o?.description??o?.id??'').trim()}
+ function fineCollectClassObjects(payload){
+  const out=[],seen=new Set();
+  function walk(v){
+   if(!v||typeof v!=='object'||seen.has(v))return;seen.add(v);
+   if(Array.isArray(v)){for(const x of v)walk(x);return}
+   const id=fineClassRefId(v.id??v.code??'');
+   const urn=String(v.urn??v.selfLink?.href??v.selfLink??'');
+   if(id&&(v.name!==undefined||v.parent!==undefined||v.parentCode!==undefined||/CL_AREA_ES70_EN_20250101/i.test(urn)))out.push(v);
+   for(const x of Object.values(v))if(x&&typeof x==='object')walk(x);
+  }
+  walk(payload);return out;
+ }
+ function fineMunicipalityId(v){const s=String(v??'').trim(),d=s.replace(/\D/g,'');if(/^(35|38)\d{3}$/.test(d))return d;const m=s.match(/(?:^|[_\-.])((?:35|38)\d{3})(?:$|[_\-.])/);if(m)return m[1];const m2=d.match(/((?:35|38)\d{3})$/);return m2?m2[1]:''}
+ function fineClassLevelOf(rec,byId){
+  if(!rec)return '';
+  const p=byId.get(rec.parentId||''),gp=p?byId.get(p.parentId||''):null;
+  if(p&&fineMunicipalityId(p.id))return 'entity';
+  if(gp&&fineMunicipalityId(gp.id))return 'nucleus';
+  const id=String(rec.id||'');
+  if(/(?:^|_)E\d+(?:$|_)/i.test(id)&&/(?:^|_)N\d+(?:$|_)/i.test(id))return 'nucleus';
+  if(/(?:^|_)E\d+(?:$|_)/i.test(id))return 'entity';
+  return '';
+ }
+ function fineClassAncestors(rec,cls){
+  const out=[];let cur=rec,guard=0;
+  while(cur&&cur.parentId&&guard++<10){cur=cls.byId.get(cur.parentId);if(!cur)break;out.push(cur)}
+  return out;
+ }
+ function fineClassMunicipality(rec,cls){
+  for(const a of fineClassAncestors(rec,cls)){if(fineMunicipalityId(a.id))return a}
+  return null;
+ }
+ function fineClassEntity(rec,cls){
+  if(!rec)return null;
+  if(rec.level==='entity')return rec;
+  for(const a of fineClassAncestors(rec,cls)){if(a.level==='entity')return a}
+  return null;
+ }
+ async function loadIstacFineClassification2025(){
+  if(istacFineClass2025)return istacFineClass2025;
+  if(istacFineClass2025Promise)return istacFineClass2025Promise;
+  istacFineClass2025Promise=(async()=>{
+   const r=await fetch(ISTAC_FINE_CLASS_2025_URL,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('clasificación ISTAC 2025 · HTTP '+r.status);
+   const payload=await r.json(),objs=fineCollectClassObjects(payload),byId=new Map();
+   for(const o of objs){
+    const id=fineClassRefId(o.id??o.code??o.urn??o.selfLink?.href);if(!id||byId.has(id))continue;
+    byId.set(id,{id,name:fineClassNameOf(o)||id,parentId:fineClassParentId(o),raw:o,level:''});
+   }
+   for(const rec of byId.values())rec.level=fineClassLevelOf(rec,byId);
+   const byName={entity:new Map(),nucleus:new Map()};
+   for(const rec of byId.values()){
+    if(rec.level!=='entity'&&rec.level!=='nucleus')continue;
+    const mun=fineClassMunicipality(rec,{byId})?.name||'',ent=fineClassEntity(rec,{byId})?.name||'';
+    rec.municipality=mun;rec.entity=ent;
+    for(const n of fineNameVariants(rec.name)){
+     const arr=byName[rec.level].get(n)||[];arr.push(rec);byName[rec.level].set(n,arr);
+    }
+   }
+   const counts={entity:[...byId.values()].filter(x=>x.level==='entity').length,nucleus:[...byId.values()].filter(x=>x.level==='nucleus').length};
+   if(!counts.entity||!counts.nucleus)throw Error('la clasificación ISTAC 2025 no pudo reconstruir los niveles Entidad/Núcleo');
+   return istacFineClass2025={byId,byName,counts};
+  })().catch(e=>{istacFineClass2025Promise=null;throw e});
+  return istacFineClass2025Promise;
+ }
+ function fineClassRecordForRow(row,cls){
+  if(!row||!cls)return null;
+  const ids=[row.geoCode,row?.tuple?.GEOGRAPHICAL?.code,row?.tuple?.geographical?.code].map(fineClassRefId).filter(Boolean);
+  for(const id of ids){const r=cls.byId.get(id);if(r)return r}
+  const names=fineNameVariants(row.geoLabel||'');
+  for(const n of names){
+   const a=[...(cls.byName.entity.get(n)||[]),...(cls.byName.nucleus.get(n)||[])];if(a.length===1)return a[0];
+  }
+  return null;
+ }
+ function aggregateIstacFineRowsClassified(decoded,item,level,cls){
+  const source=decoded?.rows||[],has2025=source.some(r=>String(r.period||'').includes('2025')||String(r.timeLabel||'').includes('2025'));
+  const sums=new Map(),meta=new Map();
+  for(const r of source){
+   if(has2025&&!(String(r.period||'').includes('2025')||String(r.timeLabel||'').includes('2025')))continue;
+   if(!fineRowMatchesKind(r,item))continue;
+   const rec=fineClassRecordForRow(r,cls);if(!rec||rec.level!==level)continue;
+   const val=Number(r.value);if(!Number.isFinite(val))continue;
+   sums.set(rec.id,(sums.get(rec.id)||0)+val);
+   if(!meta.has(rec.id)){
+    const mun=fineClassMunicipality(rec,cls),ent=fineClassEntity(rec,cls);
+    meta.set(rec.id,{rec,municipality:mun?.name||'',municipalityCode:mun?.id||'',entity:ent?.name||''});
+   }
+  }
+  return [...sums].map(([code,value])=>{
+   const m=meta.get(code)||{},rec=m.rec||cls.byId.get(code);
+   return {geoCode:code,geoLabel:rec?.name||code,period:'2025',timeLabel:'2025',measureCode:item.id,measureLabel:item.name,value,tuple:{},__fineClassId:code,__fineMunicipality:m.municipality||'',__fineMunicipalityCode:m.municipalityCode||'',__fineEntity:m.entity||''};
+  });
+ }
+ function fineCleanPlace(v){return norm(String(v||'').replace(/\b(?:entidad\s+singular|entidad|nucleo|núcleo|de\s+poblacion|de\s+población|diseminado)\b/gi,' ').replace(/[()\[\]{}]/g,' ').replace(/\s+/g,' ').trim())}
+ function finePropStrings(props,rx){
+  const out=[];
+  for(const [k,v] of Object.entries(props||{})){
+   if(rx&&!rx.test(String(k)))continue;
+   const s=String(v??'').trim();if(!s||s.length>220||/^(?:https?:|urn:)/i.test(s)||!/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(s))continue;
+   out.push(s);
+  }
+  return out;
+ }
+ function fineUniqueRows(arr){const seen=new Set(),out=[];for(const r of arr||[]){const k=String(r?.geoCode||r?.__fineClassId||r?.id||'');if(!k||seen.has(k))continue;seen.add(k);out.push(r)}return out}
+ const fineBuildLookupPreClass=fineBuildLookup;
+ fineBuildLookup=function(rows,level=istacTerritoryLevel){
+  const base=fineBuildLookupPreClass(rows,level),byRawCode=new Map(),byNameMun=new Map(),byNameEntity=new Map();
+  for(const r of rows||[]){
+   const id=fineClassRefId(r.__fineClassId||r.geoCode);if(id)byRawCode.set(id,r);
+   const mun=fineCleanPlace(r.__fineMunicipality||''),ent=fineCleanPlace(r.__fineEntity||'');
+   for(const n0 of fineNameVariants(r.geoLabel)){const n=fineCleanPlace(n0);if(!n)continue;
+    if(mun){const k=n+'|'+mun,a=byNameMun.get(k)||[];a.push(r);byNameMun.set(k,a)}
+    if(ent){const k=n+'|'+ent,a=byNameEntity.get(k)||[];a.push(r);byNameEntity.set(k,a)}
+   }
+  }
+  return {...base,byRawCode,byNameMun,byNameEntity,class2025:istacFineClass2025};
+ };
+ const fineResolveInfoPreClass=fineResolveInfo;
+ fineResolveInfo=function(props,lookup,level=istacTerritoryLevel){
+  const cls=istacFineClass2025,entries=Object.entries(props||{});
+  // 1) Código oficial de la clasificación, si GRAFCAN lo expone.
+  if(cls){
+   for(const [,v] of entries){const id=fineClassRefId(v),rec=cls.byId.get(id);if(rec?.level===level){const row=lookup?.byRawCode?.get(rec.id)||null,mun=fineClassMunicipality(rec,cls);return {row,code:rec.id,name:rec.name,municipality:mun?.name||'',props,classRec:rec}}}
+  }
+  // 2) Nombre del recinto + municipio/entidad para desambiguar homónimos.
+  const specificRx=level==='entity'?/(entidad|nom.*ent|nombre.*ent|etiq|denom|name|nombre)/i:/(nucleo|núcleo|nom.*nuc|nombre.*nuc|etiq|denom|name|nombre)/i;
+  const names=finePropStrings(props,specificRx).flatMap(fineNameVariants).map(fineCleanPlace).filter(Boolean);
+  const munNames=finePropStrings(props,/(municip|nmun|nom.*mun|nombre.*mun)/i).flatMap(fineNameVariants).map(fineCleanPlace).filter(Boolean);
+  const entNames=level==='nucleus'?finePropStrings(props,/(entidad|nom.*ent|nombre.*ent)/i).flatMap(fineNameVariants).map(fineCleanPlace).filter(Boolean):[];
+  for(const n of names){
+   for(const m of munNames){const a=fineUniqueRows(lookup?.byNameMun?.get(n+'|'+m));if(a.length===1){const row=a[0];return {row,code:row.geoCode,name:row.geoLabel,municipality:row.__fineMunicipality||m,props}}}
+   for(const e of entNames){const a=fineUniqueRows(lookup?.byNameEntity?.get(n+'|'+e));if(a.length===1){const row=a[0];return {row,code:row.geoCode,name:row.geoLabel,municipality:row.__fineMunicipality||'',props}}}
+   const arr=[];for(const [k,v] of lookup?.byName||[]){if(fineCleanPlace(k)===n)arr.push(...v)}const u=fineUniqueRows(arr);if(u.length===1){const row=u[0];return {row,code:row.geoCode,name:row.geoLabel,municipality:row.__fineMunicipality||'',props}}
+  }
+  // 3) Clasificación completa para identificar el nombre incluso sin indicador cargado.
+  if(cls){
+   const pool=[];
+   for(const n of names){for(const [k,a] of cls.byName[level]){if(fineCleanPlace(k)===n)pool.push(...a)}}
+   let cand=fineUniqueRows(pool);
+   if(munNames.length)cand=cand.filter(rec=>munNames.some(m=>fineCleanPlace(rec.municipality)===m));
+   if(entNames.length)cand=cand.filter(rec=>entNames.some(e=>fineCleanPlace(rec.entity)===e));
+   if(cand.length===1){const rec=cand[0],row=lookup?.byRawCode?.get(rec.id)||null;return {row,code:rec.id,name:rec.name,municipality:rec.municipality||'',props,classRec:rec}}
+  }
+  const old=fineResolveInfoPreClass(props,lookup,level);
+  // Si el motor antiguo al menos obtuvo un nombre GRAFCAN, conservarlo para la ficha.
+  if(old&&(old.name||old.code||old.row))return old;
+  const fallback=finePropStrings(props,specificRx)[0]||'';
+  return {row:null,code:'',name:fallback,municipality:finePropStrings(props,/(municip|nmun|nom.*mun)/i)[0]||'',props};
+ };
+
+ // Catálogo: precargar la clasificación para que al tocar un recinto ya podamos nombrarlo,
+ // incluso antes de seleccionar un indicador.
+ const loadIstacFineCatalogPreClass=loadIstacFineCatalog;
+ loadIstacFineCatalog=async function(){
+  const [r]=await Promise.all([loadIstacFineCatalogPreClass(),loadIstacFineClassification2025()]);
+  const st=document.getElementById('istacStatus');if(st&&istacFineClass2025)st.textContent=(istacTerritoryLevel==='entity'?'Entidades':'Núcleos')+' · límites GRAFCAN visibles · clasificación territorial ISTAC 2025 cargada · '+istacCatalog.length+' indicadores disponibles.';
+  return r;
+ };
+
+ // Indicadores: ruta autoritativa final. No usa loadFineGeo ni códigos INE inventados.
+ loadIstacIndicator=async function(id){
+  if(!istacFineLevel())return originalLoadIstacIndicator(id);
+  const status=document.getElementById('istacStatus'),legend=document.getElementById('istacLegend'),sel=document.getElementById('istacIndicatorSelect'),item=istacCatalog.find(x=>x.id===id);if(!item)return;
+  const token=++istacFineLoadToken;if(status)status.textContent='Cargando '+item.name+' · '+istacTerritoryCfg().label+'…';if(legend)legend.innerHTML='<small>Cargando '+esc(item.name)+'…</small>';
+  showIstacFineWms();try{await showIstacMunicipalWhite()}catch(e){console.warn('Atlas ISTAC · municipios blancos',e)}
+  try{
+   const [decoded,cls]=await Promise.all([loadIstacFineDecoded(),loadIstacFineClassification2025()]);if(token!==istacFineLoadToken||!istacFineLevel())return;
+   const rows=aggregateIstacFineRowsClassified(decoded,item,istacTerritoryLevel,cls);
+   if(!rows.length)throw Error('el cubo ISTAC 2025 no devolvió '+istacTerritoryPlural()+' tras aplicar la clasificación oficial CL_AREA_ES70_EN_20250101');
+   istacAllRows=decoded.rows;istacRows=rows;istacMeta={name:item.name,raw:item,id:item.id,datasetUrl:ISTAC_FINE_DATA_URL,territoryLevel:istacTerritoryLevel};istacChosenMeasure=item.id;istacSelectedYear='2025';istacActiveItemId=id;
+   const ys=document.getElementById('istacYearSelect');if(ys){ys.innerHTML='<option value="2025">2025</option>';ys.value='2025';ys.disabled=true}if(sel)sel.value=id;
+   if(status)status.textContent=item.name+' · '+rows.length+' '+istacTerritoryPlural()+' ISTAC 2025 recuperados · enlazando con GRAFCAN '+istacTerritoryCfg().wmsLayer+'…';
+   const rr=await renderIstacFineChoropleth(item,rows);if(token!==istacFineLoadToken||!istacFineLevel())return;
+   if(status&&rr)status.textContent=item.name+' · '+rr.matched+'/'+rr.total+' recintos visibles enlazados · '+rows.length+' unidades ISTAC 2025 · GRAFCAN '+istacTerritoryCfg().wmsLayer+'.';
+  }catch(e){
+   console.error('Atlas ISTAC · clasificación territorial 2025',e);if(sel)sel.value=id;
+   if(status)status.textContent='No se pudo representar '+item.name+': '+(e?.message||e)+'. La delimitación '+istacTerritoryCfg().wmsLayer+' permanece visible.';
+   if(legend)legend.innerHTML='<small><b>'+esc(item.name)+'</b><br>Error al cruzar ISTAC 2025 con la clasificación territorial oficial: '+esc(e?.message||e)+'.</small>';
+   showIstacFineWms();try{await showIstacMunicipalWhite()}catch(_){ }
+  }
+ };
+
+ // Ficha al tocar: carga la clasificación si aún no estaba en memoria y usa el nombre oficial.
+ finePopupAt=async function(latlng){
+  if(!istacFineLevel())return;
+  try{await loadIstacFineClassification2025()}catch(e){console.warn('Atlas ISTAC · clasificación para ficha',e)}
+  const snap=fineWmsSnapshot(),pt=map.latLngToContainerPoint(latlng),lookup=fineBuildLookup(istacRows||[],snap.level);
+  try{
+   const props=await fineGetFeatureInfo(snap,pt.x,pt.y),info=fineResolveInfo(props,lookup,snap.level);
+   if(!(info?.name||info?.code||info?.row))return;
+   L.popup({maxWidth:420}).setLatLng(latlng).setContent(fineInfoPopupHTML(info)).openOn(map);
+  }catch(e){console.warn('Atlas ISTAC · identificación GRAFCAN',e)}
+ };
+
+ // Al entrar en Entidades/Núcleos, precargar la clasificación oficial sin retrasar el WMS.
+ const switchIstacTerritoryLevelPreClass=switchIstacTerritoryLevel;
+ switchIstacTerritoryLevel=async function(level){
+  const out=await switchIstacTerritoryLevelPreClass(level);
+  if(level==='entity'||level==='nucleus')loadIstacFineClassification2025().catch(e=>console.warn('Atlas ISTAC · clasificación 2025',e));
+  return out;
+ };
+
+ window.__anambroIstacClass2025Debug={load:loadIstacFineClassification2025,get:()=>istacFineClass2025,aggregate:aggregateIstacFineRowsClassified};
+
  // Puente explícito: estas funciones viven dentro de este IIFE; el parche final necesita
  // acceder a ellas sin duplicar el motor ni depender de variables fuera de alcance.
  window.__anambroIstacFineBridge={loadFineGeo,loadFineData,fineCodeFromObject,fineNameFromObject,fineGeoCache,fineDataCache,fineTypeCache,fineSourceCache,fineGeoErrorCache,wfsUrl};
