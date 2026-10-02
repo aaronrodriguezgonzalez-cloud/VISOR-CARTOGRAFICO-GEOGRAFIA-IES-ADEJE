@@ -16895,3 +16895,230 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 </script>
 
 </body></html>
+
+<script id="anambro-istac-correccion-03-20261002">
+(function(){
+ 'use strict';
+ if(typeof map==='undefined')return;
+
+ /* 1) Límites municipales blancos: usar directamente la capa oficial MUN de CARTO_EST
+       en un pane propio, por encima de la coropleta. Se fuerza el trazado a blanco con CSS. */
+ const CARTO_EST_WMS='https://idecan2.grafcan.es/ServicioWMS/CARTO_EST?';
+ let istacMunicipalWmsReference=null;
+ function ensureIstacMunicipalWmsPane(){
+  let p=map.getPane('istacMunicipalWmsPane');
+  if(!p){p=map.createPane('istacMunicipalWmsPane');p.style.zIndex='649';p.style.pointerEvents='none'}
+  return p;
+ }
+ function clearMunicipalWmsReference(){
+  if(istacMunicipalWmsReference){try{map.removeLayer(istacMunicipalWmsReference)}catch(_){}istacMunicipalWmsReference=null}
+  const p=map.getPane('istacMunicipalWmsPane');if(p)p.querySelectorAll('img').forEach(img=>img.style.filter='grayscale(1) brightness(0) invert(1)');
+ }
+ function showMunicipalWmsReference(){
+  clearMunicipalWmsReference();
+  if(typeof istacTerritoryLevel==='undefined'||istacTerritoryLevel==='municipality')return;
+  ensureIstacMunicipalWmsPane();
+  try{
+   istacMunicipalWmsReference=L.tileLayer.wms(CARTO_EST_WMS,{layers:'MUN',format:'image/png',transparent:true,version:'1.3.0',pane:'istacMunicipalWmsPane',opacity:1,attribution:'GRAFCAN / IDECanarias · Cartografía estadística'}).addTo(map);
+   istacMunicipalWmsReference.on('tileload',e=>{try{e.tile.style.filter='grayscale(1) brightness(0) invert(1) contrast(4)'}catch(_){}});
+   setTimeout(()=>{const p=map.getPane('istacMunicipalWmsPane');if(p)p.querySelectorAll('img').forEach(img=>img.style.filter='grayscale(1) brightness(0) invert(1) contrast(4)')},80);
+  }catch(e){console.warn('ANAMBRO · límites municipales WMS',e)}
+ }
+ window.__anambroShowMunicipalWmsReference=showMunicipalWmsReference;
+ window.__anambroClearMunicipalWmsReference=clearMunicipalWmsReference;
+
+ /* 2) Capa visual inmediata de entidades/núcleos desde CARTO_EST.
+       GRAFCAN publica actualmente ENT2001 y NUC2001 en ese servicio. */
+ let istacFineWmsBoundary=null;
+ function clearFineWmsBoundary(){if(istacFineWmsBoundary){try{map.removeLayer(istacFineWmsBoundary)}catch(_){}istacFineWmsBoundary=null}}
+ function showFineWmsBoundary(level){
+  clearFineWmsBoundary();
+  const layer=level==='entity'?'ENT2001':level==='nucleus'?'NUC2001':'';if(!layer)return;
+  try{
+   let p=map.getPane('istacFineWmsPane');if(!p){p=map.createPane('istacFineWmsPane');p.style.zIndex='642';p.style.pointerEvents='none'}
+   istacFineWmsBoundary=L.tileLayer.wms(CARTO_EST_WMS,{layers:layer,format:'image/png',transparent:true,version:'1.3.0',pane:'istacFineWmsPane',opacity:.9,attribution:'GRAFCAN / IDECanarias · Cartografía estadística'}).addTo(map);
+  }catch(e){console.warn('ANAMBRO · '+level+' WMS',e)}
+ }
+
+ /* 3) Vector de entidades/núcleos: el parche anterior preguntaba al WFS de indicadores
+       demográficos (que NO contiene estas geometrías). Ahora se intenta CARTO_EST,
+       que es el servicio donde GRAFCAN publica realmente ENT2001 / NUC2001. */
+ const GRAFCAN_CARTO_EST='https://idecan2.grafcan.es/ServicioWMS/CARTO_EST';
+ function grafcanFineType(level){return level==='entity'?'ENT2001':level==='nucleus'?'NUC2001':''}
+ function grafcanWfsUrl(type,format){return GRAFCAN_CARTO_EST+'?service=WFS&version=1.1.0&request=GetFeature&typeName='+encodeURIComponent(type)+'&srsName=EPSG:4326&outputFormat='+encodeURIComponent(format)}
+
+ if(typeof loadFineGeo==='function'){
+  const prevLoadFineGeo=loadFineGeo;
+  loadFineGeo=async function(level=istacTerritoryLevel){
+   if(level!=='entity'&&level!=='nucleus')return prevLoadFineGeo(level);
+   if(typeof fineGeoCache!=='undefined'&&fineGeoCache.has(level))return fineGeoCache.get(level);
+   const type=grafcanFineType(level);let lastErr=null;
+   for(const url of [grafcanWfsUrl(type,'application/json'),grafcanWfsUrl(type,'json'),grafcanWfsUrl(type,'application/vnd.geo+json')]){
+    try{
+     const r=await fetch(url,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);
+     const j=await r.json();if(j?.type!=='FeatureCollection'||!Array.isArray(j.features)||j.features.length<10)throw Error('GeoJSON incompleto');
+     if(typeof fineTypeCache!=='undefined')fineTypeCache.set(level,type);
+     if(typeof fineGeoCache!=='undefined')fineGeoCache.set(level,j);
+     if(typeof fineSourceCache!=='undefined')fineSourceCache.set(level,'GRAFCAN · CARTO_EST · '+type);
+     return j;
+    }catch(e){lastErr=e}
+   }
+   // Conservamos la ruta anterior como último recurso, pero ya no es la primera opción.
+   try{return await prevLoadFineGeo(level)}catch(e){lastErr=e}
+   throw lastErr||Error('No se pudo obtener geometría vectorial para '+level);
+  };
+ }
+
+ /* 4) Código INE canónico de 11 dígitos para entidades/núcleos. */
+ function unit11(v){
+  const s=String(v??'').toUpperCase();const d=s.replace(/\D/g,'');
+  if(/^(35|38)\d{9}$/.test(d))return d;
+  for(let i=Math.max(0,d.length-11);i>=0;i--){const c=d.slice(i,i+11);if(/^(35|38)\d{9}$/.test(c))return c}
+  const m=s.match(/(?:^|\D)((?:35|38)\d{9})(?:\D|$)/);return m?m[1]:'';
+ }
+ function entityKeyFrom11(code){const c=unit11(code);return c?c.slice(0,9)+'00':''}
+ function nucleusKeyFrom11(code){const c=unit11(code);return c&&c.slice(-2)!=='00'?c:''}
+ function canonicalFineCode(v,level){
+  const c=unit11(v);if(c)return level==='entity'?entityKeyFrom11(c):nucleusKeyFrom11(c);
+  const d=String(v??'').replace(/\D/g,'');
+  if(level==='entity'&&/^(35|38)\d{7}$/.test(d))return d+'00';
+  return '';
+ }
+ if(typeof fineCodeFromObject==='function'){
+  const prevFineCode=fineCodeFromObject;
+  fineCodeFromObject=function(o,level){
+   const r=o?.properties||o||{},keys=Object.keys(r);
+   if(level==='entity'||level==='nucleus'){
+    const preferred=['COD_INE','cod_ine','CODIGO','codigo','GEOCODE','geocode','COD_GEO','cod_geo','CODE','code'];
+    for(const k of preferred){if(k in r){const c=canonicalFineCode(r[k],level);if(c)return c}}
+    for(const k of keys){if(/cod|ine|geo/i.test(k)){const c=canonicalFineCode(r[k],level);if(c)return c}}
+    for(const v of Object.values(r)){const c=canonicalFineCode(v,level);if(c)return c}
+   }
+   return prevFineCode(o,level);
+  };
+ }
+
+ /* 5) Datos actuales 2025 de entidades/núcleos: cubo oficial recién publicado por ISTAC. */
+ const ISTAC_UNITS_2025_JSONSTAT='https://datos.canarias.es/api/estadisticas/statistical-resources/v1.0/datasets/ISTAC/E30243A_000022/1.0.jsonstat';
+ let istacUnits2025Decoded=null;
+ async function loadUnits2025Decoded(){
+  if(istacUnits2025Decoded)return istacUnits2025Decoded;
+  const r=await fetch(ISTAC_UNITS_2025_JSONSTAT,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('ISTAC E30243A_000022 · HTTP '+r.status);
+  istacUnits2025Decoded=istacDecodeData(await r.json());return istacUnits2025Decoded;
+ }
+ function tupleText(row){return Object.entries(row?.tuple||{}).map(([k,v])=>norm(k+' '+(v?.code||'')+' '+(v?.label||''))).join(' | ')}
+ function rowUnitCode(row,level){return canonicalFineCode(row?.geoCode,level)}
+ function rowIsTotalSexAge(row){
+  const t=tupleText(row);
+  const bad=/\bhombre|\bmujer|\bvaron|\bfemale|\bmale|\b0\s*a\s*4|\b5\s*a\s*9|\b10\s*a\s*14|\b15\s*a\s*19|\b20\s*a\s*24|\b25\s*a\s*29|\b30\s*a\s*34|\b35\s*a\s*39|\b40\s*a\s*44|\b45\s*a\s*49|\b50\s*a\s*54|\b55\s*a\s*59|\b60\s*a\s*64|\b65\s*a\s*69|\b70\s*a\s*74|\b75\s*a\s*79|\b80\s*a\s*84|\b85/.test(t);
+  return !bad;
+ }
+ function sexMatch(row,sex){const t=tupleText(row);return sex==='men'?/hombre|varon|male/.test(t):/mujer|female/.test(t)}
+ function ageBand(row,min,max){
+  const t=tupleText(row);const m=t.match(/(\d{1,3})\s*(?:a|-|–)\s*(\d{1,3})/);if(m){const a=+m[1],b=+m[2];return a>=min&&b<=max}
+  if(max===Infinity){const p=t.match(/(\d{1,3})\s*(?:y|o)?\s*mas/);return !!(p&&+p[1]>=min)}return false;
+ }
+ const UNIT_CORE_INDICATORS=[
+  {id:'unit:population',name:'Población total',kind:'total'},
+  {id:'unit:men',name:'Población · hombres',kind:'men'},
+  {id:'unit:women',name:'Población · mujeres',kind:'women'},
+  {id:'unit:0-14',name:'Población · de 0 a 14 años',kind:'age',min:0,max:14},
+  {id:'unit:15-64',name:'Población · de 15 a 64 años',kind:'age',min:15,max:64},
+  {id:'unit:65+',name:'Población · 65 años y más',kind:'age',min:65,max:Infinity}
+ ];
+ function aggregateUnitRows(decoded,item,level){
+  const rows=(decoded?.rows||[]).filter(r=>String(r.period||'').includes('2025')||String(r.timeLabel||'').includes('2025'));
+  const sums=new Map(),labels=new Map();
+  for(const r of rows){
+   const code=rowUnitCode(r,level);if(!code)continue;
+   let ok=false;
+   if(item.kind==='total')ok=rowIsTotalSexAge(r);
+   else if(item.kind==='men'||item.kind==='women')ok=sexMatch(r,item.kind)&&!(/\d{1,3}\s*(?:a|-|–)\s*\d{1,3}/.test(tupleText(r)));
+   else if(item.kind==='age')ok=ageBand(r,item.min,item.max)&&!(/hombre|mujer|varon|male|female/.test(tupleText(r)));
+   if(!ok)continue;
+   sums.set(code,(sums.get(code)||0)+Number(r.value||0));labels.set(code,r.geoLabel||code);
+  }
+  return [...sums].map(([code,value])=>({geoCode:code,geoLabel:labels.get(code)||code,period:'2025',timeLabel:'2025',measureCode:item.id,measureLabel:item.name,value,tuple:{}}));
+ }
+
+ const prevLoadIstacSectionCatalog=typeof loadIstacSectionCatalog==='function'?loadIstacSectionCatalog:null;
+ if(prevLoadIstacSectionCatalog){
+  loadIstacSectionCatalog=async function(){
+   if(istacTerritoryLevel!=='entity'&&istacTerritoryLevel!=='nucleus')return prevLoadIstacSectionCatalog();
+   const status=document.getElementById('istacStatus'),sel=document.getElementById('istacIndicatorSelect');
+   if(status)status.textContent='Cargando '+istacTerritoryCfg().label+'…';
+   showFineWmsBoundary(istacTerritoryLevel);showMunicipalWmsReference();
+   let geo=null;try{geo=await loadFineGeo(istacTerritoryLevel)}catch(e){console.warn('ANAMBRO · vector fino',e)}
+   await loadUnits2025Decoded();
+   istacCatalog=UNIT_CORE_INDICATORS.map(x=>({...x,category:'Demografía · '+istacTerritoryCfg().label,territoryLevel:istacTerritoryLevel,period:'2025',verified:true}));
+   renderIstacCatalog();if(sel)sel.value='';
+   if(status)status.textContent=(geo?.features?.length?geo.features.length+' polígonos · ':'')+istacCatalog.length+' indicadores básicos · ISTAC 2025 · '+istacTerritoryCfg().label+'.';
+   return geo||{type:'FeatureCollection',features:[]};
+  };
+ }
+
+ const prevLoadIstacIndicator3=typeof loadIstacIndicator==='function'?loadIstacIndicator:null;
+ if(prevLoadIstacIndicator3){
+  loadIstacIndicator=async function(id){
+   if(istacTerritoryLevel!=='entity'&&istacTerritoryLevel!=='nucleus')return prevLoadIstacIndicator3(id);
+   const item=istacCatalog.find(x=>x.id===id),status=document.getElementById('istacStatus'),legend=document.getElementById('istacLegend');if(!item)return;
+   if(status)status.textContent='Cargando '+item.name+'…';if(legend)legend.innerHTML='<small>Cargando '+esc(item.name)+'…</small>';
+   try{
+    const [geo,decoded]=await Promise.all([loadFineGeo(istacTerritoryLevel),loadUnits2025Decoded()]);
+    const territorialRows=aggregateUnitRows(decoded,item,istacTerritoryLevel);if(!territorialRows.length)throw Error('el cubo ISTAC 2025 no devolvió filas compatibles');
+    istacAllRows=territorialRows;istacRows=territorialRows;istacMeta={name:item.name,raw:item,id:item.id,datasetUrl:ISTAC_UNITS_2025_JSONSTAT,territoryLevel:istacTerritoryLevel};istacChosenMeasure=item.id;istacSelectedYear='2025';
+    const built=buildIstacLayer(geo,territorialRows);commitIstacRender(built);istacActiveItemId=id;showMunicipalWmsReference();
+    if(status)status.textContent=item.name+' · '+built.matched+'/'+built.total+' '+istacTerritoryPlural()+' con datos · 2025.';
+   }catch(e){console.error('ANAMBRO · ISTAC unidades 2025',e);if(status)status.textContent='No se pudo representar '+item.name+': '+(e?.message||e)+'.';if(legend)legend.innerHTML='<small>'+esc(e?.message||'Error de carga')+'</small>';showFineWmsBoundary(istacTerritoryLevel);showMunicipalWmsReference()}
+  };
+ }
+
+ /* 6) Sección 3503401004: conservar el polígono y distinguir ausencia de registro de un valor 0.
+       El WFS oficial devuelve 707 geometrías y 706 secciones con indicador: esta es la única sin fila.
+       Se representa como "sin población / no aplicable" en vez de dejar un agujero visual. */
+ const ZERO_OR_EMPTY_SECTION='3503401004';
+ function isCountLikeIstac(){
+  const n=norm(istacMeta?.name||''),k=String(istacChosenMeasure||istacMeta?.raw?.property||'').toLowerCase();
+  return !/%|media|mediana|indice|índice|ratio|tasa|edad media|edad mediana/.test(n+' '+k);
+ }
+ const prevBuildIstacJoin=typeof buildIstacJoin==='function'?buildIstacJoin:null;
+ if(prevBuildIstacJoin){
+  buildIstacJoin=function(rows){
+   const base=prevBuildIstacJoin(rows);if(istacTerritoryLevel!=='section')return base;
+   const prev=base.rowForFeature;
+   base.rowForFeature=function(f){
+    const r=prev(f);if(r)return r;
+    const c=istacSectionFeatureCode(f);if(c===ZERO_OR_EMPTY_SECTION&&isCountLikeIstac())return {geoCode:c,geoLabel:'Sección '+c,period:'2025',timeLabel:'2025',measureCode:istacChosenMeasure||'',measureLabel:istacMeta?.name||'',value:0,__anambroZeroPopulation:true,tuple:{}};
+    return null;
+   };
+   return base;
+  };
+ }
+ const prevPopup=typeof istacPopupHTML==='function'?istacPopupHTML:null;
+ if(prevPopup){
+  istacPopupHTML=function(f,row){
+   if(istacTerritoryLevel==='section'&&istacSectionFeatureCode(f)===ZERO_OR_EMPTY_SECTION&&row?.__anambroZeroPopulation){
+    return '<b>📊 Sección '+ZERO_OR_EMPTY_SECTION+'</b><br><b>'+esc(istacMeta?.name||'Indicador ISTAC')+':</b> 0<br><b>Año / periodo:</b> 2025<br><small>Sección sin registro demográfico en el recurso de indicadores; para variables de recuento se representa como 0 en lugar de dejar un hueco cartográfico.</small><br><small>'+esc(istacTerritoryCfg().sourceLabel)+'</small>';
+   }
+   return prevPopup(f,row);
+  };
+ }
+
+ /* 7) Integración con cambios de nivel y limpieza. */
+ const prevSwitch3=typeof switchIstacTerritoryLevel==='function'?switchIstacTerritoryLevel:null;
+ if(prevSwitch3){
+  switchIstacTerritoryLevel=async function(level){
+   clearFineWmsBoundary();clearMunicipalWmsReference();
+   const out=await prevSwitch3(level);
+   if(level==='entity'||level==='nucleus')showFineWmsBoundary(level);
+   if(level!=='municipality')showMunicipalWmsReference();
+   return out;
+  };
+ }
+ const prevCommit3=typeof commitIstacRender==='function'?commitIstacRender:null;
+ if(prevCommit3){commitIstacRender=function(built){const r=prevCommit3(built);showMunicipalWmsReference();return r}}
+ const prevClear3=typeof clearIstacAtlas==='function'?clearIstacAtlas:null;
+ if(prevClear3){clearIstacAtlas=function(){clearFineWmsBoundary();clearMunicipalWmsReference();return prevClear3()}}
+
+})();
+</script>
