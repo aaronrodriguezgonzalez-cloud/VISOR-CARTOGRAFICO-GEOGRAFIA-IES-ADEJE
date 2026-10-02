@@ -16816,9 +16816,9 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   throw lastErr||Error('sin límites municipales');
  }
  async function showMunicipalReference(){
-  clearMunicipalReference();if(istacTerritoryLevel==='municipality'||!istacLayer||!map.hasLayer(istacLayer))return;
+  clearMunicipalReference();if(istacTerritoryLevel==='municipality')return;
   const level=istacTerritoryLevel;
-  try{const geo=await municipalReferenceGeo();if(level!==istacTerritoryLevel||!istacLayer||!map.hasLayer(istacLayer))return;ensureIstacPanes();istacMunicipalReferenceLayer=L.geoJSON(geo,{pane:'istacMunicipalReferencePane',interactive:false,style:{color:'#ffffff',weight:2.15,opacity:1,fillOpacity:0}}).addTo(map)}catch(e){console.warn('Atlas ISTAC · límites municipales de referencia',e)}
+  try{const geo=await municipalReferenceGeo();if(level!==istacTerritoryLevel)return;ensureIstacPanes();istacMunicipalReferenceLayer=L.geoJSON(geo,{pane:'istacMunicipalReferencePane',interactive:false,style:{color:'#ffffff',weight:2.15,opacity:1,fillOpacity:0}}).addTo(map)}catch(e){console.warn('Atlas ISTAC · límites municipales de referencia',e)}
  }
  buildIstacLayer=function(geo,rows){
   ensureIstacPanes();const join=buildIstacJoin(rows),matchedValues=[];
@@ -16855,6 +16855,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   if(!ISTAC_TERRITORY_LEVELS[level]||level===istacTerritoryLevel)return;
   if(istacLayer){try{map.removeLayer(istacLayer)}catch(_){}istacLayer=null}clearIstacBoundary();clearIstacLabels();clearMunicipalReference();
   istacRows=[];istacAllRows=[];istacMeta=null;istacChosenMeasure='';istacActiveItemId='';istacTerritoryLevel=level;istacSelectedYear=fineLevel()?'2025':'__latest__';
+  if(fineLevel()){try{showMunicipalReference()}catch(_){}}
   const legend=document.getElementById('istacLegend'),search=document.getElementById('istacIndicatorSearch');if(legend)legend.innerHTML='';if(search)search.value='';istacApplyLevelUI();syncIstacThematicBackground();
   try{if(fineLevel()){const geo=await loadIstacSectionCatalog();showIstacBoundary(geo)}else{istacCatalog=mergeIstacCatalog();renderIstacCatalog();await loadIstacCatalog();const geo=await originalLoadIstacGeo();showIstacBoundary(geo)}}catch(e){const st=document.getElementById('istacStatus');if(st)st.textContent='No se pudo cargar '+istacTerritoryCfg().label+': '+(e?.message||e)}
  };
@@ -16922,24 +16923,11 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  // Los límites municipales blancos son referencia, no heredan la opacidad de la coropleta.
  document.getElementById('istacOpacity')?.addEventListener('input',()=>{try{showMunicipalReference()}catch(_){}});
 
- // Puente explícito: estas funciones viven dentro de este IIFE; el parche final necesita
- // acceder a ellas sin duplicar el motor ni depender de variables fuera de alcance.
- window.__anambroIstacFineBridge={loadFineGeo,loadFineData,fineCodeFromObject,fineNameFromObject,fineGeoCache,fineDataCache,fineTypeCache,fineSourceCache,fineGeoErrorCache,wfsUrl};
- window.loadFineGeo=loadFineGeo;
- window.loadFineData=loadFineData;
- window.fineCodeFromObject=fineCodeFromObject;
- window.fineNameFromObject=fineNameFromObject;
- window.fineGeoCache=fineGeoCache;
- window.fineDataCache=fineDataCache;
- window.fineTypeCache=fineTypeCache;
- window.fineSourceCache=fineSourceCache;
-})();
-</script>
 
-<script id="anambro-istac-correccion-03-20261002">
-(function(){
- 'use strict';
- if(typeof map==='undefined')return;
+ /* ============================================================
+    H. Corrección integrada GRAFCAN/ISTAC · entidades y núcleos
+    Se ejecuta DENTRO del mismo IIFE del motor ISTAC.
+    ============================================================ */
 
  /* 1) Límites municipales blancos: usar directamente la capa oficial MUN de CARTO_EST
        en un pane propio, por encima de la coropleta. Se fuerza el trazado a blanco con CSS. */
@@ -16959,7 +16947,9 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   if(typeof istacTerritoryLevel==='undefined'||istacTerritoryLevel==='municipality')return;
   ensureIstacMunicipalWmsPane();
   try{
-   istacMunicipalWmsReference=L.tileLayer.wms(CARTO_EST_WMS,{layers:'MUN',format:'image/png',transparent:true,version:'1.3.0',pane:'istacMunicipalWmsPane',opacity:1,attribution:'GRAFCAN / IDECanarias · Cartografía estadística'}).addTo(map);
+   istacMunicipalWmsReference=L.tileLayer.wms(CARTO_EST_WMS,{layers:'MUN',format:'image/png',transparent:true,version:'1.1.1',crs:L.CRS.EPSG4326,uppercase:true,noWrap:true,pane:'istacMunicipalWmsPane',opacity:1,attribution:'GRAFCAN / IDECanarias · Cartografía estadística'}).addTo(map);
+   istacMunicipalWmsReference.on('tileerror',e=>console.warn('ANAMBRO · CARTO_EST MUN · error de tesela',e));
+   try{istacMunicipalWmsReference.redraw()}catch(_){}
    istacMunicipalWmsReference.on('tileload',e=>{try{e.tile.style.filter='grayscale(1) brightness(0) invert(1) contrast(4)'}catch(_){}});
    setTimeout(()=>{const p=map.getPane('istacMunicipalWmsPane');if(p)p.querySelectorAll('img').forEach(img=>img.style.filter='grayscale(1) brightness(0) invert(1) contrast(4)')},80);
   }catch(e){console.warn('ANAMBRO · límites municipales WMS',e)}
@@ -16975,8 +16965,10 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   clearFineWmsBoundary();
   const layer=level==='entity'?'ENT2001':level==='nucleus'?'NUC2001':'';if(!layer)return;
   try{
-   let p=map.getPane('istacFineWmsPane');if(!p){p=map.createPane('istacFineWmsPane');p.style.zIndex='642';p.style.pointerEvents='none'}
-   istacFineWmsBoundary=L.tileLayer.wms(CARTO_EST_WMS,{layers:layer,format:'image/png',transparent:true,version:'1.3.0',pane:'istacFineWmsPane',opacity:.9,attribution:'GRAFCAN / IDECanarias · Cartografía estadística'}).addTo(map);
+   let p=map.getPane('istacFineWmsPane');if(!p){p=map.createPane('istacFineWmsPane');p.style.zIndex='646';p.style.pointerEvents='none'}
+   istacFineWmsBoundary=L.tileLayer.wms(CARTO_EST_WMS,{layers:layer,format:'image/png',transparent:true,version:'1.1.1',crs:L.CRS.EPSG4326,uppercase:true,noWrap:true,pane:'istacFineWmsPane',opacity:1,attribution:'GRAFCAN / IDECanarias · Cartografía estadística'}).addTo(map);
+   istacFineWmsBoundary.on('tileerror',e=>console.warn('ANAMBRO · CARTO_EST '+layer+' · error de tesela',e));
+   try{istacFineWmsBoundary.redraw()}catch(_){}
   }catch(e){console.warn('ANAMBRO · '+level+' WMS',e)}
  }
 
@@ -17134,8 +17126,21 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  const prevClear3=typeof clearIstacAtlas==='function'?clearIstacAtlas:null;
  if(prevClear3){clearIstacAtlas=function(){clearFineWmsBoundary();clearMunicipalWmsReference();return prevClear3()}}
 
+ // Puente explícito: estas funciones viven dentro de este IIFE; el parche final necesita
+ // acceder a ellas sin duplicar el motor ni depender de variables fuera de alcance.
+ window.__anambroIstacFineBridge={loadFineGeo,loadFineData,fineCodeFromObject,fineNameFromObject,fineGeoCache,fineDataCache,fineTypeCache,fineSourceCache,fineGeoErrorCache,wfsUrl};
+ window.loadFineGeo=loadFineGeo;
+ window.loadFineData=loadFineData;
+ window.fineCodeFromObject=fineCodeFromObject;
+ window.fineNameFromObject=fineNameFromObject;
+ window.fineGeoCache=fineGeoCache;
+ window.fineDataCache=fineDataCache;
+ window.fineTypeCache=fineTypeCache;
+ window.fineSourceCache=fineSourceCache;
 })();
 </script>
+
+
 
 </body>
 </html>
