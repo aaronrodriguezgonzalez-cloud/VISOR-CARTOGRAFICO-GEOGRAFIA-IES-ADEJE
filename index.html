@@ -17142,5 +17142,208 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 
 
 
+
+<!-- ANAMBRO v0.16 · controlador territorial autoritativo ENT/NUC + municipios blancos -->
+<script id="anambro-istac-authoritative-fine-levels-v3">
+(function(){
+ 'use strict';
+
+ const CARTO_EST='https://idecan2.grafcan.es/ServicioWMS/CARTO_EST?';
+ const FINE_LEVELS=new Set(['entity','nucleus']);
+ let unitOverlay=null;
+ let unitOverlayLevel='';
+ let unitOverlayFallback=0;
+ let municipalHalo=null;
+ let municipalWhite=null;
+ let municipalGeoCache=null;
+ let renderToken=0;
+ let fineMoveBound=false;
+
+ function fineLevel(level=istacTerritoryLevel){return FINE_LEVELS.has(level)}
+ function statusText(txt){const el=document.getElementById('istacStatus');if(el)el.textContent=txt}
+
+ function ensurePane(name,z){
+  let p=map.getPane(name);
+  if(!p){p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents='none'}
+  return p;
+ }
+ ensurePane('anambroFineUnitsPane',648);
+ ensurePane('anambroMunicipalHaloPane',656);
+ ensurePane('anambroMunicipalWhitePane',657);
+
+ function removeLayerSafe(layer){if(layer){try{map.removeLayer(layer)}catch(_){}}}
+ function clearUnitOverlay(){removeLayerSafe(unitOverlay);unitOverlay=null;unitOverlayLevel='';unitOverlayFallback=0}
+ function clearMunicipalOverlay(){removeLayerSafe(municipalHalo);removeLayerSafe(municipalWhite);municipalHalo=null;municipalWhite=null}
+
+ function removeLegacyFineLayers(){
+  try{
+   map.eachLayer(l=>{
+    const raw=(l?.wmsParams?.layers??l?.options?.layers??'');
+    const names=String(raw).toUpperCase();
+    if(/(^|,)(ENT2001|NUC2001|SEC2025|MUN)(,|$)/.test(names)){try{map.removeLayer(l)}catch(_){}}
+   });
+  }catch(_){}
+  try{window.__anambroClearMunicipalWmsReference?.()}catch(_){}
+  try{if(istacLayer){map.removeLayer(istacLayer);istacLayer=null}}catch(_){}
+  try{clearIstacBoundary()}catch(_){}
+  try{clearIstacLabels()}catch(_){}
+  try{if(typeof clearMunicipalReference==='function')clearMunicipalReference()}catch(_){}
+ }
+
+ function wmsUrl(layer,mode=0){
+  const b=map.getBounds(),sz=map.getSize();
+  const width=Math.max(256,Math.min(4096,Math.round(Math.max(1,sz.x)*2)));
+  const height=Math.max(256,Math.min(4096,Math.round(Math.max(1,sz.y)*2)));
+  const common={SERVICE:'WMS',REQUEST:'GetMap',LAYERS:layer,STYLES:'',FORMAT:'image/png',TRANSPARENT:'TRUE',WIDTH:String(width),HEIGHT:String(height)};
+  let params,bbox;
+  if(mode===0){
+   // WMS 1.3.0 + EPSG:4326: orden de ejes latitud,longitud.
+   bbox=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].join(',');
+   params={...common,VERSION:'1.3.0',CRS:'EPSG:4326',BBOX:bbox};
+  }else if(mode===1){
+   // Segundo intento 1.3.0 con CRS:84: longitud,latitud.
+   bbox=[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',');
+   params={...common,VERSION:'1.3.0',CRS:'CRS:84',BBOX:bbox};
+  }else{
+   // Último respaldo para servidores/configuraciones antiguas.
+   bbox=[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',');
+   params={...common,VERSION:'1.1.1',SRS:'EPSG:4326',BBOX:bbox};
+  }
+  return CARTO_EST+new URLSearchParams(params).toString();
+ }
+
+ function drawUnitWms(level,token=renderToken,attempt=0){
+  if(!fineLevel(level)||level!==istacTerritoryLevel||token!==renderToken)return;
+  clearUnitOverlay();
+  unitOverlayLevel=level;unitOverlayFallback=attempt;
+  const wmsLayer=level==='entity'?'ENT2001':'NUC2001';
+  const bounds=map.getBounds();
+  const overlay=L.imageOverlay(wmsUrl(wmsLayer,attempt),bounds,{pane:'anambroFineUnitsPane',opacity:1,interactive:false});
+  unitOverlay=overlay.addTo(map);
+  const img=overlay.getElement?.();
+  if(img){img.style.imageRendering='auto';img.style.filter='contrast(1.2)'}
+  overlay.once('load',()=>{
+   if(token!==renderToken||level!==istacTerritoryLevel)return;
+   statusText((level==='entity'?'Entidades':'Núcleos')+' · delimitación GRAFCAN '+wmsLayer+' cargada · municipios en blanco superpuestos.');
+  });
+  overlay.once('error',()=>{
+   if(token!==renderToken||level!==istacTerritoryLevel)return;
+   if(attempt<2){drawUnitWms(level,token,attempt+1)}
+   else statusText('GRAFCAN no devolvió una imagen válida para '+wmsLayer+' tras probar WMS 1.3.0 y 1.1.1.');
+  });
+ }
+
+ async function loadMunicipalGeo(){
+  if(municipalGeoCache?.features?.length>=80)return municipalGeoCache;
+  try{
+   if(typeof ensureCanaryMunicipios==='function'){
+    const base=await ensureCanaryMunicipios();
+    const gj=base?.toGeoJSON?.();
+    if(gj?.features?.length>=80){municipalGeoCache=gj;return gj}
+   }
+  }catch(_){}
+  const urls=[
+   'https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios-generalizados.geojson',
+   'https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios.geojson',
+   'https://datos.canarias.es/api/estadisticas/geographical-resources/indicadoresdemograficos/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Municipios-20220101&outputFormat=application/json'
+  ];
+  let last=null;
+  for(const u of urls){
+   try{const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();if(j?.type!=='FeatureCollection'||!Array.isArray(j.features)||j.features.length<80)throw Error('GeoJSON municipal incompleto');municipalGeoCache=j;return j}catch(e){last=e}
+  }
+  throw last||Error('No se pudieron cargar los municipios');
+ }
+
+ async function drawMunicipalWhite(level,token=renderToken){
+  if(!fineLevel(level))return;
+  clearMunicipalOverlay();
+  try{
+   const geo=await loadMunicipalGeo();
+   if(token!==renderToken||level!==istacTerritoryLevel)return;
+   municipalHalo=L.geoJSON(geo,{pane:'anambroMunicipalHaloPane',interactive:false,style:{color:'#15202b',weight:5.2,opacity:.72,fillOpacity:0,fill:false,lineCap:'round',lineJoin:'round'}}).addTo(map);
+   municipalWhite=L.geoJSON(geo,{pane:'anambroMunicipalWhitePane',interactive:false,style:{color:'#ffffff',weight:2.8,opacity:1,fillOpacity:0,fill:false,lineCap:'round',lineJoin:'round'}}).addTo(map);
+  }catch(e){console.warn('ANAMBRO · municipios blancos ISTAC',e);if(token===renderToken)statusText('Delimitación de '+(level==='entity'?'entidades':'núcleos')+' solicitada; no se pudieron cargar los municipios blancos: '+(e?.message||e))}
+ }
+
+ const FINE_CATALOG=[
+  {id:'unit:population',name:'Población total',category:'Demografía',territoryLevel:'fine',period:'2025'},
+  {id:'unit:men',name:'Población · hombres',category:'Demografía',territoryLevel:'fine',period:'2025'},
+  {id:'unit:women',name:'Población · mujeres',category:'Demografía',territoryLevel:'fine',period:'2025'},
+  {id:'unit:0-14',name:'Población · de 0 a 14 años',category:'Demografía',territoryLevel:'fine',period:'2025'},
+  {id:'unit:15-64',name:'Población · de 15 a 64 años',category:'Demografía',territoryLevel:'fine',period:'2025'},
+  {id:'unit:65+',name:'Población · 65 años y más',category:'Demografía',territoryLevel:'fine',period:'2025'}
+ ];
+
+ function renderFineCatalog(){
+  try{
+   istacCatalog=FINE_CATALOG.map(x=>({...x,territoryLevel:istacTerritoryLevel,category:'Demografía · '+(istacTerritoryLevel==='entity'?'Entidades':'Núcleos')}));
+   renderIstacCatalog();
+   const sel=document.getElementById('istacIndicatorSelect');if(sel)sel.value='';
+  }catch(e){console.warn('ANAMBRO · catálogo fino',e)}
+ }
+
+ async function activateFine(level){
+  const token=++renderToken;
+  removeLegacyFineLayers();
+  clearUnitOverlay();clearMunicipalOverlay();
+  istacTerritoryLevel=level;
+  istacRows=[];istacAllRows=[];istacMeta=null;istacChosenMeasure='';istacActiveItemId='';istacSelectedYear='2025';
+  try{
+   ISTAC_TERRITORY_LEVELS.entity={...(ISTAC_TERRITORY_LEVELS.entity||{}),id:'entity',label:'Entidades de población · 2025',singular:'Entidad de población',plural:'entidades de población',periodLabel:'01/01/2025',sourceLabel:'ISTAC / GRAFCAN'};
+   ISTAC_TERRITORY_LEVELS.nucleus={...(ISTAC_TERRITORY_LEVELS.nucleus||{}),id:'nucleus',label:'Núcleos de población · 2025',singular:'Núcleo de población',plural:'núcleos de población',periodLabel:'01/01/2025',sourceLabel:'ISTAC / GRAFCAN'};
+  }catch(_){}
+  try{istacApplyLevelUI()}catch(_){}
+  try{syncIstacThematicBackground()}catch(_){}
+  const legend=document.getElementById('istacLegend');if(legend)legend.innerHTML='<small><b>Delimitación territorial:</b> GRAFCAN '+(level==='entity'?'ENT2001':'NUC2001')+'.<br><b>Referencia:</b> límites municipales blancos.</small>';
+  const search=document.getElementById('istacIndicatorSearch');if(search)search.value='';
+  renderFineCatalog();
+  statusText('Solicitando a GRAFCAN '+(level==='entity'?'ENT2001':'NUC2001')+' y cargando municipios blancos…');
+  drawUnitWms(level,token,0);
+  drawMunicipalWhite(level,token);
+ }
+
+ function refreshFine(){
+  if(!fineLevel())return;
+  const token=++renderToken;
+  removeLayerSafe(unitOverlay);unitOverlay=null;
+  drawUnitWms(istacTerritoryLevel,token,0);
+  if(!municipalWhite)drawMunicipalWhite(istacTerritoryLevel,token);
+ }
+ if(!fineMoveBound){map.on('moveend zoomend',()=>{if(fineLevel())refreshFine()});fineMoveBound=true}
+
+ const legacySwitch=switchIstacTerritoryLevel;
+ async function authoritativeSwitch(level){
+  if(FINE_LEVELS.has(level))return activateFine(level);
+  ++renderToken;clearUnitOverlay();clearMunicipalOverlay();removeLegacyFineLayers();
+  return legacySwitch(level);
+ }
+ switchIstacTerritoryLevel=authoritativeSwitch;
+
+ // El selector se clona DESPUÉS de todos los parches anteriores: así se eliminan sus listeners
+ // antiguos (que seguían enviando Entidades/Núcleos por la ruta de Secciones).
+ const oldSel=document.getElementById('istacLevelSelect');
+ if(oldSel){
+  const value=oldSel.value;
+  const sel=oldSel.cloneNode(true);sel.value=value;oldSel.replaceWith(sel);
+  sel.addEventListener('change',()=>authoritativeSwitch(sel.value));
+ }
+
+ // Lo mismo con Recargar: en niveles finos redibuja la geometría y no llama al cargador de secciones.
+ const oldReload=document.getElementById('istacReloadBtn');
+ if(oldReload){
+  const reload=oldReload.cloneNode(true);oldReload.replaceWith(reload);
+  reload.addEventListener('click',()=>fineLevel()?activateFine(istacTerritoryLevel):(typeof loadIstacCatalog==='function'&&loadIstacCatalog()));
+ }
+
+ const legacyClear=clearIstacAtlas;
+ clearIstacAtlas=function(){++renderToken;clearUnitOverlay();clearMunicipalOverlay();removeLegacyFineLayers();return legacyClear()};
+
+ // Si el archivo se abre guardando ya Entidades/Núcleos en el selector, reconstruimos la capa.
+ const initial=document.getElementById('istacLevelSelect')?.value;
+ if(FINE_LEVELS.has(initial))queueMicrotask(()=>activateFine(initial));
+
+ window.__anambroFineLevelDebug={activateFine,drawUnitWms,drawMunicipalWhite,clearUnitOverlay,clearMunicipalOverlay,wmsUrl};
+})();
+</script>
 </body>
 </html>
