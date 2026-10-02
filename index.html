@@ -12031,11 +12031,14 @@ toggleGlobe=async function(){await __anambroToggleGlobeBase();if(document.body.c
   if(typeof map==='undefined'||typeof worldImagery==='undefined'||typeof activeBase==='undefined')return;
   if(document.body.classList.contains('globe-mode'))return;
   if(document.getElementById('worldHistoryCheck')?.checked)return;
-  if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length){
+  const istacActive=(()=>{try{return !!window.anambroIstacActive?.()}catch(_){return false}})();
+  if((typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)||istacActive){
    if(map.hasLayer(activeBase))map.removeLayer(activeBase);
    if(map.hasLayer(worldImagery))map.removeLayer(worldImagery);
    if(typeof worldEox!=='undefined'&&map.hasLayer(worldEox))map.removeLayer(worldEox);
-   map.getContainer().style.background='#86cbe5';map.getContainer().style.backgroundColor='#86cbe5';
+   map.getContainer().style.background=istacActive?'#d9eef6':'#86cbe5';
+   map.getContainer().style.backgroundColor=istacActive?'#d9eef6':'#86cbe5';
+   if(istacActive)try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}
    return;
   }
   map.getContainer().style.background='';
@@ -13324,6 +13327,7 @@ html body.istac-export-clean #map .leaflet-atlasBathymetryPane-pane{opacity:0!im
    return;
   }
   try{if(typeof worldImagery!=='undefined'&&map.hasLayer(worldImagery))map.removeLayer(worldImagery);}catch(e){}
+  try{if(typeof worldEox!=='undefined'&&map.hasLayer(worldEox))map.removeLayer(worldEox);}catch(e){}
   try{if(typeof activeBase!=='undefined'&&activeBase&&map.hasLayer(activeBase))map.removeLayer(activeBase);}catch(e){}
   map.getContainer().style.background=OCEAN;map.getContainer().style.backgroundColor=OCEAN;
   const g=ensureGebco2D();if(!map.hasLayer(g))g.addTo(map);try{g.bringToBack();}catch(e){}
@@ -15119,7 +15123,20 @@ html body .leaflet-popup-content{padding-top:5px}
  function istacTerritoryFeatureName(f){return istacTerritoryLevel==='section'?istacSectionFeatureName(f):istacFeatureName(f)}
  function istacTerritoryRowKey(r){return istacTerritoryCode(r?.geoCode)||istacNameVariants(r?.geoLabel)[0]||''}
  function istacHumanizeField(k){
-  return String(k||'').replace(/[_-]+/g,' ').replace(/([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g,'$1 $2').trim().replace(/\b\w/g,m=>m.toUpperCase());
+  const raw=String(k||'').trim().replace(/([a-záéíóúñ0-9])([A-ZÁÉÍÓÚÑ])/g,'$1_$2').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s-]+/g,'_').replace(/__+/g,'_');
+  const exact={poblacion:'Población total',poblacion_total:'Población total',poblacion_hombres:'Población · hombres',poblacion_mujeres:'Población · mujeres',poblacion_edad_media:'Población · edad media',poblacion_edad_mediana:'Población · edad mediana',poblacion_extranjera:'Población extranjera',densidad_poblacion:'Densidad de población'};
+  if(exact[raw])return exact[raw];
+  const ages={'00a02':'De 0 a 2 años','00a14':'De 0 a 14 años','00a17':'De 0 a 17 años','03a05':'De 3 a 5 años','06a11':'De 6 a 11 años','12a15':'De 12 a 15 años','15a64':'De 15 a 64 años','16a17':'De 16 a 17 años','65a74':'De 65 a 74 años','65mas':'65 años y más','75a84':'De 75 a 84 años','85mas':'85 años y más'};
+  let base=raw,suffix='';
+  if(/_?pc$/.test(base)){suffix=' (% sobre total)';base=base.replace(/_?pc$/,'')}
+  else if(/_?ds$/.test(base)){suffix=' (por km²)';base=base.replace(/_?ds$/,'')}
+  const age=Object.keys(ages).find(a=>base.includes(a));
+  if(/^poblacion/.test(base)&&age)return 'Población · '+ages[age]+suffix;
+  if(base==='poblacion_extranjera')return 'Población extranjera'+suffix;
+  if(base==='poblacion')return 'Población total'+suffix;
+  let t=String(k||'').replace(/[_-]+/g,' ').replace(/([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g,'$1 $2').trim();
+  t=t.replace(/\bPc\b/gi,'% sobre total').replace(/\bDs\b/gi,'por km²');
+  return t?t.charAt(0).toUpperCase()+t.slice(1):String(k||'');
  }
  function istacNumericValue(v){
   if(typeof v==='number')return Number.isFinite(v)?v:NaN;
@@ -15468,8 +15485,21 @@ html body .leaflet-popup-content{padding-top:5px}
  }
  function istacBreaks(vals){
   const a=vals.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return [];
-  const q=p=>a[Math.min(a.length-1,Math.floor((a.length-1)*p))];
-  return [a[0],q(.2),q(.4),q(.6),q(.8),a[a.length-1]];
+  const key=String(istacChosenMeasure||istacMeta?.raw?.property||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const name=(typeof norm==='function'?norm(istacMeta?.name||''):String(istacMeta?.name||'').toLowerCase());
+  const meta={name:istacMeta?.name||'',unit:'',dec:0,source:'ISTAC',sense:'neutral'};
+  if(/pc$|porcentaje|por ciento|%/.test(key+' '+name)){meta.unit='%';meta.dec=1;meta.domain=[0,100];meta.breakProfile='percent'}
+  else if(/edad media|edad mediana|edad_media|edad_mediana/.test(key+' '+name)){meta.unit='años';meta.dec=1}
+  else if(/densidad/.test(key+' '+name)){meta.unit='hab./km²';meta.dec=1;meta.zeroBase=true;meta.breakProfile='density'}
+  else if(/ds$|por km2|por km²/.test(key+' '+name)){meta.unit='por km²';meta.dec=1;meta.zeroBase=true;meta.breakProfile='population'}
+  else if(/poblacion|nacim|defun|emple|paro|afilia|viajer|pernoct|empresa|vehicul/.test(key+' '+name)){meta.unit='personas';meta.dec=0;meta.zeroBase=true;meta.breakProfile='population'}
+  else if(/renta|pib|euro|ingreso|precio/.test(key+' '+name)){meta.dec=0;meta.zeroBase=true;meta.breakProfile='money-pc'}
+  else meta.dec=Number.isInteger(a[Math.floor(a.length/2)])?0:2;
+  try{if(typeof humanBreaks==='function'){const b=humanBreaks(a,meta);if(Array.isArray(b)&&b.length===6&&b.slice(1,5).every(Number.isFinite))return b}}catch(e){console.warn('Atlas ISTAC · cortes mundiales',e)}
+  const q=p=>{if(a.length===1)return a[0];const x=(a.length-1)*p,lo=Math.floor(x),hi=Math.ceil(x),t=x-lo;return a[lo]+(a[hi]-a[lo])*t};
+  const raw=[q(.2),q(.4),q(.6),q(.8)],range=Math.max(a[a.length-1]-a[0],1e-9),step=(typeof humanNiceStep==='function'?humanNiceStep(range/8):Math.pow(10,Math.floor(Math.log10(range/8||1)))),cuts=raw.map(v=>Math.round(v/step)*step);
+  for(let i=1;i<cuts.length;i++)if(!(cuts[i]>cuts[i-1]))cuts[i]=cuts[i-1]+step;
+  return [a[0],cuts[0],cuts[1],cuts[2],cuts[3],a[a.length-1]];
  }
  const ISTAC_COL=['#fff2b2','#ffd34d','#f28c28','#d94831','#7f0000'];
  function istacClass(v,b){if(!Number.isFinite(v)||b.length<6)return -1;return v<b[1]?0:v<b[2]?1:v<b[3]?2:v<b[4]?3:4}
@@ -15548,6 +15578,7 @@ html body .leaflet-popup-content{padding-top:5px}
    const lo=breaks[i],hi=breaks[i+1],label=i===0?'Menos de '+istacFmt(hi):i===4?'Más de '+istacFmt(breaks[4]):istacFmt(lo)+' – '+istacFmt(hi);
    lines.push('<div class="istacLegendItem"><span class="istacLegendSw" style="background:'+ISTAC_COL[i]+'"></span>'+label+'</div>');
   }
+  const missing=Math.max(0,total-matched);if(missing)lines.push('<div class="istacLegendItem"><span class="istacLegendSw" style="background:#c7cbcf"></span>Sin dato ISTAC ('+missing+')</div>');
   legend.innerHTML='<b>'+esc(istacMeta?.name||'Indicador ISTAC')+'</b><br><small>'+esc(period||'Periodo')+(measure?' · '+esc(measure):'')+' · ISTAC</small>'+lines.join('')+'<small style="display:block;margin-top:4px">'+matched+'/'+total+' '+esc(istacTerritoryPlural())+' con dato.</small>';
  }
  function commitIstacRender(built){
@@ -16722,8 +16753,11 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   meta.dec=Number.isInteger(istacRows?.[0]?.value)?0:2;return meta;
  }
  istacBreaks=function(vals){
-  try{if(typeof humanBreaks==='function')return humanBreaks(vals,istacBreakMeta())}catch(e){console.warn('Atlas ISTAC · cortes redondeados',e)}
-  const a=vals.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return[];const q=p=>a[Math.min(a.length-1,Math.floor((a.length-1)*p))];return[a[0],q(.2),q(.4),q(.6),q(.8),a[a.length-1]];
+  const a=vals.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return[];
+  try{if(typeof humanBreaks==='function'){const b=humanBreaks(a,istacBreakMeta());if(Array.isArray(b)&&b.length===6&&b.slice(1,5).every(Number.isFinite))return b}}catch(e){console.warn('Atlas ISTAC · cortes redondeados',e)}
+  const q=p=>{if(a.length===1)return a[0];const x=(a.length-1)*p,lo=Math.floor(x),hi=Math.ceil(x),t=x-lo;return a[lo]+(a[hi]-a[lo])*t},raw=[q(.2),q(.4),q(.6),q(.8)],range=Math.max(a[a.length-1]-a[0],1e-9),step=(typeof humanNiceStep==='function'?humanNiceStep(range/8):Math.pow(10,Math.floor(Math.log10(range/8||1)))),cuts=raw.map(v=>Math.round(v/step)*step);
+  for(let i=1;i<cuts.length;i++)if(!(cuts[i]>cuts[i-1]))cuts[i]=cuts[i-1]+step;
+  return[a[0],cuts[0],cuts[1],cuts[2],cuts[3],a[a.length-1]];
  };
  istacFmt=function(v){if(!Number.isFinite(v))return'Sin dato';const m=istacBreakMeta();return new Intl.NumberFormat('es-ES',{maximumFractionDigits:m.dec??2,minimumFractionDigits:0}).format(v)};
  const originalUpdateIstacLegend=updateIstacLegend;
@@ -16754,7 +16788,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  async function showMunicipalReference(){
   clearMunicipalReference();if(istacTerritoryLevel==='municipality'||!istacLayer||!map.hasLayer(istacLayer))return;
   const level=istacTerritoryLevel;
-  try{const geo=await municipalReferenceGeo();if(level!==istacTerritoryLevel||!istacLayer||!map.hasLayer(istacLayer))return;ensureIstacPanes();istacMunicipalReferenceLayer=L.geoJSON(geo,{pane:'istacMunicipalReferencePane',interactive:false,style:{color:'#ffffff',weight:1.6,opacity:.98,fillOpacity:0}}).addTo(map)}catch(e){console.warn('Atlas ISTAC · límites municipales de referencia',e)}
+  try{const geo=await municipalReferenceGeo();if(level!==istacTerritoryLevel||!istacLayer||!map.hasLayer(istacLayer))return;ensureIstacPanes();istacMunicipalReferenceLayer=L.geoJSON(geo,{pane:'istacMunicipalReferencePane',interactive:false,style:{color:'#ffffff',weight:2.15,opacity:1,fillOpacity:0}}).addTo(map)}catch(e){console.warn('Atlas ISTAC · límites municipales de referencia',e)}
  }
  buildIstacLayer=function(geo,rows){
   ensureIstacPanes();const join=buildIstacJoin(rows),matchedValues=[];
@@ -16819,7 +16853,12 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  const originalSyncIstac=syncIstacThematicBackground;
  syncIstacThematicBackground=function(){
   try{originalSyncIstac()}catch(_){}
-  if(window.anambroIstacActive?.())for(const ms of [0,60,180,420])setTimeout(()=>{try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}},ms);
+  if(window.anambroIstacActive?.())for(const ms of [0,60,180,420,900])setTimeout(()=>{
+   try{if(typeof worldEox!=='undefined'&&map.hasLayer(worldEox))map.removeLayer(worldEox)}catch(_){}
+   try{if(typeof worldImagery!=='undefined'&&map.hasLayer(worldImagery))map.removeLayer(worldImagery)}catch(_){}
+   try{if(typeof activeBase!=='undefined'&&activeBase&&map.hasLayer(activeBase))map.removeLayer(activeBase)}catch(_){}
+   try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}
+  },ms);
  };
  try{map.on('layeradd',e=>{try{if(window.anambroIstacActive?.()&&typeof activeBase!=='undefined'&&e.layer===activeBase)setTimeout(syncIstacThematicBackground,0)}catch(_){}})}catch(_){}
  const originalCommitIstacRender=commitIstacRender;
@@ -16835,6 +16874,20 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 
  // Reemplazar únicamente el botón Recargar para que no conserve el listener antiguo municipio/sección.
  const reloadOld=document.getElementById('istacReloadBtn');if(reloadOld){const reload=reloadOld.cloneNode(true);reloadOld.replaceWith(reload);reload.addEventListener('click',()=>fineLevel()?loadIstacSectionCatalog():loadIstacCatalog())}
+
+ // Refuerzo de unión para secciones: código oficial y, como respaldo, municipio+distrito+sección.
+ function istacSectionCompositeKeyFromObject(obj){
+  const r=obj?.properties||obj||{},keys=Object.keys(r),val=rx=>{const k=keys.find(x=>rx.test(x));return k==null?'':String(r[k]??'').trim()};
+  let mun=val(/^(cumun|cmun|cod.*mun|municipio.*cod|codigo.*mun)$/i).replace(/\D/g,''),dis=val(/^(cdis|distrito|cod.*dis)$/i).replace(/\D/g,''),sec=val(/^(csec|seccion|sección|cod.*sec)$/i).replace(/\D/g,'');
+  if(mun.length===3){const prov=val(/^(cpro|provincia.*cod|cod.*prov)$/i).replace(/\D/g,'');if(prov.length===2)mun=prov+mun}
+  return mun.length===5&&dis&&sec?mun+dis.padStart(2,'0')+sec.padStart(3,'0'):'';
+ }
+ const _buildIstacJoinRobust=buildIstacJoin;
+ buildIstacJoin=function(rows){
+  const base=_buildIstacJoinRobust(rows);if(istacTerritoryLevel!=='section')return base;
+  const byComposite=new Map();for(const r of rows||[]){const k=istacSectionCompositeKeyFromObject(r);if(k&&!byComposite.has(k))byComposite.set(k,r)}
+  const oldRowForFeature=base.rowForFeature;base.rowForFeature=function(f){const hit=oldRowForFeature.call(base,f);if(hit)return hit;const k=istacSectionCompositeKeyFromObject(f);return k?byComposite.get(k)||null:null};return base;
+ };
 
  // Los límites municipales blancos son referencia, no heredan la opacidad de la coropleta.
  document.getElementById('istacOpacity')?.addEventListener('input',()=>{try{showMunicipalReference()}catch(_){}});
