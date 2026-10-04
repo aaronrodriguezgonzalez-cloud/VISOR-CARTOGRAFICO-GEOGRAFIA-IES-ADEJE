@@ -16,14 +16,18 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 
-const YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
+const YEARS = [2020, 2021, 2022, 2024, 2025];
+const SERIES_YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
+const MISSING_YEARS = [2023];
 const CLASS_BASE = 'https://datos.canarias.es/api/estadisticas/structural-resources/v1.0/codelists/ISTAC/CL_AREA_ES70_EN_20250101/01.000/codes.json';
 const CKAN_API = 'https://datos.canarias.es/catalogos/general/api/3/action/package_search';
 const OUTPUT_DIR = new URL('../data/', import.meta.url);
 const PAGE_LIMIT = 1000;
 
-// Atajos verificados. 2023 se resuelve siempre por catálogo; los demás también
-// se validan por catálogo antes de usar el fallback.
+// Atajos verificados para los años en los que ISTAC publica este cubo.
+// En el catálogo oficial no existe un cubo equivalente para 2023 con detalle
+// de entidades singulares + núcleos/diseminados, por lo que 2023 se conserva
+// en la serie como año sin dato (null), sin inventar ni interpolar valores.
 const FALLBACK_DATASETS = {
   2020: { id: 'E30260A_000034', version: '1.1' },
   2021: { id: 'E30260A_000035', version: '1.1' },
@@ -635,12 +639,18 @@ function mergeSeries(results, level) {
       out.get(u.id).years[String(year)] = u.values;
     }
   }
+  for (const rec of out.values()) {
+    for (const year of SERIES_YEARS) {
+      if (!(String(year) in rec.years)) rec.years[String(year)] = null;
+    }
+  }
   return [...out.values()];
 }
 
 async function main() {
   await mkdir(OUTPUT_DIR, { recursive: true });
-  console.log(`[ANAMBRO] Serie limitada expresamente a ${YEARS[0]}–${YEARS.at(-1)}.`);
+  console.log(`[ANAMBRO] Serie 2020–2025. Años descargables del cubo fino ISTAC: ${YEARS.join(', ')}.`);
+  console.log('[ANAMBRO] 2023 se deja como sin dato: no se publica un cubo equivalente de entidades + núcleos/diseminados.');
   const rawCodes = await fetchAllClassificationCodes();
   const cls = buildClassification(rawCodes);
 
@@ -656,7 +666,9 @@ async function main() {
   const common = {
     schema: 'anambro-istac-series-v1',
     generatedAt: new Date().toISOString(),
-    years: YEARS,
+    years: SERIES_YEARS,
+    availableYears: YEARS,
+    missingYears: MISSING_YEARS,
     territorialReference: '2025',
     indicators: Object.fromEntries(INDICATORS.map(i => [i.key, { name: i.name, unit: 'habitantes' }])),
     source: {
@@ -664,6 +676,7 @@ async function main() {
       classification: 'ISTAC:CL_AREA_ES70_EN_20250101',
       classificationUrl: CLASS_BASE,
       datasets: results.map(r => ({ year: r.year, title: r.ds.title, jsonstat: r.ds.jsonstat, json: r.ds.json, format: r.format })),
+      note: '2023 sin dato en esta serie: no existe en el catálogo ISTAC un cubo equivalente con entidades singulares, núcleos y diseminados.',
     },
   };
   const entityDoc = { ...common, level: 'entity', unitCount: entitySeries.length, units: entitySeries };
@@ -680,7 +693,7 @@ async function main() {
   await writeFile(new URL('istac_entidades_2025.json', OUTPUT_DIR), JSON.stringify({ ...common25, level:'entity', unitCount:r25.agg.entity.length, units:r25.agg.entity }));
   await writeFile(new URL('istac_nucleos_2025.json', OUTPUT_DIR), JSON.stringify({ ...common25, level:'nucleus', unitCount:r25.agg.nucleus.length, units:r25.agg.nucleus }));
 
-  console.log('[ANAMBRO] Listo: dos series 2020–2025 + dos archivos 2025 compatibles. No se consulta ningún año anterior a 2020.');
+  console.log('[ANAMBRO] Listo: dos series 2020–2025 (2023=null) + dos archivos 2025 compatibles. No se consulta ningún año anterior a 2020.');
 }
 
 main().catch(err => {
