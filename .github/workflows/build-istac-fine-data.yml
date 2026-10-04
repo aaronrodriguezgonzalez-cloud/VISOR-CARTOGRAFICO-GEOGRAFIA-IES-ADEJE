@@ -1,1 +1,49 @@
+name: Actualizar datos ISTAC de entidades y núcleos
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 5 2 1 *'
+  push:
+    paths:
+      - 'scripts/build-istac-fine-data.mjs'
+      - '.github/workflows/build-istac-fine-data.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Descargar y transformar ISTAC 2025
+        run: node scripts/build-istac-fine-data.mjs
+
+      - name: Comprobar archivos generados
+        run: |
+          test -s data/istac_entidades_2025.json
+          test -s data/istac_nucleos_2025.json
+          node -e "for (const f of ['data/istac_entidades_2025.json','data/istac_nucleos_2025.json']) { const j=require('./'+f); if(!j.units?.length) process.exit(1); console.log(f, j.units.length, 'unidades'); }"
+
+      - name: Guardar datos en el repositorio
+        run: |
+          if git diff --quiet -- data/istac_entidades_2025.json data/istac_nucleos_2025.json && git ls-files --error-unmatch data/istac_entidades_2025.json data/istac_nucleos_2025.json >/dev/null 2>&1; then
+            echo 'Sin cambios.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/istac_entidades_2025.json data/istac_nucleos_2025.json
+          git commit -m 'Actualizar datos ISTAC 2025 de entidades y núcleos'
+          git push
