@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * ANAMBRO · Generador local de Entidades y Núcleos ISTAC 2025
+ * ANAMBRO · Generador local simplificado · Entidades/Núcleos 2020–2025
  *
  * Fuentes oficiales:
- * - Cubo ISTAC:E30243A_000022 (población por sexo y edad, 01/01/2025)
+ * - Cubos oficiales ISTAC de población, únicamente 2020–2025
  * - Clasificación ISTAC:CL_AREA_ES70_EN_20250101
  *
  * Salida:
- * - data/istac_entidades_2025.json
- * - data/istac_nucleos_2025.json
+ * - data/istac_entidades_2020_2025.json / istac_nucleos_2020_2025.json
+ * - Mantiene además los dos JSON 2025 para compatibilidad con el visor actual.
  *
  * No requiere dependencias externas (Node 20+).
  */
@@ -16,12 +16,21 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 
-const DATASET_JSONSTAT = 'https://datos.canarias.es/api/estadisticas/statistical-resources/v1.0/datasets/ISTAC/E30243A_000022/1.0.jsonstat';
-const DATASET_JSON = 'https://datos.canarias.es/api/estadisticas/statistical-resources/v1.0/datasets/ISTAC/E30243A_000022/1.0.json';
+const YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
 const CLASS_BASE = 'https://datos.canarias.es/api/estadisticas/structural-resources/v1.0/codelists/ISTAC/CL_AREA_ES70_EN_20250101/01.000/codes.json';
+const CKAN_API = 'https://datos.canarias.es/catalogos/general/api/3/action/package_search';
 const OUTPUT_DIR = new URL('../data/', import.meta.url);
-const REFERENCE_DATE = '2025-01-01';
 const PAGE_LIMIT = 1000;
+
+// Atajos verificados. 2023 se resuelve siempre por catálogo; los demás también
+// se validan por catálogo antes de usar el fallback.
+const FALLBACK_DATASETS = {
+  2020: { id: 'E30260A_000034', version: '1.1' },
+  2021: { id: 'E30260A_000035', version: '1.1' },
+  2022: { id: 'E30260A_000036', version: '1.1' },
+  2024: { id: 'E30243A_000019', version: '1.0' },
+  2025: { id: 'E30243A_000022', version: '1.0' },
+};
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -51,6 +60,37 @@ async function fetchJson(url, { attempts = 5, timeoutMs = 10 * 60_000 } = {}) {
   throw last;
 }
 
+async function resolveDataset(year) {
+  const q = `Población según sexos y grupos de edad entidades singulares núcleos diseminados Canarias 01/01/${year}`;
+  try {
+    const u = new URL(CKAN_API);
+    u.searchParams.set('q', q);
+    u.searchParams.set('rows', '50');
+    const json = await fetchJson(u.href, { attempts: 3, timeoutMs: 60_000 });
+    const packs = json?.result?.results || [];
+    const wanted = packs
+      .map(p => ({ p, t: normalize(`${p.title || ''} ${p.notes || ''}`) }))
+      .filter(x => x.t.includes(String(year)) && /poblacion segun sexos y grupos de edad/.test(x.t) && /entidad/.test(x.t) && /nucle/.test(x.t))
+      .sort((a,b) => (b.t.includes('municipios') ? 1 : 0) - (a.t.includes('municipios') ? 1 : 0));
+    for (const {p} of wanted) {
+      const rs = p.resources || [];
+      const rStat = rs.find(r => /jsonstat/i.test(`${r.name || ''} ${r.description || ''} ${r.url || ''}`));
+      const rJson = rs.find(r => String(r.format || '').toUpperCase() === 'JSON' && !/jsonstat/i.test(`${r.name || ''} ${r.url || ''}`));
+      if (rStat?.url || rJson?.url) {
+        console.log(`[ISTAC] ${year}: catálogo -> ${p.title}`);
+        return { year, title: p.title, jsonstat: rStat?.url || '', json: rJson?.url || '', packageId: p.id || '' };
+      }
+    }
+  } catch (e) {
+    console.warn(`[ISTAC] ${year}: no se pudo resolver por catálogo: ${e?.message || e}`);
+  }
+  const fb = FALLBACK_DATASETS[year];
+  if (!fb) throw new Error(`No se encontró cubo oficial para ${year}`);
+  const base = `https://datos.canarias.es/api/estadisticas/statistical-resources/v1.0/datasets/ISTAC/${fb.id}/${fb.version}`;
+  console.log(`[ISTAC] ${year}: usando fallback ${fb.id}/${fb.version}`);
+  return { year, title: `ISTAC ${year}`, jsonstat: `${base}.jsonstat`, json: `${base}.json`, datasetId: fb.id };
+}
+
 function textOf(x) {
   if (x == null) return '';
   if (typeof x === 'string' || typeof x === 'number') return String(x);
@@ -76,7 +116,7 @@ function refId(v) {
   let s = String(v).trim();
   if (!s) return '';
   try { s = decodeURIComponent(s); } catch {}
-  const urn = s.match(/CL_AREA_ES70_EN_20250101\([^)]*\)\.([^\s?#]+)/i);
+  const urn = s.match(/CL_AREA_ES70_EN_\d{8}\([^)]*\)\.([^\s?#]+)/i);
   if (urn) return urn[1];
   const url = s.match(/\/codes\/([^/?#]+)(?:[/?#]|$)/i);
   if (url) return url[1];
@@ -286,7 +326,22 @@ function buildClassification(rawCodes) {
     throw new Error(`No se reconstruyeron Entidades/Núcleos (${counts.entity}/${counts.nucleus}); profundidad máxima ${maxDepth}`);
   }
 
-  return { byId, counts, ancestors, ancestorAt };
+  const nameIndex = new Map();
+  for (const rec of byId.values()) {
+    if (rec.level !== 'entity' && rec.level !== 'nucleus') continue;
+    const key = normalize(rec.name);
+    if (!key) continue;
+    if (!nameIndex.has(key)) nameIndex.set(key, []);
+    nameIndex.get(key).push(rec);
+  }
+  function resolveFineRecord(code, label) {
+    const id = refId(code || '');
+    const direct = byId.get(id);
+    if (direct && (direct.level === 'entity' || direct.level === 'nucleus')) return direct;
+    const list = nameIndex.get(normalize(label || '')) || [];
+    return list.length === 1 ? list[0] : null;
+  }
+  return { byId, counts, ancestors, ancestorAt, resolveFineRecord };
 }
 
 function dimensionCodes(dim) {
@@ -406,7 +461,7 @@ function finalizeUnit(unit) {
   return unit;
 }
 
-function aggregateJsonStat(json, cls) {
+function aggregateJsonStat(json, cls, targetYear) {
   const jd = (json.dimension || json.dimensions) ? json : (json.data && (json.data.dimension || json.data.dimensions) ? json.data : null);
   if (!jd) throw new Error('El cubo no parece JSON-stat');
   const dims = jd.dimension || jd.dimensions;
@@ -442,17 +497,17 @@ function aggregateJsonStat(json, cls) {
       tuple[keys[i]] = { code: String(c), label: labels[i].get(String(c)) || String(c) };
     }
     const time = tuple[timeKey] || {};
-    if (!String(time.code || time.label || '').includes('2025')) continue;
+    if (!String(time.code || time.label || '').includes(String(targetYear))) continue;
     const geo = tuple[geoKey] || {};
     const geoId = refId(geo.code || '');
-    const rec = cls.byId.get(geoId);
+    const rec = cls.resolveFineRecord(geoId, geo.label || geo.code || '');
     if (!rec || (rec.level !== 'entity' && rec.level !== 'nucleus')) continue;
     const unit = rec.level === 'entity' ? entityUnits.get(rec.id) : nucleusUnits.get(rec.id);
     if (!unit) continue;
     aggregateObservation(unit, tupleText(tuple), value);
     used++;
   }
-  console.log(`[ISTAC] Observaciones numéricas ${numeric}; observaciones finas 2025 consideradas ${used}`);
+  console.log(`[ISTAC] ${targetYear}: observaciones numéricas ${numeric}; observaciones finas consideradas ${used}`);
   return {
     entity: [...entityUnits.values()].map(finalizeUnit),
     nucleus: [...nucleusUnits.values()].map(finalizeUnit),
@@ -476,7 +531,7 @@ function legacyCodes(d) {
   return [];
 }
 
-function aggregateNative(json, cls) {
+function aggregateNative(json, cls, targetYear) {
   const data = json?.data && typeof json.data === 'object' ? json.data : json;
   let dimList = data?.dimensions?.dimension;
   if (dimList && !Array.isArray(dimList)) dimList = [dimList];
@@ -528,13 +583,13 @@ function aggregateNative(json, cls) {
       tuple[keys[i]] = { code: String(c), label: mp?.get(String(c)) || String(c) };
     }
     const time = tuple[timeKey] || {};
-    if (!String(time.code || time.label || '').includes('2025')) continue;
-    const geo = tuple[geoKey] || {}, rec = cls.byId.get(refId(geo.code || ''));
+    if (!String(time.code || time.label || '').includes(String(targetYear))) continue;
+    const geo = tuple[geoKey] || {}, rec = cls.resolveFineRecord(refId(geo.code || ''), geo.label || geo.code || '');
     if (!rec || (rec.level !== 'entity' && rec.level !== 'nucleus')) continue;
     const unit = rec.level === 'entity' ? entityUnits.get(rec.id) : nucleusUnits.get(rec.id);
     aggregateObservation(unit, tupleText(tuple), value); used++;
   }
-  console.log(`[ISTAC] Observaciones finas 2025 consideradas (nativo): ${used}`);
+  console.log(`[ISTAC] ${targetYear}: observaciones finas consideradas (nativo): ${used}`);
   return { entity: [...entityUnits.values()].map(finalizeUnit), nucleus: [...nucleusUnits.values()].map(finalizeUnit), dimensions: keys };
 }
 
@@ -547,52 +602,85 @@ function validateOutput(level, units) {
   console.log(`[ANAMBRO] ${level}: ${units.length} unidades; población en ${populated}; hombres ${countValues(units,'men')}; mujeres ${countValues(units,'women')}; 0-14 ${countValues(units,'age_0_14')}; 15-64 ${countValues(units,'age_15_64')}; 65+ ${countValues(units,'age_65_plus')}`);
 }
 
+async function loadYear(year, cls) {
+  const ds = await resolveDataset(year);
+  let cube, format = '';
+  if (ds.jsonstat) {
+    try { cube = await fetchJson(ds.jsonstat, { attempts: 3, timeoutMs: 4 * 60_000 }); format = 'jsonstat'; }
+    catch (e) { console.warn(`[ISTAC] ${year}: JSONSTAT falló: ${e?.message || e}`); }
+  }
+  if (!cube && ds.json) { cube = await fetchJson(ds.json, { attempts: 3, timeoutMs: 4 * 60_000 }); format = 'native'; }
+  if (!cube) throw new Error(`${year}: no se pudo descargar JSON/JSONSTAT`);
+  let agg;
+  try { agg = aggregateJsonStat(cube, cls, year); format = 'jsonstat'; }
+  catch (e) {
+    console.warn(`[ANAMBRO] ${year}: JSON-stat no reconocido (${e?.message || e}); probando nativo.`);
+    agg = aggregateNative(cube, cls, year); format = 'native';
+  }
+  validateOutput(`entity ${year}`, agg.entity);
+  validateOutput(`nucleus ${year}`, agg.nucleus);
+  return { ds, format, agg };
+}
+
+function mergeSeries(results, level) {
+  const out = new Map();
+  for (const { year, agg } of results) {
+    const units = level === 'entity' ? agg.entity : agg.nucleus;
+    for (const u of units) {
+      if (!out.has(u.id)) {
+        const base = { ...u, values: undefined, years: {} };
+        delete base.values;
+        out.set(u.id, base);
+      }
+      out.get(u.id).years[String(year)] = u.values;
+    }
+  }
+  return [...out.values()];
+}
+
 async function main() {
   await mkdir(OUTPUT_DIR, { recursive: true });
+  console.log(`[ANAMBRO] Serie limitada expresamente a ${YEARS[0]}–${YEARS.at(-1)}.`);
   const rawCodes = await fetchAllClassificationCodes();
   const cls = buildClassification(rawCodes);
 
-  let cube, format;
-  try {
-    cube = await fetchJson(DATASET_JSONSTAT, { timeoutMs: 10 * 60_000 });
-    format = 'jsonstat';
-  } catch (e) {
-    console.warn(`[ISTAC] JSONSTAT falló; probando JSON nativo: ${e?.message || e}`);
-    cube = await fetchJson(DATASET_JSON, { timeoutMs: 10 * 60_000 });
-    format = 'native';
+  const results = [];
+  for (const year of YEARS) {
+    console.log(`\n[ANAMBRO] ===== ${year} =====`);
+    const { ds, format, agg } = await loadYear(year, cls);
+    results.push({ year, ds, format, agg });
   }
 
-  let agg;
-  try { agg = aggregateJsonStat(cube, cls); format = 'jsonstat'; }
-  catch (e) {
-    console.warn(`[ANAMBRO] No se pudo decodificar como JSON-stat: ${e?.message || e}`);
-    agg = aggregateNative(cube, cls); format = 'native';
-  }
-
-  validateOutput('entity', agg.entity);
-  validateOutput('nucleus', agg.nucleus);
-
+  const entitySeries = mergeSeries(results, 'entity');
+  const nucleusSeries = mergeSeries(results, 'nucleus');
   const common = {
-    schema: 'anambro-istac-fine-v2',
+    schema: 'anambro-istac-series-v1',
     generatedAt: new Date().toISOString(),
-    referenceDate: REFERENCE_DATE,
+    years: YEARS,
+    territorialReference: '2025',
     indicators: Object.fromEntries(INDICATORS.map(i => [i.key, { name: i.name, unit: 'habitantes' }])),
     source: {
       publisher: 'Instituto Canario de Estadística (ISTAC)',
-      dataset: 'ISTAC:E30243A_000022',
-      datasetUrl: DATASET_JSONSTAT,
       classification: 'ISTAC:CL_AREA_ES70_EN_20250101',
       classificationUrl: CLASS_BASE,
-      downloadedFormat: format,
+      datasets: results.map(r => ({ year: r.year, title: r.ds.title, jsonstat: r.ds.jsonstat, json: r.ds.json, format: r.format })),
     },
   };
+  const entityDoc = { ...common, level: 'entity', unitCount: entitySeries.length, units: entitySeries };
+  const nucleusDoc = { ...common, level: 'nucleus', unitCount: nucleusSeries.length, units: nucleusSeries };
+  await writeFile(new URL('istac_entidades_2020_2025.json', OUTPUT_DIR), JSON.stringify(entityDoc));
+  await writeFile(new URL('istac_nucleos_2020_2025.json', OUTPUT_DIR), JSON.stringify(nucleusDoc));
 
-  const entityDoc = { ...common, level: 'entity', unitCount: agg.entity.length, units: agg.entity };
-  const nucleusDoc = { ...common, level: 'nucleus', unitCount: agg.nucleus.length, units: agg.nucleus };
+  // Compatibilidad con el visor actual: mantenemos también los dos ficheros 2025.
+  const r25 = results.find(r => r.year === 2025);
+  const common25 = {
+    schema: 'anambro-istac-fine-v2', generatedAt: common.generatedAt, referenceDate: '2025-01-01',
+    indicators: common.indicators, source: { publisher: common.source.publisher, dataset: r25?.ds?.title || 'ISTAC 2025', datasetUrl: r25?.ds?.jsonstat || r25?.ds?.json || '', classification: common.source.classification, classificationUrl: CLASS_BASE, downloadedFormat: r25?.format || '' }
+  };
+  await writeFile(new URL('istac_entidades_2025.json', OUTPUT_DIR), JSON.stringify({ ...common25, level:'entity', unitCount:r25.agg.entity.length, units:r25.agg.entity }));
+  await writeFile(new URL('istac_nucleos_2025.json', OUTPUT_DIR), JSON.stringify({ ...common25, level:'nucleus', unitCount:r25.agg.nucleus.length, units:r25.agg.nucleus }));
 
-  await writeFile(new URL('istac_entidades_2025.json', OUTPUT_DIR), JSON.stringify(entityDoc));
-  await writeFile(new URL('istac_nucleos_2025.json', OUTPUT_DIR), JSON.stringify(nucleusDoc));
-  console.log('[ANAMBRO] Datos locales escritos en data/istac_entidades_2025.json y data/istac_nucleos_2025.json');
+  console.log('[ANAMBRO] Listo: dos series 2020–2025 + dos archivos 2025 compatibles. No se consulta ningún año anterior a 2020.');
 }
 
 main().catch(err => {
