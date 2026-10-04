@@ -18208,12 +18208,32 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   {id:'changePct',name:'Variación anual de población · relativa',category:'Evolución',unit:'%',dec:2,breakProfile:'percent'}
  ];
  let ineGeo=null,ineData=null,ineLayer=null,ineLabelLayer=null,ineActiveIndicator='',ineYear='',ineBreaksCurrent=[],ineRows=new Map(),inePreviousBase=null,ineLoadToken=0,ineCanvas=null;
+ let ineYearsCache=null,ineGeoPromise=null,ineDataPromise=null,ineLastHit=null,ineLabelsTimer=0,ineOpacityRaf=0;
+ const ineLayerByCode=new Map(),ineBoundsByCode=new Map(),ineCenterByCode=new Map(),ineSpatialIndex=new Map(),ineLabelMarkers=new Map(),ineDerivedCache=new Map();
+ const INE_GRID=0.5;
  const status=t=>{const e=$('ineStatus');if(e)e.textContent=t};
  const meta=()=>CATALOG.find(x=>x.id===ineActiveIndicator)||null;
  function ensurePanes(){
-  if(!map.getPane('ineMunicipalPane')){const p=map.createPane('ineMunicipalPane');p.style.zIndex='645'}
+  if(!map.getPane('ineMunicipalPane')){const p=map.createPane('ineMunicipalPane');p.style.zIndex='645';p.style.pointerEvents='none'}else map.getPane('ineMunicipalPane').style.pointerEvents='none'
   if(!map.getPane('ineLabelPane')){const p=map.createPane('ineLabelPane');p.style.zIndex='648';p.style.pointerEvents='none'}
   if(!ineCanvas)try{ineCanvas=L.canvas({padding:.45,tolerance:4})}catch(_){}
+ }
+ function gridXY(lon,lat){return[Math.floor(Number(lon)/INE_GRID),Math.floor(Number(lat)/INE_GRID)]}
+ function gridKey(x,y){return x+'|'+y}
+ function indexLayerBounds(code,b){
+  if(!code||!b?.isValid?.())return;
+  ineBoundsByCode.set(code,b);ineCenterByCode.set(code,b.getCenter());
+  const sw=b.getSouthWest(),ne=b.getNorthEast(),[x0,y0]=gridXY(sw.lng,sw.lat),[x1,y1]=gridXY(ne.lng,ne.lat);
+  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=gridKey(x,y),a=ineSpatialIndex.get(k)||[];a.push(code);ineSpatialIndex.set(k,a)}
+ }
+ function candidateCodesAt(lat,lon){
+  const [x,y]=gridXY(lon,lat);return ineSpatialIndex.get(gridKey(x,y))||[];
+ }
+ function visibleCodes(bounds){
+  if(!bounds?.isValid?.())return[];
+  const sw=bounds.getSouthWest(),ne=bounds.getNorthEast(),[x0,y0]=gridXY(sw.lng,sw.lat),[x1,y1]=gridXY(ne.lng,ne.lat),out=new Set();
+  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)for(const code of (ineSpatialIndex.get(gridKey(x,y))||[]))out.add(code);
+  return [...out];
  }
  function ineCodeOf(f){
   const p=f?.properties||{},raw=p.CodINE??p.CODINE??p.codine??p.NATCODE??p.codigo??'';
@@ -18275,34 +18295,47 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   return map;
  }
  async function loadIneGeometry(force=false){
-  if(ineGeo&&!force)return ineGeo;const features=[];
-  for(let offset=0;offset<12000;offset+=2000){
-   status('Cargando límites municipales oficiales · '+Math.min(offset+2000,10000)+'…');
-   const q=new URLSearchParams({where:'1=1',outFields:'OBJECTID,CodINE,NAMEUNIT,CODNUT1,CODNUT2,CODNUT3',returnGeometry:'true',outSR:'4326',orderByFields:'OBJECTID',resultOffset:String(offset),resultRecordCount:'2000',geometryPrecision:'5',f:'geojson'});
-   const r=await fetch(GEO_QUERY+'?'+q,{mode:'cors',cache:force?'reload':'force-cache'});if(!r.ok)throw Error('límites municipales HTTP '+r.status);const j=await r.json();if(!Array.isArray(j?.features))throw Error(j?.error?.message||'respuesta geográfica inválida');features.push(...j.features);if(j.features.length<2000)break;
-  }
-  if(features.length<8000)throw Error('cartografía municipal incompleta ('+features.length+' municipios)');
-  ineGeo={type:'FeatureCollection',name:'Municipios de España · EGRN',features};return ineGeo;
+  if(force){ineGeo=null;ineGeoPromise=null}
+  if(ineGeo)return ineGeo;
+  if(ineGeoPromise)return ineGeoPromise;
+  ineGeoPromise=(async()=>{
+   const features=[];
+   for(let offset=0;offset<12000;offset+=2000){
+    status('Cargando límites municipales oficiales · '+Math.min(offset+2000,10000)+'…');
+    const q=new URLSearchParams({where:'1=1',outFields:'OBJECTID,CodINE,NAMEUNIT,CODNUT1,CODNUT2,CODNUT3',returnGeometry:'true',outSR:'4326',orderByFields:'OBJECTID',resultOffset:String(offset),resultRecordCount:'2000',geometryPrecision:'5',f:'geojson'});
+    const r=await fetch(GEO_QUERY+'?'+q,{mode:'cors',cache:force?'reload':'force-cache'});if(!r.ok)throw Error('límites municipales HTTP '+r.status);const j=await r.json();if(!Array.isArray(j?.features))throw Error(j?.error?.message||'respuesta geográfica inválida');features.push(...j.features);if(j.features.length<2000)break;
+   }
+   if(features.length<8000)throw Error('cartografía municipal incompleta ('+features.length+' municipios)');
+   ineGeo={type:'FeatureCollection',name:'Municipios de España · EGRN',features};return ineGeo;
+  })();
+  try{return await ineGeoPromise}finally{ineGeoPromise=null}
  }
  async function loadIneData(force=false){
-  if(ineData&&!force)return ineData;const geo=await loadIneGeometry(force);let last=null,map=null;
-  try{status('Cargando Censo anual de población · INE…');const r=await fetch(INE_JSON,{mode:'cors',cache:force?'reload':'force-cache'});if(!r.ok)throw Error('API INE HTTP '+r.status);map=parseIneJson(await r.json(),geo);const codes=new Set([...map.values()].filter(x=>Number.isFinite(x.total)).map(x=>x.code));if(codes.size<8000)throw Error('la API solo enlazó '+codes.size+' municipios')}catch(e){last=e;console.warn('Atlas INE · JSON',e);map=null}
-  if(!map){status('API INE no enlazada; usando CSV oficial…');try{const r=await fetch(INE_CSV,{mode:'cors',cache:force?'reload':'force-cache'});if(!r.ok)throw Error('CSV INE HTTP '+r.status);map=parseIneCsv(await r.text())}catch(e){throw Error('no se pudieron cargar los datos municipales del INE: '+(e?.message||e)+(last?' · API: '+(last?.message||last):''))}}
-  const complete=new Set([...map.values()].filter(x=>Number.isFinite(x.total)).map(x=>x.code));if(complete.size<8000)throw Error('datos INE incompletos: '+complete.size+' municipios con población total');ineData=map;return map;
+  if(force){ineData=null;ineDataPromise=null;ineYearsCache=null;ineDerivedCache.clear()}
+  if(ineData)return ineData;
+  if(ineDataPromise)return ineDataPromise;
+  ineDataPromise=(async()=>{
+   const geo=await loadIneGeometry(force);let last=null,map=null;
+   try{status('Cargando Censo anual de población · INE…');const r=await fetch(INE_JSON,{mode:'cors',cache:force?'reload':'force-cache'});if(!r.ok)throw Error('API INE HTTP '+r.status);map=parseIneJson(await r.json(),geo);const codes=new Set([...map.values()].filter(x=>Number.isFinite(x.total)).map(x=>x.code));if(codes.size<8000)throw Error('la API solo enlazó '+codes.size+' municipios')}catch(e){last=e;console.warn('Atlas INE · JSON',e);map=null}
+   if(!map){status('API INE no enlazada; usando CSV oficial…');try{const r=await fetch(INE_CSV,{mode:'cors',cache:force?'reload':'force-cache'});if(!r.ok)throw Error('CSV INE HTTP '+r.status);map=parseIneCsv(await r.text())}catch(e){throw Error('no se pudieron cargar los datos municipales del INE: '+(e?.message||e)+(last?' · API: '+(last?.message||last):''))}}
+   const complete=new Set([...map.values()].filter(x=>Number.isFinite(x.total)).map(x=>x.code));if(complete.size<8000)throw Error('datos INE incompletos: '+complete.size+' municipios con población total');
+   ineData=map;ineYearsCache=null;ineDerivedCache.clear();return map;
+  })();
+  try{return await ineDataPromise}finally{ineDataPromise=null}
  }
- function yearsInData(){return [...new Set([...(ineData?.values?.()||[])].map(r=>r.year).filter(Boolean))].sort()}
+ function yearsInData(){if(ineYearsCache)return ineYearsCache;ineYearsCache=[...new Set([...(ineData?.values?.()||[])].map(r=>r.year).filter(Boolean))].sort();return ineYearsCache}
  const R=6371008.8;
  function ringArea(ring){if(!Array.isArray(ring)||ring.length<3)return 0;let sum=0;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const p1=ring[j],p2=ring[i],lon1=p1[0]*Math.PI/180,lon2=p2[0]*Math.PI/180,lat1=p1[1]*Math.PI/180,lat2=p2[1]*Math.PI/180;sum+=(lon2-lon1)*(2+Math.sin(lat1)+Math.sin(lat2))}return Math.abs(sum)*R*R/2}
  function geomAreaKm2(g){if(!g)return NaN;const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];let a=0;for(const p of polys){if(!p?.length)continue;let x=ringArea(p[0]);for(const h of p.slice(1))x-=ringArea(h);a+=Math.max(0,x)}return a/1e6}
  function record(code,year){return ineData?.get(recKey(code,year))||null}
- function indicatorValue(f,code,year,ind){
+ function indicatorValue(f,code,year,ind,years=yearsInData()){
   const r=record(code,year);if(!r)return null;
   if(ind==='population')return r.total;if(ind==='men')return r.men;if(ind==='women')return r.women;
   if(ind==='womenPct')return Number.isFinite(r.women)&&r.total>0?r.women/r.total*100:null;
   if(ind==='menPct')return Number.isFinite(r.men)&&r.total>0?r.men/r.total*100:null;
   if(ind==='sexRatio')return Number.isFinite(r.men)&&r.women>0?r.men/r.women*100:null;
   if(ind==='density'){let a=f?.properties?.__ineAreaKm2;if(!Number.isFinite(a)){a=geomAreaKm2(f?.geometry);if(f?.properties)f.properties.__ineAreaKm2=a}return Number.isFinite(r.total)&&a>0?r.total/a:null}
-  if(ind==='changeAbs'||ind==='changePct'){const yrs=yearsInData(),i=yrs.indexOf(year);if(i<=0)return null;const prev=record(code,yrs[i-1]);if(!prev||!Number.isFinite(prev.total)||!Number.isFinite(r.total))return null;const d=r.total-prev.total;return ind==='changeAbs'?d:(prev.total?d/prev.total*100:null)}
+  if(ind==='changeAbs'||ind==='changePct'){const i=years.indexOf(year);if(i<=0)return null;const prev=record(code,years[i-1]);if(!prev||!Number.isFinite(prev.total)||!Number.isFinite(r.total))return null;const d=r.total-prev.total;return ind==='changeAbs'?d:(prev.total?d/prev.total*100:null)}
   return null;
  }
  function classify(v,b){if(!Number.isFinite(v)||b.length<6)return-1;return v<b[1]?0:v<b[2]?1:v<b[3]?2:v<b[4]?3:4}
@@ -18312,16 +18345,50 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  }
  function fmt(v,m=meta()){if(!Number.isFinite(v))return'Sin dato';return new Intl.NumberFormat('es-ES',{maximumFractionDigits:m?.dec??2,minimumFractionDigits:0}).format(v)}
  function unitText(m){return m?.unit?' '+m.unit:''}
+ function derivedRows(geo,ind,year,item){
+  const key=ind+'|'+year,cached=ineDerivedCache.get(key);if(cached)return cached;
+  const years=yearsInData(),values=[],rows=new Map(),i=years.indexOf(year),prevYear=i>0?years[i-1]:'';
+  for(const f of geo.features||[]){const code=ineCodeOf(f),v=indicatorValue(f,code,year,ind,years);if(Number.isFinite(v)){values.push(v);rows.set(code,{value:v,record:record(code,year),prevYear:(ind==='changeAbs'||ind==='changePct')?prevYear:''})}}
+  const out={rows,breaks:breakValues(values,item),matched:rows.size,total:(geo.features||[]).length};ineDerivedCache.set(key,out);return out;
+ }
+ function styleForFeature(f,opacity){
+  const row=ineRows.get(ineCodeOf(f)),i=classify(row?.value,ineBreaksCurrent);return{color:'#334c5e',weight:.8,opacity:.95,fillColor:i<0?'#c7cbcf':COL[i],fillOpacity:row?opacity:.18};
+ }
+ function destroyIneLayer(){
+  if(ineLayer){try{map.removeLayer(ineLayer)}catch(_){}ineLayer=null}
+  ineLayerByCode.clear();ineBoundsByCode.clear();ineCenterByCode.clear();ineSpatialIndex.clear();ineLabelMarkers.clear();ineLastHit=null;clearLabels();
+ }
+ function ensureIneLayer(geo){
+  if(ineLayer)return ineLayer;ensurePanes();ineLayerByCode.clear();ineBoundsByCode.clear();ineCenterByCode.clear();ineSpatialIndex.clear();ineLabelMarkers.clear();
+  const opacity=+($('ineOpacity')?.value||.72);
+  ineLayer=L.geoJSON(geo,{pane:'ineMunicipalPane',renderer:ineCanvas||undefined,smoothFactor:1.15,interactive:false,style:f=>styleForFeature(f,opacity),onEachFeature:(f,l)=>{
+   const code=ineCodeOf(f);l.__ineCode=code;l.__ineHasData=ineRows.has(code);ineLayerByCode.set(code,l);
+   try{const b=l.getBounds?.();if(b?.isValid?.())indexLayerBounds(code,b)}catch(_){}
+  }});
+  return ineLayer;
+ }
+ function applyIneStyles(){
+  if(!ineLayer)return;const opacity=+($('ineOpacity')?.value||.72);
+  for(const [code,l] of ineLayerByCode){const row=ineRows.get(code),i=classify(row?.value,ineBreaksCurrent);l.__ineHasData=!!row;try{l.setStyle({color:'#334c5e',weight:.8,opacity:.95,fillColor:i<0?'#c7cbcf':COL[i],fillOpacity:row?opacity:.18})}catch(_){}}
+ }
  function updateLegendIne(matched,total){
   const el=$('ineLegend'),m=meta();if(!el||!m)return;if(!ineBreaksCurrent.length){el.innerHTML='<b>'+esc(m.name)+'</b><br><small>Sin valores enlazados.</small>';return}
   const lines=[];for(let i=0;i<5;i++){const lo=ineBreaksCurrent[i],hi=ineBreaksCurrent[i+1],label=i===0?'Menos de '+fmt(hi,m):i===4?'Más de '+fmt(ineBreaksCurrent[4],m):fmt(lo,m)+' – '+fmt(hi,m);lines.push('<div class="istacLegendItem"><span class="istacLegendSw" style="background:'+COL[i]+'"></span>'+label+'</div>')}
   const missing=Math.max(0,total-matched);if(missing)lines.push('<div class="istacLegendItem"><span class="istacLegendSw" style="background:#c7cbcf"></span>Sin dato INE ('+missing+')</div>');
   el.innerHTML='<b>'+esc(m.name)+'</b><br><small>Municipios de España · '+esc(ineYear)+unitText(m)+' · INE</small>'+lines.join('');try{updateLegend()}catch(_){}
  }
- function clearLabels(){if(ineLabelLayer){try{map.removeLayer(ineLabelLayer)}catch(_){}ineLabelLayer=null}}
- function renderLabels(){
-  clearLabels();if(!$('ineLabelsCheck')?.checked||!ineLayer||map.getZoom()<7)return;ensurePanes();const bounds=map.getBounds();ineLabelLayer=L.layerGroup();let n=0;
-  ineLayer.eachLayer(l=>{if(n>=450)return;const f=l.feature,name=ineNameOf(f);if(!name)return;let b=null;try{b=l.getBounds?.()}catch(_){}if(!b?.isValid?.()||!bounds.intersects(b))return;const c=b.getCenter(),icon=L.divIcon({className:'',html:'<span style="display:inline-block;padding:1px 3px;border-radius:3px;background:rgba(255,255,255,.84);border:1px solid #425b6c88;color:#17324d;font:700 8px/1.05 system-ui;white-space:nowrap;pointer-events:none">'+esc(name)+'</span>',iconSize:null});ineLabelLayer.addLayer(L.marker(c,{icon,interactive:false,pane:'ineLabelPane'}));n++});ineLabelLayer.addTo(map);
+ function clearLabels(){if(ineLabelsTimer){clearTimeout(ineLabelsTimer);ineLabelsTimer=0}if(ineLabelLayer){try{ineLabelLayer.clearLayers()}catch(_){}try{map.removeLayer(ineLabelLayer)}catch(_){}}}
+ function renderLabelsNow(){
+  if(!$('ineLabelsCheck')?.checked||!ineLayer||!map.hasLayer(ineLayer)||map.getZoom()<7){clearLabels();return}
+  ensurePanes();const bounds=map.getBounds();if(!ineLabelLayer)ineLabelLayer=L.layerGroup();else try{ineLabelLayer.clearLayers()}catch(_){}
+  let n=0;for(const code of visibleCodes(bounds)){if(n>=450)break;const c=ineCenterByCode.get(code);if(!c||!bounds.contains(c))continue;const l=ineLayerByCode.get(code),f=l?.feature,name=f?ineNameOf(f):'';if(!name)continue;
+   let marker=ineLabelMarkers.get(code);if(!marker){const icon=L.divIcon({className:'',html:'<span style="display:inline-block;padding:1px 3px;border-radius:3px;background:rgba(255,255,255,.84);border:1px solid #425b6c88;color:#17324d;font:700 8px/1.05 system-ui;white-space:nowrap;pointer-events:none">'+esc(name)+'</span>',iconSize:null});marker=L.marker(c,{icon,interactive:false,pane:'ineLabelPane'});ineLabelMarkers.set(code,marker)}
+   ineLabelLayer.addLayer(marker);n++;
+  }
+  if(!map.hasLayer(ineLabelLayer))ineLabelLayer.addTo(map);
+ }
+ function renderLabels(delay=90){
+  if(ineLabelsTimer)clearTimeout(ineLabelsTimer);ineLabelsTimer=setTimeout(()=>{ineLabelsTimer=0;renderLabelsNow()},Math.max(0,delay));
  }
  function rememberBase(){if(inePreviousBase!==null)return;inePreviousBase=document.querySelector('input[data-base-choice]:checked')?.dataset?.baseChoice||''}
  function syncBackground(){
@@ -18330,7 +18397,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  }
  function restoreBase(){const key=inePreviousBase;inePreviousBase=null;if(!key)return;try{const r=document.querySelector('input[data-base-choice="'+CSS.escape(key)+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}catch(e){console.warn('Atlas INE · restauración de base',e)}}
  function clearIne(restore=true){
-  ++ineLoadToken;if(ineLayer){try{map.removeLayer(ineLayer)}catch(_){}ineLayer=null}clearLabels();ineRows=new Map();ineBreaksCurrent=[];ineActiveIndicator='';const l=$('ineLegend');if(l)l.innerHTML='';const s=$('ineStatus');if(s)s.textContent='Atlas municipal del INE inactivo.';try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}if(restore)restoreBase();try{updateLegend()}catch(_){}
+  ++ineLoadToken;if(ineLayer&&map.hasLayer(ineLayer)){try{map.removeLayer(ineLayer)}catch(_){}}clearLabels();ineRows=new Map();ineBreaksCurrent=[];ineActiveIndicator='';ineLastHit=null;const l=$('ineLegend');if(l)l.innerHTML='';const s=$('ineStatus');if(s)s.textContent='Atlas municipal del INE inactivo.';try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}if(restore)restoreBase();try{updateLegend()}catch(_){}
  }
  window.anambroClearIneAtlas=clearIne;
  window.anambroIneActive=()=>!!(ineLayer&&map.hasLayer(ineLayer));
@@ -18341,10 +18408,13 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   if((ineActiveIndicator==='changeAbs'||ineActiveIndicator==='changePct')&&row?.prevYear)h+='<br><small>Variación respecto a '+esc(row.prevYear)+'.</small>';
   h+='<br><small>INE · Censo anual de población 2021–2025 · cartografía municipal oficial EGRN.</small>';return h;
  }
+ function pointFeatureAt(lat,lon){
+  if(ineLastHit&&Math.abs(Number(ineLastHit.lat)-Number(lat))<1e-7&&Math.abs(Number(ineLastHit.lon)-Number(lon))<1e-7)return ineLastHit.feature||ineLayerByCode.get(ineLastHit.code)?.feature||null;
+  for(const code of candidateCodesAt(lat,lon)){const l=ineLayerByCode.get(code),f=l?.feature;if(!f)continue;const b=ineBoundsByCode.get(code);if(b?.isValid?.()&&!b.contains([lat,lon]))continue;try{if(typeof featureContainsPoint==='function'){if(featureContainsPoint(f,lat,lon))return f}else return f}catch(_){}}
+  return null;
+ }
  window.anambroInePointStatHtmlAt=async function(lat,lon){
-  if(!window.anambroIneActive?.()||!ineLayer)return'';let hit=null;
-  ineLayer.eachLayer(l=>{if(hit||!l?.feature)return;try{const b=l.getBounds?.();if(b?.isValid?.()&&!b.contains([lat,lon]))return}catch(_){};try{if(featureContainsPoint(l.feature,lat,lon))hit=l.feature}catch(_){}});
-  return hit?statHtml(hit,rowForFeature(hit)):'';
+  if(!window.anambroIneActive?.()||!ineLayer)return'';const hit=pointFeatureAt(lat,lon);return hit?statHtml(hit,rowForFeature(hit)):'';
  };
  window.anambroStatisticalPointHtmlAt=async function(lat,lon){
   const parts=[];try{if(window.anambroIstacActive?.()&&window.anambroIstacPointStatHtmlAt){const x=await window.anambroIstacPointStatHtmlAt(lat,lon);if(x)parts.push(x)}}catch(e){console.warn('Ficha ISTAC',e)}
@@ -18352,26 +18422,36 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  };
  async function renderMap(ind,year,force=false){
   const token=++ineLoadToken,item=CATALOG.find(x=>x.id===ind);if(!item)return;status('Preparando '+item.name+'…');
+  const wasActive=window.anambroIneActive?.();
   try{
    try{if(window.anambroIstacActive?.())window.anambroClearIstacAtlas?.()}catch(_){}
-   const [geo,data]=await Promise.all([loadIneGeometry(force),loadIneData(force)]);if(token!==ineLoadToken)return;
+   if(force)destroyIneLayer();
+   await loadIneData(force);const geo=ineGeo||await loadIneGeometry(false);if(token!==ineLoadToken)return;
    const years=yearsInData(),latest=years.at(-1)||'2025';if(!years.includes(year))year=latest;ineYear=year;ineActiveIndicator=ind;
    const ys=$('ineYearSelect');if(ys){ys.innerHTML=years.map(y=>'<option value="'+esc(y)+'">'+esc(y)+'</option>').join('');ys.value=year}
-   const wasActive=window.anambroIneActive?.();rememberBase();if(ineLayer){try{map.removeLayer(ineLayer)}catch(_){}ineLayer=null}clearLabels();ensurePanes();
-   const values=[],rows=new Map(),prevYear=years[Math.max(0,years.indexOf(year)-1)];
-   for(const f of geo.features||[]){const code=ineCodeOf(f),v=indicatorValue(f,code,year,ind);if(Number.isFinite(v)){values.push(v);rows.set(code,{value:v,record:record(code,year),prevYear:(ind==='changeAbs'||ind==='changePct')?prevYear:''})}}
-   ineRows=rows;ineBreaksCurrent=breakValues(values,item);const opacity=+($('ineOpacity')?.value||.72);
-   ineLayer=L.geoJSON(geo,{pane:'ineMunicipalPane',renderer:ineCanvas||undefined,smoothFactor:1.15,interactive:true,style:f=>{const row=rows.get(ineCodeOf(f)),i=classify(row?.value,ineBreaksCurrent);return{color:'#334c5e',weight:.8,opacity:.95,fillColor:i<0?'#c7cbcf':COL[i],fillOpacity:row?opacity:.18}},onEachFeature:(f,l)=>{l.__ineHasData=rows.has(ineCodeOf(f));l.on('click',e=>{try{L.DomEvent.stopPropagation(e.originalEvent||e)}catch(_){};showPoint(e.latlng,'Punto consultado',true)})}}).addTo(map);
-   updateLegendIne(rows.size,(geo.features||[]).length);renderLabels();syncBackground();if(!wasActive)try{map.fitBounds(ineLayer.getBounds(),{padding:[18,18],maxZoom:7})}catch(_){}
-   status(item.name+' · '+rows.size+'/'+(geo.features||[]).length+' municipios con datos · '+year+' · INE.');
-  }catch(e){console.error('Atlas INE',e);if(token!==ineLoadToken)return;if(ineLayer){try{map.removeLayer(ineLayer)}catch(_){}ineLayer=null}clearLabels();ineRows=new Map();ineBreaksCurrent=[];status('No se pudo representar '+item.name+': '+(e?.message||e)+'.');const l=$('ineLegend');if(l)l.innerHTML='<small>Sin mapa: '+esc(e?.message||'error de carga')+'.</small>';try{updateLegend()}catch(_){} }
+   rememberBase();ensurePanes();
+   const d=derivedRows(geo,ind,year,item);ineRows=d.rows;ineBreaksCurrent=d.breaks;
+   ensureIneLayer(geo);if(!map.hasLayer(ineLayer))ineLayer.addTo(map);applyIneStyles();
+   updateLegendIne(d.matched,d.total);renderLabels(0);
+   if(!wasActive){syncBackground();try{map.fitBounds(ineLayer.getBounds(),{padding:[18,18],maxZoom:7})}catch(_){}}else try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}
+   status(item.name+' · '+d.matched+'/'+d.total+' municipios con datos · '+year+' · INE.');
+  }catch(e){console.error('Atlas INE',e);if(token!==ineLoadToken)return;if(!wasActive&&ineLayer&&map.hasLayer(ineLayer)){try{map.removeLayer(ineLayer)}catch(_){}}clearLabels();status('No se pudo representar '+item.name+': '+(e?.message||e)+'.');const l=$('ineLegend');if(l)l.innerHTML='<small>Sin mapa: '+esc(e?.message||'error de carga')+'.</small>';try{updateLegend()}catch(_){} }
  }
  function renderCatalog(){
   const q=norm($('ineIndicatorSearch')?.value||''),sel=$('ineIndicatorSelect');if(!sel)return;const previous=sel.value,groups=new Map();for(const it of CATALOG){if(q&&!norm(it.name+' '+it.category).includes(q))continue;const a=groups.get(it.category)||[];a.push(it);groups.set(it.category,a)}
   let h='<option value="">Selecciona un indicador INE…</option>';for(const [g,items] of groups)h+='<optgroup label="'+esc(g)+'">'+items.map(it=>'<option value="'+esc(it.id)+'">'+esc(it.name)+'</option>').join('')+'</optgroup>';sel.innerHTML=h;if(CATALOG.some(x=>x.id===previous))sel.value=previous;
  }
  const box=$('ineAtlasBlock');if(box&&!box.dataset.bound){
-  box.dataset.bound='1';renderCatalog();$('ineIndicatorSearch')?.addEventListener('input',renderCatalog);$('ineIndicatorSelect')?.addEventListener('change',e=>{if(e.target.value)renderMap(e.target.value,$('ineYearSelect')?.value||ineYear||'2025')});$('ineYearSelect')?.addEventListener('change',e=>{if(ineActiveIndicator)renderMap(ineActiveIndicator,e.target.value)});$('ineLatestBtn')?.addEventListener('click',()=>{const y=yearsInData().at(-1)||'2025';if($('ineYearSelect'))$('ineYearSelect').value=y;if(ineActiveIndicator)renderMap(ineActiveIndicator,y)});$('ineClearBtn')?.addEventListener('click',()=>clearIne(true));$('ineReloadBtn')?.addEventListener('click',()=>{ineGeo=null;ineData=null;if(ineActiveIndicator)renderMap(ineActiveIndicator,ineYear||'2025',true);else status('Datos INE reiniciados. Selecciona un indicador.')});$('ineLabelsCheck')?.addEventListener('change',renderLabels);$('ineOpacity')?.addEventListener('input',e=>{const v=+e.target.value;if($('ineOpacityValue'))$('ineOpacityValue').textContent=Math.round(v*100)+' %';if(ineLayer)ineLayer.eachLayer(l=>{try{l.setStyle({fillOpacity:l.__ineHasData?v:.18})}catch(_){}})});map.on('moveend zoomend',()=>{if(window.anambroIneActive?.())renderLabels()});
+  box.dataset.bound='1';renderCatalog();
+  $('ineIndicatorSearch')?.addEventListener('input',renderCatalog);
+  $('ineIndicatorSelect')?.addEventListener('change',e=>{if(e.target.value)renderMap(e.target.value,$('ineYearSelect')?.value||ineYear||'2025')});
+  $('ineYearSelect')?.addEventListener('change',e=>{if(ineActiveIndicator)renderMap(ineActiveIndicator,e.target.value)});
+  $('ineLatestBtn')?.addEventListener('click',()=>{const y=yearsInData().at(-1)||'2025';if($('ineYearSelect'))$('ineYearSelect').value=y;if(ineActiveIndicator)renderMap(ineActiveIndicator,y)});
+  $('ineClearBtn')?.addEventListener('click',()=>clearIne(true));
+  $('ineReloadBtn')?.addEventListener('click',()=>{if(ineActiveIndicator)renderMap(ineActiveIndicator,ineYear||'2025',true);else{destroyIneLayer();ineGeo=null;ineData=null;ineGeoPromise=null;ineDataPromise=null;ineYearsCache=null;ineDerivedCache.clear();status('Datos INE reiniciados. Selecciona un indicador.')}});
+  $('ineLabelsCheck')?.addEventListener('change',()=>renderLabels(0));
+  $('ineOpacity')?.addEventListener('input',e=>{const v=+e.target.value;if($('ineOpacityValue'))$('ineOpacityValue').textContent=Math.round(v*100)+' %';if(ineOpacityRaf)cancelAnimationFrame(ineOpacityRaf);ineOpacityRaf=requestAnimationFrame(()=>{ineOpacityRaf=0;if(!ineLayer)return;for(const l of ineLayerByCode.values())try{l.setStyle({fillOpacity:l.__ineHasData?v:.18})}catch(_){}})});
+  map.on('moveend zoomend',()=>{if(window.anambroIneActive?.())renderLabels(120)});
  }
  // Un solo atlas estadístico territorial a la vez: al volver a ISTAC se retira INE.
  $('istacIndicatorSelect')?.addEventListener('change',()=>{if(window.anambroIneActive?.())clearIne(false)});
