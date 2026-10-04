@@ -52,5 +52,3 @@ jobs:
 
           git pull --rebase origin main
           git push origin HEAD:main
-          git commit -m 'Actualizar datos ISTAC 2025 de entidades y núcleos'
-          git push
