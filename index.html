@@ -18399,8 +18399,8 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   return v<b[1]?0:v<b[2]?1:v<b[3]?2:v<b[4]?3:4;
  }
  function breakValues(vals,m){
-  if(m?.id==='population')return[0,...POPULATION_CUTS,Infinity];
-  if(typeof humanBreaks==='function')return humanBreaks(vals,{name:m.name,unit:m.unit,dec:m.dec,compact:m.compact,breakProfile:m.breakProfile,fixedCuts:m.fixedCuts,sense:'neutral',zeroBase:m.zeroBase});
+  /* España · INE: exactamente el mismo motor cartográfico del Atlas Mundial. */
+  if(typeof humanBreaks==='function')return humanBreaks(vals,{name:m.name,unit:m.unit,dec:m.dec,compact:m.compact,breakProfile:m.breakProfile,fixedCuts:m.fixedCuts,sense:'neutral',zeroBase:m.zeroBase,domain:m.domain});
   const a=vals.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return[];const q=p=>a[Math.min(a.length-1,Math.max(0,Math.round((a.length-1)*p)))];return[a[0],q(.2),q(.4),q(.6),q(.8),a[a.length-1]];
  }
  function fmt(v,m=meta()){if(!Number.isFinite(v))return'Sin dato';return new Intl.NumberFormat('es-ES',{maximumFractionDigits:m?.dec??2,minimumFractionDigits:0}).format(v)}
@@ -18569,75 +18569,6 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  if(typeof activeLegendHTML==='function'){const prev=activeLegendHTML;activeLegendHTML=function(){let h=prev.apply(this,arguments)||'';if(window.anambroIneActive?.()){const x=$('ineLegend')?.innerHTML||'';if(x)h+='<div style="margin-top:8px">'+x+'</div>'}return h}}
  if(typeof activeSourcesText==='function'){const prev=activeSourcesText;activeSourcesText=function(){const a=[],b=prev.apply(this,arguments);if(b)a.push(b);if(window.anambroIneActive?.()){const m=meta();a.push(m?.source==='adrh2023'?'Instituto Nacional de Estadística (INE) · Atlas de Distribución de Renta de los Hogares 2023 · cartografía municipal EGRN':m?.source==='censo2025'?'Instituto Nacional de Estadística (INE) · Censo Anual de Población 2025 · cartografía municipal EGRN':'Instituto Nacional de Estadística (INE) · Censo anual de población 2021–2025 · cartografía municipal EGRN')}return a.join(' · ')}}
  window.__anambroIneDebug={loadGeometry:loadIneGeometry,loadData:loadIneData,render:renderMap,clear:clearIne,table:INE_TABLE_URL};
-})();
-</script>
-
-
-<script id="anambro-quintiles-redondos-20261004">
-/*
-  ANAMBRO · clasificación estadística
-  Regla: quintiles reales (Q20/Q40/Q60/Q80) -> aproximación de cada corte
-  al valor redondo más cercano. Se aplica al motor común utilizado por
-  Atlas ISTAC (Canarias) y Atlas INE (España). Los "Sin datos" no participan.
-*/
-(function(){
-  function qInterpolado(a,p){
-    if(a.length===1) return a[0];
-    const x=(a.length-1)*p, lo=Math.floor(x), hi=Math.ceil(x), t=x-lo;
-    return a[lo]+(a[hi]-a[lo])*t;
-  }
-
-  function pasoRedondo(raw, a, meta){
-    const min=a[0], max=a[a.length-1];
-    const rango=Math.max(max-min, Math.abs(max)*0.01, 1e-12);
-
-    // Partimos del tamaño que separa razonablemente cinco clases y lo
-    // convertimos a una cifra cartográficamente limpia: 1, 2, 5 × 10^n.
-    const objetivo=rango/10;
-    const exp=Math.floor(Math.log10(Math.max(objetivo,1e-12)));
-    const base=Math.pow(10,exp);
-    const f=objetivo/base;
-    let m=f<=1.5?1:f<=3.5?2:f<=7.5?5:10;
-    let step=m*base;
-
-    // Variables expresadas como porcentajes/índices pequeños: evitar
-    // decimales innecesarios, pero conservarlos cuando son imprescindibles.
-    const unidad=String(meta?.unit||'').toLowerCase();
-    const nombre=String(meta?.name||'').toLowerCase();
-    const esPct=unidad.includes('%') || nombre.includes('porcentaje') || nombre.includes('tasa');
-    if(esPct && rango>=10) step=Math.max(step,1);
-
-    return step;
-  }
-
-  window.humanBreaks = function(vals, meta){
-    const a=(vals||[]).map(Number).filter(Number.isFinite).sort((x,y)=>x-y);
-    if(!a.length) return [];
-
-    const raw=[.2,.4,.6,.8].map(p=>qInterpolado(a,p));
-    let step=pasoRedondo(raw,a,meta);
-    let cuts=raw.map(v=>Math.round(v/step)*step);
-
-    // Si dos quintiles se redondean al mismo límite, reducimos el paso
-    // progresivamente hasta obtener cuatro cortes crecientes y legibles.
-    for(let intento=0; intento<8 && cuts.some((v,i)=>i && !(v>cuts[i-1])); intento++){
-      step/=2;
-      cuts=raw.map(v=>Math.round(v/step)*step);
-    }
-
-    // Última garantía de monotonía sin volver a los quintiles "feos".
-    for(let i=1;i<cuts.length;i++){
-      if(!(cuts[i]>cuts[i-1])) cuts[i]=cuts[i-1]+step;
-    }
-
-    const limpiar=v=>{
-      const dec=step>=1?0:Math.min(4,Math.max(0,Math.ceil(-Math.log10(step))));
-      return Number(v.toFixed(dec));
-    };
-    cuts=cuts.map(limpiar);
-
-    return [a[0],cuts[0],cuts[1],cuts[2],cuts[3],a[a.length-1]];
-  };
 })();
 </script>
 
