@@ -2752,6 +2752,10 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
  html body #anambroHeader .brandHeaderEditBtn{display:none!important}
 }
 </style>
+
+<style id="anambro-v033-canary-flag">
+.canaryFlagIcon{display:inline-block;width:19px;height:12px;vertical-align:-1px;margin-right:4px;border:1px solid rgba(0,0,0,.34);border-radius:1px;box-sizing:border-box;background:linear-gradient(90deg,#fff 0 33.333%,#0066b3 33.333% 66.666%,#ffd100 66.666% 100%);box-shadow:0 0 0 .5px rgba(255,255,255,.45) inset}
+</style>
 </head><body>
 <div id="map"></div>
 <div id="globe" aria-label="Globo 3D"></div>
@@ -2942,7 +2946,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 
 <div class="panel hidden" id="layersPanel"><h3>Capas</h3>
 <div class="layersRule"><b>Navegación por niveles:</b> ámbito → tema → capa. En <b>Geografía Humana</b>, los indicadores se ordenan por grandes bloques didácticos; el atlas mundial y el atlas municipal de Canarias tienen buscador propio para evitar listas interminables.</div>
-<details class="layerScope"><summary>🏝️ Canarias</summary>
+<details class="layerScope"><summary><span class="canaryFlagIcon" role="img" aria-label="Bandera de Canarias" title="Bandera de Canarias"></span> Canarias</summary>
 <div class="layerScopeInner"><details class="layerSubcategory"><summary>🗺️ Cartografía base</summary><label><input data-base-choice="raster" name="baseCanary" type="radio"/> Mapa topográfico · MTN</label>
 <label><input data-base-choice="pnoa" name="baseCanary" type="radio"/> Imagen · PNOA máxima actualidad</label>
 <label><input data-base-choice="street" name="baseCanary" type="radio"/> Callejero · IGN Base</label>
@@ -3028,7 +3032,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 </details>
 <details class="layerCategory"><summary>📊 Atlas estadístico · ISTAC</summary>
 <div class="layerSubBlock atlasPanelBlock" id="istacAtlasBlock">
-<b>🏝️ Canarias · Atlas territorial ANAMBRO</b>
+<b><span class="canaryFlagIcon" role="img" aria-label="Bandera de Canarias" title="Bandera de Canarias"></span> Canarias · Atlas territorial ANAMBRO</b>
 <small class="atlasSearchHint">Datos oficiales del ISTAC · municipios y secciones censales. Misma clasificación, simbología, leyenda, ficha y exportación.</small>
 <label><small><b>Nivel territorial</b></small><select id="istacLevelSelect"><option value="municipality">Municipios</option><option value="section">Secciones censales · 2025</option></select></label>
 <input id="istacIndicatorSearch" type="search" placeholder="Buscar: población, envejecimiento, turismo, empleo, renta…"/>
@@ -18933,10 +18937,11 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 })();
 </script>
 
-<script id="anambro-v032-globe-physical-fix">
-/* v0.32 · Capas físicas del globo por la misma ruta estable de entidades Cesium.
+<script id="anambro-v033-globe-physical-fix">
+/* v0.33 · Capas físicas del globo por la misma ruta estable de entidades Cesium.
    - Conserva Volcanes GVP tal como ya funcionaban.
    - Terremotos USGS, erupciones recientes GVP y placas PB2002 se crean en globeViewer.entities.
+   - Las placas incluyen relleno Polygon/MultiPolygon directo, con la misma paleta y opacidad que en 2D.
    - La sincronización se ejecuta SIEMPRE al entrar al globo, no solo cuando Cesium se crea por primera vez.
 */
 (function(){
@@ -19038,6 +19043,33 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   const flat=[];for(const [lon,lat] of points)flat.push(lon,lat,height);
   return Cesium.Cartesian3.fromDegreesArrayHeights(flat);
  }
+ function cleanPlateRing(ring){
+  const out=[];
+  for(const p of ring||[]){
+   const lon=Number(p?.[0]),lat=Number(p?.[1]);
+   if(Number.isFinite(lon)&&Number.isFinite(lat))out.push([lon,lat]);
+  }
+  if(out.length>3){
+   const a=out[0],b=out[out.length-1];
+   if(Math.abs(a[0]-b[0])<1e-10&&Math.abs(a[1]-b[1])<1e-10)out.pop();
+  }
+  return out.length>=3?out:null;
+ }
+ function platePolygonHierarchy(coords){
+  if(!Array.isArray(coords)||!coords.length)return null;
+  const outer=cleanPlateRing(coords[0]);if(!outer)return null;
+  const toPositions=ring=>{const flat=[];for(const [lon,lat] of ring)flat.push(lon,lat);return Cesium.Cartesian3.fromDegreesArray(flat)};
+  const holes=[];
+  for(let i=1;i<coords.length;i++){const r=cleanPlateRing(coords[i]);if(r)holes.push(new Cesium.PolygonHierarchy(toPositions(r)));}
+  return new Cesium.PolygonHierarchy(toPositions(outer),holes);
+ }
+ function eachPlatePolygon(geo,cb){
+  for(const f of geo?.features||[]){
+   const g=f?.geometry;if(!g)continue;
+   if(g.type==='Polygon')cb(f,g.coordinates);
+   else if(g.type==='MultiPolygon')for(const poly of g.coordinates||[])cb(f,poly);
+  }
+ }
  async function buildPlatesDirect(on){
   if(!globeViewer)return;
   const seq=++plateSeq;
@@ -19056,6 +19088,21 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
     try{const ds=eval(dsName);if(ds)globeViewer.dataSources.remove(ds,true);eval(dsName+'=null')}catch(_){}
    }
    const a=alphaValue('worldPlateOpacity',1),lineCss=plateLineColor();
+   if(document.getElementById('worldPlateFillCheck')?.checked){
+    const fillAlpha=plateFillOpacity()*a;
+    eachPlatePolygon(worldPlateGeo,(f,coords)=>{
+     const hierarchy=platePolygonHierarchy(coords);if(!hierarchy)return;
+     const name=plateName(f),fillCss=plateFillColor(name);
+     const e=globeViewer.entities.add({polygon:{
+      hierarchy,
+      material:cesiumColor(fillCss,fillAlpha),
+      outline:false,
+      height:4200,
+      arcType:Cesium.ArcType.GEODESIC
+     }});
+     e.__anambroPhysicalDirect='plate-fill';e.__anambroPlateName=name;e.__anambroPlateFillColor=fillCss;plateEntities.push(e);
+    });
+   }
    eachPlateLine(worldPlateBoundaryGeo,pts=>{
     const e=globeViewer.entities.add({polyline:{
      positions:positionsAboveGlobe(pts,7500),
@@ -19110,8 +19157,12 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   for(const e of recentVolcanoEntities)if(e.point){e.point.color=cesiumColor('#ff3d00',a);e.point.outlineColor=cesiumColor('#5b0a00',a)}requestGlobe();
  });
  document.getElementById('worldPlateOpacity')?.addEventListener('input',()=>{
-  const a=alphaValue('worldPlateOpacity',1),c=cesiumColor(plateLineColor(),a);
-  for(const e of plateEntities)if(e.polyline)e.polyline.material=c;requestGlobe();
+  const a=alphaValue('worldPlateOpacity',1),c=cesiumColor(plateLineColor(),a),fa=plateFillOpacity()*a;
+  for(const e of plateEntities){
+   if(e.polyline)e.polyline.material=c;
+   if(e.polygon)e.polygon.material=cesiumColor(e.__anambroPlateFillColor||plateFillColor(e.__anambroPlateName||'Placa'),fa);
+  }
+  requestGlobe();
  });
 
  // Color/etiquetas de placas: reconstrucción limpia y única.
