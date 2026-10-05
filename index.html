@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Visor Cartográfico ANAMBRO v0.30 · Aarón Rodríguez González · Docente del Departamento de Geografía e Historia · IES ADEJE</title>
+<title>Visor Cartográfico ANAMBRO v0.31 · Aarón Rodríguez González · Docente del Departamento de Geografía e Historia · IES ADEJE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Satisfy&display=swap" rel="stylesheet">
@@ -3824,7 +3824,7 @@ window.addEventListener('resize',()=>setTimeout(()=>{
  map.invalidateSize({pan:false,animate:false});
 },100));
 
-document.getElementById('worldQuakesCheck')?.addEventListener('change',async e=>{const st=document.getElementById('worldQuakesStatus');if(!e.target.checked){if(worldQuakesLayer&&map.hasLayer(worldQuakesLayer))map.removeLayer(worldQuakesLayer);if(st)st.textContent='Capa desactivada.';status('Terremotos recientes desactivados');return;}await refreshWorldQuakes();});
+document.getElementById('worldQuakesCheck')?.addEventListener('change',async e=>{const st=document.getElementById('worldQuakesStatus');if(!e.target.checked){if(worldQuakesLayer&&map.hasLayer(worldQuakesLayer))map.removeLayer(worldQuakesLayer);if(globeViewer)await toggleWorldQuakesGlobe(false);if(st)st.textContent='Capa desactivada.';status('Terremotos recientes desactivados');return;}await refreshWorldQuakes();});
 document.getElementById('worldQuakesPeriod')?.addEventListener('change',refreshWorldQuakes);
 document.getElementById('worldQuakesMag')?.addEventListener('change',refreshWorldQuakes);
 document.getElementById('worldRecentVolcanoesCheck')?.addEventListener('change',async e=>{const st=document.getElementById('worldRecentVolcanoesStatus');if(!e.target.checked){if(worldRecentVolcanoesLayer&&map.hasLayer(worldRecentVolcanoesLayer))map.removeLayer(worldRecentVolcanoesLayer);if(st)st.textContent='Capa desactivada.';status('Actividad volcánica reciente desactivada');return;}if(st)st.textContent='Consultando Smithsonian GVP…';try{const l=await ensureWorldRecentVolcanoes();if(e.target.checked)l.addTo(map);if(st)st.textContent=(l.getLayers?.().length||0)+' episodios recientes · GVP';status('Actividad volcánica reciente · Smithsonian GVP');}catch(err){console.warn(err);e.target.checked=false;if(st)st.textContent='No se pudo consultar GVP.';alert('No se pudo cargar ahora la actividad volcánica reciente del Smithsonian GVP.');}});
@@ -8887,7 +8887,7 @@ function loadScriptOnce(src){return new Promise((resolve,reject)=>{const old=doc
 
 // Herramientas sobre el globo: medición, perfil editable y consulta territorial mundial.
 let globeClickHandler=null,globeMeasureMode=null,globeMeasurePts=[],globeMeasureEntities=[],globeProfileMode=false,globeProfilePts=[],globeProfileEntities=[],globeProfileHandles=[],globeProfileLine=null,globeDragIndex=-1,countriesData=null,countriesLoading=null,countriesSource=null,countryLabelsSource=null,countryBordersData=null,countryBordersLoading=null,worldToponymsData=null,worldToponymsLoading=null,worldToponymsSource=null,worldToponymsLayer=null,globeSpainToponymsLayer=null,worldTranslitSource=null,
-globeClimateLayer=null,globeGeologyLayer=null,globeBiomesSource=null,globeVolcanoesSource=null,
+globeClimateLayer=null,globeGeologyLayer=null,globeBiomesSource=null,globeVolcanoesSource=null,globeQuakesSource=null,
 worldMvtGlobal=null,worldMvtRegional=null,worldMvtLocal=null,worldMvtRegionalKey='',worldMvtLocalKey='',
 worldMvtGeneration=0,worldMvtMoveHandlerInstalled=false,worldRasterFallbackLayer=null,
 worldVectorLabelSource=null,worldVectorLabelCollection=null,worldVectorLabelTileCache=new Map(),worldVectorLibsPromise=null,worldVectorLabelGeneration=0,worldVectorLabelRenderKey='',
@@ -10180,6 +10180,16 @@ async function showGlobeVolcanoEntity(ent,screenPos=null){
  }
 }
 
+function showGlobeQuakeEntity(ent,screenPos){
+ const f=ent?.__anambroQuakeFeature;if(!f)return;
+ const box=document.getElementById('globeInfo');if(!box)return;
+ const c=f.geometry?.coordinates||[],lon=Number(c[0]),lat=Number(c[1]);
+ if(Number.isFinite(lon)&&Number.isFinite(lat))globeInfoCartesian=Cesium.Cartesian3.fromDegrees(lon,lat,2600);else globeInfoCartesian=null;
+ box.classList.remove('empty','historyWide');
+ box.innerHTML='<button class="globeInfoClose" onclick="globeInfoCartesian=null;this.parentElement.classList.add(\'empty\')">×</button>'+quakePopup(f);
+ requestAnimationFrame(()=>{if(screenPos)placeGlobeInfoAtCanvasPoint(screenPos);else positionGlobeInfo();});
+}
+
 function installGlobeClickTools(){if(globeClickHandler||!globeViewer)return;globeClickHandler=new Cesium.ScreenSpaceEventHandler(globeViewer.scene.canvas);
  globeClickHandler.setInputAction(ev=>{const picked=globeViewer.scene.pick(ev.position);if(Cesium.defined(picked)&&picked.id&&Number.isInteger(picked.id.__profileIndex)){globeDragIndex=picked.id.__profileIndex;globeViewer.scene.screenSpaceCameraController.enableRotate=false;return;}},Cesium.ScreenSpaceEventType.LEFT_DOWN);
  globeClickHandler.setInputAction(ev=>{if(globeDragIndex<0)return;const ll=globePickLatLng(ev.endPosition);if(!ll)return;globeProfilePts[globeDragIndex]=ll;const ent=globeProfileHandles.find(e=>e.__profileIndex===globeDragIndex);if(ent)ent.position=Cesium.Cartesian3.fromDegrees(ll.lng,ll.lat,0);updateGlobeProfileFast();},Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -10199,6 +10209,7 @@ function installGlobeClickTools(){if(globeClickHandler||!globeViewer)return;glob
   if(document.getElementById('worldHistoryCheck')?.checked){if(ent?.__anambroHistory)showHistoryGlobeEntity(ent,ev.position);else showHistoryGlobeEmpty(ev.position);return;}
   if(ent?.__anambroRadioGarden){showRadioGardenGlobePlace(ent.place,ev.position);return;}
   if(ent?.__anambroVolcano){showGlobeVolcanoEntity(ent,ev.position);return;}
+  if(ent?.__anambroQuake){showGlobeQuakeEntity(ent,ev.position);return;}
   if(ent?.__anambroHuman){showHumanGlobeEntity(ent,ev.position);return;}
   if(ent?.__anambroBiome){
    globeViewer.selectedEntity=undefined;
@@ -10440,39 +10451,29 @@ async function toggleWorldBiomesGlobe(on){
 }
 async function toggleWorldVolcanoesGlobe(on){
  if(!globeViewer)return;
- if(on){
-  try{
-   await ensureWorldVolcanoes();
-   if(!worldVolcanoesData)return;
-   if(globeVolcanoesSource)globeViewer.dataSources.remove(globeVolcanoesSource,true);
-   const ds=await Cesium.GeoJsonDataSource.load(worldVolcanoesData,{clampToGround:false});
-   for(const ent of ds.entities.values){
-    if(ent.billboard)ent.billboard=undefined;
-    ent.point=new Cesium.PointGraphics({
-     pixelSize:8,
-     color:Cesium.Color.fromCssColorString('#d8432f'),
-     outlineColor:Cesium.Color.fromCssColorString('#4a160e'),
-     outlineWidth:1.5,
-     heightReference:Cesium.HeightReference.NONE,
-     distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,18000000)
-    });
-    ent.__anambroVolcano=true;
-    const plain=volcanoPlainPropsFromCesium(ent);
-    const pos=ent.position?.getValue?.(Cesium.JulianDate.now());
-    let lat=null,lon=null;
-    if(pos){const ca=Cesium.Cartographic.fromCartesian(pos);lat=Cesium.Math.toDegrees(ca.latitude);lon=Cesium.Math.toDegrees(ca.longitude);}
-    const v=volcanoDetailsFromPlainProps(plain,lat,lon);
-    ent.name=String(v.name);ent.description=volcanoDetailHtml(v);
-   }
-   globeVolcanoesSource=ds;
-   await globeViewer.dataSources.add(ds);
-  }catch(e){console.error('Volcanes globo:',e);}
- }else if(globeVolcanoesSource){
-  globeViewer.dataSources.remove(globeVolcanoesSource,true);globeVolcanoesSource=null;
+ if(!on){
+  if(globeVolcanoesSource){try{globeViewer.dataSources.remove(globeVolcanoesSource,true)}catch(_){}globeVolcanoesSource=null;}
+  globeViewer.scene.requestRender();return;
  }
- globeViewer.scene.requestRender();
+ try{
+  await ensureWorldVolcanoes();
+  const feats=worldVolcanoesData?.features||[];if(!feats.length)return;
+  if(globeVolcanoesSource){try{globeViewer.dataSources.remove(globeVolcanoesSource,true)}catch(_){}globeVolcanoesSource=null;}
+  const ds=new Cesium.CustomDataSource('Volcanes del mundo · Smithsonian GVP');
+  const alpha=+(document.getElementById('worldVolcanoesOpacity')?.value||.92);
+  for(const f of feats){
+   const c=f?.geometry?.coordinates||[],lon=Number(c[0]),lat=Number(c[1]);if(!Number.isFinite(lon)||!Number.isFinite(lat))continue;
+   const p=f.properties||{},v=volcanoDetailsFromPlainProps(p,lat,lon);
+   const ent=ds.entities.add({
+    position:Cesium.Cartesian3.fromDegrees(lon,lat,2200),
+    point:{pixelSize:8,color:Cesium.Color.fromCssColorString('#d8432f').withAlpha(alpha),outlineColor:Cesium.Color.fromCssColorString('#4a160e').withAlpha(alpha),outlineWidth:1.5,heightReference:Cesium.HeightReference.NONE,distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,26000000),disableDepthTestDistance:0}
+   });
+   try{ent.properties=new Cesium.PropertyBag(p)}catch(_){}
+   ent.__anambroVolcano=true;ent.__anambroVolcanoFeature=f;ent.name=String(v.name||'Volcán');ent.description='';
+  }
+  globeVolcanoesSource=ds;await globeViewer.dataSources.add(ds);globeViewer.dataSources.raiseToTop(ds);globeViewer.scene.requestRender();
+ }catch(e){console.error('Volcanes globo:',e);}
 }
-
 
 // Fondo cartográfico específico para Historia:
 // océanos azul celeste + tierras blancas, sin fronteras modernas.
@@ -11770,6 +11771,8 @@ function syncWorldThematicGlobe(){
  toggleWorldClimateGlobe(!!document.getElementById('worldClimateCheck')?.checked);
  toggleWorldBiomesGlobe(!!document.getElementById('worldBiomesCheck')?.checked);
  toggleWorldVolcanoesGlobe(!!document.getElementById('worldVolcanoesCheck')?.checked);
+ toggleWorldQuakesGlobe(!!document.getElementById('worldQuakesCheck')?.checked);
+ refreshPlateGlobe();
  // Sincronizar las capas independientes de Geografía humana al entrar en el globo.
  if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)updateWorldHuman();
  toggleHistoryGlobe(!!document.getElementById('worldHistoryCheck')?.checked);
@@ -11937,8 +11940,25 @@ function quakeColor(depth){depth=Number(depth);return !Number.isFinite(depth)?'#
 function quakeTime(ms){try{return new Intl.DateTimeFormat('es-ES',{dateStyle:'medium',timeStyle:'medium'}).format(new Date(ms));}catch(_){return new Date(ms).toLocaleString('es-ES');}}
 function quakePopup(f){const p=f?.properties||{},c=f?.geometry?.coordinates||[],mag=Number(p.mag),dep=Number(c[2]);let h='<div style="min-width:260px"><b>🌎 Terremoto'+(Number.isFinite(mag)?' M '+mag.toLocaleString('es-ES',{maximumFractionDigits:2}):'')+'</b>';h+='<div style="margin-top:5px"><b>Localización:</b> '+escHtml(String(p.place||'Sin descripción'))+'</div>';if(Number.isFinite(dep))h+='<div><b>Profundidad:</b> '+dep.toLocaleString('es-ES',{maximumFractionDigits:1})+' km</div>';if(p.time)h+='<div><b>Fecha y hora:</b> '+escHtml(quakeTime(p.time))+'</div>';if(p.magType)h+='<div><b>Tipo de magnitud:</b> '+escHtml(String(p.magType))+'</div>';if(p.alert)h+='<div><b>Alerta PAGER:</b> '+escHtml(String(p.alert).toUpperCase())+'</div>';if(Number(p.tsunami)===1)h+='<div><b>🌊 Indicador de tsunami:</b> sí</div>';if(Number.isFinite(c[1])&&Number.isFinite(c[0]))h+='<div><b>Coordenadas:</b> '+Number(c[1]).toFixed(4)+', '+Number(c[0]).toFixed(4)+'</div>';if(p.url)h+='<div style="margin-top:6px"><a href="'+escHtml(String(p.url))+'" target="_blank" rel="noopener">Ficha oficial USGS ↗</a></div>';return h+'<div style="margin-top:5px;font-size:10px;opacity:.75">Fuente: USGS Earthquake Hazards Program.</div></div>'}
 async function ensureWorldQuakes(force=false){if(force&&worldQuakesLayer){try{map.removeLayer(worldQuakesLayer)}catch(_){}worldQuakesLayer=null;worldQuakesData=null}if(worldQuakesLayer)return worldQuakesLayer;if(worldQuakesLoading)return worldQuakesLoading;worldQuakesLoading=(async()=>{const r=await fetch(quakeFeedUrl('geojson'),{mode:'cors',cache:'no-store'});if(!r.ok)throw Error('USGS '+r.status);const g=await r.json();if(!g||g.type!=='FeatureCollection')throw Error('Respuesta USGS no válida');worldQuakesData=g;worldQuakesLayer=L.geoJSON(g,{pointToLayer:(f,ll)=>{const c=f.geometry?.coordinates||[];return L.circleMarker(ll,{radius:quakeRadius(f.properties?.mag),color:'#2b1b1b',weight:.8,fillColor:quakeColor(c[2]),fillOpacity:.82})},onEachFeature:(f,l)=>l.bindPopup(quakePopup(f),{maxWidth:420,keepInView:true})});return worldQuakesLayer})().finally(()=>worldQuakesLoading=null);return worldQuakesLoading}
-async function refreshWorldQuakes(){const on=document.getElementById('worldQuakesCheck')?.checked;if(!on)return;const st=document.getElementById('worldQuakesStatus');if(st)st.textContent='Actualizando USGS…';try{const l=await ensureWorldQuakes(true);if(on)l.addTo(map);if(st)st.textContent=(worldQuakesData?.features?.length||0)+' terremotos · USGS';status('Terremotos recientes · USGS')}catch(e){console.warn(e);if(st)st.textContent='No se pudo consultar USGS.'}}
-let worldPlatePolygonsLayer=null,worldPlateLabelsLayer=null,worldPlateGeo=null,worldPlateGlobeSource=null,worldPlateGlobeLabels=null;
+async function toggleWorldQuakesGlobe(on){
+ if(!globeViewer)return;
+ if(!on){if(globeQuakesSource){try{globeViewer.dataSources.remove(globeQuakesSource,true)}catch(_){}globeQuakesSource=null;}globeViewer.scene.requestRender();return;}
+ try{
+  if(!worldQuakesData)await ensureWorldQuakes(false);
+  const feats=worldQuakesData?.features||[];
+  if(globeQuakesSource){try{globeViewer.dataSources.remove(globeQuakesSource,true)}catch(_){}globeQuakesSource=null;}
+  const ds=new Cesium.CustomDataSource('Terremotos recientes · USGS');
+  const alpha=+(document.getElementById('worldQuakesOpacity')?.value||.82);
+  for(const f of feats){
+   const c=f?.geometry?.coordinates||[],lon=Number(c[0]),lat=Number(c[1]),dep=Number(c[2]),mag=Number(f?.properties?.mag);if(!Number.isFinite(lon)||!Number.isFinite(lat))continue;
+   const ent=ds.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,2600),point:{pixelSize:Math.max(6,Math.min(18,quakeRadius(mag)+2)),color:Cesium.Color.fromCssColorString(quakeColor(dep)).withAlpha(alpha),outlineColor:Cesium.Color.fromCssColorString('#2b1b1b').withAlpha(alpha),outlineWidth:1.2,heightReference:Cesium.HeightReference.NONE,disableDepthTestDistance:0}});
+   ent.__anambroQuake=true;ent.__anambroQuakeFeature=f;ent.name='Terremoto'+(Number.isFinite(mag)?' M '+mag:'');
+  }
+  globeQuakesSource=ds;await globeViewer.dataSources.add(ds);globeViewer.dataSources.raiseToTop(ds);globeViewer.scene.requestRender();
+ }catch(e){console.error('Terremotos globo:',e);}
+}
+async function refreshWorldQuakes(){const on=document.getElementById('worldQuakesCheck')?.checked;if(!on)return;const st=document.getElementById('worldQuakesStatus');if(st)st.textContent='Actualizando USGS…';try{const l=await ensureWorldQuakes(true);if(on){l.addTo(map);if(globeViewer)await toggleWorldQuakesGlobe(true)}if(st)st.textContent=(worldQuakesData?.features?.length||0)+' terremotos · USGS';status('Terremotos recientes · USGS')}catch(e){console.warn(e);if(st)st.textContent='No se pudo consultar USGS.'}}
+let worldPlatePolygonsLayer=null,worldPlateLabelsLayer=null,worldPlateGeo=null,worldPlateGlobeSource=null,worldPlateGlobeBoundariesSource=null,worldPlateGlobeLabels=null,worldPlateBoundaryGeo=null;
 const PLATE_URLS={boundaries:['https://cdn.jsdelivr.net/gh/fraxen/tectonicplates@master/GeoJSON/PB2002_boundaries.json','https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json'],plates:['https://cdn.jsdelivr.net/gh/fraxen/tectonicplates@master/GeoJSON/PB2002_plates.json','https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json']};
 async function fetchPlateGeo(kind){let last=null;for(const u of PLATE_URLS[kind]){try{const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);const g=await r.json();if(g?.features?.length)return g}catch(e){last=e}}throw last||Error('Sin geometría tectónica')}
 function plateName(f){const p=f?.properties||{};return String(p.PlateName||p.Name||p.name||p.Code||p.Plate||p.PlateID||p.PlateId||'Placa').trim()}
@@ -11950,7 +11970,38 @@ function plateCentroid(f){try{const b=L.geoJSON(f).getBounds();return b.isValid(
 async function plateBoundaryLayer(){if(worldPlateBoundariesLayer)return worldPlateBoundariesLayer;const g=await fetchPlateGeo('boundaries');worldPlateBoundariesLayer=L.geoJSON(g,{style:()=>({color:plateLineColor(),weight:2,opacity:.95,fill:false}),onEachFeature:(f,l)=>{const p=f.properties||{};l.bindPopup('<b>🧩 Límite de placas tectónicas</b><div><b>Placas:</b> '+escHtml(String(p.PlateA||''))+' – '+escHtml(String(p.PlateB||''))+'</div><div><b>Tipo:</b> '+escHtml(String(p.Type||'no especificado'))+'</div><small>Modelo PB2002 · Peter Bird.</small>')}});return worldPlateBoundariesLayer}
 async function platePolygonLayer(){if(worldPlatePolygonsLayer)return worldPlatePolygonsLayer;worldPlateGeo=await fetchPlateGeo('plates');worldPlatePolygonsLayer=L.geoJSON(worldPlateGeo,{style:f=>({color:plateLineColor(),weight:1.4,opacity:.95,fillColor:plateFillColor(plateName(f)),fillOpacity:document.getElementById('worldPlateFillCheck')?.checked?plateFillOpacity():0}),onEachFeature:(f,l)=>l.bindPopup('<b>🌐 '+escHtml(plateName(f))+'</b><br><small>Placa tectónica · PB2002 (Peter Bird).</small>')});return worldPlatePolygonsLayer}
 function refreshPlate2DStyle(){worldPlateBoundariesLayer?.setStyle?.({color:plateLineColor(),weight:2,opacity:.95});worldPlatePolygonsLayer?.setStyle?.(f=>({color:plateLineColor(),weight:1.4,opacity:.95,fillColor:plateFillColor(plateName(f)),fillOpacity:document.getElementById('worldPlateFillCheck')?.checked?plateFillOpacity():0}));if(worldPlateLabelsLayer){map.removeLayer(worldPlateLabelsLayer);worldPlateLabelsLayer=null}if(document.getElementById('worldPlateLabelsCheck')?.checked&&worldPlateGeo){worldPlateLabelsLayer=L.layerGroup(worldPlateGeo.features.map(f=>{const c=plateCentroid(f);if(!c)return null;return L.marker(c,{interactive:false,icon:L.divIcon({className:'',html:'<div style="font:700 11px/1.05 Arial;color:'+plateLineColor()+';text-shadow:0 0 2px #fff,0 0 3px #fff;white-space:nowrap;transform:translate(-50%,-50%)">'+escHtml(plateName(f))+'</div>',iconSize:[0,0]})})}).filter(Boolean)).addTo(map)}}
-async function refreshPlateGlobe(){if(!globeViewer)return;for(const ds of [worldPlateGlobeSource,worldPlateGlobeLabels])if(ds)try{globeViewer.dataSources.remove(ds,true)}catch(_){}worldPlateGlobeSource=worldPlateGlobeLabels=null;if(!document.getElementById('worldPlateBoundariesCheck')?.checked)return;try{if(!worldPlateGeo)worldPlateGeo=await fetchPlateGeo('plates');const ds=await Cesium.GeoJsonDataSource.load(worldPlateGeo,{clampToGround:true,stroke:Cesium.Color.fromCssColorString(plateLineColor()),strokeWidth:2,fill:Cesium.Color.TRANSPARENT});for(const ent of ds.entities.values){const n=ent.name||ent.properties?.PlateName?.getValue?.()||ent.properties?.Name?.getValue?.()||'Placa';if(ent.polygon){ent.polygon.outline=true;ent.polygon.outlineColor=Cesium.Color.fromCssColorString(plateLineColor());ent.polygon.material=document.getElementById('worldPlateFillCheck')?.checked?Cesium.Color.fromCssColorString(plateFillColor(n)).withAlpha(plateFillOpacity()):Cesium.Color.TRANSPARENT}}worldPlateGlobeSource=ds;await globeViewer.dataSources.add(ds);if(document.getElementById('worldPlateLabelsCheck')?.checked){const lab=new Cesium.CustomDataSource('Nombres de placas tectónicas');for(const f of worldPlateGeo.features){const c=plateCentroid(f);if(!c)continue;lab.entities.add({position:Cesium.Cartesian3.fromDegrees(c.lng,c.lat,1000),label:{text:plateName(f),font:'bold 15px sans-serif',fillColor:Cesium.Color.fromCssColorString(plateLineColor()),outlineColor:plateLineColor()==='#000000'?Cesium.Color.WHITE:Cesium.Color.BLACK,outlineWidth:3,style:Cesium.LabelStyle.FILL_AND_OUTLINE,disableDepthTestDistance:Number.POSITIVE_INFINITY}})}worldPlateGlobeLabels=lab;await globeViewer.dataSources.add(lab)}globeViewer.scene.requestRender()}catch(e){console.warn('Placas globo',e)}}
+function plateBoundaryLines(geo){
+ const out=[];
+ const add=coords=>{if(!Array.isArray(coords)||coords.length<2)return;const a=[];for(const p of coords){const lon=Number(p?.[0]),lat=Number(p?.[1]);if(Number.isFinite(lon)&&Number.isFinite(lat))a.push(lon,lat)}if(a.length>=4)out.push(a)};
+ for(const f of geo?.features||[]){const g=f?.geometry;if(!g)continue;if(g.type==='LineString')add(g.coordinates);else if(g.type==='MultiLineString')for(const c of g.coordinates||[])add(c);}
+ return out;
+}
+async function refreshPlateGlobe(){
+ if(!globeViewer)return;
+ const on=document.getElementById('worldPlateBoundariesCheck')?.checked;
+ if(!on){for(const ds of [worldPlateGlobeBoundariesSource,worldPlateGlobeSource,worldPlateGlobeLabels])if(ds)try{globeViewer.dataSources.remove(ds,true)}catch(_){}worldPlateGlobeBoundariesSource=worldPlateGlobeSource=worldPlateGlobeLabels=null;globeViewer.scene.requestRender();return;}
+ try{
+  if(!worldPlateGeo)worldPlateGeo=await fetchPlateGeo('plates');
+  if(!worldPlateBoundaryGeo)worldPlateBoundaryGeo=await fetchPlateGeo('boundaries');
+  const a=+(document.getElementById('worldPlateOpacity')?.value||1),la=+(document.getElementById('worldPlateLabelsOpacity')?.value||1);
+  if(!worldPlateGlobeBoundariesSource){
+   const bd=new Cesium.CustomDataSource('Límites de placas tectónicas · PB2002');
+   for(const arr of plateBoundaryLines(worldPlateBoundaryGeo))bd.entities.add({polyline:{positions:Cesium.Cartesian3.fromDegreesArray(arr),width:2.8,material:Cesium.Color.fromCssColorString(plateLineColor()).withAlpha(a),clampToGround:true,arcType:Cesium.ArcType.GEODESIC}});
+   worldPlateGlobeBoundariesSource=bd;await globeViewer.dataSources.add(bd);
+  }
+  const line=Cesium.Color.fromCssColorString(plateLineColor()).withAlpha(a);
+  for(const e of worldPlateGlobeBoundariesSource.entities.values)if(e.polyline){e.polyline.width=2.8;e.polyline.material=line;e.polyline.clampToGround=true;}
+  if(document.getElementById('worldPlateFillCheck')?.checked){
+   if(!worldPlateGlobeSource){worldPlateGlobeSource=await Cesium.GeoJsonDataSource.load(worldPlateGeo,{clampToGround:true,stroke:Cesium.Color.TRANSPARENT,strokeWidth:0,fill:Cesium.Color.TRANSPARENT});await globeViewer.dataSources.add(worldPlateGlobeSource);}
+   for(const ent of worldPlateGlobeSource.entities.values){const n=ent.name||ent.properties?.PlateName?.getValue?.()||ent.properties?.Name?.getValue?.()||'Placa';if(ent.polygon){ent.polygon.outline=false;ent.polygon.material=Cesium.Color.fromCssColorString(plateFillColor(n)).withAlpha(plateFillOpacity()*a)}}
+  }else if(worldPlateGlobeSource){try{globeViewer.dataSources.remove(worldPlateGlobeSource,true)}catch(_){}worldPlateGlobeSource=null;}
+  if(document.getElementById('worldPlateLabelsCheck')?.checked){
+   if(!worldPlateGlobeLabels){const lab=new Cesium.CustomDataSource('Nombres de placas tectónicas');for(const f of worldPlateGeo.features||[]){const c=plateCentroid(f);if(!c)continue;lab.entities.add({position:Cesium.Cartesian3.fromDegrees(c.lng,c.lat,7000),label:{text:plateName(f),font:'bold 15px sans-serif',fillColor:Cesium.Color.fromCssColorString(plateLineColor()).withAlpha(la),outlineColor:(plateLineColor()==='#000000'?Cesium.Color.WHITE:Cesium.Color.BLACK).withAlpha(la),outlineWidth:3,style:Cesium.LabelStyle.FILL_AND_OUTLINE,disableDepthTestDistance:0}})}worldPlateGlobeLabels=lab;await globeViewer.dataSources.add(lab);}
+   const fill=Cesium.Color.fromCssColorString(plateLineColor()).withAlpha(la),outline=(plateLineColor()==='#000000'?Cesium.Color.WHITE:Cesium.Color.BLACK).withAlpha(la);for(const e of worldPlateGlobeLabels.entities.values)if(e.label){e.label.fillColor=fill;e.label.outlineColor=outline;e.label.disableDepthTestDistance=0;}
+  }else if(worldPlateGlobeLabels){try{globeViewer.dataSources.remove(worldPlateGlobeLabels,true)}catch(_){}worldPlateGlobeLabels=null;}
+  if(worldPlateGlobeSource)globeViewer.dataSources.raiseToTop(worldPlateGlobeSource);globeViewer.dataSources.raiseToTop(worldPlateGlobeBoundariesSource);if(worldPlateGlobeLabels)globeViewer.dataSources.raiseToTop(worldPlateGlobeLabels);globeViewer.scene.requestRender();
+ }catch(e){console.warn('Placas globo',e)}
+}
 async function syncPlateLayers(){const on=document.getElementById('worldPlateBoundariesCheck')?.checked,st=document.getElementById('worldPlateBoundariesStatus');if(!on){for(const l of [worldPlateBoundariesLayer,worldPlatePolygonsLayer,worldPlateLabelsLayer])if(l&&map.hasLayer(l))map.removeLayer(l);worldPlateLabelsLayer=null;await refreshPlateGlobe();if(st)st.textContent='Capa desactivada.';return}if(st)st.textContent='Cargando placas tectónicas…';try{const [b,p]=await Promise.all([plateBoundaryLayer(),platePolygonLayer()]);if(on){b.addTo(map);p.addTo(map);refreshPlate2DStyle();await refreshPlateGlobe()}if(st)st.textContent=(worldPlateGeo?.features?.length||0)+' placas · límites PB2002.';status('Placas tectónicas · PB2002')}catch(err){console.warn(err);if(st)st.textContent='No se pudo cargar la capa tectónica.'}}
 document.getElementById('worldPlateBoundariesCheck')?.addEventListener('change',syncPlateLayers);
 for(const id of ['worldPlateLineColor','worldPlateFillCheck','worldPlatePalette','worldPlateLabelsCheck'])document.getElementById(id)?.addEventListener('change',async()=>{refreshPlate2DStyle();await refreshPlateGlobe()});
@@ -18779,40 +18830,9 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   try{worldPlatePolygonsLayer?.setStyle?.(f=>({color:plateLineColor(),weight:1.4,opacity:a,fillColor:plateFillColor(plateName(f)),fillOpacity:q('worldPlateFillCheck')?.checked?plateFillOpacity()*a:0}))}catch(_){}
   try{setLeafletOpacity(worldPlateLabelsLayer,la,null)}catch(_){}
  }
- async function refreshPlateGlobeV030(){
-  if(typeof globeViewer==='undefined'||!globeViewer||typeof Cesium==='undefined')return;
-  if(!q('worldPlateBoundariesCheck')?.checked){
-   for(const ds of [worldPlateGlobeBoundariesSourceV030,worldPlateGlobeSource,worldPlateGlobeLabels])if(ds)try{globeViewer.dataSources.remove(ds,true)}catch(_){}
-   worldPlateGlobeBoundariesSourceV030=null;worldPlateGlobeSource=null;worldPlateGlobeLabels=null;globeViewer.scene.requestRender();return;
-  }
-  try{
-   if(!worldPlateGeo)worldPlateGeo=await fetchPlateGeo('plates');
-   if(!worldPlateBoundaryGeoV030)worldPlateBoundaryGeoV030=await fetchPlateGeo('boundaries');
-   if(!worldPlateGlobeBoundariesSourceV030){
-    worldPlateGlobeBoundariesSourceV030=await Cesium.GeoJsonDataSource.load(worldPlateBoundaryGeoV030,{clampToGround:true,stroke:Cesium.Color.WHITE,strokeWidth:3,fill:Cesium.Color.TRANSPARENT});
-    await globeViewer.dataSources.add(worldPlateGlobeBoundariesSourceV030);
-   }
-   if(!worldPlateGlobeSource){
-    worldPlateGlobeSource=await Cesium.GeoJsonDataSource.load(worldPlateGeo,{clampToGround:true,stroke:Cesium.Color.TRANSPARENT,strokeWidth:0,fill:Cesium.Color.TRANSPARENT});
-    await globeViewer.dataSources.add(worldPlateGlobeSource);
-   }
-   const a=plateOpacity(),line=Cesium.Color.fromCssColorString(plateLineColor()).withAlpha(a);
-   for(const e of worldPlateGlobeBoundariesSourceV030.entities.values){if(e.polyline){e.polyline.width=3;e.polyline.clampToGround=true;if(e.polyline.material?.color)e.polyline.material.color.setValue(line)}}
-   for(const ent of worldPlateGlobeSource.entities.values){const n=ent.name||ent.properties?.PlateName?.getValue?.()||ent.properties?.Name?.getValue?.()||'Placa';if(ent.polygon){ent.polygon.outline=false;ent.polygon.material=q('worldPlateFillCheck')?.checked?Cesium.Color.fromCssColorString(plateFillColor(n)).withAlpha(plateFillOpacity()*a):Cesium.Color.TRANSPARENT}}
-   if(q('worldPlateLabelsCheck')?.checked){
-    if(!worldPlateGlobeLabels){
-     const lab=new Cesium.CustomDataSource('Nombres de placas tectónicas');
-     for(const f of worldPlateGeo.features||[]){const c=plateCentroid(f);if(!c)continue;lab.entities.add({position:Cesium.Cartesian3.fromDegrees(c.lng,c.lat,9000),label:{text:plateName(f),font:'bold 15px sans-serif',fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.BLACK,outlineWidth:3,style:Cesium.LabelStyle.FILL_AND_OUTLINE,disableDepthTestDistance:0}})}
-     worldPlateGlobeLabels=lab;await globeViewer.dataSources.add(lab);
-    }
-    const la=plateLabelOpacity(),fill=Cesium.Color.fromCssColorString(plateLineColor()).withAlpha(la),outline=(plateLineColor()==='#000000'?Cesium.Color.WHITE:Cesium.Color.BLACK).withAlpha(la);
-    for(const e of worldPlateGlobeLabels.entities.values)if(e.label){setCesiumProp(e.label.fillColor,fill);setCesiumProp(e.label.outlineColor,outline)}
-   }else if(worldPlateGlobeLabels){try{globeViewer.dataSources.remove(worldPlateGlobeLabels,true)}catch(_){}worldPlateGlobeLabels=null;}
-   globeViewer.dataSources.raiseToTop(worldPlateGlobeBoundariesSourceV030);if(worldPlateGlobeLabels)globeViewer.dataSources.raiseToTop(worldPlateGlobeLabels);globeViewer.scene.requestRender();
-  }catch(e){console.warn('ANAMBRO v0.30 · placas globo',e)}
- }
+ async function refreshPlateGlobeV030(){return refreshPlateGlobe();}
  // Sustituye el render 3D anterior: ahora carga explícitamente PB2002_boundaries además de los polígonos.
- try{refreshPlateGlobe=refreshPlateGlobeV030}catch(_){}
+ // v0.31: el render nativo de placas ya integra límites PB2002 y opacidad; no se sustituye.
  try{
   const prevPlate2D=refreshPlate2DStyle;
   refreshPlate2DStyle=function(){prevPlate2D.apply(this,arguments);applyPlate2D();};
@@ -18826,10 +18846,10 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   worldToponymsOpacity:{check:'worldToponymsCheck',value:.96,apply:a=>{try{setLeafletOpacity(worldToponyms2DLayer,a,null);worldToponyms2DSpain?.setOpacity?.(a)}catch(_){};try{if(globeSpainToponymsLayer)globeSpainToponymsLayer.alpha=a;setLabelCollectionOpacity(worldVectorLabelCollection,a)}catch(_){}}},
   worldRadioGardenOpacity:{check:'worldRadioGardenCheck',value:.88,apply:a=>{try{setLeafletOpacity(radioGardenLayer2D,a,.88)}catch(_){};try{setPointCollectionOpacity(radioGardenGlobePoints,a,'#19d37e',.94,'#083d2c',1)}catch(_){}}},
   worldPhysicalToponymsOpacity:{check:'worldPhysicalToponymsCheck',value:1,apply:a=>{try{setLeafletOpacity(anambroPhysical2D,a,null)}catch(_){};try{if(typeof Cesium!=='undefined')for(const e of anambroPhysical3D||[]){if(!e.label)continue;const st=physical3DStyle(e.__anambroPhysicalType);setCesiumProp(e.label.fillColor,Cesium.Color.clone(st.fill).withAlpha(a));setCesiumProp(e.label.outlineColor,Cesium.Color.clone(st.outline).withAlpha(.92*a))}}catch(_){}}},
-  worldPlateOpacity:{check:'worldPlateBoundariesCheck',value:1,apply:a=>{applyPlate2D();refreshPlateGlobeV030()}},
-  worldPlateLabelsOpacity:{check:'worldPlateLabelsCheck',value:1,apply:a=>{try{setLeafletOpacity(worldPlateLabelsLayer,a,null)}catch(_){};refreshPlateGlobeV030()}},
+  worldPlateOpacity:{check:'worldPlateBoundariesCheck',value:1,apply:a=>{applyPlate2D();refreshPlateGlobe()}},
+  worldPlateLabelsOpacity:{check:'worldPlateLabelsCheck',value:1,apply:a=>{try{setLeafletOpacity(worldPlateLabelsLayer,a,null)}catch(_){};refreshPlateGlobe()}},
   worldVolcanoesOpacity:{check:'worldVolcanoesCheck',value:.92,apply:a=>{try{setLeafletOpacity(worldVolcanoesLayer,a,.92)}catch(_){};try{if(globeVolcanoesSource?.entities&&typeof Cesium!=='undefined')for(const e of globeVolcanoesSource.entities.values)if(e.point){setCesiumProp(e.point.color,colorAlpha('#d8432f',a));setCesiumProp(e.point.outlineColor,colorAlpha('#4a160e',a))}}catch(_){}}},
-  worldQuakesOpacity:{check:'worldQuakesCheck',value:.82,apply:a=>{try{setLeafletOpacity(worldQuakesLayer,a,.82)}catch(_){}}},
+  worldQuakesOpacity:{check:'worldQuakesCheck',value:.82,apply:a=>{try{setLeafletOpacity(worldQuakesLayer,a,.82)}catch(_){};try{if(globeQuakesSource?.entities&&typeof Cesium!=='undefined')for(const e of globeQuakesSource.entities.values)if(e.point){const f=e.__anambroQuakeFeature||{},dep=Number(f.geometry?.coordinates?.[2]);setCesiumProp(e.point.color,colorAlpha(quakeColor(dep),a));setCesiumProp(e.point.outlineColor,colorAlpha('#2b1b1b',a))}}catch(_){}}},
   worldRecentVolcanoesOpacity:{check:'worldRecentVolcanoesCheck',value:.90,apply:a=>{try{setLeafletOpacity(worldRecentVolcanoesLayer,a,.90)}catch(_){}}},
   worldHistoricalEventsOpacity:{check:'worldHistoricalEventsCheck',value:.98,apply:a=>{try{setLeafletOpacity(historicalEventsLayer2D,a,null)}catch(_){};try{setPointCollectionOpacity(historicalEventsGlobePoints,a,'#8e63b8',.98,'#ffffff',1)}catch(_){}}},
   worldHistoryLabelsOpacity:{check:'worldHistoryLabelsCheck',value:1,apply:a=>{document.documentElement.style.setProperty('--anambro-history-label-opacity',String(a));try{window.anambroUpdateHistoryLabels2D?.()}catch(_){};try{window.anambroRenderHistoryLabels3D?.()}catch(_){}}},
@@ -18867,7 +18887,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  try{const f=renderPlaces;renderPlaces=function(){const r=f.apply(this,arguments);cfg.placesOpacity.apply(clamp01(q('placesOpacity')?.value??1));return r}}catch(_){}
 
  // La entrada al globo sincroniza también las placas, que antes podían quedar solo en 2D.
- try{const f=syncWorldThematicGlobe;syncWorldThematicGlobe=function(){const r=f.apply(this,arguments);refreshPlateGlobeV030();scheduleAll();return r}}catch(_){}
+ try{const f=syncWorldThematicGlobe;syncWorldThematicGlobe=function(){const r=f.apply(this,arguments);refreshPlateGlobe();scheduleAll();return r}}catch(_){}
 
  // Etiquetas históricas 2D: opacidad CSS; 3D se regenera desde el control.
  const st=document.createElement('style');st.textContent='.history-polity-label{opacity:var(--anambro-history-label-opacity,1)!important}';document.head.appendChild(st);
@@ -18896,20 +18916,235 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  q('ineOpacity')?.addEventListener('input',e=>{const a=clamp01(e.target.value);const p=map?.getPane?.('ineLabelPane');if(p)p.style.opacity=String(a)});
 
  // Plate fill/colours/labels and new sliders always update both 2D and 3D.
- for(const id of ['worldPlateLineColor','worldPlateFillCheck','worldPlatePalette','worldPlateLabelsCheck','worldPlateFillOpacity'])q(id)?.addEventListener('change',()=>{applyPlate2D();refreshPlateGlobeV030()});
- q('worldPlateFillOpacity')?.addEventListener('input',()=>{applyPlate2D();refreshPlateGlobeV030()});
+ for(const id of ['worldPlateLineColor','worldPlateFillCheck','worldPlatePalette','worldPlateLabelsCheck','worldPlateFillOpacity'])q(id)?.addEventListener('change',()=>{applyPlate2D();refreshPlateGlobe()});
+ q('worldPlateFillOpacity')?.addEventListener('input',()=>{applyPlate2D();refreshPlateGlobe()});
 
  addBaseOpacityControls();installMissingControls();
  document.querySelectorAll('#layersPanel input[type=checkbox]').forEach(c=>c.addEventListener('change',scheduleAll));
  try{map.on('layeradd',()=>setTimeout(applyAll,0))}catch(_){}
 
  // Preserve opacity when Cesium is created later, and tag only the initial grid entities (searched places carry their own marker flag).
- try{const f=ensureGlobe;ensureGlobe=async function(){const r=await f.apply(this,arguments);tagGlobeGridEntities();applyGlobeGridOpacity(clamp01(q('gridOpacity')?.value??.70));applyBaseOpacity();await refreshPlateGlobeV030();scheduleAll();return r}}catch(_){}
+ try{const f=ensureGlobe;ensureGlobe=async function(){const r=await f.apply(this,arguments);tagGlobeGridEntities();applyGlobeGridOpacity(clamp01(q('gridOpacity')?.value??.70));applyBaseOpacity();await refreshPlateGlobe();scheduleAll();return r}}catch(_){}
  try{const f=syncGlobeSatelliteBase;syncGlobeSatelliteBase=function(){const r=f.apply(this,arguments);setTimeout(applyBaseOpacity,0);return r}}catch(_){}
 
  // Si cambia la opacidad de las etiquetas históricas, el render 3D toma el valor actual al regenerarse.
  q('worldHistoryLabelsOpacity')?.addEventListener('input',()=>{try{window.anambroRenderHistoryLabels3D?.()}catch(_){}});
  scheduleAll();
+})();
+</script>
+
+<script id="anambro-v032-globe-physical-fix">
+/* v0.32 · Capas físicas del globo por la misma ruta estable de entidades Cesium.
+   - Conserva Volcanes GVP tal como ya funcionaban.
+   - Terremotos USGS, erupciones recientes GVP y placas PB2002 se crean en globeViewer.entities.
+   - La sincronización se ejecuta SIEMPRE al entrar al globo, no solo cuando Cesium se crea por primera vez.
+*/
+(function(){
+ 'use strict';
+ let quakeEntities=[],recentVolcanoEntities=[],plateEntities=[],plateLabelEntities=[];
+ let quakeSeq=0,recentSeq=0,plateSeq=0;
+
+ function removeEntities(arr){
+  if(!globeViewer)return;
+  for(const e of arr.splice(0)){try{globeViewer.entities.remove(e)}catch(_){} }
+ }
+ function alphaValue(id,def){const v=Number(document.getElementById(id)?.value);return Number.isFinite(v)?Math.max(0,Math.min(1,v)):def}
+ function cesiumColor(css,a=1){return Cesium.Color.fromCssColorString(css).withAlpha(Math.max(0,Math.min(1,a)))}
+ function requestGlobe(){try{globeViewer?.scene?.requestRender?.()}catch(_){} }
+
+ async function buildQuakesDirect(on){
+  if(!globeViewer)return;
+  const seq=++quakeSeq;
+  if(!on){removeEntities(quakeEntities);
+  // Retirar cualquier versión anterior basada en DataSource.
+  if(typeof globeQuakesSource!=='undefined'&&globeQuakesSource){try{globeViewer.dataSources.remove(globeQuakesSource,true)}catch(_){}globeQuakesSource=null;}
+  requestGlobe();return;}
+  try{
+   if(!worldQuakesData)await ensureWorldQuakes(false);
+   if(seq!==quakeSeq||!document.getElementById('worldQuakesCheck')?.checked)return;
+   removeEntities(quakeEntities);
+   const a=alphaValue('worldQuakesOpacity',.82);
+   for(const f of worldQuakesData?.features||[]){
+    const c=f?.geometry?.coordinates||[],lon=Number(c[0]),lat=Number(c[1]),dep=Number(c[2]),mag=Number(f?.properties?.mag);
+    if(!Number.isFinite(lon)||!Number.isFinite(lat))continue;
+    const e=globeViewer.entities.add({
+     position:Cesium.Cartesian3.fromDegrees(lon,lat,9000),
+     point:{
+      pixelSize:Math.max(7,Math.min(19,quakeRadius(mag)+3)),
+      color:cesiumColor(quakeColor(dep),a),
+      outlineColor:cesiumColor('#2b1b1b',a),outlineWidth:1.5,
+      disableDepthTestDistance:0,
+      distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,40000000)
+     }
+    });
+    e.__anambroQuake=true;e.__anambroQuakeFeature=f;e.__anambroPhysicalDirect='quake';
+    e.name='Terremoto'+(Number.isFinite(mag)?' M '+mag:'');
+    quakeEntities.push(e);
+   }
+   requestGlobe();
+  }catch(e){console.error('Terremotos globo (directos):',e)}
+ }
+
+ function currentRecentVolcanoFeatures(){
+  return (worldVolcanoesData?.features||[]).filter(f=>{
+   const p=f?.properties||{};
+   const name=volcanoPropLoose(p,'volcano_na','Volcano_Name','Volcano Name','VolcanoName','name','NAME')||'';
+   return GVP_CURRENT_ERUPTIONS_2026.has(normVolcanoName(name));
+  });
+ }
+ async function buildRecentVolcanoesDirect(on){
+  if(!globeViewer)return;
+  const seq=++recentSeq;
+  if(!on){removeEntities(recentVolcanoEntities);requestGlobe();return;}
+  try{
+   await ensureWorldVolcanoes();
+   if(seq!==recentSeq||!document.getElementById('worldRecentVolcanoesCheck')?.checked)return;
+   removeEntities(recentVolcanoEntities);
+   const a=alphaValue('worldRecentVolcanoesOpacity',.90);
+   for(const f of currentRecentVolcanoFeatures()){
+    const c=f?.geometry?.coordinates||[],lon=Number(c[0]),lat=Number(c[1]);
+    if(!Number.isFinite(lon)||!Number.isFinite(lat))continue;
+    const p=f.properties||{},v=volcanoDetailsFromPlainProps(p,lat,lon);
+    const e=globeViewer.entities.add({
+     position:Cesium.Cartesian3.fromDegrees(lon,lat,12500),
+     point:{
+      pixelSize:13,
+      color:cesiumColor('#ff3d00',a),
+      outlineColor:cesiumColor('#5b0a00',a),outlineWidth:2.2,
+      disableDepthTestDistance:0,
+      distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,40000000)
+     }
+    });
+    // Reutiliza la ficha volcánica existente: la capa reciente sigue siendo consultable.
+    try{e.properties=new Cesium.PropertyBag(p)}catch(_){}
+    e.__anambroVolcano=true;e.__anambroVolcanoFeature=f;e.__anambroRecentVolcano=true;e.__anambroPhysicalDirect='recent-volcano';
+    e.name=String(v.name||'Volcán en actividad reciente');
+    recentVolcanoEntities.push(e);
+   }
+   requestGlobe();
+  }catch(e){console.error('Actividad volcánica reciente globo:',e)}
+ }
+
+ function eachPlateLine(geo,cb){
+  const visit=coords=>{
+   if(!Array.isArray(coords)||coords.length<2)return;
+   const clean=[];
+   for(const p of coords){const lon=Number(p?.[0]),lat=Number(p?.[1]);if(Number.isFinite(lon)&&Number.isFinite(lat))clean.push([lon,lat]);}
+   if(clean.length>1)cb(clean);
+  };
+  for(const f of geo?.features||[]){const g=f?.geometry;if(!g)continue;if(g.type==='LineString')visit(g.coordinates);else if(g.type==='MultiLineString')for(const a of g.coordinates||[])visit(a);}
+ }
+ function positionsAboveGlobe(points,height=7000){
+  const flat=[];for(const [lon,lat] of points)flat.push(lon,lat,height);
+  return Cesium.Cartesian3.fromDegreesArrayHeights(flat);
+ }
+ async function buildPlatesDirect(on){
+  if(!globeViewer)return;
+  const seq=++plateSeq;
+  if(!on){removeEntities(plateEntities);removeEntities(plateLabelEntities);
+  // Retirar implementaciones anteriores para evitar dos rutas de render simultáneas.
+  for(const dsName of ['worldPlateGlobeBoundariesSource','worldPlateGlobeSource','worldPlateGlobeLabels']){
+   try{const ds=eval(dsName);if(ds)globeViewer.dataSources.remove(ds,true);eval(dsName+'=null')}catch(_){}
+  }
+  requestGlobe();return;}
+  try{
+   if(!worldPlateBoundaryGeo)worldPlateBoundaryGeo=await fetchPlateGeo('boundaries');
+   if(!worldPlateGeo)worldPlateGeo=await fetchPlateGeo('plates');
+   if(seq!==plateSeq||!document.getElementById('worldPlateBoundariesCheck')?.checked)return;
+   removeEntities(plateEntities);removeEntities(plateLabelEntities);
+   for(const dsName of ['worldPlateGlobeBoundariesSource','worldPlateGlobeSource','worldPlateGlobeLabels']){
+    try{const ds=eval(dsName);if(ds)globeViewer.dataSources.remove(ds,true);eval(dsName+'=null')}catch(_){}
+   }
+   const a=alphaValue('worldPlateOpacity',1),lineCss=plateLineColor();
+   eachPlateLine(worldPlateBoundaryGeo,pts=>{
+    const e=globeViewer.entities.add({polyline:{
+     positions:positionsAboveGlobe(pts,7500),
+     width:3.4,
+     material:cesiumColor(lineCss,a),
+     arcType:Cesium.ArcType.GEODESIC,
+     clampToGround:false
+    }});
+    e.__anambroPhysicalDirect='plate-boundary';plateEntities.push(e);
+   });
+   // Los nombres se dibujan también como entidades directas cuando el usuario los activa.
+   if(document.getElementById('worldPlateLabelsCheck')?.checked){
+    const la=alphaValue('worldPlateLabelsOpacity',1);
+    for(const f of worldPlateGeo?.features||[]){
+     const c=plateCentroid(f);if(!c)continue;
+     const e=globeViewer.entities.add({position:Cesium.Cartesian3.fromDegrees(c.lng,c.lat,18000),label:{
+      text:plateName(f),font:'bold 15px sans-serif',
+      fillColor:cesiumColor(lineCss,la),
+      outlineColor:cesiumColor(lineCss==='#000000'?'#ffffff':'#000000',la),outlineWidth:3,
+      style:Cesium.LabelStyle.FILL_AND_OUTLINE,disableDepthTestDistance:0,
+      distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,30000000)
+     }});
+     e.__anambroPhysicalDirect='plate-label';plateLabelEntities.push(e);
+    }
+   }
+   requestGlobe();
+  }catch(e){console.error('Placas globo (directas):',e)}
+ }
+
+ // Sustituir las rutas que estaban fallando por las entidades directas.
+ toggleWorldQuakesGlobe=async function(on){await buildQuakesDirect(!!on)};
+ refreshPlateGlobe=async function(){await buildPlatesDirect(!!document.getElementById('worldPlateBoundariesCheck')?.checked)};
+ window.toggleWorldRecentVolcanoesGlobe=async function(on){await buildRecentVolcanoesDirect(!!on)};
+
+ // La capa de actividad reciente no tenía ninguna llamada 3D en el código original.
+ document.getElementById('worldRecentVolcanoesCheck')?.addEventListener('change',e=>{
+  if(globeViewer)buildRecentVolcanoesDirect(e.target.checked);
+ });
+
+ // Cambios de filtros de USGS: reconstruir también la representación 3D si está activa.
+ for(const id of ['worldQuakesPeriod','worldQuakesMag'])document.getElementById(id)?.addEventListener('change',()=>{
+  if(globeViewer&&document.getElementById('worldQuakesCheck')?.checked)setTimeout(()=>buildQuakesDirect(true),0);
+ });
+
+ // Opacidad directa para las tres capas que ahora viven en globeViewer.entities.
+ document.getElementById('worldQuakesOpacity')?.addEventListener('input',()=>{
+  const a=alphaValue('worldQuakesOpacity',.82);
+  for(const e of quakeEntities){const f=e.__anambroQuakeFeature||{},dep=Number(f.geometry?.coordinates?.[2]);if(e.point){e.point.color=cesiumColor(quakeColor(dep),a);e.point.outlineColor=cesiumColor('#2b1b1b',a)}}requestGlobe();
+ });
+ document.getElementById('worldRecentVolcanoesOpacity')?.addEventListener('input',()=>{
+  const a=alphaValue('worldRecentVolcanoesOpacity',.90);
+  for(const e of recentVolcanoEntities)if(e.point){e.point.color=cesiumColor('#ff3d00',a);e.point.outlineColor=cesiumColor('#5b0a00',a)}requestGlobe();
+ });
+ document.getElementById('worldPlateOpacity')?.addEventListener('input',()=>{
+  const a=alphaValue('worldPlateOpacity',1),c=cesiumColor(plateLineColor(),a);
+  for(const e of plateEntities)if(e.polyline)e.polyline.material=c;requestGlobe();
+ });
+
+ // Color/etiquetas de placas: reconstrucción limpia y única.
+ for(const id of ['worldPlateLineColor','worldPlateLabelsCheck'])document.getElementById(id)?.addEventListener('change',()=>{
+  if(globeViewer&&document.getElementById('worldPlateBoundariesCheck')?.checked)buildPlatesDirect(true);
+ });
+
+ async function syncPhysicalGlobeV032(){
+  if(!globeViewer)return;
+  await Promise.all([
+   buildQuakesDirect(!!document.getElementById('worldQuakesCheck')?.checked),
+   buildRecentVolcanoesDirect(!!document.getElementById('worldRecentVolcanoesCheck')?.checked),
+   buildPlatesDirect(!!document.getElementById('worldPlateBoundariesCheck')?.checked)
+  ]);
+ }
+
+ // CRÍTICO: ensureGlobe() no vuelve a sincronizar cuando el visor Cesium ya existe.
+ // Por eso se fuerza la sincronización CADA VEZ que se entra en modo globo.
+ try{
+  const previousToggleGlobe=toggleGlobe;
+  toggleGlobe=async function(){
+   const entering=!document.body.classList.contains('globe-mode');
+   const r=await previousToggleGlobe.apply(this,arguments);
+   if(entering&&globeViewer)await syncPhysicalGlobeV032();
+   return r;
+  };
+ }catch(e){console.error('No se pudo envolver toggleGlobe:',e)}
+
+ // Si Cesium se crea con las capas ya marcadas, también se sincronizan al terminar la creación.
+ try{
+  const previousEnsureGlobe=ensureGlobe;
+  ensureGlobe=async function(){const r=await previousEnsureGlobe.apply(this,arguments);if(globeViewer)await syncPhysicalGlobeV032();return r;};
+ }catch(e){console.error('No se pudo envolver ensureGlobe:',e)}
 })();
 </script>
 
