@@ -3108,8 +3108,17 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 </details>
 <details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="worldGeologyCheck" type="checkbox"/> <b>Mapa geológico mundial · Macrostrat</b></label>
 <div class="layerSubBlock"><small>Compilación mundial de mapas geológicos · Macrostrat · CC BY 4.0.</small><small><b>Opacidad</b> <span id="worldGeologyOpacityValue">72 %</span></small><input id="worldGeologyOpacity" max="1" min="0" step="0.05" style="width:100%" type="range" value="0.72"/><div class="miniThemeLegend" id="worldGeologyLegend" style="display:none"></div></div></details>
-<details class="layerSubcategory"><summary>🌋 Vulcanismo</summary><label><input id="worldVolcanoesCheck" type="checkbox"/> <b>Volcanes del mundo · Smithsonian GVP</b></label>
-<div class="layerSubBlock"><small>Volcanes holocenos del Global Volcanism Program.</small></div></details>
+<details class="layerSubcategory"><summary>🌋 Vulcanismo y sismicidad</summary>
+<label><input id="worldVolcanoesCheck" type="checkbox"/> <b>Volcanes del mundo · Smithsonian GVP</b></label>
+<div class="layerSubBlock"><small>Volcanes holocenos del Global Volcanism Program.</small></div>
+<label><input id="worldQuakesCheck" type="checkbox"/> <b>Terremotos recientes · USGS</b></label>
+<div class="layerSubBlock"><small>GeoJSON oficial USGS · actualización en tiempo real.</small>
+<label><b>Periodo</b> <select id="worldQuakesPeriod"><option value="hour">Última hora</option><option value="day" selected>Últimas 24 horas</option><option value="week">Últimos 7 días</option><option value="month">Últimos 30 días</option></select></label>
+<label><b>Magnitud mínima</b> <select id="worldQuakesMag"><option value="all">Todas</option><option value="1.0">M 1+</option><option value="2.5" selected>M 2,5+</option><option value="4.5">M 4,5+</option><option value="significant">Significativos</option></select></label>
+<small id="worldQuakesStatus">Capa desactivada.</small></div>
+<label><input id="worldRecentVolcanoesCheck" type="checkbox"/> <b>Actividad volcánica reciente · Smithsonian GVP</b></label>
+<div class="layerSubBlock"><small>Erupciones con inicio en el año actual o anterior según la base oficial GVP. No equivale a vigilancia instrumental en tiempo real.</small><small id="worldRecentVolcanoesStatus">Capa desactivada.</small></div>
+</details>
 <details class="layerSubcategory"><summary>🌦️ Clima</summary><label><input id="worldClimateCheck" type="checkbox"/> <b>Climas del mundo · Köppen-Geiger</b></label>
 <div class="layerSubBlock"><small>Beck et al.</small><small><b>Opacidad</b> <span id="worldClimateOpacityValue">72 %</span></small><input id="worldClimateOpacity" max="1" min="0" step="0.05" style="width:100%" type="range" value="0.72"/><div class="miniThemeLegend" id="worldClimateLegend" style="display:none"></div></div></details>
 <details class="layerSubcategory"><summary>🌿 Vegetación y biomas</summary><label><input id="worldBiomesCheck" type="checkbox"/> <b>Grandes biomas terrestres · RESOLVE 2017</b></label>
@@ -3464,6 +3473,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <div class="sourceItem sourceOk"><b>RESOLVE / Dinerstein et al. (2017)</b> · ecorregiones y grandes biomas terrestres.<br><small>CC BY 4.0.</small><br><a href="https://doi.org/10.1093/biosci/bix014" target="_blank" rel="noopener">Dinerstein et al. (2017)</a></div>
     <div class="sourceItem sourceOk"><b>Macrostrat</b> · compilación mundial de cartografía geológica.<br><small>Teselas y datos geológicos bajo CC BY 4.0. ANAMBRO cita Macrostrat y conserva el identificador de la fuente cartográfica original cuando está disponible. La visualización cartográfica integra mapas de escalas y procedencias distintas, por lo que no debe interpretarse como un único mapa homogéneo a una escala fija.</small><br><a href="https://macrostrat.org/" target="_blank" rel="noopener">Macrostrat</a> · <a href="https://tiles.macrostrat.org/" target="_blank" rel="noopener">Tiles / términos de uso</a></div><div class="sourceItem sourceOk"><b>Cliopatria · Seshat Global History Databank</b> · entidades políticas mundiales, 3400 a. C.–2024.<br><small>CC BY 4.0. Cada geometría se asocia a un intervalo temporal; las fronteras antiguas son reconstrucciones historiográficas y pueden existir incertidumbres de extensión, fecha o denominación.</small><br><a href="https://github.com/Seshat-Global-History-Databank/cliopatria" target="_blank" rel="noopener">Cliopatria</a></div><div class="sourceItem sourceReview"><b>Radio Garden</b> · ciudades y emisoras de radio en directo.<br><small>Integración no oficial. Radio Garden no permite acceso CORS directo a su API JSON desde un sitio estático como GitHub Pages; ANAMBRO usa una instantánea pública del directorio como fallback y solicita el stream de audio al reproducir. Los endpoints pueden cambiar o restringirse sin previo aviso.</small><br><a href="https://radio.garden/" target="_blank" rel="noopener">Radio Garden</a></div><div class="sourceItem sourceOk"><b>Wikipedia / Wikimedia</b> · contexto histórico bajo demanda de las entidades políticas representadas.<br><small>ANAMBRO consulta la API pública de MediaWiki mediante CORS y prioriza Wikipedia en español. Los extractos y resultados se muestran como contexto auxiliar y enlazan a sus artículos de origen. Texto de Wikipedia bajo CC BY-SA 4.0.</small><br><a href="https://www.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a></div><div class="sourceItem sourceOk"><b>Wikidata</b> · acontecimientos históricos geolocalizados y metadatos temporales.<br><small>Datos estructurados publicados bajo CC0. ANAMBRO consulta Wikidata Query Service bajo demanda, filtra los resultados y utiliza el número de sitelinks como una señal cartográfica de relevancia, no como valoración histórica absoluta.</small><br><a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a></div>
     <div class="sourceItem sourceOk"><b>Smithsonian Global Volcanism Program</b> · Volcanoes of the World y erupciones holocenas.<br><small>Uso educativo y no comercial permitido con cita. Cita: Global Volcanism Program, 2026, Volcanoes of the World v5.4.0, Smithsonian Institution, compiled by Venzke, E.</small><br><a href="https://volcano.si.edu/gvp_termsofuse.cfm" target="_blank" rel="noopener">GVP Terms of Use</a> · <a href="https://volcano.si.edu/database/webservices.cfm" target="_blank" rel="noopener">Webservices</a></div>
+    <div class="sourceItem sourceOk"><b>USGS Earthquake Hazards Program</b> · GeoJSON Summary Feeds de terremotos recientes, actualizados cada minuto.<br><small>Magnitud, profundidad, localización, fecha/hora, tsunami, alerta y enlace al evento.</small><br><a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php" target="_blank" rel="noopener">USGS GeoJSON feeds</a></div>
     <div class="sourceItem sourceOk"><b>USGS Volcano Hazards Program</b> · información adicional y estado operativo de volcanes estadounidenses cuando existe.<br><small>Las fotografías se muestran únicamente cuando el servicio devuelve una imagen utilizable; las imágenes de terceros conservan sus propios derechos.</small><br><a href="https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits" target="_blank" rel="noopener">USGS Copyrights and Credits</a></div>
     <div class="sourceItem sourceReview"><b>Esri World Imagery</b> · fondo satelital del globo 3D.<br><small>ANAMBRO consume el servicio de teselas y mantiene la atribución a Esri y sus proveedores; no redistribuye el mosaico.</small></div>
     <div class="sourceItem sourceOk"><b>Mapzen Terrain Tiles / AWS · Terrarium</b> · modelo digital de elevaciones mundial utilizado para altitudes y perfiles fuera de España.<br><small>Mosaico de elevación derivado de SRTM, GMTED2010, ETOPO1, EU-DEM y otros modelos nacionales. Las fuentes originales mantienen sus respectivas condiciones de atribución; ANAMBRO conserva la referencia compuesta publicada por Joerd/Mapzen.</small><br><a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener">Atribuciones Joerd / Mapzen</a></div>
@@ -3795,6 +3805,12 @@ window.addEventListener('resize',()=>setTimeout(()=>{
  applyDynamicWorldMinZoom();
  map.invalidateSize({pan:false,animate:false});
 },100));
+
+document.getElementById('worldQuakesCheck')?.addEventListener('change',async e=>{const st=document.getElementById('worldQuakesStatus');if(!e.target.checked){if(worldQuakesLayer&&map.hasLayer(worldQuakesLayer))map.removeLayer(worldQuakesLayer);if(st)st.textContent='Capa desactivada.';status('Terremotos recientes desactivados');return;}await refreshWorldQuakes();});
+document.getElementById('worldQuakesPeriod')?.addEventListener('change',refreshWorldQuakes);
+document.getElementById('worldQuakesMag')?.addEventListener('change',refreshWorldQuakes);
+document.getElementById('worldRecentVolcanoesCheck')?.addEventListener('change',async e=>{const st=document.getElementById('worldRecentVolcanoesStatus');if(!e.target.checked){if(worldRecentVolcanoesLayer&&map.hasLayer(worldRecentVolcanoesLayer))map.removeLayer(worldRecentVolcanoesLayer);if(st)st.textContent='Capa desactivada.';status('Actividad volcánica reciente desactivada');return;}if(st)st.textContent='Consultando Smithsonian GVP…';try{const l=await ensureWorldRecentVolcanoes();if(e.target.checked)l.addTo(map);if(st)st.textContent=(l.getLayers?.().length||0)+' episodios recientes · GVP';status('Actividad volcánica reciente · Smithsonian GVP');}catch(err){console.warn(err);e.target.checked=false;if(st)st.textContent='No se pudo consultar GVP.';alert('No se pudo cargar ahora la actividad volcánica reciente del Smithsonian GVP.');}});
+
 window.addEventListener('orientationchange',()=>setTimeout(()=>{
  applyDynamicWorldMinZoom();
  map.invalidateSize({pan:false,animate:false});
@@ -11886,6 +11902,46 @@ document.getElementById('worldBiomesOpacity').addEventListener('input',e=>{
  }
  if(globeViewer)globeViewer.scene.requestRender();
 });
+
+/* ANAMBRO v0.25 · actividad sísmica USGS + actividad volcánica reciente GVP */
+let worldQuakesLayer=null,worldQuakesData=null,worldQuakesLoading=null;
+let worldRecentVolcanoesLayer=null,worldRecentVolcanoesLoading=null;
+function quakeFeedUrl(){
+ const p=document.getElementById('worldQuakesPeriod')?.value||'day';
+ const m=document.getElementById('worldQuakesMag')?.value||'2.5';
+ const stem=m==='significant'?'significant':m==='all'?'all':m.replace('.','');
+ return 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/'+stem+'_'+p+'.geojson';
+}
+function quakeRadius(m){m=Number(m);return Number.isFinite(m)?Math.max(3,Math.min(15,2.5+m*1.55)):3;}
+function quakeColor(depth){depth=Number(depth);return !Number.isFinite(depth)?'#7b1fa2':depth<35?'#d73027':depth<70?'#fc8d59':depth<300?'#4575b4':'#313695';}
+function quakeTime(ms){try{return new Intl.DateTimeFormat('es-ES',{dateStyle:'medium',timeStyle:'medium'}).format(new Date(ms));}catch(_){return new Date(ms).toLocaleString('es-ES');}}
+function quakePopup(f){
+ const p=f?.properties||{},c=f?.geometry?.coordinates||[],mag=Number(p.mag),dep=Number(c[2]);
+ let h='<div style="min-width:260px"><b>🌎 Terremoto'+(Number.isFinite(mag)?' M '+mag.toLocaleString('es-ES',{maximumFractionDigits:2}):'')+'</b>';
+ h+='<div style="margin-top:5px"><b>Localización:</b> '+escHtml(String(p.place||'Sin descripción'))+'</div>';
+ if(Number.isFinite(dep))h+='<div><b>Profundidad:</b> '+dep.toLocaleString('es-ES',{maximumFractionDigits:1})+' km</div>';
+ if(p.time)h+='<div><b>Fecha y hora:</b> '+escHtml(quakeTime(p.time))+'</div>';
+ if(p.magType)h+='<div><b>Tipo de magnitud:</b> '+escHtml(String(p.magType))+'</div>';
+ if(p.alert)h+='<div><b>Alerta PAGER:</b> '+escHtml(String(p.alert).toUpperCase())+'</div>';
+ if(Number(p.tsunami)===1)h+='<div><b>🌊 Indicador de tsunami:</b> sí</div>';
+ if(Number.isFinite(c[1])&&Number.isFinite(c[0]))h+='<div><b>Coordenadas:</b> '+Number(c[1]).toFixed(4)+', '+Number(c[0]).toFixed(4)+'</div>';
+ if(p.url)h+='<div style="margin-top:6px"><a href="'+escHtml(String(p.url))+'" target="_blank" rel="noopener">Ficha oficial USGS ↗</a></div>';
+ return h+'<div style="margin-top:5px;font-size:10px;opacity:.75">Fuente: USGS Earthquake Hazards Program · GeoJSON en tiempo real.</div></div>';
+}
+async function ensureWorldQuakes(force=false){
+ if(force&&worldQuakesLayer){try{map.removeLayer(worldQuakesLayer)}catch(_){}worldQuakesLayer=null;worldQuakesData=null;}
+ if(worldQuakesLayer)return worldQuakesLayer;if(worldQuakesLoading)return worldQuakesLoading;
+ worldQuakesLoading=(async()=>{const r=await fetch(quakeFeedUrl(),{cache:'no-store'});if(!r.ok)throw Error('USGS '+r.status);const g=await r.json();worldQuakesData=g;
+  worldQuakesLayer=L.geoJSON(g,{pointToLayer:(f,ll)=>{const c=f.geometry?.coordinates||[];return L.circleMarker(ll,{radius:quakeRadius(f.properties?.mag),color:'#2b1b1b',weight:.8,fillColor:quakeColor(c[2]),fillOpacity:.82});},onEachFeature:(f,l)=>l.bindPopup(quakePopup(f),{maxWidth:420,keepInView:true})});return worldQuakesLayer;})().finally(()=>worldQuakesLoading=null);return worldQuakesLoading;
+}
+async function refreshWorldQuakes(){const on=document.getElementById('worldQuakesCheck')?.checked;if(!on)return;const st=document.getElementById('worldQuakesStatus');if(st)st.textContent='Actualizando USGS…';try{const l=await ensureWorldQuakes(true);if(on)l.addTo(map);if(st)st.textContent=(worldQuakesData?.features?.length||0)+' terremotos · USGS';status('Terremotos recientes · USGS');}catch(e){console.warn(e);if(st)st.textContent='No se pudo consultar USGS.';}}
+function recentEruptionYear(f){return eruptionYear(f);}
+async function ensureWorldRecentVolcanoes(){
+ if(worldRecentVolcanoesLayer)return worldRecentVolcanoesLayer;if(worldRecentVolcanoesLoading)return worldRecentVolcanoesLoading;
+ worldRecentVolcanoesLoading=(async()=>{const url='https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows?'+new URLSearchParams({service:'WFS',version:'1.0.0',request:'GetFeature',typeName:'GVP-VOTW:Smithsonian_VOTW_Holocene_Eruptions',outputFormat:'application/json',maxFeatures:'10000'});const r=await fetch(url);if(!r.ok)throw Error('GVP '+r.status);const g=await r.json(),cut=new Date().getFullYear()-1;const fs=(g.features||[]).filter(f=>recentEruptionYear(f)>=cut&&f.geometry);
+  worldRecentVolcanoesLayer=L.geoJSON({type:'FeatureCollection',features:fs},{pointToLayer:(f,ll)=>L.circleMarker(ll,{radius:7,color:'#5b0a00',weight:1.4,fillColor:'#ff3d00',fillOpacity:.9}),onEachFeature:(f,l)=>{const p=f.properties||{},name=eruptionField(f,'Volcano Name','Volcano_Name','VolcanoName','volcano_na')||'Volcán',y=recentEruptionYear(f);let h='<b>🌋 '+escHtml(String(name))+'</b><div><b>Inicio de erupción:</b> '+(Number.isFinite(y)?y:'sin fecha')+'</div><div style="font-size:10px;margin-top:5px">Fuente: Smithsonian Global Volcanism Program · base de erupciones.</div>';l.bindPopup(h,{maxWidth:380,keepInView:true});}});return worldRecentVolcanoesLayer;})().finally(()=>worldRecentVolcanoesLoading=null);return worldRecentVolcanoesLoading;
+}
+
 document.getElementById('worldVolcanoesCheck').addEventListener('change',async e=>{
  if(!e.target.checked){
   if(worldVolcanoesLayer&&map.hasLayer(worldVolcanoesLayer))map.removeLayer(worldVolcanoesLayer);
