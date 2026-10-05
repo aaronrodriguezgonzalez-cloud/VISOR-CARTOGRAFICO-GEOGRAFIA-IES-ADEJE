@@ -18200,7 +18200,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  const COL8=['#fff2b2','#ffe680','#ffd34d','#f6ad32','#f28c28','#e86428','#d94831','#7f0000'];
  const POPULATION_CUTS=[1000,5000,10000,50000,100000,250000,500000];
  const CATALOG=[
-  {id:'population',name:'Población total',category:'Demografía',unit:'personas',dec:0,compact:true,breakProfile:'population',zeroBase:true,fixedCuts:POPULATION_CUTS},
+  {id:'population',name:'Población total',category:'Demografía',unit:'personas',dec:0,compact:true,breakProfile:'population',zeroBase:true},
   {id:'men',name:'Población · hombres',category:'Demografía',unit:'personas',dec:0,compact:true},
   {id:'women',name:'Población · mujeres',category:'Demografía',unit:'personas',dec:0,compact:true},
   {id:'womenPct',name:'Mujeres sobre la población total',category:'Estructura por sexo',unit:'%',dec:1,breakProfile:'percent'},
@@ -18263,7 +18263,11 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  }
  function ineNameOf(f){const p=f?.properties||{};return String((p.NAMEUNIT??p.DENOMUN??p.MUNICIPIO??p.nombre??ineCodeOf(f))||'Municipio').trim()}
  function parseNum(v){
+  // Los servicios JSON/GIS del INE ya entregan sus campos numéricos como Number.
+  // No deben pasar por el parser de cadenas: 7.932 es 7,932 %, no 7.932 personas.
+  if(typeof v==='number')return Number.isFinite(v)?v:null;
   let x=String(v??'').trim();if(!x||/^\.{1,2}$/.test(x)||/^-$/.test(x))return null;
+  // Solo las cadenas (p. ej. CSV español) necesitan normalización de separadores.
   x=x.replace(/\s/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.').replace(/[^0-9+\-.]/g,'');
   const n=Number(x);return Number.isFinite(n)?n:null;
  }
@@ -18388,14 +18392,9 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   if(ind==='changeAbs'||ind==='changePct'){const i=years.indexOf(year);if(i<=0)return null;const prev=record(code,years[i-1]);if(!prev||!Number.isFinite(prev.total)||!Number.isFinite(r.total))return null;const d=r.total-prev.total;return ind==='changeAbs'?d:(prev.total?d/prev.total*100:null)}
   return null;
  }
- function palette(m=meta()){return m?.id==='population'?COL8:COL5}
+ function palette(m=meta()){return COL5}
  function classify(v,b,m=meta()){
-  if(!Number.isFinite(v))return-1;
-  if(m?.id==='population'){
-   for(let i=0;i<POPULATION_CUTS.length;i++)if(v<POPULATION_CUTS[i])return i;
-   return POPULATION_CUTS.length;
-  }
-  if(!Array.isArray(b)||b.length<6)return-1;
+  if(!Number.isFinite(v)||!Array.isArray(b)||b.length<6)return-1;
   return v<b[1]?0:v<b[2]?1:v<b[3]?2:v<b[4]?3:4;
  }
  function breakValues(vals,m){
