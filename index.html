@@ -2983,6 +2983,16 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><input class="heritageCheck" data-heritage="bic_paleo" type="checkbox"/> Zonas paleontológicas BIC</label>
 <label><input class="heritageCheck" data-heritage="esculturas" type="checkbox"/> Esculturas públicas</label>
 <label><input class="heritageCheck" data-heritage="espacios" type="checkbox"/> Espacios culturales</label>
+<div class="layerSubBlock" style="margin-top:7px;border-top:1px solid #ddd;padding-top:7px">
+<small><b>🏺 Patrimonio arqueológico insular</b></small>
+<label><input id="archLaPalmaCheck" type="checkbox"/> <b>La Palma · inventario arqueológico</b></label>
+<small>Cabildo de La Palma · inventario oficial de 390 elementos georreferenciados (GeoJSON).</small>
+<label><input class="archGcCheck" data-archgc="rupestres" type="checkbox"/> Gran Canaria · manifestaciones rupestres</label>
+<label><input class="archGcCheck" data-archgc="arqueoastro" type="checkbox"/> Gran Canaria · arqueoastronomía</label>
+<label><input class="archGcCheck" data-archgc="poblamiento" type="checkbox"/> Gran Canaria · poblamiento</label>
+<small>Cabildo de Gran Canaria · WMS oficial del Paisaje Cultural de Risco Caído y Espacios Sagrados de Montaña.</small>
+<div class="heritageLegend" id="archaeologyStatus">Capas arqueológicas insulares oficiales. No sustituyen a «Zonas arqueológicas BIC».</div>
+</div>
 <small><b>Opacidad</b> <span id="heritageOpacityValue">82 %</span></small>
 <input id="heritageOpacity" type="range" min="0" max="1" step="0.05" value="0.82" style="width:100%"/>
 <div class="heritageLegend" id="heritageLegend">Activa una o varias categorías. Toca el mapa para consultar la información publicada.</div>
@@ -14793,6 +14803,43 @@ html body .leaflet-popup-content{padding-top:5px}
   heritageBlock.querySelectorAll('.heritageCheck').forEach(c=>c.addEventListener('change',()=>toggleHeritage(c.dataset.heritage,c.checked)));
   heritageBlock.querySelector('#heritageOpacity')?.addEventListener('input',e=>{const out=heritageBlock.querySelector('#heritageOpacityValue');if(out)out.textContent=Math.round(+e.target.value*100)+' %';for(const l of heritageLayers.values())l.setOpacity(+e.target.value)});
  }
+
+
+
+ /* ----- Patrimonio arqueológico insular · La Palma + Gran Canaria ----- */
+ const ARCH_LP_PACKAGE='lugares-de-interes-historico-de-la-palma';
+ const ARCH_LP_API=[
+  'https://lapalmasmart-open.lapalma.es/datosabiertos/catalogo/api/3/action/package_show?id='+ARCH_LP_PACKAGE,
+  'https://lapalmasmart-open.lapalma.es/datosabiertos/api/3/action/package_show?id='+ARCH_LP_PACKAGE
+ ];
+ let archLaPalmaLayer=null,archLaPalmaData=null;
+ function archStatus(t){const e=document.getElementById('archaeologyStatus');if(e)e.textContent=t}
+ function archColor(p){const t=norm([p.tipo,p.subtipo,p.categoria,p.tipologia].filter(Boolean).join(' '));if(t.includes('grabado'))return '#8e44ad';if(t.includes('funer'))return '#2c3e50';if(t.includes('cueva'))return '#d35400';if(t.includes('cabana')||t.includes('cabaña'))return '#16a085';if(t.includes('pastor'))return '#27ae60';if(t.includes('canal')||t.includes('cazoleta'))return '#2980b9';return '#b03a2e'}
+ function archPropsHtml(p){const wanted=[['Nombre',p.nombre||p.NOMBRE],['Tipo',p.tipo||p.TIPO],['Subtipo',p.subtipo||p.SUBTIPO],['Municipio',p.municipio||p.MUNICIPIO],['Descripción',p.descripcion||p.DESCRIPCION||p.descripcio],['Superficie',p.superficie_m2||p.superficie||p.SUPERFICIE]];return wanted.filter(x=>x[1]!=null&&String(x[1]).trim()).map(x=>'<b>'+esc(x[0])+':</b> '+esc(String(x[1]))).join('<br>')}
+ async function loadLaPalmaArchaeology(){
+  if(archLaPalmaData)return archLaPalmaData;
+  archStatus('La Palma · localizando GeoJSON oficial…');
+  let pkg=null;
+  for(const u of ARCH_LP_API){try{const r=await fetch(u,{cache:'force-cache'});if(r.ok){const j=await r.json();if(j?.success&&j.result){pkg=j.result;break}}}catch(e){}}
+  if(!pkg)throw Error('No se pudo consultar el catálogo de datos abiertos de La Palma');
+  const res=(pkg.resources||[]).find(r=>/geojson/i.test(r.format||'')||/geojson/i.test(r.name||'')||/\.geojson(?:$|\?)/i.test(r.url||''));
+  if(!res?.url)throw Error('El catálogo no devolvió el recurso GeoJSON');
+  const rr=await fetch(res.url,{cache:'force-cache'});if(!rr.ok)throw Error('GeoJSON '+rr.status);
+  const gj=await rr.json();if(!gj?.features?.length)throw Error('GeoJSON sin elementos');
+  archLaPalmaData=gj;return gj;
+ }
+ async function toggleLaPalmaArchaeology(on){
+  if(!on){if(archLaPalmaLayer&&map.hasLayer(archLaPalmaLayer))map.removeLayer(archLaPalmaLayer);archStatus('Capas arqueológicas insulares oficiales.');return}
+  try{const gj=await loadLaPalmaArchaeology();if(!archLaPalmaLayer){archLaPalmaLayer=L.geoJSON(gj,{style:f=>({color:archColor(f.properties||{}),weight:1.4,fillColor:archColor(f.properties||{}),fillOpacity:.28}),onEachFeature:(f,l)=>{const h=archPropsHtml(f.properties||{});l.bindPopup('<b>🏺 Patrimonio arqueológico · La Palma</b><br>'+(h||'Elemento del inventario oficial')+'<br><small>Fuente: Cabildo Insular de La Palma</small>')}})}if(!map.hasLayer(archLaPalmaLayer))archLaPalmaLayer.addTo(map);archStatus('La Palma · '+gj.features.length+' elementos del inventario oficial cargados.')}catch(e){console.warn('Arqueología La Palma',e);archStatus('La Palma · no se pudo cargar el GeoJSON oficial en este momento.');const c=document.getElementById('archLaPalmaCheck');if(c)c.checked=false}
+ }
+ const ARCH_GC_URL='https://ide2.idegrancanaria.es/wms/PC_RISCO_CAIDO?';
+ const ARCH_GC={rupestres:{label:'Manifestaciones rupestres',words:['manifestaciones','rupestres']},arqueoastro:{label:'Arqueoastronomía',words:['arqueoastronomia']},poblamiento:{label:'Poblamiento',words:['poblamiento']}};
+ const archGcLayers=new Map();let archGcCaps=null;
+ async function gcCapabilities(){if(archGcCaps)return archGcCaps;const r=await fetch(ARCH_GC_URL+'SERVICE=WMS&REQUEST=GetCapabilities',{cache:'force-cache'});if(!r.ok)throw Error(r.status);archGcCaps=new DOMParser().parseFromString(await r.text(),'text/xml');return archGcCaps}
+ async function gcLayerNames(cfg){const xml=await gcCapabilities(),words=cfg.words.map(norm),out=[];for(const layer of xml.querySelectorAll('Layer')){const name=layer.querySelector(':scope > Name')?.textContent?.trim(),title=layer.querySelector(':scope > Title')?.textContent?.trim()||'';if(!name)continue;const h=norm(name+' '+title);if(words.every(w=>h.includes(w)))out.push(name)}return [...new Set(out)]}
+ async function toggleGcArchaeology(key,on){const old=archGcLayers.get(key);if(!on){if(old&&map.hasLayer(old))map.removeLayer(old);return}try{let l=old;if(!l){const names=await gcLayerNames(ARCH_GC[key]);if(!names.length)throw Error('capa no encontrada');l=L.tileLayer.wms(ARCH_GC_URL,{layers:names.join(','),format:'image/png',transparent:true,version:'1.1.1',opacity:.88,attribution:'Patrimonio arqueológico · Cabildo de Gran Canaria / IDEGranCanaria'});archGcLayers.set(key,l)}if(!map.hasLayer(l))l.addTo(map);archStatus('Gran Canaria · '+ARCH_GC[key].label+' activa.')}catch(e){console.warn('Arqueología Gran Canaria',e);archStatus('Gran Canaria · no se pudo resolver «'+ARCH_GC[key].label+'» en el WMS oficial.');const c=document.querySelector('.archGcCheck[data-archgc="'+key+'"]');if(c)c.checked=false}}
+ document.getElementById('archLaPalmaCheck')?.addEventListener('change',e=>toggleLaPalmaArchaeology(e.target.checked));
+ document.querySelectorAll('.archGcCheck').forEach(c=>c.addEventListener('change',()=>toggleGcArchaeology(c.dataset.archgc,c.checked)));
 
  /* ----- Atlas territorial de Canarias · ISTAC · motor multiescala (ANAMBRO v0.16) ----- */
  const ISTAC_SYSTEM='C00067A';
