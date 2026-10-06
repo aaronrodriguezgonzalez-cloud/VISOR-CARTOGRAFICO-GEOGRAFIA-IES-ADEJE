@@ -3574,6 +3574,10 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
         </label>
       </div>
 
+      <label id="layoutLegendVisibilityWrap" style="display:none;margin-top:7px">
+        <input id="layoutShowLegend" type="checkbox" checked style="width:auto;margin-right:6px"> Mostrar leyenda
+      </label>
+
       <label>Elemento seleccionado
         <select id="layoutSelected">
           <option value="map">Mapa</option>
@@ -8171,6 +8175,13 @@ async function refreshLayoutSnapshot(){
 function openLayoutEditor(mode='map'){
  layoutContentMode=mode==='profile'?'profile':'map';
  closePanels();
+ const politicalLayout=layoutContentMode==='map'&&typeof politicalActive!=='undefined'&&!!politicalActive;
+ const legendWrap=document.getElementById('layoutLegendVisibilityWrap');
+ const legendCheck=document.getElementById('layoutShowLegend');
+ const legendBox=document.getElementById('layoutLegendBox');
+ if(legendWrap)legendWrap.style.display=politicalLayout?'block':'none';
+ if(legendCheck)legendCheck.checked=true;
+ if(legendBox)legendBox.style.display='';
  const ov=document.getElementById('layoutOverlay');
  ov.classList.add('open');ov.setAttribute('aria-hidden','false');
  document.getElementById('layoutPaper').value='a3';
@@ -8201,7 +8212,11 @@ function openLayoutEditor(mode='map'){
   syncLayoutModeUI();
  }
  selectLayoutItem('map');
- setTimeout(async()=>{await refreshLayoutSnapshot();containLayoutMapImage();},80);
+ setTimeout(async()=>{
+  await refreshLayoutSnapshot();
+  if(politicalLayout)fitLayoutMapImage();
+  else containLayoutMapImage();
+ },80);
 }
 function closeLayoutEditor(){
  document.getElementById('layoutOverlay')?.classList.remove('open');
@@ -8478,6 +8493,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.getElementById('layoutSelected')?.addEventListener('change',e=>selectLayoutItem(e.target.value));
  document.getElementById('layoutPaper')?.addEventListener('change',updateLayoutPageFormat);
  document.getElementById('layoutOrientation')?.addEventListener('change',updateLayoutPageFormat);
+ document.getElementById('layoutShowLegend')?.addEventListener('change',e=>{const box=document.getElementById('layoutLegendBox');if(box)box.style.display=e.target.checked?'':'none';});
  document.getElementById('layoutTitleInput')?.addEventListener('input',e=>document.getElementById('layoutTitleBox').textContent=e.target.value||' ');
  document.getElementById('layoutMapImage')?.addEventListener('load',updateLayoutScaleBox);
  syncLayoutInstituteBox();
@@ -20303,11 +20319,11 @@ body.political-map-mode.political-clean-bg #map .leaflet-tile-pane{
   filter:saturate(.78) brightness(1.05) contrast(1.06)!important;
   pointer-events:none!important;
 }
+/* IMPORTANTE: no forzar display/opacity de .leaflet-tile-container.
+   Leaflet usa esos valores para ocultar contenedores de zoom antiguos;
+   si se fuerzan a 1 reaparecen teselas de otras escalas como mosaicos. */
 body.political-map-mode #map .leaflet-tile-container,
 body.political-map-mode.political-clean-bg #map .leaflet-tile-container{
-  display:block!important;
-  visibility:visible!important;
-  opacity:1!important;
   filter:none!important;
 }
 body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
