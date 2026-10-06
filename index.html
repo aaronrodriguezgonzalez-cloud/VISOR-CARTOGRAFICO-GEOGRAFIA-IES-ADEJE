@@ -20911,5 +20911,146 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 })();
 </script>
 
+
+<style id="anambro-mobile-tool-usability-20261006">
+@media (max-width:760px){
+  /* Las ventanas de configuración dejan siempre una parte amplia del mapa visible. */
+  html body .panel:not(#dynamicLegend){
+    position:fixed!important;left:62px!important;right:6px!important;top:auto!important;bottom:6px!important;
+    width:auto!important;max-width:none!important;max-height:62vh!important;overflow:auto!important;
+    border-radius:14px!important;padding:11px!important;box-sizing:border-box!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  html body #layersPanel{max-height:78vh!important}
+  html body #toolHubPanel{max-height:72vh!important}
+  html body #territorialGamePanel{max-height:64vh!important}
+  html body .anambroMobilePanelClose{
+    position:sticky!important;float:right!important;top:0!important;z-index:5!important;width:38px!important;height:38px!important;
+    margin:-3px -3px 4px 8px!important;border:0!important;border-radius:9px!important;background:#17324d!important;color:#fff!important;
+    font-size:22px!important;font-weight:900!important;line-height:1!important;cursor:pointer!important;
+  }
+  html body #anambroMobileGameHud,
+  html body #anambroMobileWorkHud{
+    position:fixed!important;z-index:12350!important;left:62px!important;right:6px!important;width:auto!important;
+    background:rgba(255,255,255,.97)!important;border:1px solid #b7c4ce!important;border-radius:12px!important;
+    box-shadow:0 3px 15px #0005!important;color:#17324d!important;box-sizing:border-box!important;
+  }
+  html body #anambroMobileGameHud{top:calc(var(--anambro-header-height,96px) + 6px)!important;padding:8px 9px!important}
+  #anambroMobileGameHud .mGameTop{display:flex;align-items:flex-start;gap:7px}
+  #anambroMobileGamePrompt{flex:1;min-width:0;font:900 15px/1.18 Montserrat,system-ui,sans-serif;color:#17324d}
+  #anambroMobileGameStop{flex:0 0 auto;border:0;border-radius:8px;background:#8f1d1d;color:#fff;min-height:35px;padding:5px 9px;font-weight:850}
+  #anambroMobileGameStats{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;font-size:11px;font-weight:800}
+  #anambroMobileGameStats span{background:#f3f6f8;border-radius:7px;padding:4px 7px}
+  #anambroMobileGameMsg{margin-top:4px;min-height:14px;font-size:11px;font-weight:800;color:#6b4f00}
+  html body #anambroMobileWorkHud{bottom:6px!important;padding:8px!important}
+  #anambroMobileWorkTitle{font-weight:900;font-size:12px;margin-bottom:4px}
+  #anambroMobileWorkStatus{font-size:11px;line-height:1.2;margin-bottom:6px;max-height:34px;overflow:hidden}
+  #anambroMobileWorkActions{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+  #anambroMobileWorkActions button,#anambroMobileWorkActions select{
+    min-height:38px;border:1px solid #aebbc5;border-radius:8px;background:#fff;color:#17324d;padding:5px 8px;font-weight:850;font-size:11px;
+  }
+  #anambroMobileWorkActions button.primary{background:#17324d;color:#fff;border-color:#17324d}
+  #anambroMobileWorkActions button.danger{background:#8f1d1d;color:#fff;border-color:#8f1d1d}
+}
+@media (min-width:761px){#anambroMobileGameHud,#anambroMobileWorkHud{display:none!important}}
+</style>
+<div id="anambroMobileGameHud" hidden aria-live="polite">
+  <div class="mGameTop"><div id="anambroMobileGamePrompt">Preparando juego…</div><button id="anambroMobileGameStop" type="button">Detener</button></div>
+  <div id="anambroMobileGameStats"><span>✓ <b id="anambroMobileGameCorrect">0</b></span><span>✗ <b id="anambroMobileGameFailed">0</b></span><span>Pregunta <b id="anambroMobileGameProgress">0/0</b></span></div>
+  <div id="anambroMobileGameMsg"></div>
+</div>
+<div id="anambroMobileWorkHud" hidden aria-live="polite">
+  <div id="anambroMobileWorkTitle">Herramienta activa</div>
+  <div id="anambroMobileWorkStatus"></div>
+  <div id="anambroMobileWorkActions"></div>
+</div>
+<script id="anambro-mobile-tool-usability-js-20261006">
+(function(){
+ 'use strict';
+ const q=id=>document.getElementById(id), mq=window.matchMedia('(max-width:760px)');
+ const isMobile=()=>mq.matches;
+ const gameHud=q('anambroMobileGameHud'),gamePrompt=q('anambroMobileGamePrompt'),gameCorrect=q('anambroMobileGameCorrect'),gameFailed=q('anambroMobileGameFailed'),gameProgress=q('anambroMobileGameProgress'),gameMsg=q('anambroMobileGameMsg');
+ const workHud=q('anambroMobileWorkHud'),workTitle=q('anambroMobileWorkTitle'),workStatus=q('anambroMobileWorkStatus'),workActions=q('anambroMobileWorkActions');
+ let workMode='';
+ function hidePanel(id){const p=q(id);if(p)p.classList.add('hidden')}
+ function showGameHud(show=true){if(gameHud)gameHud.hidden=!show}
+ function hideWorkHud(){workMode='';if(workHud)workHud.hidden=true;if(workActions)workActions.innerHTML=''}
+ function button(txt,fn,cls=''){const b=document.createElement('button');b.type='button';b.textContent=txt;if(cls)b.className=cls;b.addEventListener('click',fn);return b}
+ function selectControl(id){const src=q(id);if(!src)return null;const s=src.cloneNode(true);s.id='anambroMobileHud_'+id;s.value=src.value;s.addEventListener('change',()=>{src.value=s.value;src.dispatchEvent(new Event('change',{bubbles:true}))});return s}
+ function mirrorText(sourceId,fallback=''){const el=q(sourceId);return (el?.textContent||fallback).replace(/^Resultado:\s*/i,'').replace(/^Estado:\s*/i,'').trim()}
+ function renderWorkHud(mode){
+   if(!isMobile())return;workMode=mode;workHud.hidden=false;workActions.innerHTML='';
+   if(mode==='measure'){
+     workTitle.textContent='📏 Medición activa';workStatus.textContent=mirrorText('measureResult','Toca el mapa para añadir puntos.');
+     workActions.append(button('Terminar',()=>{try{finishMeasure()}finally{hidePanel('measurePanel');setTimeout(()=>{workStatus.textContent=mirrorText('measureResult','Medición terminada.')},0)}} ,'primary'));
+     workActions.append(button('Borrar',()=>{clearMeasure();hidePanel('measurePanel');hideWorkHud()},'danger'));
+     workActions.append(button('Opciones',()=>{hideWorkHud();togglePanel('measurePanel')}));
+   }else if(mode==='profile'){
+     workTitle.textContent='⛰️ Perfil activo';workStatus.textContent=mirrorText('profileResult','Marca puntos sobre el mapa.');
+     workActions.append(button('Generar perfil',async()=>{hidePanel('profilePanel');hideWorkHud();await finishProfile()} ,'primary'));
+     workActions.append(button('↶ Deshacer',()=>{undoProfilePoint();workStatus.textContent=mirrorText('profileResult','Marca puntos sobre el mapa.')}));
+     workActions.append(button('⭘ Cerrar recorrido',()=>{toggleCloseProfileRoute();workStatus.textContent=mirrorText('profileResult','Recorrido actualizado.')}));
+     workActions.append(button('Borrar',()=>{clearProfile();hidePanel('profilePanel');hideWorkHud()},'danger'));
+   }else if(mode==='track'){
+     workTitle.textContent='🧭 Generando track';workStatus.textContent=mirrorText('trackBuildStatus','Marca puntos sobre el mapa.');
+     const modeSel=selectControl('trackSegmentMode');if(modeSel){modeSel.title='Nuevo tramo';workActions.append(modeSel)}
+     workActions.append(button('■ Terminar',()=>{finishTrackBuilder();hidePanel('trackPanel');hideWorkHud()},'primary'));
+     workActions.append(button('↶ Deshacer',()=>{undoTrackBuilderPoint();setTimeout(()=>workStatus.textContent=mirrorText('trackBuildStatus',''),0)}));
+     workActions.append(button('Borrar',()=>{clearTrackBuilder();setTimeout(()=>workStatus.textContent=mirrorText('trackBuildStatus',''),0)},'danger'));
+     workActions.append(button('Opciones',()=>{hideWorkHud();togglePanel('trackPanel')}));
+   }
+ }
+ function addPanelCloseButtons(root=document){
+   if(!isMobile())return;
+   root.querySelectorAll?.('.panel:not(#dynamicLegend)').forEach(p=>{
+     if(p.querySelector(':scope > .anambroMobilePanelClose'))return;
+     const b=document.createElement('button');b.type='button';b.className='anambroMobilePanelClose';b.setAttribute('aria-label','Cerrar ventana');b.textContent='×';b.addEventListener('click',()=>p.classList.add('hidden'));p.insertBefore(b,p.firstChild);
+   });
+ }
+ addPanelCloseButtons();
+ const panelObserver=new MutationObserver(ms=>{if(!isMobile())return;for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)addPanelCloseButtons(n.matches?.('.panel')?n.parentElement:n)});
+ panelObserver.observe(document.body,{childList:true,subtree:true});
+ // Juego territorial: configuración fuera; durante la partida solo mapa + objetivo + marcadores.
+ document.addEventListener('click',e=>{
+   if(!isMobile())return;
+   const t=e.target.closest?.('button');if(!t)return;
+   if(t.id==='territorialGameStart'){
+     setTimeout(()=>{hidePanel('territorialGamePanel');gamePrompt.textContent='Preparando mapa…';gameMsg.textContent='';showGameHud(true)},0);
+   }else if(t.closest('#measurePanel')&&/startMeasure\(/.test(t.getAttribute('onclick')||'')){
+     setTimeout(()=>{hidePanel('measurePanel');renderWorkHud('measure')},0);
+   }else if(t.id==='trackBuildStartBtn'){
+     setTimeout(()=>{hidePanel('trackPanel');renderWorkHud('track')},0);
+   }else if(t.closest('#profilePanel')&&/startProfile\(/.test(t.getAttribute('onclick')||'')){
+     setTimeout(()=>{hidePanel('profilePanel');renderWorkHud('profile')},0);
+   }else if(['politicalV044Create','politicalQuickCreate','politicalApplyBtn'].includes(t.id)){
+     setTimeout(()=>hidePanel('politicalPanel'),80);
+   }else if(t.closest('#searchResults')){
+     setTimeout(()=>hidePanel('searchPanel'),0);
+   }
+ },false);
+ q('anambroMobileGameStop')?.addEventListener('click',()=>{
+   try{q('territorialGameStop')?.click()}catch(_){}showGameHud(false);
+ });
+ window.addEventListener('anambro:political-game',e=>{
+   if(!isMobile())return;const d=e.detail||{};
+   if(d.active||d.finished){hidePanel('territorialGamePanel');showGameHud(true)}
+   if(d.active&&d.prompt)gamePrompt.textContent='Localiza: '+d.prompt;
+   if(d.finished)gamePrompt.textContent='Partida terminada';
+   gameCorrect.textContent=d.correct??0;gameFailed.textContent=d.failed??0;gameProgress.textContent=(Math.min((d.index??0)+1,d.total||0))+'/'+(d.total||0);
+   if(d.result==='correct')gameMsg.textContent='✓ Correcto';
+   else if(d.result==='wrong')gameMsg.textContent='No. '+(d.remaining===1?'Queda 1 intento':'Quedan '+d.remaining+' intentos');
+   else if(d.result==='failed')gameMsg.textContent='✗ Era '+(d.answer||'');
+   else if(d.finished)gameMsg.textContent='Resultado: '+(d.correct||0)+' aciertos · '+(d.failed||0)+' fallos';
+   else if(d.stopped)showGameHud(false);
+ });
+ // Mantener actualizada la información mínima mientras se trabaja sobre el mapa.
+ [['measureResult','measure'],['profileResult','profile'],['trackBuildStatus','track']].forEach(([id,mode])=>{const el=q(id);if(!el)return;new MutationObserver(()=>{if(isMobile()&&workMode===mode)workStatus.textContent=mirrorText(id,'')}).observe(el,{childList:true,subtree:true,characterData:true})});
+ // Si una búsqueda produce resultados, la ventana permanece abierta para elegir uno; se cierra al seleccionarlo.
+ // Localizar coordenadas ya llama closePanels() desde la función original.
+ mq.addEventListener?.('change',()=>{if(!isMobile()){showGameHud(false);hideWorkHud()}else addPanelCloseButtons()});
+ window.__anambroMobileUsability={hidePanel,showGameHud,renderWorkHud,hideWorkHud};
+})();
+</script>
+
 </body>
 </html>
