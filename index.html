@@ -14499,13 +14499,16 @@ html body .historyPopup .leaflet-popup-close-button{
  async function enrichCanaryMunicipalityNames(fc){
   if(!fc?.features?.length)return fc;
   const hasName=f=>{const p=f?.properties||{};return !!(p.etiqueta||p.NOMBRE||p.nombre||p.NAME||p.name||p.DENOMINACION||p.__name)};
-  if(fc.features.filter(hasName).length>=80)return fc;
+  const pointInRing=(lon,lat,ring)=>{let inside=false;if(!Array.isArray(ring)||ring.length<3)return false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+    const xi=+ring[i]?.[0],yi=+ring[i]?.[1],xj=+ring[j]?.[0],yj=+ring[j]?.[1];if(!Number.isFinite(xi)||!Number.isFinite(yi)||!Number.isFinite(xj)||!Number.isFinite(yj))continue;
+    const hit=((yi>lat)!==(yj>lat))&&(lon<(xj-xi)*(lat-yi)/((yj-yi)||1e-12)+xi);if(hit)inside=!inside;
+   }return inside};
+  const pointInPolygon=(lon,lat,poly)=>{if(!Array.isArray(poly)||!poly.length||!pointInRing(lon,lat,poly[0]))return false;for(let h=1;h<poly.length;h++)if(pointInRing(lon,lat,poly[h]))return false;return true};
+  const containsRef=(f,rr)=>{const g=f?.geometry;if(!g)return false;const c=g.coordinates||[];if(g.type==='Polygon')return pointInPolygon(rr.lon,rr.lat,c);if(g.type==='MultiPolygon')return c.some(poly=>pointInPolygon(rr.lon,rr.lat,poly));return false};
   try{
    const url='https://datos.canarias.es/catalogos/estadisticas/dataset/6dd8baf4-14f4-43a3-88b2-984d034c965c/resource/74237bc8-1e5f-43f1-9f6b-24ef9e073903/download/municipios_desde2007_20170101.csv';
    const r=await fetch(url,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('ISTAC '+r.status);
    const text=await r.text(),lines=text.split(/\r?\n/).filter(Boolean);if(lines.length<2)return fc;
-   const parse=line=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='\"'){if(q&&line[i+1]==='\"'){cur+='\"';i++;}else q=!q;}else if((c===';'||c===',')&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out.map(x=>x.trim())};
-   // Detectar delimitador por la cabecera, sin asumir el formato de exportación del portal.
    const semi=(lines[0].match(/;/g)||[]).length,comma=(lines[0].match(/,/g)||[]).length,delim=semi>comma?';':',';
    const parseD=line=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='\"'){if(q&&line[i+1]==='\"'){cur+='\"';i++;}else q=!q;}else if(c===delim&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out.map(x=>x.trim())};
    const h=parseD(lines[0]).map(x=>x.replace(/^\ufeff/,'').toLowerCase()),idx=n=>h.indexOf(n);
@@ -14513,6 +14516,10 @@ html body .historyPopup .leaflet-popup-close-button{
    const refs=[];for(const line of lines.slice(1)){const a=parseD(line),lat=parseFloat(String(a[ila]||'').replace(',','.')),lon=parseFloat(String(a[ilo]||'').replace(',','.'));if(a[ie]&&Number.isFinite(lat)&&Number.isFinite(lon))refs.push({name:a[ie],lat,lon});}
    if(refs.length<80)return fc;
    const unused=new Set(refs.map((_,i)=>i));
+   /* Asignación robusta: primero el punto oficial que cae dentro del polígono.
+      Esto evita cruces entre municipios contiguos (p. ej. Tegueste / La Laguna). */
+   for(const f of fc.features){let bi=-1;for(const i of unused){if(containsRef(f,refs[i])){bi=i;break}}if(bi>=0){f.properties=f.properties||{};f.properties.__name=refs[bi].name;unused.delete(bi)}}
+   /* Solo para polígonos que sigan sin nombre, conservar el fallback antiguo por proximidad. */
    for(const f of fc.features){if(hasName(f))continue;const a=politicalFeatureAnchor(f);if(!a)continue;let bi=-1,bd=Infinity;for(const i of unused){const rr=refs[i],d=(rr.lat-a[0])**2+(rr.lon-a[1])**2;if(d<bd){bd=d;bi=i}}if(bi>=0){f.properties=f.properties||{};f.properties.__name=refs[bi].name;unused.delete(bi)}}
   }catch(e){console.warn('No se pudieron enriquecer los nombres municipales del fallback:',e)}
   return fc;
@@ -20279,5 +20286,34 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
 })();
 </script>
 
+
+<style id="anambro-political-context-final-fix">
+/* Fondo político/juego: conservar el contexto cartográfico real.
+   Mar y tierra deben leerse como superficies distintas; no se oculta ni se
+   convierte a gris el raster base de ANAMBRO. */
+body.political-map-mode #map,
+body.political-map-mode.political-clean-bg #map{
+  background:#b9dbea!important;
+}
+body.political-map-mode #map .leaflet-tile-pane,
+body.political-map-mode.political-clean-bg #map .leaflet-tile-pane{
+  display:block!important;
+  visibility:visible!important;
+  opacity:.62!important;
+  filter:saturate(.78) brightness(1.05) contrast(1.06)!important;
+  pointer-events:none!important;
+}
+body.political-map-mode #map .leaflet-tile-container,
+body.political-map-mode.political-clean-bg #map .leaflet-tile-container{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  filter:none!important;
+}
+body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
+  opacity:.58!important;
+  filter:saturate(.72) brightness(1.06) contrast(1.08)!important;
+}
+</style>
 </body>
 </html>
