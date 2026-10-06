@@ -14449,12 +14449,29 @@ html body .historyPopup .leaflet-popup-close-button{
  const q=pEl; // v0.43: alias interno; v0.42 llamaba q() sin definirlo y bloqueaba Mostrar mapa.
  function politicalEnsurePanes(){const defs=[['politicalBathyPane',245],['politicalBasePane',255],['politicalAdminPane',760],['politicalLeaderPane',780],['politicalLabelPane',790]];for(const [name,z] of defs){if(!map.getPane(name)){const p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents=(name==='politicalAdminPane'||name==='politicalLabelPane')?'auto':'none';}}}
  function politicalSetStatus(t){const e=pEl('politicalStatus');if(e)e.textContent=t;status(t);}
- function politicalName(f,i=0){const p=f?.properties||{};const code=String(p.CNTR_ID||p.ISO2_CODE||p.ISO_A2||p.iso_a2||'').toUpperCase();if(code&&COUNTRY_ES[code])return COUNTRY_ES[code];const n=p.__name_popup_es||p.__name_es||p.__name||p.etiqueta||p.ETIQUETA||p.NAMEUNIT||p.NAME_1||p.NAME_2||p.NAME||p.name||p.Text||p.NOMBRE||p.nombre||p.DENOMINACION||p.nom_prov||p.nom_ccaa||p.NAME_LATN;return n?String(n):politicalCurrentScope==='canary-municipalities'?'':('Unidad '+(i+1));}
- function politicalCode(f,i=0){const p=f?.properties||{};return String(p.CNTR_ID||p.ISO2_CODE||p.ISO_A2||p.iso_a2||p.cod_prov||p.cod_ccaa||p.NATCODE||p.CODNUT2||p.CODNUT3||p.GEOCODE||p.CODIGO||p.codigo||p.__seshat||p.__name||politicalName(f,i)||i);}
+ function politicalName(f,i=0){
+  const p=f?.properties||{};
+  // En divisiones administrativas se prioriza SIEMPRE el nombre de la unidad, no el código/nombre del país.
+  const unitKeys=['__name_popup_es','__name_es','__name','shapeName','SHAPENAME','NAMEUNIT','NAME_2','ADM2_NAME','admin2Name','NAME_1','ADM1_NAME','admin1Name','NOMBRE','nombre','DENOMINACION','nom_prov','nom_ccaa','PROVINCIA','provincia','REGION','region','STATE_NAME','state','NAME','name','Name','Text','etiqueta','ETIQUETA','NAME_LATN'];
+  const isCountryLayer=politicalCurrentScope==='europe-countries';
+  if(!isCountryLayer){for(const k of unitKeys){const v=p[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v).trim();}}
+  const code=String(p.CNTR_ID||p.ISO2_CODE||p.ISO_A2||p.iso_a2||'').toUpperCase();
+  if(code&&COUNTRY_ES[code])return COUNTRY_ES[code];
+  for(const k of unitKeys){const v=p[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v).trim();}
+  return politicalCurrentScope==='canary-municipalities'?'':('Unidad '+(i+1));
+ }
+ function politicalCode(f,i=0){
+  const p=f?.properties||{};
+  // El identificador de una subdivisión debe ser el de ESA subdivisión. Si se usa primero el código del país,
+  // todas las regiones del mismo país colisionan en colores, selección y juego.
+  for(const k of ['shapeID','SHAPEID','GID_2','GID_1','ID_2','ID_1','OBJECTID','FID','NATCODE','CODNUT3','CODNUT2','GEOCODE','cod_prov','cod_ccaa','CODIGO','codigo','__seshat']){const v=p[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v).trim();}
+  const unitName=politicalName(f,i);if(unitName&&!/^Unidad \d+$/.test(unitName))return unitName;
+  return String(p.CNTR_ID||p.ISO2_CODE||p.ISO_A2||p.iso_a2||i);
+ }
  function politicalKey(f,i=0){const scopeKey=politicalCurrentScope==='historical-polities'&&typeof historyYear!=='undefined'?politicalCurrentScope+'@'+historyYear:politicalCurrentScope;return scopeKey+'::'+politicalCode(f,i);}
  function politicalHash(s){let h=2166136261;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
  function politicalBaseColor(f,i){const key=politicalKey(f,i),ov=politicalOverrides.get(key);if(ov?.fillColor)return ov.fillColor;const mode=pEl('politicalFillMode')?.value||'auto';if(mode==='blank')return '#ffffff';if(mode==='uniform')return pEl('politicalUniformColor')?.value||'#e8edf1';return POLITICAL_PALETTE[politicalHash(politicalCode(f,i))%POLITICAL_PALETTE.length];}
- function politicalStyle(f,i=0){const key=politicalKey(f,i),ov=politicalOverrides.get(key)||{},fillOn=pEl('politicalFillCheck')?.checked!==false,strokeOn=pEl('politicalStrokeCheck')?.checked!==false;return {pane:'politicalAdminPane',color:ov.strokeColor||pEl('politicalStrokeColor')?.value||'#263746',weight:strokeOn?+(pEl('politicalStrokeWidth')?.value||1.6):0,opacity:strokeOn?+(pEl('politicalStrokeOpacity')?.value||.95):0,fillColor:politicalBaseColor(f,i),fillOpacity:fillOn?+(pEl('politicalFillOpacity')?.value||.42):0,lineJoin:'round',lineCap:'round'};}
+ function politicalStyle(f,i=0){const key=politicalKey(f,i),ov=politicalOverrides.get(key)||{},hier=['spain-admin','world-country'].includes(politicalCurrentScope),fillOn=pEl('politicalFillCheck')?.checked!==false&&(!hier||politicalLevelRenderMode(politicalPrimaryLevel)==='fill'),strokeOn=pEl('politicalStrokeCheck')?.checked!==false;return {pane:'politicalAdminPane',color:ov.strokeColor||pEl('politicalStrokeColor')?.value||'#263746',weight:strokeOn?+(pEl('politicalStrokeWidth')?.value||1.6):0,opacity:strokeOn?+(pEl('politicalStrokeOpacity')?.value||.95):0,fillColor:politicalBaseColor(f,i),fillOpacity:fillOn?+(pEl('politicalFillOpacity')?.value||.42):0,lineJoin:'round',lineCap:'round'};}
  async function politicalFetch(urls){let err;for(const u of urls||[]){try{const r=await fetch(u,{cache:'force-cache'});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d?.type==='FeatureCollection'&&Array.isArray(d.features)&&d.features.length)return d;throw new Error('GeoJSON vacío');}catch(e){err=e;console.warn('Fuente territorial',u,e);}}throw err||new Error('Sin fuente disponible');}
  async function waitHistoricalData(){
   const cb=pEl('worldHistoryCheck'),wasChecked=!!cb?.checked;
@@ -14610,8 +14627,9 @@ html body .historyPopup .leaflet-popup-close-button{
  async function politicalRestoreNormal2D(){
   try{if(document.body.classList.contains('globe-mode')&&typeof toggleGlobe==='function')await toggleGlobe()}catch(_){}
   const snap=politicalViewSnapshot;politicalViewSnapshot=null;
-  if(snap?.baseValue){const r=document.querySelector('input[data-base-choice="'+snap.baseValue+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
-  else {const r=document.querySelector('input[data-base-choice="worldsat"]')||document.querySelector('input[data-base-choice="hybrid"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
+  // Tras mapas políticos/mudos se vuelve siempre al fondo físico ANAMBRO, que es también el fondo inicial.
+  if(typeof window.anambroActivateDefaultPhysical2D==='function')await window.anambroActivateDefaultPhysical2D();
+  else {const r=document.querySelector('input[data-base-choice="eoxsat"]')||document.querySelector('input[data-base-choice="worldsat"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
   if(snap?.center&&Number.isFinite(snap.zoom))map.setView(snap.center,snap.zoom,{animate:false});
   setTimeout(()=>map.invalidateSize({pan:false,animate:false}),30);
  }
@@ -14705,8 +14723,8 @@ html body .historyPopup .leaflet-popup-close-button{
  }
  function politicalShowAdminPopup(f,ll){const info=politicalHierarchyInfo(f),rows=info.rows.map(([k,v])=>'<div class="politicalAdminRow"><b>'+escHtml(k)+'</b><span>'+escHtml(v)+'</span></div>').join('');L.popup({maxWidth:360,className:'politicalAdminPopup',autoPan:true}).setLatLng(ll).setContent('<div class="politicalAdminCard"><div class="politicalAdminTitle">🗺️ '+escHtml(info.title)+'</div>'+rows+'</div>').openOn(map);}
  function politicalCreateHierarchyPane(){if(!map.getPane('politicalHierarchyPane')){const p=map.createPane('politicalHierarchyPane');p.style.zIndex='775';p.style.pointerEvents='none';}}
- function politicalSecondaryStyle(){return {pane:'politicalHierarchyPane',color:'#111827',weight:3.0,opacity:.98,fill:false,interactive:false,lineJoin:'round',lineCap:'round'};}
- function politicalTertiaryStyle(){return {pane:'politicalHierarchyPane',color:'#05080b',weight:4.6,opacity:1,fill:false,interactive:false,lineJoin:'round',lineCap:'round'};}
+ function politicalSecondaryStyle(f){return politicalLevelStyle(f,politicalSecondaryLevel,'secondary');}
+ function politicalTertiaryStyle(f){return politicalLevelStyle(f,politicalTertiaryLevel,'tertiary');}
  function politicalClearSecondary(){try{if(politicalSecondaryLayer&&map.hasLayer(politicalSecondaryLayer))map.removeLayer(politicalSecondaryLayer)}catch(_){}try{if(politicalTertiaryLayer&&map.hasLayer(politicalTertiaryLayer))map.removeLayer(politicalTertiaryLayer)}catch(_){}politicalSecondaryLayer=null;politicalTertiaryLayer=null;politicalSecondaryData=null;politicalTertiaryData=null;politicalSecondaryLevel=0;politicalTertiaryLevel=0;}
  function politicalClearLand(){try{if(politicalLandLayer&&map.hasLayer(politicalLandLayer))map.removeLayer(politicalLandLayer)}catch(_){}politicalLandLayer=null;}
  async function politicalInstallCleanLand(){
@@ -14731,24 +14749,31 @@ html body .historyPopup .leaflet-popup-close-button{
   return politicalScopeTitleV041();
  };
  function politicalLevelControls(){return {l1:q('politicalLevel1Check')?.checked!==false,l2:q('politicalLevel2Check')?.checked!==false,l3:!!q('politicalLevel3Check')?.checked};}
+ function politicalLevelRenderMode(level){const el=q('politicalLevel'+level+'Render');return el?.value==='outline'?'outline':'fill';}
+ function politicalLevelFillOpacity(level){if(politicalLevelRenderMode(level)==='outline')return 0;const base=+(q('politicalFillOpacity')?.value||.42);return level===politicalPrimaryLevel?base:Math.min(.24,Math.max(.10,base*.48));}
+ function politicalLevelStyle(f,level,kind='secondary'){const fill=politicalLevelRenderMode(level)==='fill',primary=level===politicalPrimaryLevel,weight=primary?+(q('politicalStrokeWidth')?.value||1.6):(kind==='tertiary'?4.6:3.0);return {pane:primary?'politicalAdminPane':'politicalHierarchyPane',color:primary?(q('politicalStrokeColor')?.value||'#263746'):(kind==='tertiary'?'#05080b':'#111827'),weight:(q('politicalStrokeCheck')?.checked===false&&primary)?0:weight,opacity:primary?+(q('politicalStrokeOpacity')?.value||.95):.98,fillColor:fill?politicalBaseColor(f,0):'#ffffff',fillOpacity:fill?politicalLevelFillOpacity(level):0,interactive:primary,lineJoin:'round',lineCap:'round'};}
  async function politicalResolveDatasets(scope){
   politicalCountryFeature=null;politicalCountryIso3='';politicalCountryLabel='';politicalSecondaryData=null;politicalTertiaryData=null;politicalPrimaryLevel=0;politicalSecondaryLevel=0;politicalTertiaryLevel=0;
   if(scope==='spain-admin'){
    politicalCountryIso3='ESP';politicalCountryLabel='España';
-   const c=politicalLevelControls(),adm1=await politicalData('spain-ccaa'),adm2=await politicalData('spain-provinces');
+   const c=politicalLevelControls();let adm1=null,adm2=null;
+   // España carga únicamente los niveles pedidos: no se descargan CCAA o provincias si están desactivadas.
+   if(c.l1)adm1=await politicalData('spain-ccaa');
+   if(c.l2)adm2=await politicalData('spain-provinces');
    if(c.l3){
     const munCan=await politicalData('canary-municipalities');politicalPrimaryLevel=3;
-    if(c.l2){politicalSecondaryLevel=2;politicalSecondaryData=adm2}
-    if(c.l1){if(c.l2){politicalTertiaryLevel=1;politicalTertiaryData=adm1}else{politicalSecondaryLevel=1;politicalSecondaryData=adm1}}
+    if(c.l2&&adm2){politicalSecondaryLevel=2;politicalSecondaryData=adm2}
+    if(c.l1&&adm1){if(c.l2){politicalTertiaryLevel=1;politicalTertiaryData=adm1}else{politicalSecondaryLevel=1;politicalSecondaryData=adm1}}
     return munCan;
    }
-   if(c.l2){politicalPrimaryLevel=2;if(c.l1){politicalSecondaryLevel=1;politicalSecondaryData=adm1}return adm2}
-   politicalPrimaryLevel=1;return adm1;
+   if(c.l2&&adm2){politicalPrimaryLevel=2;if(c.l1&&adm1){politicalSecondaryLevel=1;politicalSecondaryData=adm1}return adm2}
+   if(c.l1&&adm1){politicalPrimaryLevel=1;return adm1}
+   throw new Error('Activa al menos un nivel administrativo de España.');
   }
   if(scope==='world-country'){
    const iso=q('politicalCountrySelect')?.value||'';politicalCountryFeature=await politicalSelectCountryFeature(iso);if(!politicalCountryFeature)throw new Error('Selecciona un país.');
    politicalCountryIso3=countryIso3FromFeature(politicalCountryFeature);politicalCountryLabel=countryLabelFromFeature(politicalCountryFeature);
-   const c=politicalLevelControls();let adm1=null,adm2=null;if(c.l1||c.l2)adm1=await politicalFetchCountryAdmin(1,politicalCountryFeature);if(c.l2)adm2=await politicalFetchCountryAdmin(2,politicalCountryFeature);
+   const c=politicalLevelControls();let adm1=null,adm2=null;if(c.l1)adm1=await politicalFetchCountryAdmin(1,politicalCountryFeature);if(c.l2)adm2=await politicalFetchCountryAdmin(2,politicalCountryFeature);
    if(c.l2&&adm2?.features?.length){politicalPrimaryLevel=2;if(c.l1&&adm1?.features?.length){politicalSecondaryLevel=1;politicalSecondaryData=adm1}return adm2}
    if(adm1?.features?.length){politicalPrimaryLevel=1;return adm1}
    throw new Error('No hay divisiones administrativas disponibles para este país en la fuente mundial.');
@@ -14757,31 +14782,38 @@ html body .historyPopup .leaflet-popup-close-button{
   if(scope==='spain-ccaa'){politicalCountryIso3='ESP';politicalCountryLabel='España';politicalPrimaryLevel=1;return await politicalData(scope)}
   return await politicalData(scope);
  }
- let politicalGame={active:false,queue:[],index:0,attempts:0,correct:0,failed:0,total:0,current:null,timer:0,locked:false};
+ let politicalGame={active:false,queue:[],index:0,attempts:0,correct:0,failed:0,total:0,current:null,timer:0,locked:false,solved:new Set(),revealed:new Set(),uiSnapshot:null,preparing:false};
  function politicalGameEmit(extra={}){window.dispatchEvent(new CustomEvent('anambro:political-game',{detail:{active:politicalGame.active,index:politicalGame.index,total:politicalGame.total,attempts:politicalGame.attempts,correct:politicalGame.correct,failed:politicalGame.failed,prompt:politicalGame.current?politicalName(politicalGame.current,0):'',...extra}}));}
- function politicalGameNeutral(){if(!politicalLayer)return;politicalLayer.eachLayer(l=>{if(l.setStyle)l.setStyle({color:'#334155',weight:1.3,opacity:.95,fillColor:'#ffffff',fillOpacity:.88,dashArray:null})});if(politicalSecondaryLayer)politicalSecondaryLayer.eachLayer(l=>l.setStyle?.(politicalSecondaryStyle()));}
+ function politicalGameCaptureUi(){return {scope:q('politicalScope')?.value||'',country:q('politicalCountrySelect')?.value||'',l1:!!q('politicalLevel1Check')?.checked,l2:!!q('politicalLevel2Check')?.checked,l3:!!q('politicalLevel3Check')?.checked,r1:q('politicalLevel1Render')?.value||'fill',r2:q('politicalLevel2Render')?.value||'fill',r3:q('politicalLevel3Render')?.value||'fill',labels:!!q('politicalLabelsCheck')?.checked,fill:!!q('politicalFillCheck')?.checked,fillMode:q('politicalFillMode')?.value||'auto',stroke:!!q('politicalStrokeCheck')?.checked,bg:q('politicalBackground')?.value||'clean'};}
+ function politicalGameRestoreUi(st){if(!st)return;const set=(id,key)=>{const el=q(id);if(el)el.checked=!!st[key]};if(q('politicalScope')&&st.scope)q('politicalScope').value=st.scope;if(q('politicalCountrySelect'))q('politicalCountrySelect').value=st.country||'';set('politicalLevel1Check','l1');set('politicalLevel2Check','l2');set('politicalLevel3Check','l3');for(const n of [1,2,3])if(q('politicalLevel'+n+'Render'))q('politicalLevel'+n+'Render').value=st['r'+n]||'fill';set('politicalLabelsCheck','labels');set('politicalFillCheck','fill');set('politicalStrokeCheck','stroke');if(q('politicalFillMode'))q('politicalFillMode').value=st.fillMode||'auto';if(q('politicalBackground'))q('politicalBackground').value=st.bg||'clean';}
+ function politicalGameNeutral(){if(!politicalLayer)return;const solved=politicalGame.solved||new Set(),revealed=politicalGame.revealed||new Set();politicalLayer.eachLayer(l=>{if(!l.feature||!l.setStyle)return;const code=politicalCode(l.feature);if(solved.has(code))l.setStyle({fillColor:'#22c55e',fillOpacity:.82,color:'#166534',weight:2.2,opacity:.98,dashArray:null});else if(revealed.has(code))l.setStyle({fillColor:'#ef4444',fillOpacity:.82,color:'#991b1b',weight:2.2,opacity:.98,dashArray:null});else l.setStyle({color:'#334155',weight:1.3,opacity:.95,fillColor:'#ffffff',fillOpacity:.88,dashArray:null});});if(politicalSecondaryLayer)politicalSecondaryLayer.eachLayer(l=>l.setStyle?.(politicalSecondaryStyle(l.feature)));if(politicalTertiaryLayer)politicalTertiaryLayer.eachLayer(l=>l.setStyle?.(politicalTertiaryStyle(l.feature)));}
  function politicalGameLayerForFeature(f){let found=null,code=politicalCode(f);politicalLayer?.eachLayer(l=>{if(!found&&l.feature&&politicalCode(l.feature)===code)found=l});return found;}
  function shuffleArray(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;}
- function politicalGameNext(){clearTimeout(politicalGame.timer);politicalGame.locked=false;if(politicalGame.index>=politicalGame.queue.length){politicalGame.active=false;politicalGame.current=null;politicalGameNeutral();politicalGameEmit({finished:true});return}politicalGame.current=politicalGame.queue[politicalGame.index];politicalGame.attempts=0;politicalGameNeutral();politicalGameEmit();}
+ function politicalGameFinish(){const snap=politicalGame.uiSnapshot;politicalGame.active=false;politicalGame.current=null;politicalGameNeutral();politicalGameRestoreUi(snap);politicalGame.uiSnapshot=null;politicalGameEmit({finished:true});}
+ function politicalGameNext(){clearTimeout(politicalGame.timer);politicalGame.locked=false;if(politicalGame.index>=politicalGame.queue.length){politicalGameFinish();return}politicalGame.current=politicalGame.queue[politicalGame.index];politicalGame.attempts=0;politicalGameNeutral();politicalGameEmit();}
  function politicalGameAnswer(f,l){
   if(!politicalGame.active||!politicalGame.current)return false;if(politicalGame.locked)return true;clearTimeout(politicalGame.timer);const ok=politicalCode(f)===politicalCode(politicalGame.current);politicalGame.attempts++;
-  if(ok){politicalGame.locked=true;politicalGame.correct++;l?.setStyle?.({fillColor:'#22c55e',fillOpacity:.82,color:'#166534',weight:2.4});politicalGameEmit({result:'correct'});politicalGame.timer=setTimeout(()=>{politicalGame.index++;politicalGameNext()},850);return true}
+  if(ok){politicalGame.locked=true;politicalGame.correct++;politicalGame.solved.add(politicalCode(politicalGame.current));politicalGameNeutral();politicalGameEmit({result:'correct'});politicalGame.timer=setTimeout(()=>{politicalGame.index++;politicalGameNext()},850);return true}
   if(politicalGame.attempts<3){l?.setStyle?.({fillColor:'#f59e0b',fillOpacity:.78,color:'#92400e',weight:2.2});politicalGameEmit({result:'wrong',remaining:3-politicalGame.attempts});politicalGame.timer=setTimeout(()=>{if(politicalGame.active&&!politicalGame.locked)politicalGameNeutral()},420);return true}
-  politicalGame.locked=true;politicalGame.failed++;const answer=politicalGameLayerForFeature(politicalGame.current);answer?.setStyle?.({fillColor:'#ef4444',fillOpacity:.88,color:'#991b1b',weight:2.8});politicalGameEmit({result:'failed',answer:politicalName(politicalGame.current,0),remaining:0});politicalGame.timer=setTimeout(()=>{politicalGame.index++;politicalGameNext()},1450);return true;
+  politicalGame.locked=true;politicalGame.failed++;politicalGame.revealed.add(politicalCode(politicalGame.current));politicalGameNeutral();politicalGameEmit({result:'failed',answer:politicalName(politicalGame.current,0),remaining:0});politicalGame.timer=setTimeout(()=>{politicalGame.index++;politicalGameNext()},1450);return true;
  }
- function politicalGameStop(restore=true){clearTimeout(politicalGame.timer);politicalGame.active=false;politicalGame.current=null;if(restore)politicalRestyle();politicalGameEmit({stopped:true});}
- async function politicalGameStart(mode='lower',count=10){
-  const scope=q('politicalScope')?.value||politicalCurrentScope;if(!['spain-admin','world-country','spain-provinces','spain-ccaa','canary-municipalities'].includes(scope))throw new Error('El juego territorial necesita un país o España como ámbito.');
-  if(scope==='spain-admin'||scope==='world-country'){
-   const l1=q('politicalLevel1Check'),l2=q('politicalLevel2Check');if(mode==='upper'){if(l1)l1.checked=true;if(l2)l2.checked=false}else{if(l2)l2.checked=true;if(l1)l1.checked=true}
-  }
-  await politicalApply();
-  const fs=(politicalPrimaryData?.features||[]).filter(f=>politicalName(f,0));if(!fs.length)throw new Error('No hay unidades disponibles para jugar.');
-  const n=count==='all'?fs.length:Math.max(1,Math.min(fs.length,Number(count)||10));politicalGame={active:true,queue:shuffleArray(fs.slice()).slice(0,n),index:0,attempts:0,correct:0,failed:0,total:n,current:null,timer:0,locked:false};politicalGameNext();
+ function politicalGameStop(restore=true){clearTimeout(politicalGame.timer);const snap=politicalGame.uiSnapshot;politicalGame.active=false;politicalGame.current=null;if(restore)politicalGameNeutral();politicalGameRestoreUi(snap);politicalGame.uiSnapshot=null;politicalGameEmit({stopped:true});}
+ async function politicalGameStart(mode='lower',count=10,opts={}){
+  const snapshot=politicalGameCaptureUi(),scope=opts.scope||q('politicalScope')?.value||politicalCurrentScope;if(!['spain-admin','world-country','spain-provinces','spain-ccaa','canary-municipalities'].includes(scope))throw new Error('El juego territorial necesita un país o España como ámbito.');
+  politicalGame.uiSnapshot=snapshot;politicalGame.preparing=true;
+  try{
+   if(q('politicalScope'))q('politicalScope').value=scope;
+   if(opts.country&&q('politicalCountrySelect'))q('politicalCountrySelect').value=opts.country;
+   if(scope==='spain-admin'||scope==='world-country'){const l1=q('politicalLevel1Check'),l2=q('politicalLevel2Check'),l3=q('politicalLevel3Check'),r1=q('politicalLevel1Render'),r2=q('politicalLevel2Render'),r3=q('politicalLevel3Render');if(mode==='upper'){if(l1)l1.checked=true;if(l2)l2.checked=false;if(r1)r1.value='fill'}else{if(l1)l1.checked=true;if(l2)l2.checked=true;if(r1)r1.value='outline';if(r2)r2.value='fill'}if(l3)l3.checked=false;if(r3)r3.value='fill';}
+   if(q('politicalLabelsCheck'))q('politicalLabelsCheck').checked=false;if(q('politicalFillCheck'))q('politicalFillCheck').checked=true;if(q('politicalStrokeCheck'))q('politicalStrokeCheck').checked=true;if(q('politicalFillMode'))q('politicalFillMode').value='blank';if(q('politicalBackground'))q('politicalBackground').value='clean';
+   await politicalApply();politicalClearLabels();
+   const fs=(politicalPrimaryData?.features||[]).filter(f=>politicalName(f,0));if(!fs.length)throw new Error('No hay unidades disponibles para jugar.');
+   const n=count==='all'?fs.length:Math.max(1,Math.min(fs.length,Number(count)||10));politicalGame={active:true,queue:shuffleArray(fs.slice()).slice(0,n),index:0,attempts:0,correct:0,failed:0,total:n,current:null,timer:0,locked:false,solved:new Set(),revealed:new Set(),uiSnapshot:snapshot,preparing:false};politicalGameNext();
+  }catch(e){politicalGameRestoreUi(snapshot);politicalGame.uiSnapshot=null;throw e}finally{politicalGame.preparing=false;}
  }
  const politicalApplyV041=politicalApply;
  politicalApply=async function(){
-  const scope=q('politicalScope')?.value||'canary-municipalities';politicalGameStop(false);politicalSnapshotView();politicalApplyScopeDefaults(scope);politicalCurrentScope=scope;politicalSetStatus('Cargando '+politicalScopeTitle()+'…');document.body.classList.add('political-map-mode');politicalActive=true;politicalEnsurePanes();politicalCreateHierarchyPane();
+  const scope=q('politicalScope')?.value||'canary-municipalities';if(!politicalGame.preparing)politicalGameStop(false);politicalSnapshotView();politicalApplyScopeDefaults(scope);politicalCurrentScope=scope;politicalSetStatus('Cargando '+politicalScopeTitle()+'…');document.body.classList.add('political-map-mode');politicalActive=true;politicalEnsurePanes();politicalCreateHierarchyPane();
   try{
    const data=await politicalResolveDatasets(scope);politicalPrimaryData=data;await politicalEnsureBackdrop();
    if(politicalLayer&&map.hasLayer(politicalLayer))map.removeLayer(politicalLayer);politicalClearSecondary();
@@ -14795,7 +14827,7 @@ html body .historyPopup .leaflet-popup-close-button{
   }catch(e){console.error('Mapa político v0.43',e);politicalSetStatus('No se pudo cargar '+politicalScopeTitle()+': '+(e?.message||e));await politicalExit(false,false);throw e;}
  };
  const politicalRestyleV041=politicalRestyle;
- politicalRestyle=function(){if(politicalGame.active){politicalGameNeutral();return}politicalRestyleV041();if(politicalSecondaryLayer)politicalSecondaryLayer.eachLayer(l=>l.setStyle?.(politicalSecondaryStyle()));if(politicalTertiaryLayer)politicalTertiaryLayer.eachLayer(l=>l.setStyle?.(politicalTertiaryStyle()));};
+ politicalRestyle=function(){if(politicalGame.active){politicalGameNeutral();return}politicalRestyleV041();if(politicalSecondaryLayer)politicalSecondaryLayer.eachLayer(l=>l.setStyle?.(politicalSecondaryStyle(l.feature)));if(politicalTertiaryLayer)politicalTertiaryLayer.eachLayer(l=>l.setStyle?.(politicalTertiaryStyle(l.feature)));};
  const politicalExitV041=politicalExit;
  politicalExit=async function(report=true,restoreView=true){politicalGameStop(false);politicalClearSecondary();politicalClearLand();politicalPrimaryData=null;politicalCountryFeature=null;politicalCountryIso3='';politicalCountryLabel='';const c=map.getContainer();if(politicalMapBgSnapshot!==null){c.style.background='';c.style.backgroundColor=politicalMapBgSnapshot;politicalMapBgSnapshot='';}return await politicalExitV041(report,restoreView);};
  // En este modo no se permite que el clic de fondo abra la ficha geográfica tradicional.
@@ -20062,7 +20094,7 @@ body.political-map-mode #map{background:var(--political-sea,#cfe8f3)!important}
   actions?.insertAdjacentElement('afterend',game);addAdvancedLandColor();
   async function loadCountryOptions(){const sel=q('politicalCountrySelect');if(!sel||sel.dataset.loaded==='1')return;try{const list=await window.anambroPoliticalV042.countries();sel.innerHTML='';for(const c of list)sel.add(new Option(c.name,c.iso3));sel.value=[...sel.options].some(o=>o.value==='ESP')?'ESP':sel.options[0]?.value||'';sel.dataset.loaded='1';syncLevelNames();}catch(e){sel.innerHTML='<option value="">No se pudieron cargar los países</option>';}}
   function syncLevelNames(){const iso=qs.value==='spain-admin'?'ESP':q('politicalCountrySelect')?.value||'',n=window.anambroPoliticalV042?.levelNames?.(iso)||['Nivel principal','Subdivisiones'];q('politicalLevel1Text').textContent=n[0];q('politicalLevel2Text').textContent=n[1];const gm=q('politicalGameMode');if(gm){gm.options[0].textContent=n[1];gm.options[1].textContent=n[0];}}
-  function syncScope(){scope.value=qs.value;const world=qs.value==='world-country',spain=qs.value==='spain-admin';country.classList.toggle('hidden',!world);levels.classList.toggle('hidden',!(world||spain));q('politicalLevel3Label')?.classList.toggle('hidden',!spain);if(world&&q('politicalLevel3Check'))q('politicalLevel3Check').checked=false;game.style.display=(world||spain||qs.value==='canary-municipalities')?'block':'none';if(world)loadCountryOptions();if(spain){q('politicalLevel1Check').checked=true;q('politicalLevel2Check').checked=true}syncLevelNames();}
+  function syncScope(){scope.value=qs.value;const world=qs.value==='world-country',spain=qs.value==='spain-admin';country.classList.toggle('hidden',!world);levels.classList.toggle('hidden',!(world||spain));q('politicalLevel3Label')?.classList.toggle('hidden',!spain);if(world&&q('politicalLevel3Check'))q('politicalLevel3Check').checked=false;game.style.display=(world||spain||qs.value==='canary-municipalities')?'block':'none';if(world)loadCountryOptions();/* niveles de España independientes: se conserva exactamente la selección del usuario */syncLevelNames();}
   const keepOneLevel=()=>{const a=q('politicalLevel1Check'),b=q('politicalLevel2Check'),c=q('politicalLevel3Check');if(!(a?.checked||b?.checked||c?.checked)){if(b)b.checked=true}};
   qs.addEventListener('change',syncScope);q('politicalCountrySelect')?.addEventListener('change',syncLevelNames);q('politicalLevel1Check')?.addEventListener('change',keepOneLevel);q('politicalLevel2Check')?.addEventListener('change',keepOneLevel);q('politicalLevel3Check')?.addEventListener('change',keepOneLevel);
   q('politicalGameStart')?.addEventListener('click',async()=>{try{syncScope();q('politicalGameMsg').textContent='Preparando mapa…';await window.anambroPoliticalV042.startGame(q('politicalGameMode').value,q('politicalGameCount').value);q('politicalGameStop').style.display='inline-block'}catch(e){q('politicalGameMsg').textContent=e?.message||String(e)}});
@@ -20089,8 +20121,9 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
 #politicalQuick .v044Card{padding:9px;border:1px solid #cbd8e1;border-radius:10px;background:#f7fafc;margin-bottom:8px}
 #politicalQuick .v044Card>b{display:block;color:#17324d;margin-bottom:5px}
 #politicalQuick .v044Levels{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-#politicalQuick .v044Levels label{display:flex!important;gap:7px;align-items:center;min-height:34px;padding:7px!important;border:1px solid #d7e0e6;border-radius:8px;background:#fff}
+#politicalQuick .v044Levels label{display:grid!important;grid-template-columns:18px minmax(0,1fr) 92px;gap:7px;align-items:center;min-height:34px;padding:7px!important;border:1px solid #d7e0e6;border-radius:8px;background:#fff}
 #politicalQuick .v044Levels input{width:18px;height:18px;flex:0 0 18px}
+#politicalQuick .v044LevelRender{width:92px;min-width:92px;padding:5px 4px;font-size:10px}
 #politicalQuick .v044Mode{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 #politicalQuick .v044Mode button{border:1px solid #aebbc5;background:#fff;color:#17324d;border-radius:8px;padding:8px 5px;font-weight:850;cursor:pointer}
 #politicalQuick .v044Mode button.selected{background:#17324d;color:#fff;border-color:#17324d}
@@ -20115,25 +20148,26 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
  'use strict';
  const q=id=>document.getElementById(id);
 
- /* 1 · Fondo limpio: marca explícitamente cuándo NO debe existir ningún raster. */
+ /* 1 · Fondo limpio: ningún raster residual dentro del modo político y restauración completa al salir/cambiar de base. */
+ function restorePoliticalTilePane(){try{const mapEl=q('map');if(!mapEl)return;const pane=mapEl.querySelector('.leaflet-tile-pane');if(pane){pane.style.removeProperty('display');pane.style.removeProperty('opacity');pane.style.removeProperty('visibility');pane.style.removeProperty('filter');}mapEl.querySelectorAll('.leaflet-tile-container').forEach(el=>{el.style.removeProperty('display');el.style.removeProperty('opacity');el.style.removeProperty('visibility');el.style.removeProperty('filter');});}catch(_){}}
  try{
   const _backdrop=politicalEnsureBackdrop;
   politicalEnsureBackdrop=async function(){
    const clean=(q('politicalBackground')?.value||'clean')==='clean';
    document.body.classList.toggle('political-clean-bg',clean);
+   try{window.anambroSuspendDefaultPhysical2D?.()}catch(_){}
+   if(!clean)restorePoliticalTilePane();
    const r=await _backdrop.apply(this,arguments);
-   if(clean){
-    try{const pane=q('map')?.querySelector('.leaflet-tile-pane');if(pane){pane.style.display='none';pane.style.opacity='0';}}catch(_){}
-   }
+   if(clean){try{const pane=q('map')?.querySelector('.leaflet-tile-pane');if(pane){pane.style.display='none';pane.style.opacity='0';}}catch(_){}}
    return r;
   };
  }catch(e){console.warn('v0.44 · fondo político limpio',e)}
  try{
   const _exit=politicalExit;
-  politicalExit=async function(){document.body.classList.remove('political-clean-bg');return await _exit.apply(this,arguments)};
+  politicalExit=async function(){document.body.classList.remove('political-clean-bg');restorePoliticalTilePane();return await _exit.apply(this,arguments)};
  }catch(_){}
  try{
-  if(window.anambroPoliticalMode?.exit){const _modeExit=window.anambroPoliticalMode.exit;window.anambroPoliticalMode.exit=async function(){document.body.classList.remove('political-clean-bg');return await _modeExit.apply(this,arguments)}}
+  if(window.anambroPoliticalMode?.exit){const _modeExit=window.anambroPoliticalMode.exit;window.anambroPoliticalMode.exit=async function(){document.body.classList.remove('political-clean-bg');restorePoliticalTilePane();return await _modeExit.apply(this,arguments)}}
  }catch(_){}
 
  /* 2 · Sustituye el menú rápido anterior por una secuencia única y sin «Personalizado». */
@@ -20150,10 +20184,10 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
      '<option value="historical-polities">Mapa histórico · Cliopatria</option>'+ 
    '</select><div id="politicalV044CountryWrap" style="display:none;margin-top:7px"><b>País</b><select id="politicalV044Country"><option value="">Cargando países…</option></select></div></div>'+ 
    '<div id="politicalV044LevelsWrap" class="v044Card"><b>2 · Niveles que quieres ver</b><div class="v044Levels">'+
-     '<label><input id="politicalLevel1Check" type="checkbox" checked><span id="politicalLevel1Text">Comunidades Autónomas</span></label>'+ 
-     '<label><input id="politicalLevel2Check" type="checkbox" checked><span id="politicalLevel2Text">Provincias</span></label>'+ 
-     '<label id="politicalLevel3Label"><input id="politicalLevel3Check" type="checkbox"><span>Municipios de Canarias</span></label>'+ 
-   '</div><small id="politicalV044LevelHint" style="display:block;margin-top:5px">Puedes activar varios niveles a la vez. El nivel superior se dibuja con contorno más grueso.</small></div>'+ 
+     '<label><input id="politicalLevel1Check" type="checkbox" checked><span id="politicalLevel1Text">Comunidades Autónomas</span><select id="politicalLevel1Render" class="v044LevelRender"><option value="fill">Relleno</option><option value="outline" selected>Contorno</option></select></label>'+ 
+     '<label><input id="politicalLevel2Check" type="checkbox" checked><span id="politicalLevel2Text">Provincias</span><select id="politicalLevel2Render" class="v044LevelRender"><option value="fill" selected>Relleno</option><option value="outline">Contorno</option></select></label>'+ 
+     '<label id="politicalLevel3Label"><input id="politicalLevel3Check" type="checkbox"><span>Municipios de Canarias</span><select id="politicalLevel3Render" class="v044LevelRender"><option value="fill" selected>Relleno</option><option value="outline">Contorno</option></select></label>'+ 
+   '</div><small id="politicalV044LevelHint" style="display:block;margin-top:5px">Cada nivel es independiente: puedes activarlo o desactivarlo y decidir si se representa con relleno o solo contorno. El nivel superior permanece por encima.</small></div>'+ 
    '<div class="v044Card"><b>3 · Aspecto</b><div class="v044Mode">'+
      '<button type="button" data-v044-mode="blank" class="selected">📝 Mudo</button>'+ 
      '<button type="button" data-v044-mode="political">🎨 Político</button>'+ 
@@ -20192,9 +20226,9 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
    const world=s.value==='world-country',spain=s.value==='spain-admin';
    cw.style.display=world?'block':'none';
    lw.style.display=(world||spain)?'block':'none';
-   q('politicalLevel3Label').style.display=spain?'flex':'none';
+   q('politicalLevel3Label').style.setProperty('display',spain?'grid':'none','important');
    if(world){loadCountries();ensureHiddenCountryMirror();q('politicalLevel3Check').checked=false}
-   if(spain){q('politicalLevel1Check').checked=true;q('politicalLevel2Check').checked=true}
+   /* España conserva la selección independiente del usuario: CCAA, provincias o ambas. */
    syncNames();
   }
   const ensureOne=()=>{if(!(q('politicalLevel1Check')?.checked||q('politicalLevel2Check')?.checked||q('politicalLevel3Check')?.checked))q('politicalLevel2Check').checked=true};
@@ -20216,6 +20250,7 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
    finally{btn.disabled=false;btn.textContent='Mostrar mapa'}
   });
   q('politicalV044Exit').addEventListener('click',()=>window.anambroPoliticalMode?.exit?.(true,true));
+  for(const id of ['politicalLevel1Render','politicalLevel2Render','politicalLevel3Render'])q(id)?.addEventListener('change',()=>{if(window.anambroPoliticalMode?.isActive?.())politicalRestyle()});
   syncScope();
  }
 
@@ -20239,15 +20274,7 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
    const msg=q('territorialGameMsg');msg.textContent='Preparando mapa…';
    try{
     let scopeVal='spain-admin';if(gs.value==='canarias')scopeVal='canary-municipalities';if(gs.value==='world')scopeVal='world-country';
-    q('politicalScope').value=scopeVal;
-    if(gs.value==='world'){
-     let mirror=q('politicalCountrySelect');if(!mirror){mirror=document.createElement('input');mirror.type='hidden';mirror.id='politicalCountrySelect';document.body.appendChild(mirror)}mirror.value=gc.value;
-    }
-    const l1=q('politicalLevel1Check'),l2=q('politicalLevel2Check'),l3=q('politicalLevel3Check');
-    if(gs.value==='spain'){if(l1)l1.checked=true;if(l2)l2.checked=gl.value==='lower';if(l3)l3.checked=false}
-    if(gs.value==='world'){if(l1)l1.checked=true;if(l2)l2.checked=gl.value==='lower';if(l3)l3.checked=false}
-    if(gs.value==='canarias'){if(l1)l1.checked=false;if(l2)l2.checked=false;if(l3)l3.checked=true}
-    await window.anambroPoliticalV042.startGame(gl.value,q('territorialGameCount').value);msg.textContent='';
+    await window.anambroPoliticalV042.startGame(gl.value,q('territorialGameCount').value,{scope:scopeVal,country:gs.value==='world'?gc.value:''});msg.textContent='';
    }catch(e){msg.textContent=e?.message||String(e)}
   });
   q('territorialGameStop').addEventListener('click',()=>{window.anambroPoliticalV042.stopGame();q('territorialGameMsg').textContent='Partida detenida.'});
@@ -20259,6 +20286,60 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
  }
 
  setTimeout(()=>{rebuildPoliticalMenu();installSeparateGame()},0);
+})();
+</script>
+
+
+<style id="anambro-default-physical-base-css">
+/* Fondo inicial/restaurado ANAMBRO: misma lectura clara de relieve y batimetría que el atlas temático. */
+body.anambro-default-physical #map{background:#d9eef6!important}
+body.anambro-default-physical #map .anambro-default-physical-gebco{filter:saturate(.62) brightness(1.18) contrast(.86) hue-rotate(-4deg)}
+</style>
+<script id="anambro-default-physical-base-js">
+(function(){
+ 'use strict';
+ const OCEAN='#d9eef6',COAST='#39779d',LAND='#e9e1cf';
+ let physicalGroup=null,physicalGebco=null,physicalLand=null,physicalCoast=null,building=null;
+ function ensurePanes(){
+  if(!map.getPane('defaultPhysicalBathyPane')){const p=map.createPane('defaultPhysicalBathyPane');p.style.zIndex='180';p.style.pointerEvents='none'}
+  if(!map.getPane('defaultPhysicalLandPane')){const p=map.createPane('defaultPhysicalLandPane');p.style.zIndex='220';p.style.pointerEvents='none'}
+  if(!map.getPane('defaultPhysicalCoastPane')){const p=map.createPane('defaultPhysicalCoastPane');p.style.zIndex='230';p.style.pointerEvents='none'}
+ }
+ async function ensurePhysical(){
+  if(physicalGroup)return physicalGroup;if(building)return building;
+  building=(async()=>{
+   ensurePanes();
+   physicalGebco=L.tileLayer.wms('https://wms.gebco.net/mapserv?',{layers:'gebco_latest',format:'image/jpeg',transparent:false,version:'1.3.0',pane:'defaultPhysicalBathyPane',opacity:.50,maxZoom:10,className:'anambro-default-physical-gebco',attribution:'GEBCO_2026'});
+   const layers=[physicalGebco];
+   try{
+    const land=await loadHistoryLand();
+    physicalLand=L.geoJSON(land,{pane:'defaultPhysicalLandPane',interactive:false,style:{color:COAST,weight:.45,opacity:.42,fillColor:LAND,fillOpacity:.36}});
+    physicalCoast=L.geoJSON(land,{pane:'defaultPhysicalCoastPane',interactive:false,style:{color:COAST,weight:1.15,opacity:.88,fill:false}});
+    layers.push(physicalLand,physicalCoast);
+   }catch(e){console.warn('Fondo físico ANAMBRO: costa/veladura no disponibles',e)}
+   physicalGroup=L.layerGroup(layers);window.anambroDefaultPhysicalLayer=physicalGroup;return physicalGroup;
+  })();
+  try{return await building}finally{building=null}
+ }
+ window.anambroSuspendDefaultPhysical2D=function(){
+  try{if(physicalGroup&&map.hasLayer(physicalGroup))map.removeLayer(physicalGroup)}catch(_){}
+  document.body.classList.remove('anambro-default-physical');
+ };
+ window.anambroActivateDefaultPhysical2D=async function(){
+  const g=await ensurePhysical();
+  try{if(typeof activeBase!=='undefined'&&activeBase&&activeBase!==g&&map.hasLayer(activeBase))map.removeLayer(activeBase)}catch(_){}
+  try{for(const l of [typeof worldImagery!=='undefined'?worldImagery:null,typeof worldEox!=='undefined'?worldEox:null])if(l&&map.hasLayer(l))map.removeLayer(l)}catch(_){}
+  try{activeBase=g}catch(_){}
+  if(!map.hasLayer(g))g.addTo(map);
+  map.getContainer().style.background=OCEAN;map.getContainer().style.backgroundColor=OCEAN;
+  document.body.classList.add('anambro-default-physical');
+  document.querySelectorAll('input[data-base-choice]').forEach(x=>x.checked=false);
+  try{physicalGebco?.bringToBack?.()}catch(_){}
+  return g;
+ };
+ // Cualquier base elegida manualmente sustituye al fondo físico por el mecanismo normal del visor.
+ document.querySelectorAll('input[data-base-choice]').forEach(r=>r.addEventListener('change',()=>{document.body.classList.remove('anambro-default-physical');map.getContainer().style.background='';map.getContainer().style.backgroundColor='';}));
+ setTimeout(()=>{if(!document.body.classList.contains('political-map-mode')&&!document.body.classList.contains('globe-mode'))window.anambroActivateDefaultPhysical2D().catch(e=>console.warn('Fondo físico inicial ANAMBRO',e));},0);
 })();
 </script>
 
