@@ -3003,6 +3003,11 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 </div></details>
 </details>
 <details class="layerCategory"><summary>🌋 Geografía Física</summary>
+<details class="layerSubcategory"><summary>⛰️ Relieve e hidrografía</summary>
+<label><input id="spainHypsometryCheck" type="checkbox"/> <b>Hipsometría · relieve peninsular y mundial</b></label>
+<label><input id="spainRiversCheck" type="checkbox"/> <b>Red hidrográfica · ríos</b></label>
+<div class="layerSubBlock"><small>Activa las mismas capas continuas del ámbito mundial, especialmente útiles para leer Meseta, Pirineos, Cantábrica, Sistemas Central e Ibérico, Béticas y las grandes cuencas peninsulares.</small></div>
+</details>
 <details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="canaryGeologyCheck" type="checkbox"/> <b>Mapa geológico continuo · Canarias (GEODE)</b></label>
 <div class="layerSubBlock">
 <small>IGME-CSIC · limitado al Archipiélago Canario.</small>
@@ -3116,6 +3121,22 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><input id="worldRadioGardenCheck" type="checkbox"/> <b>Emisoras en directo · Radio Garden</b></label><div class="layerSubBlock"><small>Ciudades y emisoras de todo el mundo · integración no oficial.</small><small id="radioGardenLayerStatus">Capa desactivada.</small></div></details>
 <details class="layerCategory"><summary>🌋 Geografía Física</summary>
 <div class="layerSubBlock"><small>Relieve, geología, vulcanismo, clima, toponimia física y grandes biomas terrestres.</small></div>
+<details class="layerSubcategory"><summary>⛰️ Relieve e hidrografía</summary>
+<label><input id="worldHypsometryCheck" type="checkbox"/> <b>Hipsometría mundial · altitud y relieve sombreado</b></label>
+<div class="layerSubBlock">
+<small>MDE mundial Terrarium · rampa hipsométrica continua y sombreado calculado en el navegador. Misma simbología desde el mapamundi hasta la Península Ibérica.</small>
+<label><small><b>Opacidad</b> <span id="worldHypsometryOpacityValue">88 %</span></small><input id="worldHypsometryOpacity" max="1" min="0.2" step="0.05" style="width:100%" type="range" value="0.88"/></label>
+<div id="worldHypsometryLegend" class="hypsometryLegend"><span>0 m</span><span>200</span><span>500</span><span>1000</span><span>2000</span><span>3000</span><span>5000+</span></div>
+<small id="worldHypsometryStatus">Capa desactivada.</small>
+</div>
+<label><input id="worldRiversCheck" type="checkbox"/> <b>Red hidrográfica · ríos</b></label>
+<div class="layerSubBlock">
+<small>Grandes ríos a escala mundial; al acercarte se completa bajo demanda con cauces nombrados de OpenStreetMap.</small>
+<label><input id="worldRiverLabelsCheck" type="checkbox" checked/> Rotular ríos</label>
+<label><small><b>Opacidad</b> <span id="worldRiversOpacityValue">90 %</span></small><input id="worldRiversOpacity" max="1" min="0.2" step="0.05" style="width:100%" type="range" value="0.90"/></label>
+<small id="worldRiversStatus">Capa desactivada.</small>
+</div>
+</details>
 <details class="layerSubcategory"><summary>🏷️ Toponimia física</summary>
 <label><input id="worldPhysicalToponymsCheck" type="checkbox"/> <b>Topónimos físicos mundiales</b></label>
 <div class="layerSubBlock"><small>Continentes, océanos, mares, penínsulas, islas y grandes cordilleras · mapa 2D y globo 3D.</small></div>
@@ -20449,5 +20470,132 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 })();
 </script>
 
+
+<style id="anambro-hypsometry-hydrography-css">
+.hypsometryLegend{display:grid;grid-template-columns:repeat(7,1fr);height:32px;margin:6px 0 4px;border:1px solid #687680;border-radius:6px;overflow:hidden;background:linear-gradient(90deg,#5d9d60 0%,#82b565 12%,#c8c36b 28%,#d0a45d 45%,#a87b50 64%,#83634e 78%,#d9d5cc 90%,#f4f4f2 100%);position:relative}
+.hypsometryLegend span{align-self:end;text-align:center;font-size:8px;font-weight:800;color:#152839;background:rgba(255,255,255,.70);padding:2px 1px;border-left:1px solid rgba(0,0,0,.10)}
+.hypsometryLegend span:first-child{border-left:0}
+.leaflet-pane.worldHypsometryPane canvas{image-rendering:auto}
+.anambro-river-label{background:rgba(237,249,255,.86)!important;border:0!important;box-shadow:none!important;color:#075985!important;font:italic 700 10.5px/1.1 system-ui,-apple-system,sans-serif!important;padding:1px 3px!important;text-shadow:0 1px 0 #fff,1px 0 0 #fff,-1px 0 0 #fff,0 -1px 0 #fff!important;white-space:nowrap!important}
+.anambro-river-label:before{display:none!important}
+@media(max-width:700px){.hypsometryLegend span{font-size:7px}.anambro-river-label{font-size:9px!important}}
+</style>
+<script id="anambro-hypsometry-hydrography-js">
+(function(){
+ 'use strict';
+ const q=id=>document.getElementById(id);
+ if(!window.L||typeof map==='undefined'||q('worldHypsometryCheck')?.dataset.anambroReady==='1')return;
+ const hypsCheck=q('worldHypsometryCheck'),hypsOpacity=q('worldHypsometryOpacity'),hypsOpacityValue=q('worldHypsometryOpacityValue'),hypsStatus=q('worldHypsometryStatus');
+ const riversCheck=q('worldRiversCheck'),riverLabelsCheck=q('worldRiverLabelsCheck'),riversOpacity=q('worldRiversOpacity'),riversOpacityValue=q('worldRiversOpacityValue'),riversStatus=q('worldRiversStatus');
+ if(!hypsCheck||!riversCheck)return;
+ hypsCheck.dataset.anambroReady='1';
+ function ensurePane(name,z){let p=map.getPane(name);if(!p){p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents='none'}return p}
+ ensurePane('worldHypsometryPane',285);ensurePane('worldRiversPane',575);ensurePane('worldRiverLabelsPane',585);
+ const tileCache=new Map();
+ function terrariumUrl(c){return 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+c.z+'/'+c.x+'/'+c.y+'.png'}
+ function elev(r,g,b){return r*256+g+b/256-32768}
+ const stops=[[-10000,[50,102,132]],[0,[93,157,96]],[200,[132,181,101]],[500,[198,190,105]],[1000,[208,164,93]],[2000,[168,123,80]],[3000,[131,99,78]],[4500,[194,187,174]],[6500,[244,244,242]],[9000,[255,255,255]]];
+ function mix(a,b,t){return Math.round(a+(b-a)*t)}
+ function colorFor(z){
+   if(z<0){const d=Math.max(-6000,z),t=(d+6000)/6000;return [mix(23,75,t),mix(73,140,t),mix(108,164,t)]}
+   for(let i=1;i<stops.length;i++){if(z<=stops[i][0]){const [z0,c0]=stops[i-1],[z1,c1]=stops[i],t=Math.max(0,Math.min(1,(z-z0)/(z1-z0)));return [mix(c0[0],c1[0],t),mix(c0[1],c1[1],t),mix(c0[2],c1[2],t)]}}
+   return [255,255,255];
+ }
+ async function terrariumPixels(coords){
+   const key=coords.z+'/'+coords.x+'/'+coords.y;
+   if(tileCache.has(key))return tileCache.get(key);
+   const promise=(async()=>{
+     const r=await fetch(terrariumUrl(coords),{mode:'cors'});if(!r.ok)throw new Error('Terrarium HTTP '+r.status);
+     const bmp=await createImageBitmap(await r.blob());const cv=document.createElement('canvas');cv.width=256;cv.height=256;const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0);if(bmp.close)bmp.close();return cx.getImageData(0,0,256,256).data;
+   })();
+   tileCache.set(key,promise);if(tileCache.size>220){const k=tileCache.keys().next().value;tileCache.delete(k)}
+   try{return await promise}catch(e){tileCache.delete(key);throw e}
+ }
+ const HypsometryLayer=L.GridLayer.extend({
+   options:{pane:'worldHypsometryPane',tileSize:256,minZoom:0,maxZoom:18,maxNativeZoom:12,opacity:.88,updateWhenIdle:true,keepBuffer:2},
+   createTile:function(coords,done){
+     const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d',{alpha:true});
+     (async()=>{try{
+       const d=await terrariumPixels(coords),out=ctx.createImageData(256,256),o=out.data,zs=new Float32Array(256*256);
+       for(let y=0;y<256;y++)for(let x=0;x<256;x++){const i=(y*256+x)*4;zs[y*256+x]=elev(d[i],d[i+1],d[i+2])}
+       const az=315*Math.PI/180,alt=44*Math.PI/180,nTiles=2**coords.z,mercY=(coords.y+.5)/nTiles,latCenter=180/Math.PI*Math.atan(Math.sinh(Math.PI*(1-2*mercY))),mpp=Math.max(1,156543.03392804097*Math.cos(latCenter*Math.PI/180)/nTiles);
+       for(let y=0;y<256;y++)for(let x=0;x<256;x++){
+         const idx=y*256+x,z=zs[idx],xl=Math.max(0,x-1),xr=Math.min(255,x+1),yu=Math.max(0,y-1),yd=Math.min(255,y+1);
+         const dzdx=(zs[y*256+xr]-zs[y*256+xl])/(Math.max(1,xr-xl)*mpp),dzdy=(zs[yd*256+x]-zs[yu*256+x])/(Math.max(1,yd-yu)*mpp);
+         const slope=Math.atan(Math.hypot(dzdx,dzdy)),aspect=Math.atan2(dzdy,-dzdx);
+         let shade=Math.sin(alt)*Math.cos(slope)+Math.cos(alt)*Math.sin(slope)*Math.cos(az-aspect);shade=Math.max(-.55,Math.min(1,shade));
+         const c=colorFor(z),factor=z<0?(.90+shade*.08):(.82+shade*.25),i=idx*4;
+         o[i]=Math.max(0,Math.min(255,c[0]*factor));o[i+1]=Math.max(0,Math.min(255,c[1]*factor));o[i+2]=Math.max(0,Math.min(255,c[2]*factor));o[i+3]=z<-5?205:248;
+       }
+       ctx.putImageData(out,0,0);done(null,canvas);
+     }catch(e){console.warn('Hipsometría mundial:',e);done(null,canvas)}})();return canvas;
+   }
+ });
+ let hypsLayer=null;
+ function setHypsometry(on){
+   if(on){if(!hypsLayer)hypsLayer=new HypsometryLayer({opacity:+hypsOpacity.value||.88});if(!map.hasLayer(hypsLayer))hypsLayer.addTo(map);hypsStatus.textContent='Hipsometría mundial activa · Terrarium · sombreado dinámico.'}
+   else{if(hypsLayer&&map.hasLayer(hypsLayer))map.removeLayer(hypsLayer);hypsStatus.textContent='Capa desactivada.'}
+   setTimeout(()=>{try{updateLegend()}catch(_){}},0);
+ }
+ hypsCheck.addEventListener('change',()=>setHypsometry(hypsCheck.checked));
+ hypsOpacity.addEventListener('input',()=>{const v=+hypsOpacity.value||.88;hypsOpacityValue.textContent=Math.round(v*100)+' %';if(hypsLayer)hypsLayer.setOpacity(v)});
+
+ let majorRiversLayer=null,osmRiversLayer=L.layerGroup([], {pane:'worldRiversPane'}),riverLabelsLayer=L.layerGroup([], {pane:'worldRiverLabelsPane'}),majorLoaded=false,riverTimer=null,riverAbort=null,lastRiverKey='';
+ const MAJOR_RIVERS_URL='https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_rivers_lake_centerlines.geojson';
+ function riverStyle(weight=1.3){return {color:'#1685bd',weight,opacity:+riversOpacity.value||.9,lineCap:'round',lineJoin:'round',interactive:false}}
+ function featureName(p){return String(p?.name_es||p?.name||p?.NAME_ES||p?.NAME||p?.name_en||'').trim()}
+ function addRiverLabel(latlng,name){if(!riverLabelsCheck.checked||!name)return;L.marker(latlng,{pane:'worldRiverLabelsPane',interactive:false,icon:L.divIcon({className:'anambro-river-label',html:escHtml(name),iconSize:null})}).addTo(riverLabelsLayer)}
+ async function loadMajorRivers(){
+   if(majorLoaded)return;majorLoaded=true;riversStatus.textContent='Cargando grandes ríos mundiales…';
+   try{const r=await fetch(MAJOR_RIVERS_URL,{mode:'cors'});if(!r.ok)throw new Error('Natural Earth HTTP '+r.status);const fc=await r.json();majorRiversLayer=L.geoJSON(fc,{pane:'worldRiversPane',style:()=>riverStyle(map.getZoom()<=4?1.15:1.45),onEachFeature:(f,l)=>{const n=featureName(f.properties);if(n)l.bindTooltip(n,{permanent:false,sticky:true,className:'anambro-river-label'})}});if(riversCheck.checked)majorRiversLayer.addTo(map);riversStatus.textContent='Red hidrográfica activa · grandes ríos mundiales.'}catch(e){majorLoaded=false;console.warn('Grandes ríos:',e);riversStatus.textContent='No se pudo cargar la red mundial; OSM seguirá disponible al acercarte.'}
+ }
+ function clearOsmRivers(){osmRiversLayer.clearLayers();riverLabelsLayer.clearLayers();lastRiverKey=''}
+ async function refreshOsmRivers(){
+   if(!riversCheck.checked)return;const z=map.getZoom();if(z<7){clearOsmRivers();riversStatus.textContent='Red hidrográfica activa · grandes ríos mundiales. Acércate para detalle OSM.';return}
+   const b=map.getBounds(),w=b.getWest(),e=b.getEast(),s=b.getSouth(),n=b.getNorth();
+   if(![w,e,s,n].every(Number.isFinite)||Math.abs(e-w)>18||Math.abs(n-s)>14){clearOsmRivers();riversStatus.textContent='Extensión demasiado amplia para detalle OSM; mostrando red mundial.';return}
+   const key=[z<10?'r':'rs',s.toFixed(2),w.toFixed(2),n.toFixed(2),e.toFixed(2)].join('|');if(key===lastRiverKey)return;lastRiverKey=key;
+   if(riverAbort)try{riverAbort.abort()}catch(_){};riverAbort=new AbortController();riversStatus.textContent='Completando ríos desde OpenStreetMap…';
+   const filter=z>=11?'river|stream|canal':'river|canal';
+   const query='[out:json][timeout:22];way["waterway"~"^('+filter+')$"]["name"]('+s+','+w+','+n+','+e+');out geom;';
+   try{
+     const resp=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query),signal:riverAbort.signal});if(!resp.ok)throw new Error('Overpass HTTP '+resp.status);const data=await resp.json();
+     osmRiversLayer.clearLayers();riverLabelsLayer.clearLayers();const bestLabel=new Map();let count=0;
+     for(const el of data.elements||[]){if(!Array.isArray(el.geometry)||el.geometry.length<2)continue;const pts=el.geometry.map(p=>[p.lat,p.lon]),name=String(el.tags?.['name:es']||el.tags?.name||'').trim();const line=L.polyline(pts,{pane:'worldRiversPane',...riverStyle(el.tags?.waterway==='stream'?.75:el.tags?.waterway==='canal'?1.0:1.35)}).addTo(osmRiversLayer);count++;
+       if(name){let len=0;for(let i=1;i<pts.length;i++){const a=L.latLng(pts[i-1]),bb=L.latLng(pts[i]);len+=a.distanceTo(bb)}const mid=pts[Math.floor(pts.length/2)];if(!bestLabel.has(name)||len>bestLabel.get(name).len)bestLabel.set(name,{len,mid})}
+     }
+     if(riverLabelsCheck.checked)for(const [name,v] of bestLabel)addRiverLabel(v.mid,name);
+     if(!map.hasLayer(osmRiversLayer))osmRiversLayer.addTo(map);if(!map.hasLayer(riverLabelsLayer))riverLabelsLayer.addTo(map);riversStatus.textContent='Red hidrográfica activa · '+count+' tramos OSM en la vista.';
+   }catch(e){if(e?.name!=='AbortError'){console.warn('Ríos OSM:',e);riversStatus.textContent='Red mundial activa · detalle OSM no disponible en esta consulta.'}}
+ }
+ function scheduleRiverRefresh(){clearTimeout(riverTimer);riverTimer=setTimeout(refreshOsmRivers,550)}
+ async function setRivers(on){
+   if(on){await loadMajorRivers();if(majorRiversLayer&&!map.hasLayer(majorRiversLayer))majorRiversLayer.addTo(map);if(!map.hasLayer(osmRiversLayer))osmRiversLayer.addTo(map);if(!map.hasLayer(riverLabelsLayer))riverLabelsLayer.addTo(map);scheduleRiverRefresh()}
+   else{if(majorRiversLayer&&map.hasLayer(majorRiversLayer))map.removeLayer(majorRiversLayer);if(map.hasLayer(osmRiversLayer))map.removeLayer(osmRiversLayer);if(map.hasLayer(riverLabelsLayer))map.removeLayer(riverLabelsLayer);clearOsmRivers();riversStatus.textContent='Capa desactivada.'}
+   setTimeout(()=>{try{updateLegend()}catch(_){}},0);
+ }
+ riversCheck.addEventListener('change',()=>setRivers(riversCheck.checked));
+ riverLabelsCheck.addEventListener('change',()=>{riverLabelsLayer.clearLayers();lastRiverKey='';if(riversCheck.checked)scheduleRiverRefresh()});
+ riversOpacity.addEventListener('input',()=>{const v=+riversOpacity.value||.9;riversOpacityValue.textContent=Math.round(v*100)+' %';if(majorRiversLayer)majorRiversLayer.setStyle({opacity:v});osmRiversLayer.eachLayer(l=>{if(l.setStyle)l.setStyle({opacity:v})})});
+ map.on('moveend zoomend',()=>{if(riversCheck.checked)scheduleRiverRefresh()});
+
+ const spHyps=q('spainHypsometryCheck'),spRivers=q('spainRiversCheck');
+ function syncProxy(source,target){if(source&&target&&target.checked!==source.checked)target.checked=source.checked}
+ spHyps?.addEventListener('change',()=>{hypsCheck.checked=spHyps.checked;hypsCheck.dispatchEvent(new Event('change'))});
+ spRivers?.addEventListener('change',()=>{riversCheck.checked=spRivers.checked;riversCheck.dispatchEvent(new Event('change'))});
+ hypsCheck.addEventListener('change',()=>syncProxy(hypsCheck,spHyps));riversCheck.addEventListener('change',()=>syncProxy(riversCheck,spRivers));
+ syncProxy(hypsCheck,spHyps);syncProxy(riversCheck,spRivers);
+
+ const oldLegend=typeof activeLegendHTML==='function'?activeLegendHTML:null;
+ if(oldLegend)window.activeLegendHTML=function(){let h=oldLegend.apply(this,arguments)||'';if(hypsCheck.checked)h+='<div style="margin-top:8px"><b>Hipsometría mundial</b><div class="hypsometryLegend"><span>0 m</span><span>200</span><span>500</span><span>1000</span><span>2000</span><span>3000</span><span>5000+</span></div><small>Altitud · MDE Terrarium · sombreado del relieve</small></div>';if(riversCheck.checked)h+='<div style="margin-top:6px"><b>Red hidrográfica</b><br><small>Grandes ríos mundiales + OpenStreetMap bajo demanda.</small></div>';return h};
+ const oldSources=typeof activeSourcesText==='function'?activeSourcesText:null;
+ if(oldSources)window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||'';const extra=[];if(hypsCheck.checked)extra.push('Mapzen Terrain Tiles / AWS · Terrarium');if(riversCheck.checked)extra.push('Natural Earth · OpenStreetMap / Overpass');return [s,...extra].filter(Boolean).join(' · ')};
+ const baseUpdateLegend=typeof updateLegend==='function'?updateLegend:null;
+ if(baseUpdateLegend)window.updateLegend=function(){baseUpdateLegend.apply(this,arguments);const c=q('legendContent');if(!c)return;let extra='';if(hypsCheck.checked)extra+='<div style="margin-top:8px"><b>Hipsometría mundial</b><div class="hypsometryLegend"><span>0 m</span><span>200</span><span>500</span><span>1000</span><span>2000</span><span>3000</span><span>5000+</span></div></div>';if(riversCheck.checked)extra+='<div style="margin-top:7px"><b>Red hidrográfica</b><br><span style="display:inline-block;width:26px;border-top:3px solid #1685bd;vertical-align:middle;margin-right:6px"></span>Ríos</div>';if(extra)c.insertAdjacentHTML('beforeend',extra)};
+ const baseTitle=typeof defaultLayoutTitle==='function'?defaultLayoutTitle:null;
+ if(baseTitle)window.defaultLayoutTitle=function(){if(hypsCheck.checked){const c=map.getCenter();if(c.lat>35&&c.lat<44.8&&c.lng>-10.5&&c.lng<5.2)return riversCheck.checked?'Relieve e hidrografía de la Península Ibérica':'Hipsometría y relieve de la Península Ibérica';return riversCheck.checked?'Relieve e hidrografía del mundo':'Hipsometría y grandes relieves del mundo'}return baseTitle.apply(this,arguments)};
+ window.__anambroHypsometryHydrography={hypsometry:()=>hypsLayer,rivers:()=>({major:majorRiversLayer,osm:osmRiversLayer,labels:riverLabelsLayer}),refreshRivers:refreshOsmRivers};
+})();
+</script>
 </body>
 </html>
