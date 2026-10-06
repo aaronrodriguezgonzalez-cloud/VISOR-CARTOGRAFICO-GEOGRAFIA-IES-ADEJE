@@ -3280,6 +3280,15 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <p>Importa un track existente o <b>créalo directamente en ANAMBRO</b>. En modo «Seguir caminos», cada punto nuevo se enruta por la red de OpenStreetMap; puedes alternar con tramos manuales.</p>
 <input id="trackFileInput" type="file" accept=".gpx,.kml,application/gpx+xml,application/vnd.google-earth.kml+xml,application/xml,text/xml" style="display:none" onchange="loadTrackFile(this.files&&this.files[0])">
 <button class="action" style="width:100%" onclick="document.getElementById('trackFileInput').click()">📂 Importar GPX/KML</button>
+<details class="layerSubcategory" id="trackImportStyleWrap" open style="margin-top:8px"><summary>🎨 Estilo y rotulación del archivo importado</summary>
+<div class="politicalGrid2" style="margin-top:5px">
+<label><b>Color</b><input id="trackImportColor" type="color" value="#e53935" disabled></label>
+<label><b>Grosor</b><input id="trackImportWeight" type="range" min="1" max="12" step="0.5" value="5" disabled></label>
+</div>
+<label style="margin-top:5px"><input id="trackImportLabelsCheck" type="checkbox" disabled> Mostrar etiquetas sobre el mapa</label>
+<label><b>Campo para rotular</b><select id="trackImportLabelField" disabled><option value="">Carga un KML/GPX</option></select></label>
+<small>Las etiquetas utilizan los atributos reales de cada geometría (por ejemplo, <b>name</b>, <b>description</b> o campos de ExtendedData). Al hacer clic en una línea se muestran sus datos asociados.</small>
+</details>
 <details class="layerSubcategory" open style="margin-top:8px"><summary>✏️ Generar track</summary>
 <div class="layerSubBlock trackBuilderBox">
 <label><b>Nombre</b><input id="trackBuildName" type="text" value="Track ANAMBRO" style="width:100%;box-sizing:border-box"></label>
@@ -5738,8 +5747,10 @@ document.getElementById('transportOpacity').oninput=e=>transport.setOpacity(+e.t
 document.getElementById('adminOpacity').oninput=e=>[adminCCAA,adminProv,adminMun].forEach(l=>l.setOpacity(+e.target.value));
 
 const bases={raster,pnoa,street,osm,hybrid,lidar,shadowCanary,landCanary,land,historic,worldsat:worldImagery,eoxsat:worldEox};
-let activeBase=pnoa;
-pnoa.addTo(map);
+let activeBase=worldImagery;
+worldImagery.addTo(map);
+// Vista inicial ANAMBRO: Esri World Imagery sobre Canarias.
+document.querySelectorAll('input[data-base-choice]').forEach(x=>x.checked=(x.dataset.baseChoice==='worldsat'));
 document.querySelectorAll('input[data-base-choice]').forEach(r=>r.addEventListener('change',()=>{
  const value=r.dataset.baseChoice;
  if(map.hasLayer(activeBase))map.removeLayer(activeBase);activeBase=bases[value];if(!document.getElementById('worldHistoryCheck')?.checked&&!(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length))activeBase.addTo(map);
@@ -6396,16 +6407,21 @@ async function showPoint(ll,title='Punto consultado',useMarker=true){
  return pz;
 }
 // Track GPX / KML · herramienta cartográfica independiente
-let importedTrackGroup=null,importedTrackSegments=[],importedTrackProfilePts=[],importedTrackName='',importedTrackVisible=true;
+let importedTrackGroup=null,importedTrackSegments=[],importedTrackFeatures=[],importedTrackLineLayers=[],importedTrackProfilePts=[],importedTrackName='',importedTrackVisible=true;
 function setTrackButtons(enabled){
  for(const id of ['trackCenterBtn','trackProfileBtn','trackVisibilityBtn','trackRemoveBtn','trackExportGpxBtn','trackExportKmlBtn']){const b=document.getElementById(id);if(b)b.disabled=!enabled;}
+}
+function setImportedTrackControls(enabled){
+ for(const id of ['trackImportColor','trackImportWeight','trackImportLabelsCheck','trackImportLabelField']){const e=document.getElementById(id);if(e)e.disabled=!enabled;}
 }
 function trackStatus(msg){const el=document.getElementById('trackFileStatus');if(el)el.innerHTML='<b>Estado:</b> '+msg;}
 function updateTrackVisibilityButton(){const b=document.getElementById('trackVisibilityBtn');if(b)b.textContent=importedTrackVisible?'👁 Ocultar':'👁 Mostrar';}
 function removeImportedTrack(silent=false){
  if(importedTrackGroup&&map.hasLayer(importedTrackGroup))map.removeLayer(importedTrackGroup);
- importedTrackGroup=null;importedTrackSegments=[];importedTrackProfilePts=[];importedTrackName='';importedTrackVisible=true;
- setTrackButtons(false);updateTrackVisibilityButton();trackStatus('ningún track cargado.');
+ importedTrackGroup=null;importedTrackSegments=[];importedTrackFeatures=[];importedTrackLineLayers=[];importedTrackProfilePts=[];importedTrackName='';importedTrackVisible=true;
+ setTrackButtons(false);setImportedTrackControls(false);updateTrackVisibilityButton();trackStatus('ningún track cargado.');
+ const sel=document.getElementById('trackImportLabelField');if(sel)sel.innerHTML='<option value="">Carga un KML/GPX</option>';
+ const lc=document.getElementById('trackImportLabelsCheck');if(lc)lc.checked=false;
  const input=document.getElementById('trackFileInput');if(input)input.value='';
  if(typeof resetTrackBuilderState==='function')resetTrackBuilderState(false);
  if(!silent)status('Track eliminado');
@@ -6414,43 +6430,73 @@ function importedTrackPoint(lat,lon,ele){
  lat=Number(lat);lon=Number(lon);if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return null;
  const ll=L.latLng(lat,lon);const z=Number(ele);if(Number.isFinite(z))ll.trackElevation=z;return ll;
 }
+function trackDirectChildText(node,name){
+ if(!node)return '';name=String(name||'').toLowerCase();for(const c of [...(node.children||[])])if(String(c.localName||c.nodeName||'').toLowerCase()===name){const v=String(c.textContent||'').trim();if(v)return v}return '';
+}
+function trackCollectKmlProps(pm){
+ const p={};for(const k of ['name','description','address','styleUrl']){const v=trackDirectChildText(pm,k);if(v)p[k]=v}
+ for(const d of [...pm.getElementsByTagNameNS('*','Data')]){const k=String(d.getAttribute('name')||'').trim(),v=trackDirectChildText(d,'value')||String(d.textContent||'').trim();if(k&&v)p[k]=v}
+ for(const d of [...pm.getElementsByTagNameNS('*','SimpleData')]){const k=String(d.getAttribute('name')||'').trim(),v=String(d.textContent||'').trim();if(k&&v)p[k]=v}
+ return p;
+}
+function trackCollectGpxProps(node,kind,index){
+ const p={};for(const k of ['name','desc','cmt','type','src','number']){const v=trackDirectChildText(node,k);if(v)p[k]=v}p.__geometry=kind;p.__index=index+1;return p;
+}
 function parseGpxTrack(xml){
- const segs=[];
- for(const seg of xml.getElementsByTagName('trkseg')){const pts=[];for(const p of seg.getElementsByTagName('trkpt')){const ll=importedTrackPoint(p.getAttribute('lat'),p.getAttribute('lon'),p.getElementsByTagName('ele')[0]?.textContent);if(ll)pts.push(ll);}if(pts.length>1)segs.push(pts);}
- if(!segs.length){for(const rte of xml.getElementsByTagName('rte')){const pts=[];for(const p of rte.getElementsByTagName('rtept')){const ll=importedTrackPoint(p.getAttribute('lat'),p.getAttribute('lon'),p.getElementsByTagName('ele')[0]?.textContent);if(ll)pts.push(ll);}if(pts.length>1)segs.push(pts);}}
- return segs;
+ const features=[];let idx=0;
+ for(const trk of [...xml.getElementsByTagName('trk')]){const base=trackCollectGpxProps(trk,'track',idx);let si=0;for(const seg of [...trk.getElementsByTagName('trkseg')]){const pts=[];for(const p of [...seg.getElementsByTagName('trkpt')]){const ll=importedTrackPoint(p.getAttribute('lat'),p.getAttribute('lon'),p.getElementsByTagName('ele')[0]?.textContent);if(ll)pts.push(ll)}if(pts.length>1)features.push({points:pts,properties:{...base,segment:++si}})}idx++;}
+ if(!features.length){for(const rte of [...xml.getElementsByTagName('rte')]){const pts=[];for(const p of [...rte.getElementsByTagName('rtept')]){const ll=importedTrackPoint(p.getAttribute('lat'),p.getAttribute('lon'),p.getElementsByTagName('ele')[0]?.textContent);if(ll)pts.push(ll)}if(pts.length>1)features.push({points:pts,properties:trackCollectGpxProps(rte,'route',idx++)})}}
+ return features;
 }
 function parseKmlTrack(xml){
- const segs=[];
- for(const ls of xml.getElementsByTagName('LineString')){const node=ls.getElementsByTagName('coordinates')[0];if(!node)continue;const pts=[];for(const token of String(node.textContent||'').trim().split(/\s+/)){const a=token.split(',');if(a.length<2)continue;const ll=importedTrackPoint(a[1],a[0],a[2]);if(ll)pts.push(ll);}if(pts.length>1)segs.push(pts);}
- const gxTracks=[...xml.getElementsByTagNameNS('*','Track')];
- for(const tr of gxTracks){const pts=[];const coords=[...tr.getElementsByTagNameNS('*','coord')];for(const c of coords){const a=String(c.textContent||'').trim().split(/\s+/);if(a.length<2)continue;const ll=importedTrackPoint(a[1],a[0],a[2]);if(ll)pts.push(ll);}if(pts.length>1)segs.push(pts);}
- return segs;
+ const features=[];const placemarks=[...xml.getElementsByTagNameNS('*','Placemark')];
+ for(const pm of placemarks){const props=trackCollectKmlProps(pm);let geomNo=0;
+  for(const ls of [...pm.getElementsByTagNameNS('*','LineString')]){const node=ls.getElementsByTagNameNS('*','coordinates')[0];if(!node)continue;const pts=[];for(const token of String(node.textContent||'').trim().split(/\s+/)){const a=token.split(',');if(a.length<2)continue;const ll=importedTrackPoint(a[1],a[0],a[2]);if(ll)pts.push(ll)}if(pts.length>1)features.push({points:pts,properties:{...props,__geometry:'LineString',__part:++geomNo}})}
+  for(const tr of [...pm.getElementsByTagNameNS('*','Track')]){const pts=[];for(const c of [...tr.getElementsByTagNameNS('*','coord')]){const a=String(c.textContent||'').trim().split(/\s+/);if(a.length<2)continue;const ll=importedTrackPoint(a[1],a[0],a[2]);if(ll)pts.push(ll)}if(pts.length>1)features.push({points:pts,properties:{...props,__geometry:'gx:Track',__part:++geomNo}})}
+ }
+ // KML atípico sin Placemark: conservar las líneas, aunque no haya atributos asociados.
+ if(!features.length){for(const ls of [...xml.getElementsByTagNameNS('*','LineString')]){const node=ls.getElementsByTagNameNS('*','coordinates')[0];if(!node)continue;const pts=[];for(const token of String(node.textContent||'').trim().split(/\s+/)){const a=token.split(',');const ll=a.length>=2?importedTrackPoint(a[1],a[0],a[2]):null;if(ll)pts.push(ll)}if(pts.length>1)features.push({points:pts,properties:{__geometry:'LineString'}})}}
+ return features;
+}
+function trackPlainValue(v){const div=document.createElement('div');div.innerHTML=String(v??'');return String(div.textContent||div.innerText||'').replace(/\s+/g,' ').trim();}
+function importedTrackPublicProps(props={}){return Object.entries(props).filter(([k,v])=>!k.startsWith('__')&&v!==undefined&&v!==null&&String(v).trim());}
+function importedTrackPopupHtml(feature,i){
+ const rows=importedTrackPublicProps(feature.properties);const title=trackPlainValue(feature.properties?.name)||('Línea '+(i+1));
+ return '<div style="min-width:210px"><b>🧭 '+escHtml(title)+'</b>'+(rows.length?'<hr style="margin:6px 0">'+rows.map(([k,v])=>'<div><b>'+escHtml(k)+':</b> '+escHtml(trackPlainValue(v))+'</div>').join(''):'<br><small>Sin atributos descriptivos en el archivo.</small>')+'</div>';
+}
+function populateImportedTrackFields(features){
+ const sel=document.getElementById('trackImportLabelField');if(!sel)return;const keys=[];const seen=new Set();for(const f of features)for(const [k] of importedTrackPublicProps(f.properties)){if(!seen.has(k)){seen.add(k);keys.push(k)}}
+ sel.innerHTML='';if(!keys.length){sel.add(new Option('Sin campos disponibles',''));sel.disabled=true;return}for(const k of keys)sel.add(new Option(k,k));sel.value=keys.includes('name')?'name':keys[0];sel.disabled=false;
+}
+function applyImportedTrackStyle(){
+ const color=document.getElementById('trackImportColor')?.value||'#e53935',weight=+(document.getElementById('trackImportWeight')?.value||5),labels=!!document.getElementById('trackImportLabelsCheck')?.checked,field=document.getElementById('trackImportLabelField')?.value||'';
+ for(const item of importedTrackLineLayers){const l=item.layer,f=item.feature;l.setStyle?.({color,weight,opacity:.92,lineCap:'round',lineJoin:'round'});try{l.unbindTooltip()}catch(_){};if(labels&&field){const text=trackPlainValue(f.properties?.[field]);if(text)l.bindTooltip(escHtml(text),{permanent:true,direction:'center',className:'imported-track-label',opacity:.96,interactive:false})}}
 }
 function trackSegmentDistance(pts){let d=0;for(let i=1;i<pts.length;i++)d+=pts[i-1].distanceTo(pts[i]);return d;}
 async function loadTrackFile(file){
  if(!file)return;
  try{
   const name=String(file.name||'track'),ext=name.toLowerCase().split('.').pop();if(ext!=='gpx'&&ext!=='kml')throw new Error('formato no compatible: usa GPX o KML');
-  trackStatus('leyendo '+name+'…');const text=await file.text();const xml=new DOMParser().parseFromString(text,'application/xml');
+  trackStatus('leyendo '+escHtml(name)+'…');const text=await file.text();const xml=new DOMParser().parseFromString(text,'application/xml');
   if(xml.querySelector('parsererror'))throw new Error('el XML del archivo no es válido');
-  const segs=ext==='gpx'?parseGpxTrack(xml):parseKmlTrack(xml);if(!segs.length)throw new Error('no se encontró ningún track o línea con al menos dos puntos');
+  const features=ext==='gpx'?parseGpxTrack(xml):parseKmlTrack(xml);if(!features.length)throw new Error('no se encontró ningún track o línea con al menos dos puntos');
+  const segs=features.map(f=>f.points);
   if(typeof resetTrackBuilderState==='function')resetTrackBuilderState(false);
   if(importedTrackGroup&&map.hasLayer(importedTrackGroup))map.removeLayer(importedTrackGroup);
-  importedTrackGroup=L.layerGroup();importedTrackSegments=segs;importedTrackName=name;importedTrackVisible=true;
-  for(const pts of segs)L.polyline(pts,{color:'#e53935',weight:5,opacity:.92,lineCap:'round',lineJoin:'round'}).addTo(importedTrackGroup);
-  importedTrackGroup.addTo(map);
+  importedTrackGroup=L.layerGroup();importedTrackSegments=segs;importedTrackFeatures=features;importedTrackLineLayers=[];importedTrackName=name;importedTrackVisible=true;
+  const color=document.getElementById('trackImportColor')?.value||'#e53935',weight=+(document.getElementById('trackImportWeight')?.value||5);
+  features.forEach((f,i)=>{const line=L.polyline(f.points,{color,weight,opacity:.92,lineCap:'round',lineJoin:'round'});line.bindPopup(importedTrackPopupHtml(f,i),{maxWidth:420});line.addTo(importedTrackGroup);importedTrackLineLayers.push({layer:line,feature:f})});
+  importedTrackGroup.addTo(map);setImportedTrackControls(true);populateImportedTrackFields(features);applyImportedTrackStyle();
   importedTrackProfilePts=segs.slice().sort((a,b)=>trackSegmentDistance(b)-trackSegmentDistance(a))[0].slice();
   setTrackButtons(true);updateTrackVisibilityButton();
-  const all=segs.flat(),npts=all.length,total=segs.reduce((sum,p)=>sum+trackSegmentDistance(p),0);
-  trackStatus('<b>'+name+'</b> · '+segs.length+' tramo'+(segs.length===1?'':'s')+' · '+npts+' puntos · '+fmtDistance(total));
+  const all=segs.flat(),npts=all.length,total=segs.reduce((sum,p)=>sum+trackSegmentDistance(p),0),fields=new Set(features.flatMap(f=>importedTrackPublicProps(f.properties).map(([k])=>k)));
+  trackStatus('<b>'+escHtml(name)+'</b> · '+segs.length+' línea'+(segs.length===1?'':'s')+' · '+npts+' puntos · '+fmtDistance(total)+(fields.size?' · '+fields.size+' campos de atributos':''));
   centerImportedTrack();status('Track cargado · '+name);
- }catch(err){console.error('Track GPX/KML:',err);removeImportedTrack(true);trackStatus('error: '+(err?.message||err));alert('No se pudo cargar el track. '+(err?.message||err));}
+ }catch(err){console.error('Track GPX/KML:',err);removeImportedTrack(true);trackStatus('error: '+escHtml(err?.message||err));alert('No se pudo cargar el track. '+(err?.message||err));}
 }
 function centerImportedTrack(){
  const segs=(typeof currentTrackSegments==='function'?currentTrackSegments():importedTrackSegments);if(!segs.length)return;const bounds=L.latLngBounds(segs.flat());if(bounds.isValid())map.fitBounds(bounds.pad(.08));
 }
-
 function toggleImportedTrackVisibility(){
  const layer=(trackBuildGroup&&trackBuildSegments.length)?trackBuildGroup:importedTrackGroup;if(!layer)return;
  if(map.hasLayer(layer)){map.removeLayer(layer);importedTrackVisible=false;status('Track oculto');}
@@ -6466,7 +6512,10 @@ async function profileImportedTrack(){
  status('Generando perfil del track · '+importedTrackName);
  await finishProfileFromPoints(importedTrackProfilePts.slice());
 }
-
+// Edición reactiva del estilo y rotulación de KML/GPX importados.
+for(const id of ['trackImportColor','trackImportWeight'])document.getElementById(id)?.addEventListener('input',applyImportedTrackStyle);
+document.getElementById('trackImportLabelsCheck')?.addEventListener('change',applyImportedTrackStyle);
+document.getElementById('trackImportLabelField')?.addEventListener('change',applyImportedTrackStyle);
 // Generador/Editor de tracks v0.10 · enrutamiento por caminos OSM mediante BRouter + tramos manuales.
 let trackBuildActive=false,trackBuildWaypoints=[],trackBuildSegments=[],trackBuildMarkers=[],trackBuildGroup=null,trackRoutingBusy=false;
 function trackBuildStatus(msg){const e=document.getElementById('trackBuildStatus');if(e)e.innerHTML=msg;}
@@ -9587,8 +9636,8 @@ let worldToponyms2DGeneration=0;
 
 
 let worldAdmin1Layer=null,worldAdmin1Source=null,worldAdmin2Layer=null,worldAdmin2Source=null;
-const WORLD_BANK_ADM1='https://services.arcgis.com/iQ1dY19aHwbSDYIF/arcgis/rest/services/World_Bank_Global_Administrative_Divisions/FeatureServer/2/query';
-const WORLD_BANK_ADM2='https://services.arcgis.com/iQ1dY19aHwbSDYIF/arcgis/rest/services/World_Bank_Global_Administrative_Divisions/FeatureServer/3/query';
+const WORLD_BANK_ADM1='https://services.arcgis.com/iQ1dY19aHwbSDYIF/arcgis/rest/services/WB_GAD_Medium_Resolution/FeatureServer/2/query';
+const WORLD_BANK_ADM2='https://services.arcgis.com/iQ1dY19aHwbSDYIF/arcgis/rest/services/WB_GAD_Medium_Resolution/FeatureServer/3/query';
 
 const worldAdminExtentCache={1:new Map(),2:new Map()};
 let worldAdmin2DTimer=null,worldAdminGlobeTimer=null;
@@ -9596,13 +9645,13 @@ let worldAdmin2DRequest={1:0,2:0},worldAdminGlobeRequest={1:0,2:0};
 
 function adminNameFromProps(p={},level=1){
  const keys=level===1
-  ?['NAME_1','shapeName','ADM1_NAME','name','Name','NAME','admin1Name']
-  :['NAME_2','shapeName','ADM2_NAME','name','Name','NAME','admin2Name'];
- for(const k of keys)if(p[k])return p[k];
+  ?['NAM_1','NAM_1_NTVE','NAM_1_SRCE','ADM1NM','P_NAME_1','ADM1_NAME','NAME_1','shapeName','name','Name','NAME','admin1Name']
+  :['NAM_2','NAM_2_NTVE','NAM_2_SRCE','ADM2NM','P_NAME_2','ADM2_NAME','NAME_2','shapeName','name','Name','NAME','admin2Name'];
+ for(const k of keys)if(p[k]!==undefined&&p[k]!==null&&String(p[k]).trim())return String(p[k]).trim();
  return level===1?'División de 1.er nivel':'División de 2.º nivel';
 }
 function adminCountryFromProps(p={}){
- for(const k of ['COUNTRY','country','COUNTRY_NA','NAME_0','ISO_A3','ISO3','ISO_3','WB_ADM0_NA'])if(p[k])return p[k];
+ for(const k of ['NAM_0','ADM0_NAME','COUNTRY','country','COUNTRY_NA','NAME_0','ISO_A3','ISO3','ISO_3','WB_ADM0_NA'])if(p[k])return p[k];
  return '';
 }
 function adminOffsetForZoom(level,z){
@@ -14452,7 +14501,7 @@ html body .historyPopup .leaflet-popup-close-button{
  function politicalName(f,i=0){
   const p=f?.properties||{};
   // En divisiones administrativas se prioriza SIEMPRE el nombre de la unidad, no el código/nombre del país.
-  const unitKeys=['__name_popup_es','__name_es','__name','shapeName','SHAPENAME','NAMEUNIT','NAME_2','ADM2_NAME','admin2Name','NAME_1','ADM1_NAME','admin1Name','NOMBRE','nombre','DENOMINACION','nom_prov','nom_ccaa','PROVINCIA','provincia','REGION','region','STATE_NAME','state','NAME','name','Name','Text','etiqueta','ETIQUETA','NAME_LATN'];
+  const unitKeys=politicalPrimaryLevel===2?['__name_popup_es','__name_es','__name','NAM_2','NAM_2_NTVE','NAM_2_SRCE','ADM2NM','P_NAME_2','ADM2_NAME','NAME_2','shapeName','SHAPENAME','NAMEUNIT','NOMBRE','nombre','DENOMINACION','PROVINCIA','provincia','NAME','name','Name','Text','etiqueta','ETIQUETA','NAME_LATN']:['__name_popup_es','__name_es','__name','NAM_1','NAM_1_NTVE','NAM_1_SRCE','ADM1NM','P_NAME_1','ADM1_NAME','NAME_1','shapeName','SHAPENAME','NAMEUNIT','NOMBRE','nombre','DENOMINACION','nom_ccaa','REGION','region','STATE_NAME','state','NAME','name','Name','Text','etiqueta','ETIQUETA','NAME_LATN'];
   const isCountryLayer=politicalCurrentScope==='europe-countries';
   if(!isCountryLayer){for(const k of unitKeys){const v=p[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v).trim();}}
   const code=String(p.CNTR_ID||p.ISO2_CODE||p.ISO_A2||p.iso_a2||'').toUpperCase();
@@ -14464,7 +14513,7 @@ html body .historyPopup .leaflet-popup-close-button{
   const p=f?.properties||{};
   // El identificador de una subdivisión debe ser el de ESA subdivisión. Si se usa primero el código del país,
   // todas las regiones del mismo país colisionan en colores, selección y juego.
-  for(const k of ['shapeID','SHAPEID','GID_2','GID_1','ID_2','ID_1','OBJECTID','FID','NATCODE','CODNUT3','CODNUT2','GEOCODE','cod_prov','cod_ccaa','CODIGO','codigo','__seshat']){const v=p[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v).trim();}
+  for(const k of ['ADM2CD_c','ADM1CD_c','P_CODE_2_c','P_CODE_1_c','HASC_2','HASC_1','GAUL_2','GAUL_1','shapeID','SHAPEID','GID_2','GID_1','ID_2','ID_1','OBJECTID','FID','NATCODE','CODNUT3','CODNUT2','GEOCODE','cod_prov','cod_ccaa','CODIGO','codigo','__seshat']){const v=p[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v).trim();}
   const unitName=politicalName(f,i);if(unitName&&!/^Unidad \d+$/.test(unitName))return unitName;
   return String(p.CNTR_ID||p.ISO2_CODE||p.ISO_A2||p.iso_a2||i);
  }
@@ -14627,9 +14676,14 @@ html body .historyPopup .leaflet-popup-close-button{
  async function politicalRestoreNormal2D(){
   try{if(document.body.classList.contains('globe-mode')&&typeof toggleGlobe==='function')await toggleGlobe()}catch(_){}
   const snap=politicalViewSnapshot;politicalViewSnapshot=null;
-  // Tras mapas políticos/mudos se vuelve siempre al fondo físico ANAMBRO, que es también el fondo inicial.
-  if(typeof window.anambroActivateDefaultPhysical2D==='function')await window.anambroActivateDefaultPhysical2D();
-  else {const r=document.querySelector('input[data-base-choice="eoxsat"]')||document.querySelector('input[data-base-choice="worldsat"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
+  // Restaurar exactamente la base anterior; si no existe snapshot, Esri World Imagery es la base por defecto.
+  document.body.classList.remove('anambro-default-physical','political-clean-bg');
+  const wanted=(snap?.baseValue&&bases?.[snap.baseValue])?snap.baseValue:'worldsat';
+  try{for(const b of Object.values(typeof bases!=='undefined'?bases:{}))if(b&&map.hasLayer(b))map.removeLayer(b)}catch(_){}
+  try{activeBase=bases[wanted]||worldImagery;if(activeBase&&!map.hasLayer(activeBase))activeBase.addTo(map)}catch(_){}
+  document.querySelectorAll('input[data-base-choice]').forEach(x=>x.checked=(x.dataset.baseChoice===wanted));
+  map.getContainer().style.background='';map.getContainer().style.backgroundColor='';
+  const tilePane=map.getPane?.('tilePane');if(tilePane){tilePane.style.display='';tilePane.style.opacity='';tilePane.style.visibility='';tilePane.style.filter='';}
   if(snap?.center&&Number.isFinite(snap.zoom))map.setView(snap.center,snap.zoom,{animate:false});
   setTimeout(()=>map.invalidateSize({pan:false,animate:false}),30);
  }
@@ -14653,7 +14707,7 @@ html body .historyPopup .leaflet-popup-close-button{
     ANAMBRO v0.43 · cartografía política jerárquica rápida + juego
     ============================================================ */
  POLITICAL_SCOPE_META['spain-admin']={title:'España · comunidades autónomas y provincias',source:'Administración General del Estado / SIU',bounds:[[27.3,-18.4],[44.5,5.0]]};
- POLITICAL_SCOPE_META['world-country']={title:'Divisiones administrativas del país seleccionado',source:'World Bank Global Administrative Divisions + Natural Earth',bounds:null};
+ POLITICAL_SCOPE_META['world-country']={title:'Divisiones administrativas del país seleccionado',source:'World Bank Global Administrative Divisions',bounds:null};
  let politicalSecondaryLayer=null,politicalTertiaryLayer=null,politicalLandLayer=null,politicalPrimaryData=null,politicalSecondaryData=null,politicalTertiaryData=null;
  let politicalPrimaryLevel=0,politicalSecondaryLevel=0,politicalTertiaryLevel=0,politicalCountryFeature=null,politicalCountryIso3='',politicalCountryLabel='';
  let politicalMapBgSnapshot='';
@@ -14665,39 +14719,42 @@ html body .historyPopup .leaflet-popup-close-button{
  };
  function politicalLevelNames(iso=politicalCountryIso3){return POLITICAL_LEVEL_NAMES[String(iso||'').toUpperCase()]||['Regiones / estados / provincias','Distritos / condados / municipios'];}
  function countryIso3FromFeature(f){const p=f?.properties||{};for(const k of ['ISO_A3_EH','ADM0_A3','ISO_A3','SOV_A3','GU_A3']){const v=String(p[k]||'').trim().toUpperCase();if(v&&v!=='-99')return v}return '';}
- function countryLabelFromFeature(f){try{return countryName(f?.properties||{})}catch(_){const p=f?.properties||{};return p.NAME_ES||p.ADMIN||p.NAME||'País';}}
- function adminCodeFromProps(p={}){for(const k of ['shapeGroup','ADM0_A3','ISO_A3','ISO3','ISO_3','GID_0','COUNTRY_CODE','WB_A3']){let v=String(p[k]||'').trim().toUpperCase();if(v.includes('.'))v=v.split('.')[0];if(v)return v}return '';}
+ function countryLabelFromFeature(f){const p=f?.properties||{};if(p.NAM_0)return String(p.NAM_0);try{return countryName(p)}catch(_){return p.NAME_ES||p.ADMIN||p.NAME||'País';}}
+ function adminCodeFromProps(p={}){for(const k of ['ISO_A3','WB_A3','shapeGroup','ADM0_A3','ISO3','ISO_3','GID_0','COUNTRY_CODE']){let v=String(p[k]||'').trim().toUpperCase();if(v.includes('.'))v=v.split('.')[0];if(v)return v}return '';}
  function normAdminText(x){return String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
  function countryFeatureBounds(f){try{return L.geoJSON({type:'FeatureCollection',features:[f]}).getBounds()}catch(_){return null}}
  function adminFeatureInsideCountry(f,country){const a=politicalFeatureAnchor(f);if(!a||!country)return false;try{return featureContainsPoint(country,a[0],a[1])}catch(_){return false}}
- async function politicalCountryList(){await loadCountries();return (countriesData?.features||[]).map(f=>({feature:f,iso3:countryIso3FromFeature(f),name:countryLabelFromFeature(f)})).filter(x=>x.iso3&&x.name).sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));}
- async function politicalSelectCountryFeature(iso3){await loadCountries();const u=String(iso3||'').toUpperCase();const fs=countriesData?.features||[];return fs.find(f=>countryIso3FromFeature(f)===u)||null;}
+ const POLITICAL_COUNTRY_CATALOG='https://services.arcgis.com/iQ1dY19aHwbSDYIF/arcgis/rest/services/WB_GAD_Medium_Resolution/FeatureServer/1/query';
+ let politicalCountryCatalogCache=null;
+ async function politicalCountryList(){
+  if(politicalCountryCatalogCache)return politicalCountryCatalogCache;
+  const params=new URLSearchParams({where:'1=1',outFields:'ISO_A3,NAM_0',returnGeometry:'false',f:'json',resultRecordCount:'1000'});
+  const r=await fetch(POLITICAL_COUNTRY_CATALOG+'?'+params.toString(),{cache:'force-cache'});if(!r.ok)throw new Error('Catálogo de países '+r.status);
+  const j=await r.json();if(j?.error)throw new Error(j.error.message||'No se pudo cargar el catálogo de países');
+  const seen=new Set(),list=[];for(const f of j?.features||[]){const a=f.attributes||{},iso3=String(a.ISO_A3||'').toUpperCase(),name=String(a.NAM_0||'').trim();if(!iso3||!name||seen.has(iso3))continue;seen.add(iso3);list.push({feature:{type:'Feature',properties:{ISO_A3:iso3,NAM_0:name},geometry:null},iso3,name})}
+  politicalCountryCatalogCache=list.sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));return politicalCountryCatalogCache;
+ }
+ async function politicalSelectCountryFeature(iso3){const u=String(iso3||'').toUpperCase();const list=await politicalCountryList();return list.find(x=>x.iso3===u)?.feature||null;}
  const politicalCountryAdminCache=new Map();
  async function politicalFetchCountryAdmin(level,countryFeature){
   if(!countryFeature)throw new Error('Selecciona un país.');
-  const iso=countryIso3FromFeature(countryFeature),cn=normAdminText(countryLabelFromFeature(countryFeature));
+  const iso=countryIso3FromFeature(countryFeature);
   if(!iso)throw new Error('No se pudo identificar el país seleccionado.');
   const cacheKey=level+'|'+iso;if(politicalCountryAdminCache.has(cacheKey))return await politicalCountryAdminCache.get(cacheKey);
   const promise=(async()=>{
-   // Ruta rápida: el servicio mundial se consulta directamente por el código del país.
-   // Así no se descargan primero las divisiones de todos los países que tocan el rectángulo visible.
-   try{
-    const url=level===1?WORLD_BANK_ADM1:WORLD_BANK_ADM2,features=[],pageSize=2000;
-    const safeIso=iso.replace(/'/g,"''");
-    for(let offset=0;offset<20000;offset+=pageSize){
-     const params=new URLSearchParams({where:"shapeGroup='"+safeIso+"'",outFields:'*',returnGeometry:'true',outSR:'4326',f:'geojson',resultOffset:String(offset),resultRecordCount:String(pageSize),geometryPrecision:'5',maxAllowableOffset:level===1?'0.01':'0.003'});
-     const r=await fetch(url+'?'+params.toString(),{cache:'force-cache'});if(!r.ok)throw new Error('ADM'+level+' '+r.status);
-     const g=await r.json();if(g?.error)throw new Error(g.error.message||'Consulta administrativa rechazada');
-     const batch=g?.features||[];features.push(...batch);if(batch.length<pageSize)break;
-    }
-    if(features.length)return {type:'FeatureCollection',features};
-   }catch(e){console.warn('Consulta administrativa directa '+iso+' ADM'+level+'; se usa reserva espacial.',e)}
-   // Reserva compatible con variantes antiguas del servicio: recorte espacial + filtrado por país.
-   const b=countryFeatureBounds(countryFeature);if(!b?.isValid?.())throw new Error('No se pudo calcular la extensión del país.');
-   const z=level===1?6:8,bb=roundedAdminBounds(b.pad(.05),level,z),raw=await fetchAdminExtent(level,bb,z);
-   let fs=(raw.features||[]).filter(f=>{const p=f.properties||{},code=adminCodeFromProps(p);if(code&&code===iso)return true;const n=normAdminText(adminCountryFromProps(p));if(n&&cn&&(n===cn||n.includes(cn)||cn.includes(n)))return true;return adminFeatureInsideCountry(f,countryFeature);});
-   const seen=new Set();fs=fs.filter((f,i)=>{const p=f.properties||{},k=String(p.shapeID||p.GID_2||p.GID_1||p.OBJECTID||p.FID||adminNameFromProps(p,level)||i);if(seen.has(k))return false;seen.add(k);return true});
-   return {type:'FeatureCollection',features:fs};
+   // Consulta EXCLUSIVA por país: el servidor devuelve únicamente las unidades ADM del ISO seleccionado.
+   const url=level===1?WORLD_BANK_ADM1:WORLD_BANK_ADM2,features=[],pageSize=2000,safeIso=iso.replace(/'/g,"''");
+   for(let offset=0;offset<20000;offset+=pageSize){
+    const params=new URLSearchParams({where:"ISO_A3='"+safeIso+"'",outFields:'*',returnGeometry:'true',outSR:'4326',f:'geojson',resultOffset:String(offset),resultRecordCount:String(pageSize),geometryPrecision:'5',maxAllowableOffset:level===1?'0.01':'0.003'});
+    const r=await fetch(url+'?'+params.toString(),{cache:'force-cache'});if(!r.ok)throw new Error('ADM'+level+' '+r.status);
+    const g=await r.json();if(g?.error)throw new Error(g.error.message||'Consulta administrativa rechazada');
+    const batch=(g?.features||[]).filter(f=>String(f?.properties?.ISO_A3||'').toUpperCase()===iso);
+    features.push(...batch);if((g?.features||[]).length<pageSize)break;
+   }
+   if(!features.length)throw new Error('La fuente administrativa no devolvió unidades para '+iso+' (ADM'+level+').');
+   const seen=new Set(),nameKey=level===1?'NAM_1':'NAM_2';
+   const clean=features.filter((f,i)=>{const p=f.properties||{},k=String(p.ADM2CD_c||p.ADM1CD_c||p.P_CODE_2_c||p.P_CODE_1_c||p.HASC_2||p.HASC_1||p.OBJECTID||p[nameKey]||i);if(seen.has(k))return false;seen.add(k);return true});
+   return {type:'FeatureCollection',features:clean};
   })();
   politicalCountryAdminCache.set(cacheKey,promise);
   try{return await promise}catch(e){politicalCountryAdminCache.delete(cacheKey);throw e}
@@ -14706,7 +14763,7 @@ html body .historyPopup .leaflet-popup-close-button{
  function politicalHierarchyInfo(f){
   const p=f?.properties||{},primary=politicalName(f,0),levels=politicalCountryIso3==='ESP'?['Comunidad Autónoma','Provincia']:politicalLevelNames();
   let parent='';if(politicalSecondaryData?.features?.length){const pf=politicalFindParent(f,politicalSecondaryData);if(pf)parent=politicalName(pf,0)}
-  if(!parent){for(const k of ['NAME_1','ADM1_NAME','admin1Name','REGION','region','state','STATE_NAME'])if(p[k]){parent=String(p[k]);break}}
+  if(!parent){for(const k of ['NAM_1','NAM_1_NTVE','NAM_1_SRCE','ADM1NM','P_NAME_1','ADM1_NAME','NAME_1','admin1Name','REGION','region','state','STATE_NAME'])if(p[k]){parent=String(p[k]);break}}
   if(politicalCurrentScope==='spain-admin'&&politicalPrimaryLevel===3){
    let prov='';if(politicalSecondaryData?.features?.length){const pf=politicalFindParent(f,politicalSecondaryData);if(pf)prov=politicalName(pf,0)}
    if(!prov){for(const k of ['npro','NPRO','PROVINCIA','provincia','NAME_1'])if(p[k]){prov=String(p[k]);break}}
@@ -14728,14 +14785,16 @@ html body .historyPopup .leaflet-popup-close-button{
  function politicalClearSecondary(){try{if(politicalSecondaryLayer&&map.hasLayer(politicalSecondaryLayer))map.removeLayer(politicalSecondaryLayer)}catch(_){}try{if(politicalTertiaryLayer&&map.hasLayer(politicalTertiaryLayer))map.removeLayer(politicalTertiaryLayer)}catch(_){}politicalSecondaryLayer=null;politicalTertiaryLayer=null;politicalSecondaryData=null;politicalTertiaryData=null;politicalSecondaryLevel=0;politicalTertiaryLevel=0;}
  function politicalClearLand(){try{if(politicalLandLayer&&map.hasLayer(politicalLandLayer))map.removeLayer(politicalLandLayer)}catch(_){}politicalLandLayer=null;}
  async function politicalInstallCleanLand(){
-  politicalClearLand();await loadCountries();
+  politicalClearLand();
   const land=q('politicalLandColor')?.value||'#eef0e6',sea=q('politicalSeaColor')?.value||'#cfe8f3';
   const c=map.getContainer();if(!politicalMapBgSnapshot)politicalMapBgSnapshot=c.style.backgroundColor||'';
-  // En la base política limpia no debe sobrevivir ningún raster normal debajo del mar.
+  // Fondo limpio: no se carga ni dibuja la cartografía de todos los países del mundo.
   try{for(const b of Object.values(typeof bases!=='undefined'?bases:{}))if(b&&map.hasLayer(b))map.removeLayer(b)}catch(_){}
   c.style.background=sea;c.style.backgroundColor=sea;
-  politicalLandLayer=L.geoJSON(countriesData,{pane:'politicalBasePane',interactive:false,style:{color:'#b6c0c6',weight:.55,opacity:.65,fillColor:land,fillOpacity:1}}).addTo(map);
-  try{politicalLandLayer.bringToBack()}catch(_){}
+  if(politicalCurrentScope==='world-country'&&politicalCountryFeature){
+   politicalLandLayer=L.geoJSON({type:'FeatureCollection',features:[politicalCountryFeature]},{pane:'politicalBasePane',interactive:false,style:{color:'#9aa7af',weight:.7,opacity:.75,fillColor:land,fillOpacity:1}}).addTo(map);
+   try{politicalLandLayer.bringToBack()}catch(_){}
+  }
  }
  const politicalEnsureBackdropV041=politicalEnsureBackdrop;
  politicalEnsureBackdrop=async function(){
@@ -20339,9 +20398,15 @@ body.anambro-default-physical #map .anambro-default-physical-gebco{filter:satura
  };
  // Cualquier base elegida manualmente sustituye al fondo físico por el mecanismo normal del visor.
  document.querySelectorAll('input[data-base-choice]').forEach(r=>r.addEventListener('change',()=>{document.body.classList.remove('anambro-default-physical');map.getContainer().style.background='';map.getContainer().style.backgroundColor='';}));
- setTimeout(()=>{if(!document.body.classList.contains('political-map-mode')&&!document.body.classList.contains('globe-mode'))window.anambroActivateDefaultPhysical2D().catch(e=>console.warn('Fondo físico inicial ANAMBRO',e));},0);
+ // No se activa automáticamente: el visor arranca con Esri World Imagery.
+// Esta función se conserva únicamente por compatibilidad con módulos que puedan invocarla expresamente.
 })();
 </script>
 
+
+<style id="anambro-imported-track-label-css">
+.imported-track-label{background:rgba(255,255,255,.94)!important;border:1px solid #455a64!important;border-radius:5px!important;box-shadow:0 1px 5px #0004!important;color:#18232c!important;font:800 11px/1.15 Montserrat,system-ui,sans-serif!important;padding:3px 5px!important;white-space:nowrap!important}
+.imported-track-label:before{display:none!important}
+</style>
 </body>
 </html>
