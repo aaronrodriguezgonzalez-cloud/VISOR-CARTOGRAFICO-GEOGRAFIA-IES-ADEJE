@@ -20683,5 +20683,57 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 })();
 </script>
 
+
+
+<style id="anambro-mobile-toolbar-zoom-final-20261006">
+/* Móvil: mismas herramientas que en escritorio. El menú-hub se conserva como acceso adicional. */
+@media (max-width:760px){
+  html body .toolbar .tool{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+  }
+  html body .toolbar{
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    max-height:calc(100vh - 118px)!important;
+    scrollbar-width:none!important;
+  }
+  html body .toolbar::-webkit-scrollbar{display:none!important}
+
+  /* En móvil no hace falta deslizador: se conservan únicamente + y −. */
+  html body #anambroZoomSlider{display:none!important}
+  html body #anambroZoomSliderControl{
+    left:auto!important;
+    right:8px!important;
+    top:112px!important;
+    bottom:auto!important;
+    width:40px!important;
+    height:auto!important;
+    min-height:0!important;
+    padding:4px!important;
+    gap:3px!important;
+    border-radius:10px!important;
+  }
+  html body #anambroZoomInBtn,
+  html body #anambroZoomOutBtn{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:32px!important;
+    height:32px!important;
+    min-width:32px!important;
+    min-height:32px!important;
+    font-size:20px!important;
+    padding:0!important;
+  }
+  html body #anambroZoomModeHint{display:none!important}
+}
+@media (max-width:760px) and (orientation:landscape){
+  html body #anambroZoomSliderControl{top:66px!important;right:7px!important}
+  html body .toolbar{max-height:calc(100vh - 70px)!important}
+}
+</style>
+
 </body>
 </html>
