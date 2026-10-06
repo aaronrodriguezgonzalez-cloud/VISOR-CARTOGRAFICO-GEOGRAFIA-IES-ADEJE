@@ -3117,7 +3117,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <details class="layerCategory"><summary>🌋 Geografía Física</summary>
 <div class="layerSubBlock"><small>Relieve, geología, vulcanismo, clima, toponimia física y grandes biomas terrestres.</small></div>
 <details class="layerSubcategory"><summary>🏷️ Toponimia física</summary>
-<label><input id="worldPhysicalToponymsCheck" type="checkbox" checked/> <b>Topónimos físicos mundiales</b></label>
+<label><input id="worldPhysicalToponymsCheck" type="checkbox"/> <b>Topónimos físicos mundiales</b></label>
 <div class="layerSubBlock"><small>Continentes, océanos, mares, penínsulas, islas y grandes cordilleras · mapa 2D y globo 3D.</small></div>
 </details>
 <details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="worldGeologyCheck" type="checkbox"/> <b>Mapa geológico mundial · Macrostrat</b></label>
@@ -3377,9 +3377,9 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <div class="politicalGrid2">
       <label><b>Base</b>
         <select id="politicalBackground">
-          <option value="clean">Base ANAMBRO atenuada</option>
+          <option value="clean" selected>Base ANAMBRO atenuada</option>
           <option value="osm">OpenStreetMap</option>
-          <option value="canary-shadow" selected>Canarias · Modelo de Sombras GRAFCAN</option>
+          <option value="canary-shadow">Canarias · Modelo de Sombras GRAFCAN</option>
           <option value="canary-topobathy">Canarias · Topobatimétrico GRAFCAN</option>
           <option value="bathy-soft">Batimetría mundial suave</option>
           <option value="bathy-medium">Batimetría mundial media</option>
@@ -14660,7 +14660,7 @@ html body .historyPopup .leaflet-popup-close-button{
   if(snap?.center&&Number.isFinite(snap.zoom))map.setView(snap.center,snap.zoom,{animate:false});
   setTimeout(()=>map.invalidateSize({pan:false,animate:false}),30);
  }
- function politicalApplyScopeDefaults(scope){if(scope==='canary-municipalities'&&!politicalCanaryDefaultsApplied){politicalCanaryDefaultsApplied=true;const op=pEl('politicalFillOpacity');if(op){op.value='.42';updatePct('politicalFillOpacity','politicalFillOpacityValue')}const bi=pEl('politicalBathyOpacity');if(bi){bi.value='1';updatePct('politicalBathyOpacity','politicalBathyOpacityValue')}const bg=pEl('politicalBackground');if(bg)bg.value='canary-shadow';}}
+ function politicalApplyScopeDefaults(scope){if(scope==='canary-municipalities'&&!politicalCanaryDefaultsApplied){politicalCanaryDefaultsApplied=true;const op=pEl('politicalFillOpacity');if(op){op.value='.42';updatePct('politicalFillOpacity','politicalFillOpacityValue')}const bi=pEl('politicalBathyOpacity');if(bi){bi.value='1';updatePct('politicalBathyOpacity','politicalBathyOpacityValue')}}}
  function politicalRestyle(){if(!politicalLayer)return;let i=0;politicalLayer.eachLayer(l=>{if(l.feature&&l.setStyle){const idx=l.__politicalOrder??i;l.setStyle(politicalStyle(l.feature,idx));i++;}});if(politicalSelected?.layer?.setStyle)politicalSelected.layer.setStyle({dashArray:'5 4',weight:Math.max(2.4,+pEl('politicalStrokeWidth').value+1)});}
  async function politicalApply(){const scope=pEl('politicalScope').value;politicalSnapshotView();politicalApplyScopeDefaults(scope);politicalCurrentScope=scope;politicalSetStatus('Cargando '+politicalScopeTitle()+'…');document.body.classList.add('political-map-mode');politicalActive=true;politicalEnsurePanes();try{const data=await politicalData(scope);await politicalEnsureBackdrop();if(politicalLayer&&map.hasLayer(politicalLayer))map.removeLayer(politicalLayer);let order=0;politicalLayer=L.geoJSON(data,{pane:'politicalAdminPane',style:f=>politicalStyle(f,order),onEachFeature:(f,l)=>{l.__politicalOrder=order++;l.on('click',()=>politicalSelect(f,l.__politicalOrder,l));}}).addTo(map);politicalBuildLabels(data);politicalResetEditor();const b=politicalLayer.getBounds?.();if(b?.isValid?.())map.fitBounds(b,{padding:[18,18],animate:false,maxZoom:scope==='canary-municipalities'?9:undefined});else if(POLITICAL_SCOPE_META[scope]?.bounds)map.fitBounds(POLITICAL_SCOPE_META[scope].bounds,{padding:[18,18],animate:false});const namedCount=(data.features||[]).filter((f,i)=>!!politicalName(f,i)).length;politicalSetStatus(politicalScopeTitle()+' · '+data.features.length+' unidades · '+(pEl('politicalFillMode').value==='blank'?'mapa mudo':pEl('politicalFillMode').value==='auto'?'colores automáticos':'color único')+(pEl('politicalLabelsCheck').checked?(namedCount?' · '+namedCount+' nombres editables':' · geometrías cargadas; nombres no disponibles en la fuente de reserva'):' · sin nombres'));}catch(e){console.error('Mapa político',e);politicalSetStatus('No se pudo cargar '+politicalScopeTitle()+': '+(e?.message||e));politicalExit(false);}}
  async function politicalExit(report=true,restoreView=true){
@@ -20331,5 +20331,123 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
   filter:saturate(.72) brightness(1.06) contrast(1.08)!important;
 }
 </style>
+
+<script id="anambro-political-globe-sync-final">
+/* ANAMBRO · mapa político también en el globo 3D.
+   Es un espejo visual del estado político 2D: no modifica el motor del juego,
+   la carga administrativa ni las capas históricas/temáticas existentes. */
+(function(){
+ 'use strict';
+ let politicalGlobeSources=[];
+ let politicalGlobeSeq=0;
+
+ function clearPoliticalGlobe(){
+  politicalGlobeSeq++;
+  if(typeof globeViewer!=='undefined'&&globeViewer){
+   for(const ds of politicalGlobeSources){try{globeViewer.dataSources.remove(ds,true)}catch(_){}}
+   try{globeViewer.scene.requestRender()}catch(_){}
+  }
+  politicalGlobeSources=[];
+ }
+
+ function plainCesiumProps(ent){
+  const out={};
+  try{
+   const now=Cesium.JulianDate.now();
+   for(const k of (ent?.properties?.propertyNames||[])){
+    const prop=ent.properties[k];
+    const v=prop?.getValue?prop.getValue(now):prop;
+    if(v!==undefined&&v!==null)out[k]=v;
+   }
+  }catch(_){}
+  return out;
+ }
+
+ function cssColor(css,fallback='#263746'){
+  try{return Cesium.Color.fromCssColorString(css||fallback)}catch(_){return Cesium.Color.fromCssColorString(fallback)}
+ }
+
+ function stylePoliticalGlobeEntity(ent,role,index){
+  const poly=ent?.polygon;if(!poly)return;
+  if(role==='primary'){
+   const feature={type:'Feature',properties:plainCesiumProps(ent)};
+   let st={fillColor:'#e8edf1',fillOpacity:.42,color:'#263746',opacity:.95,weight:1.6};
+   try{if(typeof politicalStyle==='function')st=politicalStyle(feature,index)||st}catch(_){}
+   const fillAlpha=Math.max(0,Math.min(1,Number(st.fillOpacity)||0));
+   const strokeAlpha=Math.max(0,Math.min(1,Number(st.opacity)||0));
+   poly.material=cssColor(st.fillColor,'#e8edf1').withAlpha(fillAlpha);
+   poly.outline=strokeAlpha>0;
+   poly.outlineColor=cssColor(st.color,'#263746').withAlpha(strokeAlpha);
+   try{poly.outlineWidth=Math.max(1,Math.min(5,Number(st.weight)||1.6))}catch(_){}
+   try{ent.name=typeof politicalName==='function'?politicalName(feature,index):(ent.name||'')}catch(_){}
+  }else{
+   const tertiary=role==='tertiary';
+   poly.material=Cesium.Color.TRANSPARENT;
+   poly.outline=true;
+   poly.outlineColor=cssColor(tertiary?'#05080b':'#111827').withAlpha(tertiary?1:.98);
+   try{poly.outlineWidth=tertiary?4.6:3.0}catch(_){}
+  }
+ }
+
+ async function addPoliticalGlobeData(fc,role,seq){
+  if(!fc?.features?.length||typeof Cesium==='undefined'||!globeViewer)return null;
+  const ds=await Cesium.GeoJsonDataSource.load(fc,{clampToGround:true,stroke:Cesium.Color.TRANSPARENT,strokeWidth:0,fill:Cesium.Color.TRANSPARENT});
+  if(seq!==politicalGlobeSeq){try{ds.destroy?.()}catch(_){};return null;}
+  let i=0;for(const ent of ds.entities.values)stylePoliticalGlobeEntity(ent,role,i++);
+  await globeViewer.dataSources.add(ds);
+  politicalGlobeSources.push(ds);
+  return ds;
+ }
+
+ async function syncPoliticalGlobe(){
+  const seq=++politicalGlobeSeq;
+  if(typeof globeViewer==='undefined'||!globeViewer)return;
+  for(const ds of politicalGlobeSources){try{globeViewer.dataSources.remove(ds,true)}catch(_){}}
+  politicalGlobeSources=[];
+  if(typeof politicalActive==='undefined'||!politicalActive)return;
+  const rt=window.anambroPoliticalMode?.runtime?.();
+  if(!rt?.primaryData?.features?.length)return;
+  try{
+   await addPoliticalGlobeData(rt.primaryData,'primary',seq);
+   if(seq!==politicalGlobeSeq)return;
+   if(rt.secondaryData?.features?.length)await addPoliticalGlobeData(rt.secondaryData,'secondary',seq);
+   if(seq!==politicalGlobeSeq)return;
+   if(rt.tertiaryData?.features?.length)await addPoliticalGlobeData(rt.tertiaryData,'tertiary',seq);
+   if(seq===politicalGlobeSeq)globeViewer.scene.requestRender();
+  }catch(e){console.warn('Mapa político en globo',e)}
+ }
+
+ // Aplicar/restaurar también en Cesium cuando cambia el mapa político.
+ try{
+  const baseApply=politicalApply;
+  politicalApply=async function(){const r=await baseApply.apply(this,arguments);await syncPoliticalGlobe();return r};
+  if(window.anambroPoliticalMode)window.anambroPoliticalMode.apply=politicalApply;
+ }catch(_){ }
+ try{
+  const baseRestyle=politicalRestyle;
+  politicalRestyle=function(){const r=baseRestyle.apply(this,arguments);if(typeof globeViewer!=='undefined'&&globeViewer)setTimeout(syncPoliticalGlobe,0);return r};
+ }catch(_){ }
+ try{
+  const baseExit=politicalExit;
+  politicalExit=async function(){clearPoliticalGlobe();const r=await baseExit.apply(this,arguments);return r};
+  if(window.anambroPoliticalMode)window.anambroPoliticalMode.exit=politicalExit;
+ }catch(_){ }
+
+ // Si el globo se abre con un mapa político ya activo, dibujarlo al terminar de crear/sincronizar Cesium.
+ try{
+  const baseToggle=toggleGlobe;
+  toggleGlobe=async function(){const r=await baseToggle.apply(this,arguments);if(document.body.classList.contains('globe-mode'))setTimeout(syncPoliticalGlobe,80);return r};
+ }catch(_){ }
+
+ // Topónimos físicos: apagados de inicio en 2D y 3D.
+ const phy=document.getElementById('worldPhysicalToponymsCheck');
+ if(phy){
+  phy.checked=false;
+  try{if(typeof syncPhysicalToponymsVisibility==='function')syncPhysicalToponymsVisibility()}catch(_){}
+ }
+ window.anambroPoliticalGlobe={sync:syncPoliticalGlobe,clear:clearPoliticalGlobe};
+})();
+</script>
+
 </body>
 </html>
