@@ -20598,121 +20598,88 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 })();
 </script>
 
+
+<style id="anambro-iberia-relief-hydro-css">
+.iberiaHypsLeafletLegend{background:rgba(255,255,255,.95);border:1px solid #7f8d96;border-radius:8px;box-shadow:0 2px 8px #0003;padding:7px 8px;width:255px;font:700 10px/1.2 system-ui,-apple-system,sans-serif;color:#17324d}
+.iberiaHypsLeafletLegend b{display:block;margin-bottom:5px;font-size:11px}
+.iberiaHypsRamp{height:18px;border:1px solid #6c747a;border-radius:4px;background:linear-gradient(90deg,#3f8f55 0%,#69aa57 8%,#9fc35a 16%,#d3cf55 28%,#e2aa45 40%,#d7833d 52%,#b35f3f 64%,#884d49 75%,#8f7471 84%,#c8b9ad 92%,#f5f3ef 100%)}
+.iberiaHypsTicks{display:flex;justify-content:space-between;gap:2px;margin-top:2px;font-size:8px;color:#344b5d}.iberiaHypsTicks span{white-space:nowrap}
+.iberiaHydroKey{margin-top:5px;font-size:9px;color:#465d70}.iberiaHydroLine{display:inline-block;width:28px;border-top:3px solid #1685bd;margin-right:5px;vertical-align:middle}
+@media(max-width:700px){.iberiaHypsLeafletLegend{width:210px;padding:5px 6px}.iberiaHypsTicks{font-size:7px}}
+</style>
 <script id="anambro-iberia-hypsometry-rivers-js">
 (function(){
  'use strict';
  const q=id=>document.getElementById(id);
  if(!window.L||typeof map==='undefined'||q('spainHypsometryCheck')?.dataset.anambroIberiaReady==='1')return;
- const oldHyps=q('spainHypsometryCheck'), oldRiv=q('spainRiversCheck');
+ const oldHyps=q('spainHypsometryCheck'),oldRiv=q('spainRiversCheck');
  if(!oldHyps||!oldRiv)return;
- // Replace Spain inputs with clones so previous proxy listeners stop affecting world controls.
- const hyps=oldHyps.cloneNode(true), riv=oldRiv.cloneNode(true);
- oldHyps.parentNode.replaceChild(hyps,oldHyps); oldRiv.parentNode.replaceChild(riv,oldRiv);
+ // Desacoplar España de los listeners-proxy de la capa mundial.
+ const hyps=oldHyps.cloneNode(true),riv=oldRiv.cloneNode(true);
+ oldHyps.parentNode.replaceChild(hyps,oldHyps);oldRiv.parentNode.replaceChild(riv,oldRiv);
  hyps.dataset.anambroIberiaReady='1';
  function ensurePane(name,z){let p=map.getPane(name);if(!p){p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents='none'}return p}
- ensurePane('iberiaHypsometryPane',286); ensurePane('iberiaRiversPane',576); ensurePane('iberiaRiverLabelsPane',586);
- const BBOX={w:-10.6,e:4.95,s:35.0,n:44.95};
+ ensurePane('iberiaHypsometryPane',286);ensurePane('iberiaRiversPane',576);ensurePane('iberiaRiverLabelsPane',586);
+ const BBOX={w:-10.7,e:5.1,s:35.0,n:45.2};
  const tileCache=new Map();
  function terrariumUrl(c){return 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+c.z+'/'+c.x+'/'+c.y+'.png'}
  function elev(r,g,b){return r*256+g+b/256-32768}
  function tile2lon(x,z){return x/Math.pow(2,z)*360-180}
  function tile2lat(y,z){const n=Math.PI-2*Math.PI*y/Math.pow(2,z);return 180/Math.PI*Math.atan(Math.sinh(n))}
- function intersectsIberia(coords){
-   const west=tile2lon(coords.x,coords.z), east=tile2lon(coords.x+1,coords.z), north=tile2lat(coords.y,coords.z), south=tile2lat(coords.y+1,coords.z);
-   return !(east<BBOX.w||west>BBOX.e||north<BBOX.s||south>BBOX.n);
- }
- const ibStops=[[-1000,[77,128,170]],[0,[86,151,92]],[100,[118,181,101]],[200,[153,196,93]],[400,[204,203,96]],[700,[225,188,86]],[1000,[214,161,79]],[1400,[196,136,74]],[1800,[179,120,73]],[2200,[164,109,79]],[2600,[175,153,141]],[3000,[223,219,208]],[3500,[255,255,255]],[4500,[255,255,255]]];
+ function intersectsIberia(c){const w=tile2lon(c.x,c.z),e=tile2lon(c.x+1,c.z),n=tile2lat(c.y,c.z),s=tile2lat(c.y+1,c.z);return !(e<BBOX.w||w>BBOX.e||n<BBOX.s||s>BBOX.n)}
+ // Rampa específica 0–3500 m: toda la gama se consume dentro del relieve ibérico.
+ const stops=[[0,[63,143,85]],[100,[105,170,87]],[250,[159,195,90]],[450,[211,207,85]],[700,[226,170,69]],[1000,[215,131,61]],[1300,[179,95,63]],[1600,[136,77,73]],[2000,[104,70,70]],[2400,[143,116,113]],[2800,[200,185,173]],[3200,[236,232,224]],[3500,[255,255,255]]];
  function mix(a,b,t){return Math.round(a+(b-a)*t)}
  function colorForIberia(z){
-   if(z<0){const d=Math.max(-500,z),t=(d+500)/500;return [mix(70,98,t),mix(120,170,t),mix(170,198,t)]}
-   for(let i=1;i<ibStops.length;i++)if(z<=ibStops[i][0]){const z0=ibStops[i-1][0],c0=ibStops[i-1][1],z1=ibStops[i][0],c1=ibStops[i][1],t=Math.max(0,Math.min(1,(z-z0)/(z1-z0)));return [mix(c0[0],c1[0],t),mix(c0[1],c1[1],t),mix(c0[2],c1[2],t)]}
+   if(z<0)return [102,157,187];
+   for(let i=1;i<stops.length;i++)if(z<=stops[i][0]){const z0=stops[i-1][0],c0=stops[i-1][1],z1=stops[i][0],c1=stops[i][1],t=Math.max(0,Math.min(1,(z-z0)/(z1-z0)));return [mix(c0[0],c1[0],t),mix(c0[1],c1[1],t),mix(c0[2],c1[2],t)]}
    return [255,255,255];
  }
- async function terrariumPixels(coords){
-   const key=coords.z+'/'+coords.x+'/'+coords.y;
-   if(tileCache.has(key))return tileCache.get(key);
-   const promise=(async()=>{const r=await fetch(terrariumUrl(coords),{mode:'cors'});if(!r.ok)throw new Error('Terrarium HTTP '+r.status);const bmp=await createImageBitmap(await r.blob());const cv=document.createElement('canvas');cv.width=256;cv.height=256;const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0);if(bmp.close)bmp.close();return cx.getImageData(0,0,256,256).data;})();
-   tileCache.set(key,promise); if(tileCache.size>180){const k=tileCache.keys().next().value;tileCache.delete(k)}
-   try{return await promise}catch(e){tileCache.delete(key);throw e}
+ async function terrariumPixels(c){
+   const key=c.z+'/'+c.x+'/'+c.y;if(tileCache.has(key))return tileCache.get(key);
+   const p=(async()=>{const r=await fetch(terrariumUrl(c),{mode:'cors'});if(!r.ok)throw new Error('Terrarium HTTP '+r.status);const bmp=await createImageBitmap(await r.blob()),cv=document.createElement('canvas');cv.width=256;cv.height=256;const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0);if(bmp.close)bmp.close();return cx.getImageData(0,0,256,256).data})();
+   tileCache.set(key,p);if(tileCache.size>180){const k=tileCache.keys().next().value;tileCache.delete(k)}try{return await p}catch(e){tileCache.delete(key);throw e}
  }
  const IberiaHypsLayer=L.GridLayer.extend({
-   options:{pane:'iberiaHypsometryPane',tileSize:256,minZoom:0,maxZoom:18,maxNativeZoom:12,opacity:.92,updateWhenIdle:true,keepBuffer:2},
-   createTile:function(coords,done){
-     const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d',{alpha:true});
-     (async()=>{try{
-       if(!intersectsIberia(coords)){done(null,canvas);return}
-       const d=await terrariumPixels(coords),out=ctx.createImageData(256,256),o=out.data,zs=new Float32Array(256*256);
-       for(let y=0;y<256;y++)for(let x=0;x<256;x++){const i=(y*256+x)*4;zs[y*256+x]=elev(d[i],d[i+1],d[i+2])}
-       const nTiles=Math.pow(2,coords.z), mercY=(coords.y+.5)/nTiles, latCenter=180/Math.PI*Math.atan(Math.sinh(Math.PI*(1-2*mercY))), mpp=Math.max(1,156543.03392804097*Math.cos(latCenter*Math.PI/180)/nTiles);
-       const az=315*Math.PI/180,alt=46*Math.PI/180;
-       for(let y=0;y<256;y++)for(let x=0;x<256;x++){
-         const p=y*256+x,z=zs[p], xl=Math.max(0,x-1), xr=Math.min(255,x+1), yu=Math.max(0,y-1), yd=Math.min(255,y+1);
-         const dzdx=(zs[y*256+xr]-zs[y*256+xl])/(Math.max(1,xr-xl)*mpp), dzdy=(zs[yd*256+x]-zs[yu*256+x])/(Math.max(1,yd-yu)*mpp);
-         const slope=Math.atan(Math.hypot(dzdx,dzdy)), aspect=Math.atan2(dzdy,-dzdx);
-         let shade=Math.sin(alt)*Math.cos(slope)+Math.cos(alt)*Math.sin(slope)*Math.cos(az-aspect); shade=Math.max(-.5,Math.min(1,shade));
-         const c=colorForIberia(z), f=z<0?(.92+shade*.06):(.84+shade*.23), i=p*4;
-         o[i]=Math.max(0,Math.min(255,c[0]*f)); o[i+1]=Math.max(0,Math.min(255,c[1]*f)); o[i+2]=Math.max(0,Math.min(255,c[2]*f)); o[i+3]=z<0?180:248;
-       }
-       ctx.putImageData(out,0,0); done(null,canvas);
-     }catch(e){console.warn('Hipsometría ibérica:',e); done(null,canvas)}})();
-     return canvas;
-   }
+   options:{pane:'iberiaHypsometryPane',tileSize:256,minZoom:0,maxZoom:18,maxNativeZoom:12,opacity:.96,updateWhenIdle:true,keepBuffer:2},
+   createTile:function(c,done){const cv=document.createElement('canvas');cv.width=256;cv.height=256;const ctx=cv.getContext('2d',{alpha:true});(async()=>{try{
+     if(!intersectsIberia(c)){done(null,cv);return}
+     const d=await terrariumPixels(c),out=ctx.createImageData(256,256),o=out.data,zs=new Float32Array(65536);for(let y=0;y<256;y++)for(let x=0;x<256;x++){const i=(y*256+x)*4;zs[y*256+x]=elev(d[i],d[i+1],d[i+2])}
+     const nt=Math.pow(2,c.z),my=(c.y+.5)/nt,lat=180/Math.PI*Math.atan(Math.sinh(Math.PI*(1-2*my))),mpp=Math.max(1,156543.03392804097*Math.cos(lat*Math.PI/180)/nt),az=315*Math.PI/180,alt=46*Math.PI/180;
+     for(let y=0;y<256;y++)for(let x=0;x<256;x++){const p=y*256+x,z=zs[p],xl=Math.max(0,x-1),xr=Math.min(255,x+1),yu=Math.max(0,y-1),yd=Math.min(255,y+1),dx=(zs[y*256+xr]-zs[y*256+xl])/(Math.max(1,xr-xl)*mpp),dy=(zs[yd*256+x]-zs[yu*256+x])/(Math.max(1,yd-yu)*mpp),slope=Math.atan(Math.hypot(dx,dy)),aspect=Math.atan2(dy,-dx);let sh=Math.sin(alt)*Math.cos(slope)+Math.cos(alt)*Math.sin(slope)*Math.cos(az-aspect);sh=Math.max(-.50,Math.min(1,sh));const col=colorForIberia(z),fac=z<0?(.94+sh*.05):(.80+sh*.29),i=p*4;o[i]=Math.max(0,Math.min(255,col[0]*fac));o[i+1]=Math.max(0,Math.min(255,col[1]*fac));o[i+2]=Math.max(0,Math.min(255,col[2]*fac));o[i+3]=z<0?150:252}
+     ctx.putImageData(out,0,0);done(null,cv)
+   }catch(e){console.warn('Hipsometría ibérica:',e);done(null,cv)}})();return cv}
  });
- let ibLayer=null;
- function setIberiaHyps(on){
-   if(on){if(!ibLayer)ibLayer=new IberiaHypsLayer({opacity:.92}); if(!map.hasLayer(ibLayer))ibLayer.addTo(map)}
-   else if(ibLayer&&map.hasLayer(ibLayer)) map.removeLayer(ibLayer);
-   setTimeout(()=>{try{updateLegend()}catch(_){}} ,0);
- }
+ let ibLayer=null,ibLegendControl=null;
+ function ensureLegend(){if(ibLegendControl)return;ibLegendControl=L.control({position:'bottomright'});ibLegendControl.onAdd=function(){const d=L.DomUtil.create('div','iberiaHypsLeafletLegend');d.innerHTML='<b>Hipsometría ibérica · altitud</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div>';L.DomEvent.disableClickPropagation(d);return d}}
+ function setIberiaHyps(on){if(on){if(!ibLayer)ibLayer=new IberiaHypsLayer();if(!map.hasLayer(ibLayer))ibLayer.addTo(map);ensureLegend();try{ibLegendControl.addTo(map)}catch(_){}}else{if(ibLayer&&map.hasLayer(ibLayer))map.removeLayer(ibLayer);try{if(ibLegendControl)map.removeControl(ibLegendControl)}catch(_){}}setTimeout(()=>{try{updateLegend()}catch(_){}},0)}
  hyps.addEventListener('change',()=>setIberiaHyps(hyps.checked));
 
- let ibRivers=null, ibRiverLabels=null, ibLoaded=false;
- const NAME_MAP={
-   'ebro':'Ebro','tajo':'Tajo','tejo':'Tajo','duero':'Duero','douro':'Duero','guadalquivir':'Guadalquivir','guadiana':'Guadiana',
-   'mino':'Miño','miño':'Miño','minho':'Miño','turia':'Turia','jucar':'Júcar','júcar':'Júcar','segura':'Segura','llobregat':'Llobregat',
-   'nalon':'Nalón','nalón':'Nalón','bidasoa':'Bidasoa','nervion':'Nervión','nervión':'Nervión','navia':'Navia','sil':'Sil','genil':'Genil'
- };
- const NAME_RE='^(Ebro|Tajo|Tejo|Duero|Douro|Guadalquivir|Guadiana|Mi(?:ñ|n)o|Minho|Turia|J[uú]car|Segura|Llobregat|Nal[oó]n|Bidasoa|Nervi[oó]n|Navia|Sil|Genil)$';
- function nrm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
- function riverStyle(weight=1.55){return {color:'#1685bd',weight,opacity:.93,lineCap:'round',lineJoin:'round',interactive:true}}
- function addIbLabel(latlng,name){if(!ibRiverLabels||!name)return;L.marker(latlng,{pane:'iberiaRiverLabelsPane',interactive:false,icon:L.divIcon({className:'anambro-river-label',html:(window.escHtml?escHtml(name):name),iconSize:null})}).addTo(ibRiverLabels)}
- async function loadIberiaRivers(){
-   if(ibLoaded)return; ibLoaded=true; ibRivers=L.layerGroup([], {pane:'iberiaRiversPane'}); ibRiverLabels=L.layerGroup([], {pane:'iberiaRiverLabelsPane'});
-   const q='[out:json][timeout:35];(way["waterway"~"^(river|canal)$"]["name"~"'+NAME_RE+'",i]('+BBOX.s+','+BBOX.w+','+BBOX.n+','+BBOX.e+');relation["waterway"~"^(river|canal)$"]["name"~"'+NAME_RE+'",i]('+BBOX.s+','+BBOX.w+','+BBOX.n+','+BBOX.e+'););out geom;';
-   try{
-     const resp=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(q)});
-     if(!resp.ok)throw new Error('Overpass HTTP '+resp.status);
-     const data=await resp.json();
-     const bestLabel=new Map();
-     for(const el of data.elements||[]){
-       if(!Array.isArray(el.geometry)||el.geometry.length<2)continue;
-       const raw=String(el.tags?.['name:es']||el.tags?.name||'').trim(); const key=nrm(raw); if(!NAME_MAP[key])continue; const display=NAME_MAP[key];
-       const pts=el.geometry.map(p=>[p.lat,p.lon]); const ww=String(el.tags?.waterway||''); const wt=ww==='canal'?1.2:1.8;
-       const line=L.polyline(pts,{pane:'iberiaRiversPane',...riverStyle(wt)}).bindTooltip(display,{sticky:true,className:'anambro-river-label'}).addTo(ibRivers);
-       let len=0; for(let i=1;i<pts.length;i++){len+=L.latLng(pts[i-1]).distanceTo(L.latLng(pts[i]))}
-       const mid=pts[Math.floor(pts.length/2)]; if(!bestLabel.has(display)||len>bestLabel.get(display).len)bestLabel.set(display,{len,mid});
-     }
-     for(const [name,v] of bestLabel) addIbLabel(v.mid,name);
-   }catch(e){console.warn('Ríos ibéricos:',e); ibLoaded=false;}
- }
+ // España: red hidrográfica oficial IGR del IGN (WMS HY.Network), siempre visible al activarla.
+ let ignHydro=null,neRivers=null,riverLabels=null,neLoaded=false;
+ const IGN_HYDRO='https://servicios.idee.es/wms-inspire/hidrografia';
+ const NE_RIVERS='https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_lake_centerlines.geojson';
+ const LABELS=[
+  ['Ebro',41.67,-0.90],['Tajo',39.86,-4.02],['Duero',41.50,-5.74],['Guadiana',38.92,-6.34],['Guadalquivir',37.88,-4.78],['Miño',42.34,-7.86],['Sil',42.45,-6.74],['Turia',39.48,-0.55],['Júcar',39.20,-1.55],['Segura',38.03,-1.18],['Llobregat',41.73,1.82],['Nalón',43.37,-5.83],['Bidasoa',43.34,-1.79],['Nervión',43.25,-2.94],['Navia',43.33,-6.82],['Genil',37.39,-4.58]
+ ];
+ function addLabels(){if(riverLabels&&map.hasLayer(riverLabels))map.removeLayer(riverLabels);riverLabels=L.layerGroup([], {pane:'iberiaRiverLabelsPane'});for(const [name,lat,lon] of LABELS){L.marker([lat,lon],{pane:'iberiaRiverLabelsPane',interactive:false,icon:L.divIcon({className:'anambro-river-label',html:(window.escHtml?escHtml(name):name),iconSize:null})}).addTo(riverLabels)}riverLabels.addTo(map)}
+ async function loadNaturalEarth(){if(neLoaded)return;neLoaded=true;try{const r=await fetch(NE_RIVERS,{mode:'cors'});if(!r.ok)throw new Error('Natural Earth HTTP '+r.status);const fc=await r.json();neRivers=L.geoJSON(fc,{pane:'iberiaRiversPane',style:{color:'#1685bd',weight:1.45,opacity:.78,lineCap:'round',lineJoin:'round'},filter:f=>{try{const b=L.geoJSON(f).getBounds();return b.isValid()&&b.getEast()>=BBOX.w&&b.getWest()<=BBOX.e&&b.getNorth()>=BBOX.s&&b.getSouth()<=BBOX.n}catch(_){return false}}});if(riv.checked)neRivers.addTo(map)}catch(e){neLoaded=false;console.warn('Ríos Natural Earth:',e)}}
  async function setIberiaRivers(on){
-   if(on){await loadIberiaRivers(); if(ibRivers&&!map.hasLayer(ibRivers))ibRivers.addTo(map); if(ibRiverLabels&&!map.hasLayer(ibRiverLabels))ibRiverLabels.addTo(map)}
-   else{if(ibRivers&&map.hasLayer(ibRivers))map.removeLayer(ibRivers); if(ibRiverLabels&&map.hasLayer(ibRiverLabels))map.removeLayer(ibRiverLabels)}
-   setTimeout(()=>{try{updateLegend()}catch(_){}} ,0);
+   if(on){if(!ignHydro)ignHydro=L.tileLayer.wms(IGN_HYDRO,{layers:'HY.Network',format:'image/png',transparent:true,version:'1.3.0',opacity:.98,pane:'iberiaRiversPane',crossOrigin:true,attribution:'IGN/SCNE · IGR Hidrografía'});if(!map.hasLayer(ignHydro))ignHydro.addTo(map);await loadNaturalEarth();if(neRivers&&!map.hasLayer(neRivers))neRivers.addTo(map);addLabels()}
+   else{for(const l of [ignHydro,neRivers,riverLabels])if(l&&map.hasLayer(l))map.removeLayer(l)}
+   setTimeout(()=>{try{updateLegend()}catch(_){}},0)
  }
  riv.addEventListener('change',()=>setIberiaRivers(riv.checked));
 
  const oldLegend=typeof activeLegendHTML==='function'?activeLegendHTML:null;
- if(oldLegend) window.activeLegendHTML=function(){
-   let h=oldLegend.apply(this,arguments)||'';
-   if(hyps.checked) h+='<div style="margin-top:8px"><b>Hipsometría ibérica detallada</b><div class="hypsometryLegend"><span>0 m</span><span>100</span><span>200</span><span>400</span><span>700</span><span>1400</span><span>3000+</span></div><small>España, Portugal y sur de Francia · Terrarium remapeado para relieve peninsular.</small></div>';
-   if(riv.checked) h+='<div style="margin-top:6px"><b>Red hidrográfica ibérica</b><br><small>Ebro, Tajo, Duero, Guadiana, Guadalquivir, Miño y otros grandes ríos peninsulares.</small></div>';
-   return h;
- };
+ if(oldLegend)window.activeLegendHTML=function(){let h=oldLegend.apply(this,arguments)||'';if(hyps.checked)h+='<div style="margin-top:8px"><b>Hipsometría ibérica detallada</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div><small>España, Portugal y sur de Francia · gama recalibrada 0–3500 m.</small></div>';if(riv.checked)h+='<div style="margin-top:7px"><b>Red hidrográfica ibérica</b><br><span class="iberiaHydroLine"></span><small>IGR Hidrografía IGN (España) + Natural Earth para contexto ibérico.</small></div>';return h};
  const oldSources=typeof activeSourcesText==='function'?activeSourcesText:null;
- if(oldSources) window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||''; const extra=[]; if(hyps.checked)extra.push('Mapzen Terrain Tiles / AWS · Terrarium (remapeado para la Península Ibérica)'); if(riv.checked)extra.push('OpenStreetMap / Overpass · grandes ríos ibéricos'); return [s,...extra].filter(Boolean).join(' · ')};
+ if(oldSources)window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||'';const x=[];if(hyps.checked)x.push('Mapzen Terrain Tiles / AWS · Terrarium (rampa ibérica 0–3500 m)');if(riv.checked)x.push('IGN/SCNE · IGR Hidrografía HY.Network · Natural Earth');return [s,...x].filter(Boolean).join(' · ')};
+ const baseUpdate=typeof updateLegend==='function'?updateLegend:null;
+ if(baseUpdate)window.updateLegend=function(){baseUpdate.apply(this,arguments);const c=q('legendContent');if(!c)return;let x='';if(hyps.checked)x+='<div style="margin-top:8px"><b>Hipsometría ibérica detallada</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div></div>';if(riv.checked)x+='<div style="margin-top:7px"><b>Red hidrográfica ibérica</b><br><span class="iberiaHydroLine"></span>Ríos</div>';if(x)c.insertAdjacentHTML('beforeend',x)};
  const oldTitle=typeof defaultLayoutTitle==='function'?defaultLayoutTitle:null;
- if(oldTitle) window.defaultLayoutTitle=function(){if(hyps.checked||riv.checked) return (riv.checked?'Relieve e hidrografía de la Península Ibérica':'Hipsometría detallada de la Península Ibérica'); return oldTitle.apply(this,arguments)};
+ if(oldTitle)window.defaultLayoutTitle=function(){if(hyps.checked||riv.checked)return riv.checked?'Relieve e hidrografía de la Península Ibérica':'Hipsometría detallada de la Península Ibérica';return oldTitle.apply(this,arguments)};
+ window.__anambroIberiaReliefHydro={hypsometry:()=>ibLayer,rivers:()=>({ign:ignHydro,naturalEarth:neRivers,labels:riverLabels})};
 })();
 </script>
 
