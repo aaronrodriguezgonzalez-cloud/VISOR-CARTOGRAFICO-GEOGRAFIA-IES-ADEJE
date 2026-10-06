@@ -15015,7 +15015,7 @@ html body .historyPopup .leaflet-popup-close-button{
 .anambroHubPanel{width:min(590px,calc(100vw - 70px))!important}.hubIntro{padding:8px 10px;background:#eef6fa;border:1px solid #c9dce8;border-radius:9px;line-height:1.35;margin-bottom:9px}.hubGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.hubCard{border:1px solid #d7e0e6;background:#f8fafb;border-radius:10px;padding:9px;display:grid;gap:5px}.hubCard>b{font:850 12px/1.15 Montserrat,system-ui,sans-serif;color:#17324d;margin-bottom:2px}.hubCard button{border:1px solid #afbdc7;background:#fff;color:#17324d;border-radius:7px;padding:7px 8px;text-align:left;font-weight:750;cursor:pointer}.hubCard button:hover{background:#edf6f5}
 .atlasPanelBlock{margin-top:8px;padding:8px;border:1px solid #ccd8df;border-radius:9px;background:#f8fbfc}.atlasPanelBlock input[type=search],.atlasPanelBlock select{width:100%;box-sizing:border-box;padding:7px;border:1px solid #a8b5be;border-radius:6px;background:#fff}.atlasSearchHint{display:block;color:#5d6c77;margin:4px 0 7px;line-height:1.25}.istacLegendItem{display:flex;align-items:center;gap:6px;margin:3px 0}.istacLegendSw{width:20px;height:11px;border:1px solid #6673;border-radius:2px;flex:0 0 auto}
 .heritageLegend{margin-top:6px;padding:6px 7px;border:1px solid #ddd;border-radius:7px;background:#fff;font-size:10.5px;line-height:1.3}.heritageNote{margin:5px 0;padding:6px 8px;background:#fff8e7;border-left:4px solid #d5a335;border-radius:5px;color:#5b4a27;font-size:10px;line-height:1.3}
-@media(max-width:760px){.hubGrid{grid-template-columns:1fr}.anambroHubPanel{width:auto!important}.toolbar .tool:not(.toolHubBtn):not(#globeToggle):not([onclick*="layersPanel"]){display:none!important}.toolbar{overflow:visible!important}.anambro-panel-close{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;font-size:24px!important}.panel>h3{padding-right:48px!important}}
+@media(max-width:760px){.hubGrid{grid-template-columns:1fr}.anambroHubPanel{width:auto!important}.toolbar .tool:not(.toolHubBtn):not(#globeToggle):not([onclick*="layersPanel"]){display:flex!important}.toolbar{overflow:visible!important}.anambro-panel-close{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;font-size:24px!important}.panel>h3{padding-right:48px!important}}
 /* Cierre visible y táctil también en las fichas emergentes del mapa. */
 html body .leaflet-popup-close-button{width:34px!important;height:34px!important;line-height:30px!important;top:6px!important;right:6px!important;border-radius:9px!important;background:#17324d!important;color:#fff!important;font-size:23px!important;font-weight:900!important;text-align:center!important;opacity:1!important;z-index:9999!important;box-shadow:0 2px 7px rgba(0,0,0,.20)!important}
 html body .leaflet-popup-close-button:hover{background:#8c2a1d!important;color:#fff!important}
@@ -20734,6 +20734,100 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
   html body .toolbar{max-height:calc(100vh - 70px)!important}
 }
 </style>
+
+
+
+<style id="anambro-mobile-tools-group-20261006">
+/* Móvil: barra compacta con cuatro accesos fijos. */
+#mobileToolsPanel{display:none}
+#mobileToolsBtn{display:none}
+@media (max-width:760px){
+  html body .toolbar .tool{display:none!important}
+  html body .toolbar .toolHubBtn,
+  html body .toolbar .mobileLayersCore,
+  html body .toolbar #globeToggle,
+  html body .toolbar #mobileToolsBtn{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
+  html body .toolbar{
+    overflow:visible!important;
+    max-height:none!important;
+  }
+  html body #mobileToolsBtn{display:flex!important}
+  html body #mobileToolsPanel{
+    position:fixed!important;
+    left:6px!important;
+    right:6px!important;
+    bottom:6px!important;
+    top:auto!important;
+    width:auto!important;
+    max-width:none!important;
+    max-height:72vh!important;
+    overflow:auto!important;
+    z-index:4900!important;
+    border-radius:16px 16px 10px 10px!important;
+    padding:12px!important;
+    background:rgba(255,255,255,.98)!important;
+    box-shadow:0 -8px 28px rgba(0,0,0,.28)!important;
+  }
+  html body #mobileToolsPanel.hidden{display:none!important}
+  html body #mobileToolsPanel:not(.hidden){display:block!important}
+  .mobileToolsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .mobileToolsGrid button{
+    min-height:52px;border:1px solid #cbd5df;border-radius:10px;background:#f7fafc;color:#17324d;
+    padding:8px 9px;font-weight:800;font-size:12px;line-height:1.15;display:flex;align-items:center;gap:8px;text-align:left
+  }
+  .mobileToolsGrid button span{font-size:20px;flex:0 0 auto}
+  .mobileToolsPanelHead{position:sticky;top:-12px;margin:-12px -12px 10px;padding:11px 12px 9px;background:rgba(255,255,255,.98);border-bottom:1px solid #d8dde1;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:2}
+  .mobileToolsPanelHead b{font-size:14px;color:#17324d}
+  #mobileToolsClose{border:0;background:#17324d;color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;font-weight:900}
+}
+@media (max-width:430px){.mobileToolsGrid{grid-template-columns:1fr}}
+@media (min-width:761px){#mobileToolsPanel,#mobileToolsBtn{display:none!important}}
+</style>
+<script id="anambro-mobile-tools-group-js-20261006">
+(function(){
+ 'use strict';
+ const toolbar=document.querySelector('.toolbar');
+ if(!toolbar||document.getElementById('mobileToolsBtn'))return;
+ const tools=[...toolbar.querySelectorAll('.tool')];
+ const hub=toolbar.querySelector('.toolHubBtn');
+ const layers=tools.find(b=>/\bCapas\b/i.test(b.textContent||'')&&!/activas/i.test(b.textContent||''));
+ const globe=document.getElementById('globeToggle');
+ if(layers)layers.classList.add('mobileLayersCore');
+ const btn=document.createElement('button');
+ btn.id='mobileToolsBtn';btn.type='button';btn.className='tool';btn.innerHTML='<span>🧰</span> Herramientas';
+ if(globe)globe.insertAdjacentElement('afterend',btn);else toolbar.appendChild(btn);
+ const panel=document.createElement('div');
+ panel.id='mobileToolsPanel';panel.className='panel hidden mobileToolsPanel';
+ panel.innerHTML='<div class="mobileToolsPanelHead"><b>🧰 Herramientas</b><button id="mobileToolsClose" type="button" aria-label="Cerrar">×</button></div><div class="mobileToolsGrid" id="mobileToolsGrid"></div>';
+ toolbar.insertAdjacentElement('afterend',panel);
+ const grid=panel.querySelector('#mobileToolsGrid');
+ function sourceTools(){
+   return [...toolbar.querySelectorAll('.tool')].filter(b=>b!==hub&&b!==layers&&b!==globe&&b!==btn);
+ }
+ function iconOf(b){return b.querySelector('span')?.textContent?.trim()||'🛠️'}
+ function labelOf(b){const c=b.cloneNode(true);c.querySelectorAll('span').forEach(s=>s.remove());return (c.textContent||'Herramienta').trim()}
+ function refresh(){
+   const current=sourceTools();
+   const sig=current.map(b=>(b.id||'')+'|'+labelOf(b)).join('||');
+   if(grid.dataset.sig===sig)return;grid.dataset.sig=sig;grid.innerHTML='';
+   for(const src of current){
+     const b=document.createElement('button');b.type='button';b.innerHTML='<span>'+iconOf(src)+'</span><span>'+labelOf(src)+'</span>';
+     b.addEventListener('click',()=>{panel.classList.add('hidden');src.click()});
+     grid.appendChild(b);
+   }
+ }
+ function open(){refresh();panel.classList.remove('hidden')}
+ function close(){panel.classList.add('hidden')}
+ btn.addEventListener('click',()=>panel.classList.contains('hidden')?open():close());
+ panel.querySelector('#mobileToolsClose').addEventListener('click',close);
+ new MutationObserver(refresh).observe(toolbar,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','id']});
+ refresh();
+})();
+</script>
 
 </body>
 </html>
