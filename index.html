@@ -3008,6 +3008,14 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 </div></details>
 </details>
 <details class="layerCategory"><summary>🌋 Geografía Física</summary>
+<details class="layerSubcategory"><summary>⛰️ Relieve</summary>
+<label><input id="canaryHypsometryCheck" type="checkbox"/> <b>Hipsométrico · Canarias (GRAFCAN 2026)</b></label>
+<div class="layerSubBlock">
+<small>IDECanarias · modelo hipsométrico oficial 2026 · malla 5 × 5 m. Se carga como una sola capa WMS, sin sustituir ni retirar la ortofoto/fondo activo.</small>
+<label><small><b>Opacidad</b> <span id="canaryHypsometryOpacityValue">100 %</span></small><input id="canaryHypsometryOpacity" max="1" min="0.25" step="0.05" style="width:100%" type="range" value="1"/></label>
+<small id="canaryHypsometryStatus">Capa desactivada.</small>
+</div>
+</details>
 <details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="canaryGeologyCheck" type="checkbox"/> <b>Mapa geológico continuo · Canarias (GEODE)</b></label>
 <div class="layerSubBlock">
 <small>IGME-CSIC · limitado al Archipiélago Canario.</small>
@@ -19761,6 +19769,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   provCheck:{name:'Provincias',p:61,get:()=>[typeof adminProv!=='undefined'?adminProv:null]},
   munSpainCheck:{name:'Municipios · España',p:62,get:()=>[typeof adminMun!=='undefined'?adminMun:null]},
   toponymyCheck:{name:'Toponimia · IGN',p:72,get:()=>[typeof toponymy!=='undefined'?toponymy:null]},
+  canaryHypsometryCheck:{name:'Hipsométrico · Canarias · GRAFCAN 2026',p:33,get:()=>[window.__anambroCanaryHypsometry?.layer?.()]},
   spainHypsometryCheck:{name:'Hipsometría de España · relieve sombreado',p:32,get:()=>[window.__anambroIberiaReliefHydro?.hypsometry?.()]},
   spainHydroNetworkCheck:{name:'Red hidrográfica de España · completa',p:56,get:()=>[window.__anambroSpainHydroFix?.network?.()]},
   spainRiversCheck:{name:'Ríos 2.º de Bachillerato',p:57,get:()=>[window.__anambroSpainHydroFix?.bach?.()]},
@@ -19788,8 +19797,25 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   gridCheck:{name:'Red geográfica',p:66,get:()=>[typeof geoGrid!=='undefined'?geoGrid:null]}
  };
  let saved=[];try{saved=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(saved))saved=[]}catch(_){saved=[]}
- function isOn(id){return !!q(id)?.checked}
- function activeKeys(){return Object.keys(META).filter(isOn)}
+ function controlName(cb){const lab=cb?.closest?.('label');return (lab?.textContent||cb?.id||'Capa').replace(/\s+/g,' ').trim()}
+ function discoverVisibleControls(){
+  const panel=q('layersPanel');if(!panel)return;
+  panel.querySelectorAll('input[type=checkbox][id]').forEach(cb=>{
+   if(META[cb.id]||cb.dataset.enp)return;
+   // No se cambia el DOM ni se asignan IDs nuevos: solo se registra lo que ya existe.
+   META[cb.id]={name:controlName(cb),p:40,get:()=>[]};
+  });
+  if(!META.__istacAtlas)META.__istacAtlas={virtual:true,p:47,name:()=>{const x=q('istacIndicatorSelect')?.selectedOptions?.[0]?.textContent?.trim();return 'Atlas estadístico · ISTAC'+(x?' · '+x:'')},on:()=>!!window.anambroIstacActive?.(),off:()=>window.anambroClearIstacAtlas?.()};
+  if(!META.__ineAtlas)META.__ineAtlas={virtual:true,p:47,name:()=>{const x=q('ineIndicatorSelect')?.selectedOptions?.[0]?.textContent?.trim();return 'Atlas estadístico · INE'+(x?' · '+x:'')},on:()=>!!window.anambroIneActive?.(),off:()=>window.anambroClearIneAtlas?.(true)};
+  if(!META.__track)META.__track={virtual:true,p:86,name:()=>{try{return 'Track · '+(importedTrackName||'recorrido')}catch(_){return 'Track'}},on:()=>{try{const layer=(trackBuildGroup&&trackBuildSegments.length)?trackBuildGroup:importedTrackGroup;return !!(layer&&map.hasLayer(layer)&&importedTrackVisible!==false)}catch(_){return false}},off:()=>{try{const layer=(trackBuildGroup&&trackBuildSegments.length)?trackBuildGroup:importedTrackGroup;if(layer&&map.hasLayer(layer))toggleImportedTrackVisibility()}catch(_){}}};
+ }
+ function isOn(id){
+  discoverVisibleControls();const m=META[id];if(!m)return false;
+  if(m.virtual){try{return !!m.on?.()}catch(_){return false}}
+  return !!q(id)?.checked;
+ }
+ function activeKeys(){discoverVisibleControls();return Object.keys(META).filter(isOn)}
+ function displayName(id){const n=META[id]?.name;try{return typeof n==='function'?n():n||id}catch(_){return String(n||id)}}
  function normalizeOrder(){
   const active=activeKeys();
   saved=saved.filter(k=>META[k]);
@@ -19817,19 +19843,19 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   const a=normalizeOrder();
   const base=q('activeLayersBase');if(base)base.textContent=currentBaseName();
   if(!a.length){list.innerHTML='<div class="activeLayersEmpty">No hay superposiciones activas. Las capas temáticas que actives aparecerán aquí.</div>';return}
-  list.innerHTML=a.map((id,i)=>'<div class="activeLayerRow" data-active-layer="'+id+'"><div class="activeLayerPos">'+(i+1)+'</div><div class="activeLayerName">'+META[id].name+'<small>'+(i===0?'Encima · máxima prioridad de consulta':'Prioridad '+(i+1))+'</small></div><div class="activeLayerActions"><button type="button" data-up title="Subir capa" '+(i===0?'disabled':'')+'>↑</button><button type="button" data-down title="Bajar capa" '+(i===a.length-1?'disabled':'')+'>↓</button><button type="button" data-off title="Desactivar capa">×</button></div></div>').join('');
+  list.innerHTML=a.map((id,i)=>'<div class="activeLayerRow" data-active-layer="'+id+'"><div class="activeLayerPos">'+(i+1)+'</div><div class="activeLayerName">'+displayName(id)+'<small>'+(i===0?'Encima · máxima prioridad de consulta':'Prioridad '+(i+1))+'</small></div><div class="activeLayerActions"><button type="button" data-up title="Subir capa" '+(i===0?'disabled':'')+'>↑</button><button type="button" data-down title="Bajar capa" '+(i===a.length-1?'disabled':'')+'>↓</button><button type="button" data-off title="Desactivar capa">×</button></div></div>').join('');
  }
  function sync(){render();setTimeout(apply2DOrder,0);setTimeout(apply2DOrder,180)}
  function move(id,dir){const a=normalizeOrder(),i=a.indexOf(id),j=i+dir;if(i<0||j<0||j>=a.length)return;const ai=saved.indexOf(id),other=a[j],aj=saved.indexOf(other);[saved[ai],saved[aj]]=[saved[aj],saved[ai]];try{localStorage.setItem(STORE,JSON.stringify(saved))}catch(_){}sync();try{globeViewer?.scene?.requestRender?.()}catch(_){}}
  function makeUI(){
   if(!q('activeLayersPanel')){
-   const p=document.createElement('div');p.className='panel hidden';p.id='activeLayersPanel';p.innerHTML='<h3>🧱 Capas activas</h3><div class="activeLayersIntro"><b>Orden de superposición:</b> la primera capa está arriba. Usa ↑ y ↓ para cambiar la prioridad. Este mismo orden se usa para decidir qué ficha abrir cuando varias capas coinciden bajo el puntero.<br><b>Fondo:</b> <span id="activeLayersBase"></span></div><div id="activeLayersList" class="activeLayersList"></div>';
+   const p=document.createElement('div');p.className='panel hidden';p.id='activeLayersPanel';p.innerHTML='<h3>👁️ Capas visibles</h3><div class="activeLayersIntro"><b>Capas realmente visibles:</b> la primera está arriba. Usa × para desactivar una capa desde aquí y ↑/↓ para cambiar la prioridad cuando proceda.<br><b>Fondo actual:</b> <span id="activeLayersBase"></span> <small>(se conserva como fondo y nunca se elimina al apagar una capa temática)</small></div><div id="activeLayersList" class="activeLayersList"></div>';
    document.body.appendChild(p);
   }
   const layersBtn=[...document.querySelectorAll('.toolbar .tool')].find(b=>b.getAttribute('onclick')?.includes("layersPanel"));
-  if(layersBtn&&!q('activeLayersToolBtn')){const b=document.createElement('button');b.className='tool';b.id='activeLayersToolBtn';b.setAttribute('onclick',"togglePanel('activeLayersPanel')");b.innerHTML='<span>🧱</span> Capas activas';layersBtn.insertAdjacentElement('afterend',b)}
-  const rule=document.querySelector('#layersPanel .layersRule');if(rule&&!q('activeLayersOpenInside')){const b=document.createElement('button');b.id='activeLayersOpenInside';b.type='button';b.className='action activeLayersOpenBtn';b.textContent='🧱 Ver y ordenar capas activas';b.addEventListener('click',()=>togglePanel('activeLayersPanel'));rule.insertAdjacentElement('afterend',b)}
-  q('activeLayersList')?.addEventListener('click',e=>{const row=e.target.closest('[data-active-layer]');if(!row)return;const id=row.dataset.activeLayer;if(e.target.closest('[data-up]'))move(id,-1);else if(e.target.closest('[data-down]'))move(id,1);else if(e.target.closest('[data-off]')){const c=q(id);if(c){c.checked=false;c.dispatchEvent(new Event('change',{bubbles:true}))}sync()}});
+  if(layersBtn&&!q('activeLayersToolBtn')){const b=document.createElement('button');b.className='tool';b.id='activeLayersToolBtn';b.setAttribute('onclick',"togglePanel('activeLayersPanel')");b.innerHTML='<span>👁️</span> Capas visibles';layersBtn.insertAdjacentElement('afterend',b)}
+  const rule=document.querySelector('#layersPanel .layersRule');if(rule&&!q('activeLayersOpenInside')){const b=document.createElement('button');b.id='activeLayersOpenInside';b.type='button';b.className='action activeLayersOpenBtn';b.textContent='👁️ Ver, ordenar y desactivar capas visibles';b.addEventListener('click',()=>togglePanel('activeLayersPanel'));rule.insertAdjacentElement('afterend',b)}
+  q('activeLayersList')?.addEventListener('click',e=>{const row=e.target.closest('[data-active-layer]');if(!row)return;const id=row.dataset.activeLayer;if(e.target.closest('[data-up]'))move(id,-1);else if(e.target.closest('[data-down]'))move(id,1);else if(e.target.closest('[data-off]')){const m=META[id];if(m?.virtual){try{m.off?.()}catch(_){}}else{const c=q(id);if(c){c.checked=false;c.dispatchEvent(new Event('change',{bubbles:true}))}}setTimeout(sync,0)}});
  }
  function pointCandidates2D(latlng){
   if(typeof map==='undefined')return[];const click=map.latLngToContainerPoint(latlng),out=[];
@@ -19904,6 +19930,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  makeUI();
  document.querySelectorAll('#layersPanel input[type=checkbox],#layersPanel input[type=radio],#layersPanel select').forEach(el=>el.addEventListener('change',()=>setTimeout(sync,0)));
  try{map.on('layerremove',()=>setTimeout(sync,60))}catch(_){}
+ window.addEventListener('anambro:thematic-sync',()=>setTimeout(sync,30));
  q('activeLayersPanel')?.addEventListener('transitionend',render);
  setTimeout(()=>{sync();ensureGlobePriority()},100);
  window.anambroActiveLayerOrder={render,sync,rank,order:()=>normalizeOrder().slice()};
@@ -22556,5 +22583,59 @@ body.profile-dock-collapsed #profileModalHeader{margin-bottom:0!important}
   window.anambroProfileDock={open:openDock,close:closeDock,cycle:cycleDock,state:()=>dockState};
 })();
 </script>
+
+
+<style id="anambro-canary-hypsometry-fast-css">
+.canaryHypsLegend{background:rgba(255,255,255,.96);border:1px solid #83919a;border-radius:8px;padding:7px 9px;box-shadow:0 1px 5px #0002;font:11px/1.25 system-ui;max-width:250px}
+.canaryHypsRamp{height:12px;border-radius:3px;margin:5px 0 2px;background:linear-gradient(90deg,#77aa65 0%,#c9cf78 25%,#d8b568 48%,#a77d68 70%,#c7a1a9 86%,#f2f2f0 100%);border:1px solid #7778}
+</style>
+<script id="anambro-canary-hypsometry-fast-js">
+(function(){
+ 'use strict';
+ const q=id=>document.getElementById(id),check=q('canaryHypsometryCheck'),opacity=q('canaryHypsometryOpacity'),out=q('canaryHypsometryOpacityValue'),status=q('canaryHypsometryStatus');
+ if(!check||!opacity||typeof L==='undefined'||typeof map==='undefined')return;
+ const B=L.latLngBounds([[27.45,-18.25],[29.55,-13.15]]);
+ let pane=map.getPane('canaryHypsometryPane');if(!pane){pane=map.createPane('canaryHypsometryPane');pane.style.zIndex='260';pane.style.pointerEvents='none'}
+ // Misma arquitectura de carga que Modelo de Sombras: una sola capa L.tileLayer.wms, WMS 1.1.1, JPEG, sin reproyección forzada.
+ const layer=L.tileLayer.wms('https://idecan1.grafcan.es/ServicioWMS/Hipsometrico?',{
+  noWrap:true,layers:'WMS_HIPSOMETRICO',format:'image/jpeg',transparent:false,version:'1.1.1',uppercase:true,
+  pane:'canaryHypsometryPane',bounds:B,minZoom:4,maxZoom:20,opacity:1,
+  attribution:'Hipsométrico 2026 · © Gobierno de Canarias / GRAFCAN'
+ });
+ layer.on('loading',()=>{if(check.checked&&status)status.textContent='Cargando hipsométrico…'});
+ layer.on('load',()=>{if(check.checked&&status)status.textContent='Activa · GRAFCAN 2026 · malla 5 × 5 m'});
+ layer.on('tileerror',e=>{console.warn('Hipsométrico GRAFCAN: error de tesela WMS_HIPSOMETRICO',e);if(check.checked&&status)status.textContent='Error al cargar alguna tesela del servicio GRAFCAN.'});
+ let legend=null;
+ function ensureLegend(){
+  if(legend)return;legend=L.control({position:'bottomright'});legend.onAdd=function(){const d=L.DomUtil.create('div','canaryHypsLegend');d.innerHTML='<b>Hipsométrico · Canarias 2026</b><div class="canaryHypsRamp"></div><div style="display:flex;justify-content:space-between"><small>cotas bajas</small><small>cotas altas</small></div><small>Rampa oficial servida por IDECanarias/GRAFCAN.</small>';L.DomEvent.disableClickPropagation(d);return d};
+ }
+ function set(on){
+  if(on){if(!map.hasLayer(layer))layer.addTo(map);ensureLegend();try{legend.addTo(map)}catch(_){};if(status)status.textContent='Cargando hipsométrico…'}
+  else{if(map.hasLayer(layer))map.removeLayer(layer);try{if(legend)map.removeControl(legend)}catch(_){};if(status)status.textContent='Capa desactivada.'}
+  // Nunca se toca activeBase, worldImagery, PNOA, ortofoto ni otra capa base.
+  setTimeout(()=>{try{updateLegend()}catch(_){};try{window.anambroActiveLayerOrder?.sync?.()}catch(_){}},0);
+ }
+ check.addEventListener('change',()=>set(check.checked));
+ opacity.addEventListener('input',()=>{const v=+opacity.value||1;if(out)out.textContent=Math.round(v*100)+' %';layer.setOpacity(v)});
+ const prevLegend=typeof activeLegendHTML==='function'?activeLegendHTML:null;
+ if(prevLegend)window.activeLegendHTML=function(){let h=prevLegend.apply(this,arguments)||'';if(check.checked)h+='<div style="margin-top:8px"><b>Hipsométrico · Canarias</b><br><small>IDECanarias / GRAFCAN · 2026 · 5 × 5 m.</small></div>';return h};
+ const prevSources=typeof activeSourcesText==='function'?activeSourcesText:null;
+ if(prevSources)window.activeSourcesText=function(){const s=prevSources.apply(this,arguments)||'';return [s,check.checked?'Gobierno de Canarias / GRAFCAN · IDECanarias · Hipsométrico 2026 (5 × 5 m)':''].filter(Boolean).join(' · ')};
+ window.__anambroCanaryHypsometry={layer:()=>layer,set};
+})();
+</script>
+
+<script id="anambro-visible-layers-safe-refresh">
+(function(){
+ 'use strict';
+ const refresh=()=>{try{window.anambroActiveLayerOrder?.sync?.()}catch(_){}};
+ // Las capas virtuales se refrescan desde sus propias acciones, sin observar todos los layeradd del mapa.
+ for(const name of ['loadTrackFile','toggleImportedTrackVisibility','removeImportedTrack','syncGeneratedTrackToMainState','finishTrackBuilder','clearTrackBuilder']){
+  try{const f=window[name];if(typeof f!=='function'||f.__anambroVisibleRefresh)continue;const w=function(...args){const r=f.apply(this,args);if(r&&typeof r.then==='function')return r.finally(()=>setTimeout(refresh,0));setTimeout(refresh,0);return r};w.__anambroVisibleRefresh=true;window[name]=w}catch(_){}
+ }
+ setTimeout(refresh,180);
+})();
+</script>
+
 </body>
 </html>
