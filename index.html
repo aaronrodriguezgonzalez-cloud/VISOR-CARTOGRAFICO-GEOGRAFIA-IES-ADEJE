@@ -21539,5 +21539,49 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 })();
 </script>
 
+
+<script id="anambro-istac-political-exclusion-fix-20261007">
+(function(){
+ 'use strict';
+ if(window.__anambroIstacPoliticalExclusionFix)return;
+ window.__anambroIstacPoliticalExclusionFix=true;
+
+ async function leavePoliticalForIstac(){
+   try{
+     if(typeof politicalActive!=='undefined' && politicalActive && typeof politicalExit==='function'){
+       // Incompatible thematic modes: remove political polygons/labels/backdrop,
+       // but keep the current map extent for the incoming ISTAC atlas.
+       await politicalExit(false,false);
+     }
+   }catch(e){console.warn('Atlas ISTAC · limpieza de mapa político anterior',e)}
+ }
+
+ try{
+   if(typeof loadIstacIndicator==='function'){
+     const baseLoad=loadIstacIndicator;
+     loadIstacIndicator=async function(){
+       await leavePoliticalForIstac();
+       return await baseLoad.apply(this,arguments);
+     };
+   }
+ }catch(e){console.warn('Atlas ISTAC · enlace indicador/político',e)}
+
+ try{
+   if(typeof switchIstacTerritoryLevel==='function'){
+     const baseSwitch=switchIstacTerritoryLevel;
+     switchIstacTerritoryLevel=async function(){
+       await leavePoliticalForIstac();
+       return await baseSwitch.apply(this,arguments);
+     };
+   }
+ }catch(e){console.warn('Atlas ISTAC · enlace nivel/político',e)}
+
+ // También cubre cargas iniciadas por controles que llamen a otras rutas del atlas.
+ document.getElementById('istacAtlasBlock')?.addEventListener('change',e=>{
+   if(e.target?.id==='istacIndicatorSelect' || e.target?.id==='istacLevelSelect') leavePoliticalForIstac();
+ },true);
+})();
+</script>
+
 </body>
 </html>
