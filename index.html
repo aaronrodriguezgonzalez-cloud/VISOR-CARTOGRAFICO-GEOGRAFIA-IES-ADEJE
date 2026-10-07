@@ -21126,18 +21126,8 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
  const oldSources=typeof activeSourcesText==='function'?activeSourcesText:null;
  if(oldSources)window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||'';return check?.checked?[s,'Toponimia didáctica seleccionada por el docente'].filter(Boolean).join(' · '):s};
 
- // --- B. Cerrar una ventana de herramienta => vista inicial de ANAMBRO. ---
- const HOME=[28.30,-16.55],HOME_Z=9;
- function homeView(){try{map.setView(HOME,HOME_Z,{animate:false});map.closePopup?.()}catch(_){}}
- const baseToggle=typeof togglePanel==='function'?togglePanel:null;
- if(baseToggle){
-   window.togglePanel=togglePanel=function(id){const p=q(id),wasOpen=!!p&&!p.classList.contains('hidden');const r=baseToggle.apply(this,arguments);if(wasOpen&&p?.classList.contains('hidden'))setTimeout(homeView,0);return r};
- }
- document.addEventListener('click',e=>{
-   const b=e.target.closest?.('button');if(!b)return;
-   if(b.classList.contains('anambroMobilePanelClose')||(b.closest?.('.panel')&&/^cerrar$/i.test((b.textContent||'').trim())))setTimeout(homeView,20);
- },true);
- window.__anambroHomeView=homeView;
+ // --- B. Cerrar una ventana de herramienta solo oculta su panel. ---
+ // No se modifica el encuadre, las capas activas ni el estado de la herramienta.
 
  // --- C. Garantía móvil: mostrar el primer nombre nada más comenzar la partida. ---
  function gameFeatureName(f){const p=f?.properties||{};return String(p.NAM_2||p.NAM_1||p.NAME_2||p.NAME_1||p.NAME_ES||p.ADMIN||p.NAME||p.name||p.NOMBRE||p.nombre||p.__name_es||p.__name||'').trim()}
