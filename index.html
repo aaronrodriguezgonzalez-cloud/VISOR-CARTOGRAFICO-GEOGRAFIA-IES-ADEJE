@@ -21354,5 +21354,79 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 })();
 </script>
 
+
+<style id="anambro-spain-rivers-final-stable-css">
+#spainBachRiversStatus{display:block;margin-top:5px;color:#52616d;font-size:10.5px;line-height:1.25}
+#spainBachRiversStatus.ok{color:#17633a}#spainBachRiversStatus.warn{color:#8a5a00}
+</style>
+<script id="anambro-spain-rivers-final-stable-js">
+(function(){
+ 'use strict';
+ const q=id=>document.getElementById(id);
+ if(!window.L||typeof map==='undefined')return;
+ function ensurePane(name,z){let p=map.getPane(name);if(!p){p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents='none'}return p}
+ ensurePane('spainBachRiversPane',576);
+
+ // Sustituir el checkbox para eliminar el listener antiguo (Overpass + alert modal).
+ const old=q('spainRiversCheck'); if(!old)return;
+ const bachCheck=old.cloneNode(true); old.parentNode.replaceChild(bachCheck,old);
+ let statusEl=q('spainBachRiversStatus');
+ if(!statusEl){statusEl=document.createElement('small');statusEl.id='spainBachRiversStatus';statusEl.textContent='Capa preparada · se carga solo al activarla.';bachCheck.closest('details')?.querySelector('.layerSubBlock')?.appendChild(statusEl)}
+ function setStatus(t,cls=''){if(!statusEl)return;statusEl.className=cls;statusEl.textContent=t}
+
+ const RIVERS=['Miño','Duero','Tajo','Guadiana','Guadalquivir','Ebro','Segura','Nalón','Nervión','Bidasoa','Llobregat','Turia','Júcar'];
+ const CANON={
+  'mino':'Miño','minho':'Miño','duero':'Duero','douro':'Duero','tajo':'Tajo','tejo':'Tajo',
+  'guadiana':'Guadiana','guadalquivir':'Guadalquivir','ebro':'Ebro','segura':'Segura','nalon':'Nalón',
+  'nervion':'Nervión','bidasoa':'Bidasoa','llobregat':'Llobregat','turia':'Turia','jucar':'Júcar','xuquer':'Júcar'
+ };
+ const CORRIDORS={
+  'Miño':[-8.9,41.9,-6.9,43.0],'Duero':[-8.8,40.2,-1.5,42.4],'Tajo':[-9.6,39.2,-1.5,41.0],
+  'Guadiana':[-7.6,37.0,-2.8,39.8],'Guadalquivir':[-7.0,36.6,-2.5,38.4],'Ebro':[-3.2,40.6,1.0,43.1],
+  'Segura':[-2.8,37.4,-0.5,38.7],'Nalón':[-6.3,42.8,-5.0,43.7],'Nervión':[-3.4,42.8,-2.4,43.5],
+  'Bidasoa':[-2.0,43.0,-1.5,43.5],'Llobregat':[1.3,41.2,2.3,42.2],'Turia':[-2.0,39.0,-0.2,40.6],'Júcar':[-2.3,38.7,-0.1,40.5]
+ };
+ function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/^\s*(rio|riu|river)\s+/,'').trim()}
+ function canon(p){for(const k of ['name:es','name:pt','name:latin','name','name_en']){const v=CANON[norm(p?.[k])];if(v)return v}return ''}
+ function style(){return {color:'#087fb5',weight:3.1,opacity:.98,lineCap:'round',lineJoin:'round',interactive:true}}
+ const bachLayer=L.layerGroup([], {pane:'spainBachRiversPane'}),tileCache=new Map(),seen=new Set(),found=new Set();
+ let loaded=false,loading=null;
+
+ function xy(lon,lat,z){const n=2**z,x=Math.floor((lon+180)/360*n),r=lat*Math.PI/180,y=Math.floor((1-Math.asinh(Math.tan(r))/Math.PI)/2*n);return {x:Math.max(0,Math.min(n-1,x)),y:Math.max(0,Math.min(n-1,y))}}
+ function tileKeysForBBox(b,z){const [w,s,e,n]=b,a=xy(w,n,z),c=xy(e,s,z),arr=[];for(let x=Math.min(a.x,c.x);x<=Math.max(a.x,c.x);x++)for(let y=Math.min(a.y,c.y);y<=Math.max(a.y,c.y);y++)arr.push({z,x,y});return arr}
+ function ll(px,py,extent,x,y,z){const n=2**z,gx=x+px/extent,gy=y+py/extent;return [Math.atan(Math.sinh(Math.PI*(1-2*gy/n)))*180/Math.PI,gx/n*360-180]}
+ async function libs(){if(typeof worldVectorLibs==='function')return worldVectorLibs();const [vt,pbf]=await Promise.all([import('https://cdn.jsdelivr.net/npm/@mapbox/vector-tile@2.0.4/+esm'),import('https://cdn.jsdelivr.net/npm/pbf@4.0.1/+esm')]);return {VectorTile:vt.VectorTile,Pbf:pbf.default||pbf}}
+ async function fetchTile(k){const key=k.z+'/'+k.x+'/'+k.y;if(tileCache.has(key))return tileCache.get(key);const p=(async()=>{const {VectorTile,Pbf}=await libs(),r=await fetch('https://tiles.openfreemap.org/planet/latest/'+key+'.pbf',{cache:'force-cache'});if(!r.ok)throw new Error('MVT '+r.status);const tile=new VectorTile(new Pbf(new Uint8Array(await r.arrayBuffer())));return tile.layers.waterway||null})();tileCache.set(key,p);return p}
+ function addLine(points,name,key){if(points.length<2)return;const a=points[0],b=points[points.length-1],sig=name+'|'+key+'|'+points.length+'|'+a[0].toFixed(5)+','+a[1].toFixed(5)+'|'+b[0].toFixed(5)+','+b[1].toFixed(5);if(seen.has(sig))return;seen.add(sig);L.polyline(points,{pane:'spainBachRiversPane',...style()}).bindTooltip('Río '+name,{sticky:true,className:'anambro-spain-river-name'}).addTo(bachLayer);found.add(name)}
+ async function processTile(k,targets){const layer=await fetchTile(k);if(!layer)return;for(let i=0;i<layer.length;i++){const f=layer.feature(i),p=f.properties||{},name=canon(p);if(!name||!targets.has(name))continue;const g=f.loadGeometry();for(let j=0;j<g.length;j++){const pts=(g[j]||[]).map(pt=>ll(pt.x,pt.y,layer.extent,k.x,k.y,k.z));addLine(pts,name,k.z+'/'+k.x+'/'+k.y+'/'+i+'/'+j)}}}
+ async function runBatch(keys,targets){let idx=0,done=0;async function worker(){while(idx<keys.length){const k=keys[idx++];try{await processTile(k,targets)}catch(e){console.warn('Ríos 2.º Bachillerato · tesela',k,e)}done++;if(done%8===0)setStatus('Cargando Ríos 2.º de Bachillerato… '+done+'/'+keys.length)}}await Promise.all(Array.from({length:Math.min(8,keys.length)},worker))}
+ async function loadBach(){if(loaded)return;if(loading)return loading;loading=(async()=>{bachLayer.clearLayers();seen.clear();found.clear();setStatus('Cargando Ríos 2.º de Bachillerato…');const keyMap=new Map();for(const n of RIVERS)for(const k of tileKeysForBBox(CORRIDORS[n],8))keyMap.set(k.z+'/'+k.x+'/'+k.y,k);const targets=new Set(RIVERS);await runBatch([...keyMap.values()],targets);
+   // Segunda pasada de mayor detalle únicamente para los que falten.
+   const missing=RIVERS.filter(n=>!found.has(n));if(missing.length){const k2=new Map();for(const n of missing)for(const k of tileKeysForBBox(CORRIDORS[n],9))k2.set(k.z+'/'+k.x+'/'+k.y,k);await runBatch([...k2.values()],new Set(missing))}
+   loaded=bachLayer.getLayers().length>0;const still=RIVERS.filter(n=>!found.has(n));if(!loaded)throw new Error('No se recuperaron geometrías fluviales');if(still.length)setStatus('Capa activa · '+found.size+'/13 ríos cargados. Sin geometría en la fuente a esta escala: '+still.join(', ')+'.','warn');else setStatus('Capa activa · 13/13 ríos cargados.','ok');
+  })().catch(e=>{console.error('Ríos 2.º Bachillerato:',e);setStatus('No se pudo completar la capa. El visor sigue operativo; vuelve a intentarlo más tarde.','warn');throw e}).finally(()=>loading=null);return loading}
+ async function setBach(on){if(on){try{await loadBach();if(!map.hasLayer(bachLayer))bachLayer.addTo(map)}catch(_){/* aviso no modal en el panel */}}else{if(map.hasLayer(bachLayer))map.removeLayer(bachLayer);setStatus(loaded?'Capa desactivada · geometrías en caché.':'Capa preparada · se carga solo al activarla.')}setTimeout(()=>{try{updateLegend()}catch(_){};try{window.anambroActiveLayerOrder?.sync?.()}catch(_){}},0)}
+ bachCheck.addEventListener('change',()=>setBach(bachCheck.checked));
+
+ // Presets: capas independientes. Ningún preset de ríos apaga la hipsometría.
+ function setCheck(id,on){const e=q(id);if(!e)return;e.checked=!!on;e.dispatchEvent(new Event('change',{bubbles:true}))}
+ function replaceButton(id,fn){const old=q(id);if(!old)return;const b=old.cloneNode(true);old.parentNode.replaceChild(b,old);b.addEventListener('click',fn)}
+ replaceButton('spainReliefPresetFull',()=>{setCheck('spainHypsometryCheck',true);setCheck('spainHydroNetworkCheck',false);setCheck('spainRiversCheck',true);setCheck('spainReliefToponymsCheck',true)});
+ replaceButton('spainReliefPresetMute',()=>{setCheck('spainHypsometryCheck',true);setCheck('spainHydroNetworkCheck',false);setCheck('spainRiversCheck',true);setCheck('spainReliefToponymsCheck',false)});
+ replaceButton('spainReliefPresetHyps',()=>{setCheck('spainHypsometryCheck',true);setCheck('spainHydroNetworkCheck',false);setCheck('spainRiversCheck',false);setCheck('spainReliefToponymsCheck',false)});
+ replaceButton('spainReliefPresetRivers',()=>{setCheck('spainHypsometryCheck',true);setCheck('spainHydroNetworkCheck',false);setCheck('spainRiversCheck',true);/* no tocar toponimia: puede combinarse */});
+ replaceButton('spainReliefPresetHydroAll',()=>{setCheck('spainHypsometryCheck',true);setCheck('spainHydroNetworkCheck',true);setCheck('spainRiversCheck',false);/* conservar estado de toponimia */});
+ replaceButton('spainReliefPresetOff',()=>{setCheck('spainHypsometryCheck',false);setCheck('spainHydroNetworkCheck',false);setCheck('spainRiversCheck',false);setCheck('spainReliefToponymsCheck',false)});
+
+ // Encuadres garantizados en 2D y, si procede, también en globo.
+ function frame(bounds,center,height){try{map.invalidateSize({pan:false,animate:false});map.fitBounds(bounds,{padding:[18,18],animate:false})}catch(e){console.warn('Encuadre relieve:',e)}if(document.body.classList.contains('globe-mode')&&typeof globeViewer!=='undefined'&&globeViewer&&window.Cesium){try{globeViewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(center[1],center[0],height),duration:.35})}catch(_){}}}
+ replaceButton('spainReliefFrameIberia',()=>frame([[35.25,-10.15],[44.6,4.8]],[40.0,-2.5],2600000));
+ replaceButton('spainReliefFrameCanarias',()=>frame([[27.45,-18.3],[29.5,-13.15]],[28.25,-15.7],950000));
+
+ // Exponer la nueva capa al panel Capas activas.
+ window.__anambroSpainHydroFix=Object.assign(window.__anambroSpainHydroFix||{}, {bach:()=>bachLayer,setBach});
+})();
+</script>
+
 </body>
 </html>
