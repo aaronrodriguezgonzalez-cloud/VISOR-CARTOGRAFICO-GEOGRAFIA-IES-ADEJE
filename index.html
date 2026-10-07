@@ -8598,6 +8598,36 @@ function applyLayoutOutputPreset(kind){
  selectLayoutItem('map');
  if(layoutContentMode==='map')setTimeout(()=>refreshLayoutSnapshot(),0);
 }
+async function flattenLayoutMapImageForExport(){
+ const box=document.getElementById('layoutMapBox'),img=document.getElementById('layoutMapImage');
+ if(!box||!img||!img.src)return null;
+ const bw=Math.max(1,Math.round(box.clientWidth)),bh=Math.max(1,Math.round(box.clientHeight));
+ const iw=img.naturalWidth||layoutSnapshotMeta?.imgWidth||bw,ih=img.naturalHeight||layoutSnapshotMeta?.imgHeight||bh;
+ if(!iw||!ih)return null;
+ const fit=(img.style.objectFit||getComputedStyle(img).objectFit||'cover').toLowerCase();
+ const pos=(img.style.objectPosition||getComputedStyle(img).objectPosition||'50% 50%').trim().split(/\s+/);
+ const pct=v=>{const m=String(v||'50%').match(/(-?[\d.]+)%/);return m?Math.max(-2,Math.min(3,+m[1]/100)):.5};
+ const px=pct(pos[0]),py=pct(pos[1]||pos[0]);
+ const scale0=fit==='contain'?Math.min(bw/iw,bh/ih):fit==='fill'?null:Math.max(bw/iw,bh/ih);
+ let dw=fit==='fill'?bw:iw*scale0,dh=fit==='fill'?bh:ih*scale0;
+ let dx=fit==='fill'?0:(bw-dw)*px,dy=fit==='fill'?0:(bh-dh)*py;
+ const sm=(img.style.transform||getComputedStyle(img).transform||'').match(/scale\(([^)]+)\)/);
+ const extra=sm?Math.max(.01,Number(sm[1])||1):1;
+ if(extra!==1){
+  const org=(img.style.transformOrigin||getComputedStyle(img).transformOrigin||'50% 50%').split(/\s+/);
+  const op=v=>{const m=String(v||'50%').match(/(-?[\d.]+)%/);return m?+m[1]/100:.5};
+  const ox=bw*op(org[0]),oy=bh*op(org[1]||org[0]);
+  dx=ox+(dx-ox)*extra;dy=oy+(dy-oy)*extra;dw*=extra;dh*=extra;
+ }
+ const cv=document.createElement('canvas');cv.width=bw;cv.height=bh;
+ const cx=cv.getContext('2d',{alpha:false});cx.fillStyle='#fff';cx.fillRect(0,0,bw,bh);
+ cx.drawImage(img,dx,dy,dw,dh);
+ return {data:cv.toDataURL('image/jpeg',.96),src:img.src,css:{objectFit:img.style.objectFit,objectPosition:img.style.objectPosition,transform:img.style.transform,transformOrigin:img.style.transformOrigin,width:img.style.width,height:img.style.height,left:img.style.left,top:img.style.top,position:img.style.position}};
+}
+function restoreLayoutMapImageAfterExport(state){
+ if(!state)return;const img=document.getElementById('layoutMapImage');if(!img)return;
+ img.src=state.src;Object.assign(img.style,state.css);
+}
 async function exportLayoutPDF(){
  const page=document.getElementById('layoutPage');
  const exportLegend=document.getElementById('layoutLegendContent');
@@ -8612,7 +8642,19 @@ async function exportLayoutPDF(){
   const rect=page.getBoundingClientRect(),maxDim=Math.max(rect.width,rect.height)*captureScale;
   if(maxDim>16384)throw new Error('La combinación '+document.getElementById('layoutPaper').value.toUpperCase()+' a '+dpi+' ppp supera el tamaño seguro de lienzo del navegador. Elige 300 ppp o un papel menor.');
   if(btn)btn.textContent='Generando PDF · '+dpi+' ppp…';
-  const canvas=await html2canvas(page,{useCORS:true,backgroundColor:'#fff',scale:captureScale,logging:false});
+  // html2canvas no respeta de forma fiable object-fit/object-position en imágenes reemplazadas.
+  // Se aplana primero SOLO el mapa al tamaño exacto de su recuadro para conservar geometría,
+  // encuadre, zoom y pan idénticos a la previsualización y evitar cualquier compresión.
+  const flatMap=await flattenLayoutMapImageForExport();
+  const mapImg=document.getElementById('layoutMapImage');
+  if(flatMap&&mapImg){
+   mapImg.src=flatMap.data;
+   await new Promise(r=>{if(mapImg.complete)r();else{mapImg.onload=()=>r();mapImg.onerror=()=>r();}});
+   mapImg.style.objectFit='fill';mapImg.style.objectPosition='50% 50%';mapImg.style.transform='none';mapImg.style.transformOrigin='50% 50%';
+  }
+  let canvas;
+  try{canvas=await html2canvas(page,{useCORS:true,backgroundColor:'#fff',scale:captureScale,logging:false});}
+  finally{restoreLayoutMapImageAfterExport(flatMap);}
   const paper=document.getElementById('layoutPaper').value.toUpperCase();
   const orientation=document.getElementById('layoutOrientation').value;
   const {jsPDF}=window.jspdf;
