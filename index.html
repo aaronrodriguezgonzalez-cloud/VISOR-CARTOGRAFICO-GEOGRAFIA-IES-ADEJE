@@ -21739,5 +21739,527 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 })();
 </script>
 
+
+<style id="anambro-profile-track-graduation-css">
+#profileCursorLine{
+  position:absolute;z-index:3;top:0;width:2px;background:rgba(196,40,40,.78);
+  pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(255,255,255,.55)
+}
+#profileCursorDot{
+  position:absolute;z-index:4;width:11px;height:11px;border-radius:50%;
+  background:#c62828;border:2px solid #fff;box-shadow:0 1px 5px #0008;
+  transform:translate(-50%,-50%);pointer-events:none;display:none
+}
+.anambro-distance-grad-label{
+  background:transparent!important;border:0!important
+}
+.anambro-distance-grad-label > span{
+  display:inline-block;transform:translate(-50%,-50%);
+  padding:1px 4px;border-radius:4px;background:rgba(255,255,255,.92);
+  border:1px solid rgba(25,35,45,.45);color:#17212b;font:700 10px/1.15 system-ui,sans-serif;
+  white-space:nowrap;box-shadow:0 1px 3px #0002;pointer-events:none
+}
+.leaflet-tooltip.anambro-profile-cursor-tooltip{
+  background:rgba(255,255,255,.96);border:1px solid #a51d1d;color:#17212b;
+  box-shadow:0 1px 5px #0004;font-weight:800
+}
+</style>
+
+<script id="anambro-profile-track-graduation-and-nearest-toponyms">
+(function(){
+  'use strict';
+
+  /* ============================================================
+     1) PERFIL ↔ MAPA / GLOBO
+     ============================================================ */
+  let anambroProfileSelection=null;
+  let anambroProfileMapCursor=null;
+  let anambroProfileGlobeCursor=null;
+
+  function anambroProfilePlotGeometry(){
+    const c=document.getElementById('profileCanvasLarge');
+    if(!c)return null;
+    const mobile=window.innerWidth<=700;
+    const vegetationMode=typeof profileThemeMode==='function' && String(profileThemeMode()).startsWith('veg');
+    const countryMode=!!(typeof lastProfileWorld!=='undefined' && lastProfileWorld && Array.isArray(lastProfileCountries) && lastProfileCountries.length);
+    const W=c.clientWidth||0,H=c.clientHeight||0;
+    return {
+      W,H,l:72,r:28,t:58,
+      b:vegetationMode?(countryMode?154:118):(countryMode?96:64)
+    };
+  }
+
+  function anambroEnsureProfileCursorDom(){
+    const wrap=document.getElementById('profileChartWrap');
+    if(!wrap)return null;
+    let line=document.getElementById('profileCursorLine');
+    let dot=document.getElementById('profileCursorDot');
+    if(!line){line=document.createElement('div');line.id='profileCursorLine';wrap.appendChild(line);}
+    if(!dot){dot=document.createElement('div');dot.id='profileCursorDot';wrap.appendChild(dot);}
+    return {wrap,line,dot};
+  }
+
+  function anambroProfilePointAtDistance(distance){
+    const pts=lastProfilePath?.points;
+    if(!Array.isArray(pts)||!pts.length)return null;
+    if(distance<=pts[0].d)return {ll:L.latLng(pts[0].ll.lat,pts[0].ll.lng),d:pts[0].d};
+    for(let i=1;i<pts.length;i++){
+      const a=pts[i-1],b=pts[i];
+      if(distance<=b.d){
+        const span=Math.max(1e-9,b.d-a.d),f=Math.max(0,Math.min(1,(distance-a.d)/span));
+        return {
+          ll:L.latLng(a.ll.lat+(b.ll.lat-a.ll.lat)*f,a.ll.lng+(b.ll.lng-a.ll.lng)*f),
+          d:distance
+        };
+      }
+    }
+    const p=pts[pts.length-1];
+    return {ll:L.latLng(p.ll.lat,p.ll.lng),d:p.d};
+  }
+
+  function anambroProfileElevationAtDistance(distance){
+    const arr=lastProfileDraw?.[0];
+    if(!Array.isArray(arr)||!arr.length)return null;
+    let best=null;
+    for(const p of arr){
+      if(!Number.isFinite(p?.z))continue;
+      if(!best||Math.abs(p.d-distance)<Math.abs(best.d-distance))best=p;
+    }
+    return best?.z ?? null;
+  }
+
+  function anambroUpdateProfileCursorOverlay(){
+    const dom=anambroEnsureProfileCursorDom();
+    const g=anambroProfilePlotGeometry();
+    if(!dom||!g||!anambroProfileSelection||!lastProfileDraw){
+      if(dom){dom.line.style.display='none';dom.dot.style.display='none';}
+      return;
+    }
+    const total=lastProfileDraw[1],zmin=lastProfileDraw[2],zmax=lastProfileDraw[3];
+    if(!(total>0))return;
+    const d=Math.max(0,Math.min(total,anambroProfileSelection.d));
+    const z=Number.isFinite(anambroProfileSelection.z)?anambroProfileSelection.z:anambroProfileElevationAtDistance(d);
+    const scale=profileVerticalScale(zmin,zmax),lo=scale.lo,hi=scale.hi;
+    const base=g.H-g.b;
+    const x=g.l+(d/total)*(g.W-g.l-g.r);
+    const y=Number.isFinite(z)?g.t+(hi-z)/(hi-lo)*(base-g.t):base;
+    dom.line.style.display='block';
+    dom.line.style.left=(x-1)+'px';
+    dom.line.style.top=g.t+'px';
+    dom.line.style.height=Math.max(0,base-g.t)+'px';
+    dom.dot.style.display='block';
+    dom.dot.style.left=x+'px';
+    dom.dot.style.top=y+'px';
+  }
+
+  function anambroClearProfileCursor(){
+    anambroProfileSelection=null;
+    const line=document.getElementById('profileCursorLine'),dot=document.getElementById('profileCursorDot');
+    if(line)line.style.display='none';
+    if(dot)dot.style.display='none';
+    try{
+      if(anambroProfileMapCursor&&map?.hasLayer?.(anambroProfileMapCursor))map.removeLayer(anambroProfileMapCursor);
+    }catch(_){}
+    anambroProfileMapCursor=null;
+    try{
+      if(anambroProfileGlobeCursor&&typeof globeViewer!=='undefined'&&globeViewer)globeViewer.entities.remove(anambroProfileGlobeCursor);
+    }catch(_){}
+    anambroProfileGlobeCursor=null;
+  }
+
+  function anambroSetMapProfileCursor(ll,d,z){
+    if(!ll||typeof map==='undefined'||!map)return;
+    const label=fmtDistance(d)+(Number.isFinite(z)?' · '+fmtNum(z,0)+' m':'');
+    if(!anambroProfileMapCursor){
+      anambroProfileMapCursor=L.circleMarker(ll,{
+        radius:7,color:'#8b1111',weight:3,fillColor:'#ffefef',fillOpacity:1,
+        interactive:false,}).addTo(map);
+      anambroProfileMapCursor.bindTooltip(label,{
+        permanent:true,direction:'top',offset:[0,-8],
+        className:'anambro-profile-cursor-tooltip',opacity:.98
+      }).openTooltip();
+    }else{
+      anambroProfileMapCursor.setLatLng(ll);
+      anambroProfileMapCursor.setTooltipContent(label);
+      if(!map.hasLayer(anambroProfileMapCursor))anambroProfileMapCursor.addTo(map);
+    }
+    try{anambroProfileMapCursor.bringToFront?.();}catch(_){}
+  }
+
+  function anambroSetGlobeProfileCursor(ll,d,z){
+    if(!ll||typeof globeViewer==='undefined'||!globeViewer||typeof Cesium==='undefined')return;
+    const label=fmtDistance(d)+(Number.isFinite(z)?' · '+fmtNum(z,0)+' m':'');
+    try{
+      if(anambroProfileGlobeCursor)globeViewer.entities.remove(anambroProfileGlobeCursor);
+      anambroProfileGlobeCursor=globeViewer.entities.add({
+        position:Cesium.Cartesian3.fromDegrees(ll.lng,ll.lat,Number.isFinite(z)?Math.max(0,z):0),
+        point:{
+          pixelSize:12,color:Cesium.Color.fromCssColorString('#ffefef'),
+          outlineColor:Cesium.Color.fromCssColorString('#8b1111'),outlineWidth:3,
+          disableDepthTestDistance:Number.POSITIVE_INFINITY
+        },
+        label:{
+          text:label,font:'700 14px system-ui',showBackground:true,
+          backgroundColor:Cesium.Color.WHITE.withAlpha(.92),fillColor:Cesium.Color.fromCssColorString('#17212b'),
+          pixelOffset:new Cesium.Cartesian2(0,-22),disableDepthTestDistance:Number.POSITIVE_INFINITY
+        }
+      });
+      globeViewer.scene.requestRender();
+    }catch(e){console.warn('Cursor perfil globo:',e);}
+  }
+
+  function anambroSelectProfileDistance(distance){
+    if(!lastProfileDraw||!lastProfilePath)return;
+    const total=lastProfileDraw[1];
+    const d=Math.max(0,Math.min(total,distance));
+    const pos=anambroProfilePointAtDistance(d);
+    if(!pos)return;
+    const z=anambroProfileElevationAtDistance(d);
+    anambroProfileSelection={d,z,ll:pos.ll};
+    anambroUpdateProfileCursorOverlay();
+    anambroSetMapProfileCursor(pos.ll,d,z);
+    if(lastProfileSource==='globe')anambroSetGlobeProfileCursor(pos.ll,d,z);
+  }
+
+  function anambroEventProfileDistance(ev){
+    const canvas=document.getElementById('profileCanvasLarge');
+    if(!canvas||!lastProfileDraw)return null;
+    const rect=canvas.getBoundingClientRect(),g=anambroProfilePlotGeometry();
+    if(!g||rect.width<=0)return null;
+    const clientX=ev.clientX ?? ev.touches?.[0]?.clientX;
+    if(!Number.isFinite(clientX))return null;
+    const x=(clientX-rect.left)*g.W/rect.width;
+    if(x<g.l||x>g.W-g.r)return null;
+    return Math.max(0,Math.min(lastProfileDraw[1],(x-g.l)/(g.W-g.l-g.r)*lastProfileDraw[1]));
+  }
+
+  function anambroAttachProfileMapButton(){
+    const box=document.getElementById('profilePointInfo');
+    if(!box||!anambroProfileSelection)return;
+    let b=box.querySelector('.anambro-profile-map-button');
+    if(!b){
+      b=document.createElement('button');
+      b.type='button';
+      b.className='anambro-profile-map-button';
+      b.textContent=lastProfileSource==='globe'?'🌐 Ver en globo':'📍 Ver en mapa';
+      b.style.cssText='display:block;margin-top:8px;border:0;border-radius:7px;background:#17324d;color:#fff;padding:7px 10px;font-weight:800;cursor:pointer';
+      b.addEventListener('click',()=>{
+        const s=anambroProfileSelection;if(!s)return;
+        try{closeProfileModal();}catch(_){}
+        if(lastProfileSource==='globe'&&document.body.classList.contains('globe-mode')&&typeof globeViewer!=='undefined'&&globeViewer){
+          try{
+            globeViewer.camera.flyTo({
+              destination:Cesium.Cartesian3.fromDegrees(s.ll.lng,s.ll.lat,Math.max(1500,(Number(s.z)||0)+1800)),
+              duration:.8
+            });
+          }catch(_){}
+        }else{
+          try{map.panTo(s.ll,{animate:true,duration:.5});anambroSetMapProfileCursor(s.ll,s.d,s.z);}catch(_){}
+        }
+      });
+      box.appendChild(b);
+    }
+  }
+
+  const anambroProfileCanvas=document.getElementById('profileCanvasLarge');
+  if(anambroProfileCanvas){
+    anambroProfileCanvas.addEventListener('click',ev=>{
+      const d=anambroEventProfileDistance(ev);
+      if(d===null)return;
+      anambroSelectProfileDistance(d);
+      setTimeout(anambroAttachProfileMapButton,0);
+    });
+    let dragging=false;
+    anambroProfileCanvas.addEventListener('pointerdown',ev=>{
+      if(ev.pointerType==='mouse'&&ev.button!==0)return;
+      const d=anambroEventProfileDistance(ev);if(d===null)return;
+      dragging=true;anambroSelectProfileDistance(d);
+      try{anambroProfileCanvas.setPointerCapture(ev.pointerId);}catch(_){}
+    });
+    anambroProfileCanvas.addEventListener('pointermove',ev=>{
+      if(!dragging)return;
+      const d=anambroEventProfileDistance(ev);if(d!==null)anambroSelectProfileDistance(d);
+    });
+    const end=ev=>{if(!dragging)return;dragging=false;try{anambroProfileCanvas.releasePointerCapture(ev.pointerId);}catch(_){};setTimeout(anambroAttachProfileMapButton,0);};
+    anambroProfileCanvas.addEventListener('pointerup',end);
+    anambroProfileCanvas.addEventListener('pointercancel',end);
+  }
+
+  const anambroOriginalDrawProfileLarge=drawProfileLarge;
+  drawProfileLarge=function(...args){
+    const out=anambroOriginalDrawProfileLarge.apply(this,args);
+    requestAnimationFrame(anambroUpdateProfileCursorOverlay);
+    return out;
+  };
+
+  /* ============================================================
+     2) MÁXIMO/MÍNIMO ABSOLUTOS + TOPÓNIMO MÁS PRÓXIMO
+     ============================================================ */
+  const anambroOriginalDetectProfileTurns=detectProfileTurns;
+  detectProfileTurns=function(samples,total,zmin,zmax){
+    const marked=anambroOriginalDetectProfileTurns(samples,total,zmin,zmax)||[];
+    const valid=(samples||[]).filter(p=>Number.isFinite(p?.z));
+    if(!valid.length)return marked;
+    const maxP=valid.reduce((a,b)=>b.z>a.z?b:a,valid[0]);
+    const minP=valid.reduce((a,b)=>b.z<a.z?b:a,valid[0]);
+    const range=Math.max(1,(Number(zmax)||maxP.z)-(Number(zmin)||minP.z));
+    const add=(p,type)=>{
+      if(!p?.ll)return;
+      const tol=Math.max(25,total/120);
+      const idx=marked.findIndex(t=>Math.abs(t.d-p.d)<tol);
+      const absolute={d:p.d,z:p.z,type,prominence:Math.max(range,marked[idx]?.prominence||0),ll:p.ll,absolute:true};
+      if(idx>=0)marked[idx]={...marked[idx],...absolute};
+      else marked.push(absolute);
+    };
+    if(range>1){add(maxP,'peak');add(minP,'valley');}
+    return marked.sort((a,b)=>a.d-b.d);
+  };
+
+  const anambroOriginalProfileToponyms=profileToponyms;
+  profileToponyms=async function(prof,turns=[]){
+    // La selección general de topónimos se conserva, pero evitamos la antigua
+    // segunda lógica de nombres por tipo de relieve: cada máximo/mínimo hace
+    // una única búsqueda y toma literalmente el topónimo más próximo.
+    const res=await anambroOriginalProfileToponyms(prof,[]);
+    const src=turns||[];
+    const named=await Promise.all(src.map(async t=>{
+      if(!t?.ll)return t;
+      try{
+        const n=await nearestToponymAt(t.ll.lat,t.ll.lng);
+        if(n&&Number.isFinite(n.dist)&&n.dist<=6500){
+          return {...t,name:n.name,nameDist:n.dist,nearestToponym:true};
+        }
+      }catch(_){}
+      return {...t,name:undefined,nameDist:undefined,nearestToponym:false};
+    }));
+    return {...res,turns:named};
+  };
+
+  nameWorldProfileTurns=async function(turns){
+    if(!Array.isArray(turns)||!turns.length)return turns||[];
+    const out=[];
+    for(const t of turns){
+      if(!t?.ll){out.push(t);continue;}
+      try{
+        if(profileIsSpainLatLng(t.ll)){
+          const n=await nearestToponymAt(t.ll.lat,t.ll.lng);
+          out.push(n&&n.dist<=6500?{...t,name:n.name,nameDist:n.dist,nearestToponym:true}:t);
+        }else{
+          const rev=await reverseWorldAt(t.ll.lat,t.ll.lng);
+          const name=String(rev?.place||rev?.display?.split(',')[0]||'').trim();
+          out.push(name?{...t,name,nameDist:null,nearestToponym:true}:t);
+        }
+      }catch(_){out.push(t);}
+    }
+    return out;
+  };
+
+  /* ============================================================
+     3) TRACK / PERFIL GRADUADO DINÁMICAMENTE SEGÚN ESCALA
+     Regla central: intervalo ≈ denominador / 50 metros.
+     Ej.: 1:5.000→100 m; 1:10.000→200 m; 1:25.000→500 m.
+     ============================================================ */
+  let anambroGraduationGroup=null;
+  let anambroGraduationTimer=null;
+
+  function anambroScaleDenominator(){
+    const lat=map.getCenter().lat,z=map.getZoom();
+    const mpp=156543.03392804097*Math.cos(lat*Math.PI/180)/Math.pow(2,z);
+    return Math.max(1,mpp/0.0002645833333);
+  }
+
+  function anambroNiceGraduation(target){
+    target=Math.max(1,target);
+    const exp=Math.pow(10,Math.floor(Math.log10(target)));
+    const q=target/exp;
+    let m;
+    if(q<1.5)m=1;
+    else if(q<3.5)m=2;
+    else if(q<7.5)m=5;
+    else m=10;
+    const step=m*exp;
+    const norm=m===10?1:m;
+    const majorStep=step*(norm===5?2:5);
+    return {step,majorStep};
+  }
+
+  function anambroGraduationInterval(){
+    return anambroNiceGraduation(anambroScaleDenominator()/50);
+  }
+
+  function anambroGraduationPaths(){
+    const out=[];
+    try{
+      const p=effectiveProfilePts();
+      if(profileLayer&&map.hasLayer(profileLayer)&&p.length>1)out.push({segments:[p],kind:'profile'});
+    }catch(_){}
+    try{
+      let visible=false;
+      if(trackBuildGroup&&trackBuildSegments?.length)visible=map.hasLayer(trackBuildGroup)&&importedTrackVisible!==false;
+      else if(importedTrackGroup)visible=map.hasLayer(importedTrackGroup)&&importedTrackVisible!==false;
+      if(visible){
+        const segs=(typeof currentTrackSegments==='function'?currentTrackSegments():importedTrackSegments)||[];
+        if(segs.some(s=>s?.length>1))out.push({segments:segs,kind:'track'});
+      }
+    }catch(_){}
+    return out;
+  }
+
+  function anambroTickLine(ll,a,b,lengthPx){
+    const c=map.latLngToLayerPoint(ll),pa=map.latLngToLayerPoint(a),pb=map.latLngToLayerPoint(b);
+    let dx=pb.x-pa.x,dy=pb.y-pa.y,n=Math.hypot(dx,dy);
+    if(!(n>0))return null;
+    dx/=n;dy/=n;
+    const px=-dy,py=dx;
+    const p1=L.point(c.x-px*lengthPx,c.y-py*lengthPx);
+    const p2=L.point(c.x+px*lengthPx,c.y+py*lengthPx);
+    const lp=L.point(c.x+px*(lengthPx+10),c.y+py*(lengthPx+10));
+    return {a:map.layerPointToLatLng(p1),b:map.layerPointToLatLng(p2),label:map.layerPointToLatLng(lp)};
+  }
+
+  function anambroMajorTick(d,majorStep){
+    if(!(majorStep>0))return false;
+    const n=d/majorStep;
+    return Math.abs(n-Math.round(n))<1e-5;
+  }
+
+  function anambroRenderGraduatedSegments(segments,kind,step,majorStep,bounds){
+    let cumulative=0;
+    const used=new Set();
+    for(const path of segments){
+      if(!Array.isArray(path)||path.length<2)continue;
+      for(let i=1;i<path.length;i++){
+        const a=L.latLng(path[i-1]),b=L.latLng(path[i]),len=a.distanceTo(b);
+        if(!(len>0))continue;
+        const d0=cumulative,d1=cumulative+len;
+        const segBounds=L.latLngBounds(a,b);
+        if(segBounds.intersects(bounds)){
+          let d=Math.ceil((d0-1e-7)/step)*step;
+          if(d<d0)d+=step;
+          for(;d<=d1+1e-6;d+=step){
+            const key=Math.round(d*100)/100;
+            if(used.has(key))continue;used.add(key);
+            const f=Math.max(0,Math.min(1,(d-d0)/len));
+            const ll=L.latLng(a.lat+(b.lat-a.lat)*f,a.lng+(b.lng-a.lng)*f);
+            if(!bounds.contains(ll))continue;
+            const major=anambroMajorTick(d,majorStep)||Math.abs(d)<1e-6;
+            const geom=anambroTickLine(ll,a,b,major?8:4.5);
+            if(!geom)continue;
+            L.polyline([geom.a,geom.b],{
+              color:kind==='profile'?'#102f4b':'#5b1010',
+              weight:major?2:1.2,opacity:.92,interactive:false
+            }).addTo(anambroGraduationGroup);
+            if(major){
+              const icon=L.divIcon({
+                className:'anambro-distance-grad-label',
+                html:'<span>'+fmtAxisDistance(d)+'</span>',
+                iconSize:[1,1],iconAnchor:[0,0]
+              });
+              L.marker(geom.label,{icon,interactive:false,keyboard:false,zIndexOffset:650}).addTo(anambroGraduationGroup);
+            }
+          }
+        }
+        cumulative=d1;
+      }
+    }
+  }
+
+  function anambroRefreshGraduations(){
+    if(typeof map==='undefined'||!map)return;
+    if(anambroGraduationGroup){
+      try{map.removeLayer(anambroGraduationGroup);}catch(_){}
+    }
+    anambroGraduationGroup=L.layerGroup().addTo(map);
+    const paths=anambroGraduationPaths();
+    if(!paths.length)return;
+    const {step,majorStep}=anambroGraduationInterval();
+    const bounds=map.getBounds().pad(.12);
+    for(const p of paths)anambroRenderGraduatedSegments(p.segments,p.kind,step,majorStep,bounds);
+  }
+
+  function anambroScheduleGraduations(){
+    clearTimeout(anambroGraduationTimer);
+    anambroGraduationTimer=setTimeout(anambroRefreshGraduations,60);
+  }
+
+  map.on('zoomend moveend resize',anambroScheduleGraduations);
+
+  function anambroAfterRefresh(fn){
+    return function(...args){
+      const out=fn.apply(this,args);
+      if(out&&typeof out.then==='function'){
+        return out.finally(anambroScheduleGraduations);
+      }
+      anambroScheduleGraduations();
+      return out;
+    };
+  }
+
+  const anambroOldRebuildProfileGeometry=rebuildProfileGeometry;
+  rebuildProfileGeometry=anambroAfterRefresh(anambroOldRebuildProfileGeometry);
+
+  const anambroOldStartProfile=startProfile;
+  startProfile=function(...args){
+    anambroClearProfileCursor();
+    const r=anambroOldStartProfile.apply(this,args);
+    anambroScheduleGraduations();
+    return r;
+  };
+
+  const anambroOldFinishProfile=finishProfile;
+  finishProfile=anambroAfterRefresh(anambroOldFinishProfile);
+
+  const anambroOldFinishProfileFromPoints=finishProfileFromPoints;
+  finishProfileFromPoints=async function(...args){
+    anambroClearProfileCursor();
+    try{return await anambroOldFinishProfileFromPoints.apply(this,args);}
+    finally{anambroScheduleGraduations();}
+  };
+
+  const anambroOldLoadTrackFile=loadTrackFile;
+  loadTrackFile=anambroAfterRefresh(anambroOldLoadTrackFile);
+
+  const anambroOldToggleImportedTrackVisibility=toggleImportedTrackVisibility;
+  toggleImportedTrackVisibility=anambroAfterRefresh(anambroOldToggleImportedTrackVisibility);
+
+  const anambroOldRemoveImportedTrack=removeImportedTrack;
+  removeImportedTrack=anambroAfterRefresh(anambroOldRemoveImportedTrack);
+
+  const anambroOldRebuildTrackBuilderVisuals=rebuildTrackBuilderVisuals;
+  rebuildTrackBuilderVisuals=anambroAfterRefresh(anambroOldRebuildTrackBuilderVisuals);
+
+  const anambroOldSyncGeneratedTrackToMainState=syncGeneratedTrackToMainState;
+  syncGeneratedTrackToMainState=anambroAfterRefresh(anambroOldSyncGeneratedTrackToMainState);
+
+  const anambroOldFinishTrackBuilder=finishTrackBuilder;
+  finishTrackBuilder=anambroAfterRefresh(anambroOldFinishTrackBuilder);
+
+  const anambroOldUndoTrackBuilderPoint=undoTrackBuilderPoint;
+  undoTrackBuilderPoint=anambroAfterRefresh(anambroOldUndoTrackBuilderPoint);
+
+  const anambroOldClearTrackBuilder=clearTrackBuilder;
+  clearTrackBuilder=anambroAfterRefresh(anambroOldClearTrackBuilder);
+
+  const anambroOriginalClearProfile=clearProfile;
+  clearProfile=function(...args){
+    anambroClearProfileCursor();
+    const r=anambroOriginalClearProfile.apply(this,args);
+    anambroScheduleGraduations();
+    return r;
+  };
+
+  try{
+    const oldStartGlobe=startGlobeProfile;
+    startGlobeProfile=function(...args){
+      anambroClearProfileCursor();
+      return oldStartGlobe.apply(this,args);
+    };
+  }catch(_){}
+
+  window.addEventListener('resize',()=>setTimeout(anambroUpdateProfileCursorOverlay,80));
+  setTimeout(anambroScheduleGraduations,120);
+})();
+</script>
+
 </body>
 </html>
