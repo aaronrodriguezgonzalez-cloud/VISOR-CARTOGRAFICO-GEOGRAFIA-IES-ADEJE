@@ -22261,5 +22261,300 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 })();
 </script>
 
+
+
+<style id="anambro-profile-docked-layout-20261007">
+:root{--anambro-profile-dock-h:0px}
+body.profile-docked #map{
+  height:calc(100% - var(--anambro-profile-dock-h))!important;
+  transition:height .18s ease;
+}
+body.profile-docked #globe{
+  bottom:var(--anambro-profile-dock-h)!important;
+  transition:bottom .18s ease;
+}
+body.profile-docked #profileModal{
+  display:flex!important;
+  flex-direction:column!important;
+  position:fixed!important;
+  left:0!important;right:0!important;top:auto!important;bottom:0!important;
+  inset:auto 0 0 0!important;
+  width:100vw!important;
+  height:var(--anambro-profile-dock-h)!important;
+  max-width:none!important;max-height:none!important;
+  margin:0!important;
+  padding:0 14px 8px!important;
+  border:0!important;border-top:1px solid #8e9aa4!important;
+  border-radius:0!important;
+  background:rgba(255,255,255,.985)!important;
+  box-shadow:0 -8px 26px rgba(0,0,0,.23)!important;
+  overflow:hidden!important;
+  z-index:5000!important;
+  box-sizing:border-box!important;
+  transition:height .18s ease!important;
+}
+body.profile-dock-dragging #map,
+body.profile-dock-dragging #globe,
+body.profile-dock-dragging #profileModal{transition:none!important}
+#profileDockHandle{
+  flex:0 0 18px;height:18px;display:flex;align-items:center;justify-content:center;
+  cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none;
+  margin:0 -14px 1px;padding:0;border:0;background:transparent
+}
+#profileDockHandle::before{
+  content:"";display:block;width:64px;height:5px;border-radius:999px;background:#84929d;
+  box-shadow:0 1px 1px rgba(255,255,255,.85) inset
+}
+#profileDockHandle .profileDockHint{
+  position:absolute;left:84px;font:700 10px/1 system-ui,sans-serif;color:#53616c;pointer-events:none
+}
+body.profile-docked #profileModalHeader{
+  flex:0 0 auto;min-height:38px;margin:0 0 4px!important;
+}
+body.profile-docked #profileModalSummary{
+  flex:0 0 auto;margin:0 0 5px!important;padding:5px 8px!important;line-height:1.2
+}
+body.profile-docked #profileChartWrap{
+  flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:125px!important;
+  overflow:hidden!important
+}
+body.profile-docked #profileCanvasLarge{
+  width:100%!important;height:100%!important;touch-action:none
+}
+body.profile-docked #profileBands{
+  flex:0 1 auto;max-height:31%;overflow:auto;margin-top:4px!important;-webkit-overflow-scrolling:touch
+}
+body.profile-docked #profileTopoNote{
+  flex:0 0 auto;margin-top:3px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+body.profile-dock-collapsed #profileModal{
+  padding-bottom:2px!important
+}
+body.profile-dock-collapsed #profileModalSummary,
+body.profile-dock-collapsed #profileChartWrap,
+body.profile-dock-collapsed #profileBands,
+body.profile-dock-collapsed #profileTopoNote{display:none!important}
+body.profile-dock-collapsed #profileModalHeader{margin-bottom:0!important}
+
+@media(max-width:760px){
+  body.profile-docked #profileModal{
+    padding:0 8px 6px!important;
+    border-radius:14px 14px 0 0!important;
+  }
+  #profileDockHandle{height:20px;flex-basis:20px;margin:0 -8px 0}
+  #profileDockHandle::before{width:54px;height:5px}
+  #profileDockHandle .profileDockHint{display:none}
+  body.profile-docked #profileModalHeader{min-height:33px;margin-bottom:3px!important}
+  body.profile-docked #profileModalTitle{font-size:14px!important}
+  body.profile-docked .profileHeaderActions{gap:5px!important}
+  body.profile-docked .profileExportBtn{padding:6px 8px!important;font-size:10px!important}
+  body.profile-docked #profileModalClose{width:31px!important;height:31px!important;font-size:19px!important}
+  body.profile-docked #profileModalSummary{font-size:10.5px!important;padding:4px 6px!important}
+  body.profile-docked #profileChartWrap{min-height:105px!important}
+  body.profile-docked #profileBands{max-height:34%;font-size:10.5px!important}
+  body.profile-docked .profileBandControls{gap:4px!important;margin:3px 0 4px!important}
+  body.profile-docked .profileBandControls label{padding:4px 7px!important;font-size:10px!important}
+  body.profile-docked #profileTopoNote{font-size:9px!important}
+}
+@media(max-width:420px){
+  body.profile-docked #profileModal{inset:auto 0 0 0!important;padding:0 6px 5px!important}
+  body.profile-docked #profileChartWrap{height:auto!important;min-height:95px!important}
+  body.profile-docked .profileExportBtn{max-width:116px;overflow:hidden;text-overflow:ellipsis}
+}
+</style>
+
+<script id="anambro-profile-docked-layout-js-20261007">
+(function(){
+  'use strict';
+  if(window.__anambroProfileDockedLayout)return;
+  window.__anambroProfileDockedLayout=true;
+
+  const modal=document.getElementById('profileModal');
+  const header=document.getElementById('profileModalHeader');
+  if(!modal||!header)return;
+
+  const handle=document.createElement('div');
+  handle.id='profileDockHandle';
+  handle.setAttribute('role','button');
+  handle.setAttribute('tabindex','0');
+  handle.setAttribute('aria-label','Redimensionar el perfil');
+  handle.innerHTML='<span class="profileDockHint">Arrastra para redimensionar · toca para plegar</span>';
+  modal.insertBefore(handle,modal.firstChild);
+
+  let dockState='closed';
+  let lastDesktopHeight=Math.round(window.innerHeight*.39);
+  let drag=null;
+  let resizeRaf=0;
+
+  function isMobileDock(){return window.matchMedia('(max-width:760px)').matches;}
+  function mobileHeights(){
+    const vh=window.innerHeight;
+    return {
+      collapsed:Math.max(58,Math.min(64,Math.round(vh*.085))),
+      mid:Math.max(250,Math.min(Math.round(vh*.40),430)),
+      expanded:Math.max(390,Math.min(Math.round(vh*.72),Math.round(vh-96)))
+    };
+  }
+  function desktopBounds(){
+    const vh=window.innerHeight;
+    return {min:Math.max(210,Math.round(vh*.24)),max:Math.max(280,Math.round(vh*.63)),def:Math.max(285,Math.round(vh*.39))};
+  }
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+  function dockHeightForState(state){
+    if(isMobileDock()){
+      const h=mobileHeights();
+      return h[state]||h.mid;
+    }
+    const b=desktopBounds();
+    if(state==='collapsed')return 58;
+    return clamp(lastDesktopHeight||b.def,b.min,b.max);
+  }
+
+  function redrawAfterDock(){
+    cancelAnimationFrame(resizeRaf);
+    resizeRaf=requestAnimationFrame(()=>{
+      try{if(typeof map!=='undefined'&&map?.invalidateSize)map.invalidateSize({pan:false,animate:false});}catch(_){}
+      try{if(typeof globeViewer!=='undefined'&&globeViewer){globeViewer.resize();globeViewer.scene?.requestRender?.();}}catch(_){}
+      try{if(typeof lastProfileDraw!=='undefined'&&lastProfileDraw&&typeof drawProfileLarge==='function')drawProfileLarge(...lastProfileDraw);}catch(e){console.warn('Redibujo perfil acoplado:',e)}
+    });
+  }
+
+  function keepProfileRouteVisible(){
+    if(document.body.classList.contains('globe-mode'))return;
+    try{
+      const path=lastProfilePath?.path;
+      if(!Array.isArray(path)||path.length<2||typeof map==='undefined'||!map)return;
+      const bounds=L.latLngBounds(path);
+      if(!bounds.isValid())return;
+      const visible=map.getBounds();
+      if(!visible.contains(bounds)){
+        map.fitBounds(bounds,{paddingTopLeft:[22,22],paddingBottomRight:[22,22],animate:false});
+      }
+    }catch(e){console.warn('Ajuste del track con perfil acoplado:',e)}
+  }
+
+  function setDockHeight(px,state,{fit=false}={}){
+    const body=document.body;
+    let min,max;
+    if(isMobileDock()){
+      const h=mobileHeights();min=h.collapsed;max=h.expanded;
+    }else{
+      const b=desktopBounds();min=58;max=b.max;
+    }
+    px=clamp(Math.round(px),min,max);
+    body.style.setProperty('--anambro-profile-dock-h',px+'px');
+    body.classList.add('profile-docked');
+    body.classList.toggle('profile-dock-collapsed',state==='collapsed');
+    modal.classList.add('open');modal.setAttribute('aria-hidden','false');
+    dockState=state||'custom';
+    if(!isMobileDock()&&dockState!=='collapsed')lastDesktopHeight=px;
+    redrawAfterDock();
+    if(fit)setTimeout(keepProfileRouteVisible,80);
+  }
+
+  function openDock(){
+    const state=isMobileDock()?'mid':'desktop';
+    const h=dockHeightForState(state);
+    setDockHeight(h,state,{fit:true});
+  }
+
+  function closeDock(){
+    document.body.classList.remove('profile-docked','profile-dock-collapsed','profile-dock-dragging');
+    document.body.style.setProperty('--anambro-profile-dock-h','0px');
+    modal.classList.remove('open');modal.setAttribute('aria-hidden','true');
+    dockState='closed';
+    redrawAfterDock();
+  }
+
+  function cycleDock(){
+    if(isMobileDock()){
+      const next=dockState==='collapsed'?'mid':dockState==='mid'?'expanded':'collapsed';
+      setDockHeight(dockHeightForState(next),next,{fit:next!=='collapsed'});
+    }else{
+      if(dockState==='collapsed')setDockHeight(dockHeightForState('desktop'),'desktop',{fit:true});
+      else setDockHeight(58,'collapsed');
+    }
+  }
+
+  function snapMobile(px){
+    const h=mobileHeights(),choices=[['collapsed',h.collapsed],['mid',h.mid],['expanded',h.expanded]];
+    choices.sort((a,b)=>Math.abs(a[1]-px)-Math.abs(b[1]-px));
+    const [state,height]=choices[0];setDockHeight(height,state,{fit:state!=='collapsed'});
+  }
+
+  function pointerY(ev){return ev.clientY ?? ev.touches?.[0]?.clientY ?? null;}
+  function onPointerDown(ev){
+    if(ev.pointerType==='mouse'&&ev.button!==0)return;
+    const y=pointerY(ev);if(!Number.isFinite(y))return;
+    const current=parseFloat(getComputedStyle(document.body).getPropertyValue('--anambro-profile-dock-h'))||modal.getBoundingClientRect().height;
+    drag={id:ev.pointerId,startY:y,startH:current,lastH:current,moved:false};
+    document.body.classList.add('profile-dock-dragging');
+    try{handle.setPointerCapture(ev.pointerId);}catch(_){}
+    ev.preventDefault();
+  }
+  function onPointerMove(ev){
+    if(!drag)return;
+    const y=pointerY(ev);if(!Number.isFinite(y))return;
+    const delta=drag.startY-y;
+    if(Math.abs(delta)>5)drag.moved=true;
+    let min,max;
+    if(isMobileDock()){const h=mobileHeights();min=h.collapsed;max=h.expanded;}
+    else{const b=desktopBounds();min=58;max=b.max;}
+    drag.lastH=clamp(drag.startH+delta,min,max);
+    const state=drag.lastH<=66?'collapsed':'custom';
+    setDockHeight(drag.lastH,state);
+    ev.preventDefault();
+  }
+  function onPointerUp(ev){
+    if(!drag)return;
+    const d=drag;drag=null;
+    document.body.classList.remove('profile-dock-dragging');
+    try{handle.releasePointerCapture(ev.pointerId);}catch(_){}
+    if(!d.moved){cycleDock();return;}
+    if(isMobileDock())snapMobile(d.lastH);
+    else if(d.lastH<=76)setDockHeight(58,'collapsed');
+    else{lastDesktopHeight=d.lastH;setDockHeight(d.lastH,'desktop',{fit:true});}
+  }
+
+  handle.addEventListener('pointerdown',onPointerDown);
+  handle.addEventListener('pointermove',onPointerMove);
+  handle.addEventListener('pointerup',onPointerUp);
+  handle.addEventListener('pointercancel',onPointerUp);
+  handle.addEventListener('keydown',ev=>{
+    if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();cycleDock();}
+    if(ev.key==='Escape'){ev.preventDefault();closeDock();}
+  });
+
+  // Sustituye el antiguo modal de pantalla casi completa por una zona de trabajo acoplada.
+  openProfileModal=openDock;
+  closeProfileModal=closeDock;
+
+  // Al cambiar entre móvil y escritorio, conserva una disposición válida y redibuja mapa/perfil.
+  let wasMobile=isMobileDock();
+  window.addEventListener('resize',()=>{
+    if(!document.body.classList.contains('profile-docked'))return;
+    clearTimeout(window.__anambroProfileDockResizeTimer);
+    window.__anambroProfileDockResizeTimer=setTimeout(()=>{
+      const mobile=isMobileDock();
+      if(mobile!==wasMobile){
+        wasMobile=mobile;
+        const state=mobile?'mid':'desktop';
+        setDockHeight(dockHeightForState(state),state,{fit:true});
+      }else if(mobile&&dockState!=='collapsed'){
+        const h=mobileHeights();
+        const target=dockState==='expanded'?h.expanded:h.mid;
+        setDockHeight(target,dockState==='expanded'?'expanded':'mid');
+      }else if(!mobile&&dockState!=='collapsed'){
+        const b=desktopBounds();lastDesktopHeight=clamp(lastDesktopHeight,b.min,b.max);
+        setDockHeight(lastDesktopHeight,'desktop');
+      }else redrawAfterDock();
+    },100);
+  });
+
+  // API de diagnóstico/uso interno sin alterar las herramientas estables del visor.
+  window.anambroProfileDock={open:openDock,close:closeDock,cycle:cycleDock,state:()=>dockState};
+})();
+</script>
 </body>
 </html>
