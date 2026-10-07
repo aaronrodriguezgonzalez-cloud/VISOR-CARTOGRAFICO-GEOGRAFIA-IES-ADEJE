@@ -7444,8 +7444,18 @@ async function profileToponyms(prof,turns=[]){
  return {labels:chosen,turns:namedTurns};
 }
 
+function profileVerticalScale(zmin,zmax){
+ const mn=Number.isFinite(zmin)?zmin:0,mx=Number.isFinite(zmax)?zmax:mn+1;
+ const range=Math.max(1,mx-mn),pad=Math.max(5,range*.08),rawLo=mn-pad,rawHi=mx+pad;
+ const target=Math.max(1,(rawHi-rawLo)/5),exp=Math.pow(10,Math.floor(Math.log10(target))),q=target/exp;
+ const mult=q<=1?1:q<=2?2:q<=2.5?2.5:q<=5?5:10,step=mult*exp;
+ let lo=Math.floor(rawLo/step)*step,hi=Math.ceil(rawHi/step)*step;
+ if(mn>=0&&lo<0)lo=0;
+ if(hi<=lo)hi=lo+step;
+ return {lo,hi,step};
+}
 function detectProfileTurns(samples,total,zmin,zmax){
- const hi=Math.ceil((zmax+80)/100)*100,lo=Math.min(0,Math.floor((zmin-50)/100)*100),turns=[];
+ const {hi,lo}=profileVerticalScale(zmin,zmax),turns=[];
  const win=Math.max(2,Math.floor(samples.length/28));
  for(let k=win;k<samples.length-win;k++){
   const z=samples[k]&&samples[k].z;if(!Number.isFinite(z))continue;let l=0,r=0;
@@ -7574,12 +7584,12 @@ function drawProfileLarge(samples,total,zmin,zmax,toponyms=[],marked=[]){
        skinMode=profileThemeMode(),vegetationMode=skinMode.startsWith('veg');
  c.width=Math.round(cw*dpr);c.height=Math.round(ch*dpr);c.style.width=cw+'px';c.style.height=ch+'px';
  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);const W=cw,H=ch,countryMode=lastProfileWorld&&!!lastProfileCountries?.length,p={l:72,r:28,t:58,b:vegetationMode?(countryMode?154:118):(countryMode?96:64)};ctx.clearRect(0,0,W,H);
- let lo=Math.min(0,Math.floor((zmin-50)/100)*100),hi=Math.ceil((zmax+80)/100)*100;if(hi<=lo)hi=lo+100;
+ const vScale=profileVerticalScale(zmin,zmax),lo=vScale.lo,hi=vScale.hi;
  const X=d=>p.l+(d/total)*(W-p.l-p.r),Y=z=>p.t+(hi-z)/(hi-lo)*(H-p.t-p.b),base=H-p.b;
  // Fondo neutro: las tintas hipsométricas se reservan para la "piel" del relieve.
  ctx.fillStyle='rgba(248,249,247,.96)';ctx.fillRect(p.l,p.t,W-p.l-p.r,base-p.t);
  // rejilla y cotas
- ctx.font='12px system-ui,sans-serif';ctx.textBaseline='middle';const step=(hi-lo<=800?100:hi-lo<=1800?200:500);
+ ctx.font='12px system-ui,sans-serif';ctx.textBaseline='middle';const step=vScale.step;
  for(let z=Math.ceil(lo/step)*step;z<=hi;z+=step){const y=Y(z);ctx.strokeStyle='rgba(50,60,70,.18)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();ctx.fillStyle='#34404a';ctx.textAlign='right';ctx.fillText(fmtNum(z,0)+' m',p.l-8,y);}
  // Orientación del transecto: franja propia, fuera del espacio de topónimos.
  const orientationBoxes=[];const ori=profileOrientationLabels();if(ori){
@@ -7669,7 +7679,7 @@ function drawProfileLarge(samples,total,zmin,zmax,toponyms=[],marked=[]){
  }
 }
 function drawProfile(samples,total,zmin,zmax){
- const c=document.getElementById('profileCanvas'),ctx=c.getContext('2d'),W=c.width,H=c.height,p={l:55,r:15,t:15,b:38};ctx.clearRect(0,0,W,H);let lo=Math.max(0,Math.floor((zmin-20)/50)*50),hi=Math.ceil((zmax+20)/50)*50;if(hi<=lo)hi=lo+50;
+ const c=document.getElementById('profileCanvas'),ctx=c.getContext('2d'),W=c.width,H=c.height,p={l:55,r:15,t:15,b:38};ctx.clearRect(0,0,W,H);const vScale=profileVerticalScale(zmin,zmax),lo=vScale.lo,hi=vScale.hi;
  ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.l,p.t);ctx.lineTo(p.l,H-p.b);ctx.lineTo(W-p.r,H-p.b);ctx.stroke();ctx.fillStyle='#222';ctx.font='12px sans-serif';ctx.fillText(fmtNum(hi,0)+' m',4,p.t+4);ctx.fillText(fmtNum(lo,0)+' m',4,H-p.b+4);ctx.fillText('0',p.l-4,H-12);ctx.fillText(fmtDistance(total),W-p.r-70,H-12);
  ctx.strokeStyle='#333';ctx.lineWidth=2;ctx.beginPath();let pen=false;for(const sm of samples){if(sm.z===null){pen=false;continue;}const x=p.l+(sm.d/total)*(W-p.l-p.r),y=p.t+(hi-sm.z)/(hi-lo)*(H-p.t-p.b);if(!pen){ctx.moveTo(x,y);pen=true;}else ctx.lineTo(x,y);}ctx.stroke();
 }
