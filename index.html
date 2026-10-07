@@ -3064,10 +3064,11 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><input id="toponymyCheck" type="checkbox"/> <b>Toponimia enriquecida · IGN</b></label>
 <div class="layerSubBlock"><small>Nomenclátor Geográfico Básico de España.</small><input id="toponymyOpacity" max="1" min="0" step="0.05" style="width:100%" type="range" value="0.90"/></div></details>
 <details class="layerCategory"><summary>🌋 Geografía Física</summary>
-<details class="layerSubcategory"><summary>⛰️ Relieve e hidrografía</summary>
-<label><input id="spainHypsometryCheck" type="checkbox"/> <b>Hipsometría ibérica detallada · España, Portugal y sur de Francia</b></label>
-<label><input id="spainRiversCheck" type="checkbox"/> <b>Red hidrográfica ibérica · grandes ríos principales</b></label>
-<div class="layerSubBlock"><small>Versión específica para la Península Ibérica y el sur de Francia: gama hipsométrica propia para apreciar mejor los matices del relieve y una red hidrográfica reforzada con los principales ríos peninsulares.</small></div>
+<details class="layerSubcategory"><summary>🗺️ Relieve e hidrografía de España</summary>
+<label><input id="spainHypsometryCheck" type="checkbox"/> <b>Hipsometría de España · altitud y relieve sombreado</b></label>
+<label><input id="spainRiversCheck" type="checkbox"/> <b>Ríos principales · red hidrográfica</b></label>
+<label><input id="spainReliefToponymsCheck" type="checkbox"/> <b>Toponimia didáctica · relieve, ríos, costas, islas y cumbres</b></label>
+<div class="layerSubBlock"><small>Las tres capas pueden activarse por separado o combinarse para estudiar el relieve de España. La toponimia reproduce exactamente la relación didáctica seleccionada para el alumnado.</small></div>
 </details>
 <details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="spainGeologyCheck" type="checkbox"/> <b>Mapa geológico continuo · España peninsular y Baleares (GEODE)</b></label>
 <div class="layerSubBlock">
@@ -3368,6 +3369,12 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
       <option value="spain-provinces">Provincias de España</option>
       <option value="spain-ccaa">Comunidades autónomas</option>
       <option value="europe-countries">Países de Europa</option>
+      <option value="north-america-countries">Países de América del Norte</option>
+      <option value="south-america-countries">Países de América del Sur</option>
+      <option value="africa-countries">Países de África</option>
+      <option value="asia-countries">Países de Asia</option>
+      <option value="oceania-countries">Países de Oceanía</option>
+      <option value="world-countries">Países del mundo</option>
       <option value="historical-polities">Entidades políticas históricas · año de la capa histórica</option>
     </select>
   </label>
@@ -14498,6 +14505,7 @@ html body .historyPopup .leaflet-popup-close-button{
   'historical-polities':{title:'Entidades políticas históricas',source:'Cliopatria · Seshat Global History Databank',bounds:null}
  };
  const EUROPE_CODES=new Set('AL AD AM AT AZ BE BA BG BY CH CY CZ DE DK EE ES FI FR GB GE GR HR HU IE IS IT LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS RU SE SI SK SM TR UA VA XK'.split(' '));
+ const POLITICAL_COUNTRY_SCOPE_CONTINENT={'world-countries':'','north-america-countries':'North America','south-america-countries':'South America','africa-countries':'Africa','asia-countries':'Asia','oceania-countries':'Oceania'};
  const COUNTRY_ES={AL:'Albania',AD:'Andorra',AM:'Armenia',AT:'Austria',AZ:'Azerbaiyán',BE:'Bélgica',BA:'Bosnia y Herzegovina',BG:'Bulgaria',BY:'Bielorrusia',CH:'Suiza',CY:'Chipre',CZ:'Chequia',DE:'Alemania',DK:'Dinamarca',EE:'Estonia',ES:'España',FI:'Finlandia',FR:'Francia',GB:'Reino Unido',GE:'Georgia',GR:'Grecia',HR:'Croacia',HU:'Hungría',IE:'Irlanda',IS:'Islandia',IT:'Italia',LI:'Liechtenstein',LT:'Lituania',LU:'Luxemburgo',LV:'Letonia',MC:'Mónaco',MD:'Moldavia',ME:'Montenegro',MK:'Macedonia del Norte',MT:'Malta',NL:'Países Bajos',NO:'Noruega',PL:'Polonia',PT:'Portugal',RO:'Rumanía',RS:'Serbia',RU:'Rusia',SE:'Suecia',SI:'Eslovenia',SK:'Eslovaquia',SM:'San Marino',TR:'Turquía',UA:'Ucrania',VA:'Ciudad del Vaticano',XK:'Kosovo'};
  const POLITICAL_PALETTE=['#f4d35e','#8ecae6','#f7a072','#9cc27c','#b7bdf5','#ef9aa8','#8bd3c7','#c5a3d8','#ffd166','#a7d8de','#dced91','#ffb3a7'];
  let politicalLayer=null,politicalBathy=null,politicalPhysicalBase=null,politicalLabels=L.layerGroup(),politicalLeaders=L.layerGroup(),politicalDataCache=new Map();
@@ -14563,6 +14571,14 @@ html body .historyPopup .leaflet-popup-close-button{
  }
  async function politicalData(scope){
   if(scope==='historical-polities')return await waitHistoricalData();
+  if(Object.prototype.hasOwnProperty.call(POLITICAL_COUNTRY_SCOPE_CONTINENT,scope)){
+   if(politicalDataCache.has(scope))return politicalDataCache.get(scope);
+   await loadCountries();
+   const wanted=POLITICAL_COUNTRY_SCOPE_CONTINENT[scope];
+   let fs=(countriesData?.features||[]).filter(f=>String(f?.properties?.CONTINENT||'')!=='Antarctica');
+   if(wanted)fs=fs.filter(f=>String(f?.properties?.CONTINENT||'')===wanted);
+   const d={type:'FeatureCollection',features:fs};politicalDataCache.set(scope,d);return d;
+  }
   if(politicalDataCache.has(scope))return politicalDataCache.get(scope);
   let d=await politicalFetch(POLITICAL_URLS[scope]);
   if(scope==='canary-municipalities')d=await enrichCanaryMunicipalityNames(d);
@@ -14702,6 +14718,12 @@ html body .historyPopup .leaflet-popup-close-button{
     ============================================================ */
  POLITICAL_SCOPE_META['spain-admin']={title:'España · comunidades autónomas y provincias',source:'GeoJSON ligero · SIU como reserva',bounds:[[27.3,-18.4],[44.5,5.0]]};
  POLITICAL_SCOPE_META['world-country']={title:'Divisiones administrativas del país seleccionado',source:'World Bank Global Administrative Divisions + Natural Earth',bounds:null};
+ POLITICAL_SCOPE_META['world-countries']={title:'Países del mundo',source:'Natural Earth 50m',bounds:[[-85,-180],[85,180]]};
+ POLITICAL_SCOPE_META['north-america-countries']={title:'Países de América del Norte',source:'Natural Earth 50m',bounds:[[5,-170],[84,-50]]};
+ POLITICAL_SCOPE_META['south-america-countries']={title:'Países de América del Sur',source:'Natural Earth 50m',bounds:[[-60,-85],[15,-30]]};
+ POLITICAL_SCOPE_META['africa-countries']={title:'Países de África',source:'Natural Earth 50m',bounds:[[-38,-20],[38,55]]};
+ POLITICAL_SCOPE_META['asia-countries']={title:'Países de Asia',source:'Natural Earth 50m',bounds:[[-12,25],[82,180]]};
+ POLITICAL_SCOPE_META['oceania-countries']={title:'Países de Oceanía',source:'Natural Earth 50m',bounds:[[-55,105],[30,180]]};
  let politicalSecondaryLayer=null,politicalTertiaryLayer=null,politicalLandLayer=null,politicalPrimaryData=null,politicalSecondaryData=null,politicalTertiaryData=null;
  let politicalPrimaryLevel=0,politicalSecondaryLevel=0,politicalTertiaryLevel=0,politicalCountryFeature=null,politicalCountryIso3='',politicalCountryLabel='';
  let politicalMapBgSnapshot='';
@@ -14830,7 +14852,7 @@ html body .historyPopup .leaflet-popup-close-button{
  }
  function politicalGameStop(restore=true){clearTimeout(politicalGame.timer);politicalGame.active=false;politicalGame.current=null;if(restore)politicalRestyle();politicalGameEmit({stopped:true});}
  async function politicalGameStart(mode='lower',count=10){
-  const scope=q('politicalScope')?.value||politicalCurrentScope;if(!['spain-admin','world-country','spain-provinces','spain-ccaa','canary-municipalities'].includes(scope))throw new Error('El juego territorial necesita un país o España como ámbito.');
+  const scope=q('politicalScope')?.value||politicalCurrentScope;if(!['spain-admin','world-country','spain-provinces','spain-ccaa','canary-municipalities','europe-countries','world-countries','north-america-countries','south-america-countries','africa-countries','asia-countries','oceania-countries'].includes(scope))throw new Error('El juego territorial necesita un ámbito territorial válido.');
   if(scope==='spain-admin'||scope==='world-country'){
    const l1=q('politicalLevel1Check'),l2=q('politicalLevel2Check');if(mode==='upper'){if(l1)l1.checked=true;if(l2)l2.checked=false}else{if(l2)l2.checked=true;if(l1)l1.checked=true}
   }
@@ -20209,6 +20231,12 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
      '<option value="canary-municipalities">Canarias · municipios</option>'+ 
      '<option value="world-country">Un país del mundo</option>'+ 
      '<option value="europe-countries">Europa · países</option>'+ 
+     '<option value="north-america-countries">América del Norte · países</option>'+ 
+     '<option value="south-america-countries">América del Sur · países</option>'+ 
+     '<option value="africa-countries">África · países</option>'+ 
+     '<option value="asia-countries">Asia · países</option>'+ 
+     '<option value="oceania-countries">Oceanía · países</option>'+ 
+     '<option value="world-countries">Mundo · países</option>'+ 
      '<option value="historical-polities">Mapa histórico · Cliopatria</option>'+ 
    '</select><div id="politicalV044CountryWrap" style="display:none;margin-top:7px"><b>País</b><select id="politicalV044Country"><option value="">Cargando países…</option></select></div></div>'+ 
    '<div id="politicalV044LevelsWrap" class="v044Card"><b>2 · Niveles que quieres ver</b><div class="v044Levels">'+
@@ -20284,7 +20312,7 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
  function installSeparateGame(){
   if(q('territorialGamePanel'))return;
   const p=document.createElement('div');p.id='territorialGamePanel';p.className='panel hidden';
-  p.innerHTML='<h3>🎮 Juego territorial</h3><div class="gameV044Card"><b>Territorio</b><select id="territorialGameScope"><option value="spain">España</option><option value="canarias">Canarias · municipios</option><option value="world">Un país del mundo</option></select><div id="territorialGameCountryWrap" style="display:none;margin-top:6px"><select id="territorialGameCountry"><option value="">Cargando países…</option></select></div></div><div class="gameV044Card"><b>Qué quieres practicar</b><select id="territorialGameLevel"><option value="lower">Provincias</option><option value="upper">Comunidades Autónomas</option></select><div class="gameV044Grid" style="margin-top:6px"><label>Número de preguntas<select id="territorialGameCount"><option value="10">10</option><option value="20">20</option><option value="all">Todas</option></select></label><button class="action" id="territorialGameStart" type="button">▶ Empezar</button></div></div><div id="territorialGamePrompt" class="gameV044Prompt"></div><div class="gameV044Stats"><span>Aciertos<br><b id="territorialGameCorrect">0</b></span><span>Fallos<br><b id="territorialGameFailed">0</b></span><span>Pregunta<br><b id="territorialGameProgress">0/0</b></span></div><div id="territorialGameMsg"></div><div class="row" style="margin-top:8px"><button class="action politicalExit" id="territorialGameStop" type="button">Detener</button><button class="action politicalExit" type="button" onclick="togglePanel(\'territorialGamePanel\')">Cerrar</button></div>';
+  p.innerHTML='<h3>🎮 Juego territorial</h3><div class="gameV044Card"><b>Territorio</b><select id="territorialGameScope"><option value="spain">España</option><option value="canarias">Canarias · municipios</option><option value="world">Un país del mundo · divisiones</option><option value="europe-countries">Europa · países</option><option value="north-america-countries">América del Norte · países</option><option value="south-america-countries">América del Sur · países</option><option value="africa-countries">África · países</option><option value="asia-countries">Asia · países</option><option value="oceania-countries">Oceanía · países</option><option value="world-countries">Mundo · países</option></select><div id="territorialGameCountryWrap" style="display:none;margin-top:6px"><select id="territorialGameCountry"><option value="">Cargando países…</option></select></div></div><div class="gameV044Card"><b>Qué quieres practicar</b><select id="territorialGameLevel"><option value="lower">Provincias</option><option value="upper">Comunidades Autónomas</option></select><div class="gameV044Grid" style="margin-top:6px"><label>Número de preguntas<select id="territorialGameCount"><option value="10">10</option><option value="20">20</option><option value="all">Todas</option></select></label><button class="action" id="territorialGameStart" type="button">▶ Empezar</button></div></div><div id="territorialGamePrompt" class="gameV044Prompt"></div><div class="gameV044Stats"><span>Aciertos<br><b id="territorialGameCorrect">0</b></span><span>Fallos<br><b id="territorialGameFailed">0</b></span><span>Pregunta<br><b id="territorialGameProgress">0/0</b></span></div><div id="territorialGameMsg"></div><div class="row" style="margin-top:8px"><button class="action politicalExit" id="territorialGameStop" type="button">Detener</button><button class="action politicalExit" type="button" onclick="togglePanel(\'territorialGamePanel\')">Cerrar</button></div>';
   document.body.appendChild(p);
   const politicalBtn=q('politicalToolBtn');
   if(politicalBtn&&!q('territorialGameToolBtn')){const b=document.createElement('button');b.className='tool';b.id='territorialGameToolBtn';b.setAttribute('onclick',"togglePanel('territorialGamePanel')");b.innerHTML='<span>🎮</span> Juego territorial';politicalBtn.insertAdjacentElement('afterend',b)}
@@ -20293,13 +20321,14 @@ body.political-map-mode.political-clean-bg #map{background:var(--political-sea,#
   function syncLevel(){
    if(gs.value==='spain'){gl.innerHTML='<option value="lower">Provincias</option><option value="upper">Comunidades Autónomas</option>';gcw.style.display='none'}
    else if(gs.value==='canarias'){gl.innerHTML='<option value="lower">Municipios de Canarias</option>';gcw.style.display='none'}
+   else if(gs.value!=='world'){gl.innerHTML='<option value="lower">Países</option>';gcw.style.display='none'}
    else {gcw.style.display='block';load();const n=window.anambroPoliticalV042?.levelNames?.(gc.value)||['Nivel principal','Subdivisiones'];gl.innerHTML='<option value="lower">'+(n[1]||'Subdivisiones')+'</option><option value="upper">'+(n[0]||'Nivel principal')+'</option>'}
   }
   gs.addEventListener('change',syncLevel);gc.addEventListener('change',syncLevel);syncLevel();
   q('territorialGameStart').addEventListener('click',async()=>{
    const msg=q('territorialGameMsg');msg.textContent='Preparando mapa…';
    try{
-    let scopeVal='spain-admin';if(gs.value==='canarias')scopeVal='canary-municipalities';if(gs.value==='world')scopeVal='world-country';
+    let scopeVal='spain-admin';if(gs.value==='canarias')scopeVal='canary-municipalities';else if(gs.value==='world')scopeVal='world-country';else if(['europe-countries','north-america-countries','south-america-countries','africa-countries','asia-countries','oceania-countries','world-countries'].includes(gs.value))scopeVal=gs.value;
     q('politicalScope').value=scopeVal;
     if(gs.value==='world'){
      let mirror=q('politicalCountrySelect');if(!mirror){mirror=document.createElement('input');mirror.type='hidden';mirror.id='politicalCountrySelect';document.body.appendChild(mirror)}mirror.value=gc.value;
@@ -20620,13 +20649,13 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
  hyps.dataset.anambroIberiaReady='1';
  function ensurePane(name,z){let p=map.getPane(name);if(!p){p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents='none'}return p}
  ensurePane('iberiaHypsometryPane',286);ensurePane('iberiaRiversPane',576);ensurePane('iberiaRiverLabelsPane',586);
- const BBOX={w:-10.7,e:5.1,s:35.0,n:45.2};
+ const BBOX={w:-10.7,e:5.1,s:35.0,n:45.2},CAN_BBOX={w:-18.4,e:-13.0,s:27.4,n:29.6};
  const tileCache=new Map();
  function terrariumUrl(c){return 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+c.z+'/'+c.x+'/'+c.y+'.png'}
  function elev(r,g,b){return r*256+g+b/256-32768}
  function tile2lon(x,z){return x/Math.pow(2,z)*360-180}
  function tile2lat(y,z){const n=Math.PI-2*Math.PI*y/Math.pow(2,z);return 180/Math.PI*Math.atan(Math.sinh(n))}
- function intersectsIberia(c){const w=tile2lon(c.x,c.z),e=tile2lon(c.x+1,c.z),n=tile2lat(c.y,c.z),s=tile2lat(c.y+1,c.z);return !(e<BBOX.w||w>BBOX.e||n<BBOX.s||s>BBOX.n)}
+ function intersectsIberia(c){const w=tile2lon(c.x,c.z),e=tile2lon(c.x+1,c.z),n=tile2lat(c.y,c.z),s=tile2lat(c.y+1,c.z),hit=b=>!(e<b.w||w>b.e||n<b.s||s>b.n);return hit(BBOX)||hit(CAN_BBOX)}
  // Rampa específica 0–3500 m: toda la gama se consume dentro del relieve ibérico.
  const stops=[[0,[63,143,85]],[100,[105,170,87]],[250,[159,195,90]],[450,[211,207,85]],[700,[226,170,69]],[1000,[215,131,61]],[1300,[179,95,63]],[1600,[136,77,73]],[2000,[104,70,70]],[2400,[143,116,113]],[2800,[200,185,173]],[3200,[236,232,224]],[3500,[255,255,255]]];
  function mix(a,b,t){return Math.round(a+(b-a)*t)}
@@ -20651,7 +20680,7 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
    }catch(e){console.warn('Hipsometría ibérica:',e);done(null,cv)}})();return cv}
  });
  let ibLayer=null,ibLegendControl=null;
- function ensureLegend(){if(ibLegendControl)return;ibLegendControl=L.control({position:'bottomright'});ibLegendControl.onAdd=function(){const d=L.DomUtil.create('div','iberiaHypsLeafletLegend');d.innerHTML='<b>Hipsometría ibérica · altitud</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div>';L.DomEvent.disableClickPropagation(d);return d}}
+ function ensureLegend(){if(ibLegendControl)return;ibLegendControl=L.control({position:'bottomright'});ibLegendControl.onAdd=function(){const d=L.DomUtil.create('div','iberiaHypsLeafletLegend');d.innerHTML='<b>Hipsometría de España · altitud</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div>';L.DomEvent.disableClickPropagation(d);return d}}
  function setIberiaHyps(on){if(on){if(!ibLayer)ibLayer=new IberiaHypsLayer();if(!map.hasLayer(ibLayer))ibLayer.addTo(map);ensureLegend();try{ibLegendControl.addTo(map)}catch(_){}}else{if(ibLayer&&map.hasLayer(ibLayer))map.removeLayer(ibLayer);try{if(ibLegendControl)map.removeControl(ibLegendControl)}catch(_){}}setTimeout(()=>{try{updateLegend()}catch(_){}},0)}
  hyps.addEventListener('change',()=>setIberiaHyps(hyps.checked));
 
@@ -20665,20 +20694,20 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
  function addLabels(){if(riverLabels&&map.hasLayer(riverLabels))map.removeLayer(riverLabels);riverLabels=L.layerGroup([], {pane:'iberiaRiverLabelsPane'});for(const [name,lat,lon] of LABELS){L.marker([lat,lon],{pane:'iberiaRiverLabelsPane',interactive:false,icon:L.divIcon({className:'anambro-river-label',html:(window.escHtml?escHtml(name):name),iconSize:null})}).addTo(riverLabels)}riverLabels.addTo(map)}
  async function loadNaturalEarth(){if(neLoaded)return;neLoaded=true;try{const r=await fetch(NE_RIVERS,{mode:'cors'});if(!r.ok)throw new Error('Natural Earth HTTP '+r.status);const fc=await r.json();neRivers=L.geoJSON(fc,{pane:'iberiaRiversPane',style:{color:'#1685bd',weight:1.45,opacity:.78,lineCap:'round',lineJoin:'round'},filter:f=>{try{const b=L.geoJSON(f).getBounds();return b.isValid()&&b.getEast()>=BBOX.w&&b.getWest()<=BBOX.e&&b.getNorth()>=BBOX.s&&b.getSouth()<=BBOX.n}catch(_){return false}}});if(riv.checked)neRivers.addTo(map)}catch(e){neLoaded=false;console.warn('Ríos Natural Earth:',e)}}
  async function setIberiaRivers(on){
-   if(on){if(!ignHydro)ignHydro=L.tileLayer.wms(IGN_HYDRO,{layers:'HY.Network',format:'image/png',transparent:true,version:'1.3.0',opacity:.98,pane:'iberiaRiversPane',crossOrigin:true,attribution:'IGN/SCNE · IGR Hidrografía'});if(!map.hasLayer(ignHydro))ignHydro.addTo(map);await loadNaturalEarth();if(neRivers&&!map.hasLayer(neRivers))neRivers.addTo(map);addLabels()}
+   if(on){if(!ignHydro)ignHydro=L.tileLayer.wms(IGN_HYDRO,{layers:'HY.Network',format:'image/png',transparent:true,version:'1.3.0',opacity:.98,pane:'iberiaRiversPane',crossOrigin:true,attribution:'IGN/SCNE · IGR Hidrografía'});if(!map.hasLayer(ignHydro))ignHydro.addTo(map);await loadNaturalEarth();if(neRivers&&!map.hasLayer(neRivers))neRivers.addTo(map);if(riverLabels&&map.hasLayer(riverLabels))map.removeLayer(riverLabels)}
    else{for(const l of [ignHydro,neRivers,riverLabels])if(l&&map.hasLayer(l))map.removeLayer(l)}
    setTimeout(()=>{try{updateLegend()}catch(_){}},0)
  }
  riv.addEventListener('change',()=>setIberiaRivers(riv.checked));
 
  const oldLegend=typeof activeLegendHTML==='function'?activeLegendHTML:null;
- if(oldLegend)window.activeLegendHTML=function(){let h=oldLegend.apply(this,arguments)||'';if(hyps.checked)h+='<div style="margin-top:8px"><b>Hipsometría ibérica detallada</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div><small>España, Portugal y sur de Francia · gama recalibrada 0–3500 m.</small></div>';if(riv.checked)h+='<div style="margin-top:7px"><b>Red hidrográfica ibérica</b><br><span class="iberiaHydroLine"></span><small>IGR Hidrografía IGN (España) + Natural Earth para contexto ibérico.</small></div>';return h};
+ if(oldLegend)window.activeLegendHTML=function(){let h=oldLegend.apply(this,arguments)||'';if(hyps.checked)h+='<div style="margin-top:8px"><b>Hipsometría de España</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div><small>Gama didáctica recalibrada 0–3500+ m para España y contexto ibérico.</small></div>';if(riv.checked)h+='<div style="margin-top:7px"><b>Red hidrográfica ibérica</b><br><span class="iberiaHydroLine"></span><small>IGR Hidrografía IGN (España) + Natural Earth para contexto ibérico.</small></div>';return h};
  const oldSources=typeof activeSourcesText==='function'?activeSourcesText:null;
  if(oldSources)window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||'';const x=[];if(hyps.checked)x.push('Mapzen Terrain Tiles / AWS · Terrarium (rampa ibérica 0–3500 m)');if(riv.checked)x.push('IGN/SCNE · IGR Hidrografía HY.Network · Natural Earth');return [s,...x].filter(Boolean).join(' · ')};
  const baseUpdate=typeof updateLegend==='function'?updateLegend:null;
- if(baseUpdate)window.updateLegend=function(){baseUpdate.apply(this,arguments);const c=q('legendContent');if(!c)return;let x='';if(hyps.checked)x+='<div style="margin-top:8px"><b>Hipsometría ibérica detallada</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div></div>';if(riv.checked)x+='<div style="margin-top:7px"><b>Red hidrográfica ibérica</b><br><span class="iberiaHydroLine"></span>Ríos</div>';if(x)c.insertAdjacentHTML('beforeend',x)};
+ if(baseUpdate)window.updateLegend=function(){baseUpdate.apply(this,arguments);const c=q('legendContent');if(!c)return;let x='';if(hyps.checked)x+='<div style="margin-top:8px"><b>Hipsometría de España</b><div class="iberiaHypsRamp"></div><div class="iberiaHypsTicks"><span>0</span><span>250</span><span>700</span><span>1300</span><span>2000</span><span>2800</span><span>3500+ m</span></div></div>';if(riv.checked)x+='<div style="margin-top:7px"><b>Red hidrográfica ibérica</b><br><span class="iberiaHydroLine"></span>Ríos</div>';if(x)c.insertAdjacentHTML('beforeend',x)};
  const oldTitle=typeof defaultLayoutTitle==='function'?defaultLayoutTitle:null;
- if(oldTitle)window.defaultLayoutTitle=function(){if(hyps.checked||riv.checked)return riv.checked?'Relieve e hidrografía de la Península Ibérica':'Hipsometría detallada de la Península Ibérica';return oldTitle.apply(this,arguments)};
+ if(oldTitle)window.defaultLayoutTitle=function(){if(hyps.checked||riv.checked)return riv.checked?'Relieve e hidrografía de España':'Hipsometría del relieve de España';return oldTitle.apply(this,arguments)};
  window.__anambroIberiaReliefHydro={hypsometry:()=>ibLayer,rivers:()=>({ign:ignHydro,naturalEarth:neRivers,labels:riverLabels})};
 })();
 </script>
@@ -21049,6 +21078,73 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
  // Localizar coordenadas ya llama closePanels() desde la función original.
  mq.addEventListener?.('change',()=>{if(!isMobile()){showGameHud(false);hideWorkHud()}else addPanelCloseButtons()});
  window.__anambroMobileUsability={hidePanel,showGameHud,renderWorkHud,hideWorkHud};
+})();
+</script>
+
+
+<style id="anambro-spain-study-toponymy-css">
+.anambro-study-label{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;white-space:nowrap!important;pointer-events:none!important}
+.anambro-study-label span{display:inline-block;padding:1px 3px;border-radius:4px;background:rgba(255,255,255,.72);text-shadow:0 1px 0 #fff,1px 0 0 #fff,-1px 0 0 #fff,0 -1px 0 #fff;font:800 10px/1.08 system-ui,-apple-system,sans-serif;color:#273746}
+.anambro-study-label.relief span{color:#6b3e24;font-weight:900}
+.anambro-study-label.river span{color:#086a9c;font-style:italic;font-weight:900}
+.anambro-study-label.sea span{color:#176b94;font-style:italic;font-weight:850;background:rgba(239,249,255,.60)}
+.anambro-study-label.island span{color:#315b38;font-weight:900}
+.anambro-study-label.coast span{color:#4b5563;font-weight:900}
+.anambro-study-label.peak span{color:#7c2d12;font-weight:950;background:rgba(255,248,238,.82)}
+.anambro-study-peak-symbol{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid #7c2d12;margin:0 auto 1px}
+@media(max-width:760px){.anambro-study-label span{font-size:9px;padding:1px 2px}}
+</style>
+<script id="anambro-spain-study-toponymy-and-final-surgical-fixes">
+(function(){
+ 'use strict';
+ const q=id=>document.getElementById(id);
+ if(!window.L||typeof map==='undefined')return;
+
+ // --- A. Toponimia didáctica exacta del listado aportado por el docente. ---
+ const check=q('spainReliefToponymsCheck');
+ let topoLayer=null;
+ const TOPO=[
+  ['Mar Cantábrico',43.70,-4.80,'sea',4],['Océano Atlántico',37.30,-12.20,'sea',4],['Mar Mediterráneo',39.15,3.85,'sea',4],
+  ['Islas Baleares',39.55,2.80,'island',4],['Islas Canarias',28.25,-15.85,'island',4],
+  ['Gran Canaria',28.12,-15.58,'island',5],['El Hierro',27.74,-18.02,'island',5],['Ibiza',38.98,1.43,'island',5],['La Graciosa',29.25,-13.50,'island',5],['Tenerife',28.30,-16.57,'island',5],['Menorca',39.98,4.10,'island',5],['Formentera',38.70,1.45,'island',5],['Lanzarote',29.04,-13.63,'island',5],['La Gomera',28.12,-17.23,'island',5],['Mallorca',39.62,2.95,'island',5],['Fuerteventura',28.36,-14.03,'island',5],['La Palma',28.68,-17.85,'island',5],['Cabrera',39.15,2.94,'island',5],
+  ['Cabo de Creus',42.32,3.32,'coast',5],['Cabo de Finisterre',42.88,-9.27,'coast',5],['Cabo de Gata',36.72,-2.19,'coast',5],['Cabo de Roca',38.78,-9.50,'coast',5],['Cabo de San Vicente',37.02,-8.99,'coast',5],['Estrecho de Gibraltar',36.02,-5.60,'coast',5],
+  ['Pirineos',42.66,0.75,'relief',4],['Cordillera Cantábrica',43.05,-4.55,'relief',4],['Montes de Toledo',39.45,-4.55,'relief',5],['Depresión del Guadalquivir',37.45,-5.45,'relief',4],['Cordillera Costero-Catalana',41.55,1.90,'relief',5],['Macizo Galaico',42.72,-7.70,'relief',5],['Sierra Morena',38.30,-4.25,'relief',4],['Depresión del Ebro',41.70,-0.75,'relief',4],['Montes Vascos',43.02,-2.45,'relief',5],['Montes de León',42.50,-6.25,'relief',5],['Cordillera Penibética',37.02,-3.25,'relief',4],['Submeseta Norte',41.55,-4.55,'relief',4],['Sistema Ibérico',40.62,-1.75,'relief',4],['Sistema Central',40.60,-4.55,'relief',4],['Cordillera Subbética',37.58,-3.85,'relief',5],['Submeseta Sur',39.35,-3.70,'relief',4],
+  ['Río Miño',42.20,-8.05,'river',5],['Río Guadalquivir',37.72,-5.05,'river',5],['Río Ebro',41.67,-0.90,'river',5],['Río Segura',38.10,-1.30,'river',5],['Río Duero',41.50,-5.75,'river',5],['Río Nalón',43.30,-5.80,'river',6],['Río Llobregat',41.70,1.90,'river',6],['Río Tajo',39.80,-4.20,'river',5],['Río Nervión',43.22,-2.92,'river',6],['Río Turia',39.50,-0.70,'river',6],['Río Guadiana',38.90,-6.00,'river',5],['Río Bidasoa',43.34,-1.80,'river',6],['Río Júcar',39.20,-1.60,'river',6],
+  ['Pico Almanzor',40.25,-5.30,'peak',6],['Pico Aneto',42.63,0.66,'peak',6],['Monte Moncayo',41.79,-1.82,'peak',6],['Monte Perdido',42.68,0.03,'peak',6],['Mulhacén',37.05,-3.31,'peak',6],['Torre Cerredo',43.20,-4.85,'peak',6],['Teide',28.27,-16.64,'peak',6]
+ ];
+ function markerFor(item){
+   const [name,lat,lon,type,minZoom]=item,peak=type==='peak';
+   const html=peak?'<div class="anambro-study-peak-symbol"></div><span>'+name+'</span>':'<span>'+name+'</span>';
+   const m=L.marker([lat,lon],{interactive:false,keyboard:false,icon:L.divIcon({className:'anambro-study-label '+type,html,iconSize:null,iconAnchor:[0,0]})});m.__minZoom=minZoom;return m;
+ }
+ function ensureTopo(){if(topoLayer)return;topoLayer=L.layerGroup(TOPO.map(markerFor));}
+ function refreshTopoZoom(){if(!topoLayer||!map.hasLayer(topoLayer))return;const z=map.getZoom();topoLayer.eachLayer(m=>{const el=m.getElement?.();if(el)el.style.display=z>=(m.__minZoom||4)?'':'none'})}
+ function setTopo(on){ensureTopo();if(on){if(!map.hasLayer(topoLayer))topoLayer.addTo(map);refreshTopoZoom()}else if(map.hasLayer(topoLayer))map.removeLayer(topoLayer);try{updateLegend()}catch(_){}}
+ check?.addEventListener('change',()=>setTopo(check.checked));map.on('zoomend',refreshTopoZoom);
+ const oldLegend=typeof activeLegendHTML==='function'?activeLegendHTML:null;
+ if(oldLegend)window.activeLegendHTML=function(){let h=oldLegend.apply(this,arguments)||'';if(check?.checked)h+='<div style="margin-top:7px"><b>Toponimia didáctica del relieve de España</b><br><small>Mares, islas, cabos, unidades de relieve, ríos y cumbres seleccionados para estudio.</small></div>';return h};
+ const oldSources=typeof activeSourcesText==='function'?activeSourcesText:null;
+ if(oldSources)window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||'';return check?.checked?[s,'Toponimia didáctica seleccionada por el docente'].filter(Boolean).join(' · '):s};
+
+ // --- B. Cerrar una ventana de herramienta => vista inicial de ANAMBRO. ---
+ const HOME=[28.30,-16.55],HOME_Z=9;
+ function homeView(){try{map.setView(HOME,HOME_Z,{animate:false});map.closePopup?.()}catch(_){}}
+ const baseToggle=typeof togglePanel==='function'?togglePanel:null;
+ if(baseToggle){
+   window.togglePanel=togglePanel=function(id){const p=q(id),wasOpen=!!p&&!p.classList.contains('hidden');const r=baseToggle.apply(this,arguments);if(wasOpen&&p?.classList.contains('hidden'))setTimeout(homeView,0);return r};
+ }
+ document.addEventListener('click',e=>{
+   const b=e.target.closest?.('button');if(!b)return;
+   if(b.classList.contains('anambroMobilePanelClose')||(b.closest?.('.panel')&&/^cerrar$/i.test((b.textContent||'').trim())))setTimeout(homeView,20);
+ },true);
+ window.__anambroHomeView=homeView;
+
+ // --- C. Garantía móvil: mostrar el primer nombre nada más comenzar la partida. ---
+ function gameFeatureName(f){const p=f?.properties||{};return String(p.NAM_2||p.NAM_1||p.NAME_2||p.NAME_1||p.NAME_ES||p.ADMIN||p.NAME||p.name||p.NOMBRE||p.nombre||p.__name_es||p.__name||'').trim()}
+ document.addEventListener('click',e=>{
+   if(window.innerWidth>760)return;const b=e.target.closest?.('#territorialGameStart');if(!b)return;
+   let tries=0;const timer=setInterval(()=>{tries++;const st=window.anambroPoliticalV042?.state?.(),g=st?.game,n=gameFeatureName(g?.current);if(g?.active&&n){const hud=q('anambroMobileGameHud'),hp=q('anambroMobileGamePrompt'),pp=q('territorialGamePrompt');if(hud)hud.hidden=false;if(hp)hp.textContent='Localiza: '+n;if(pp){pp.style.display='block';pp.textContent='Localiza: '+n}clearInterval(timer)}else if(tries>80)clearInterval(timer)},100);
+ },true);
 })();
 </script>
 
