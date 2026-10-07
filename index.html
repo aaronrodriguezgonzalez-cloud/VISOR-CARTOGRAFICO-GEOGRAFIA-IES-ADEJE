@@ -6705,11 +6705,16 @@ async function finishProfileFromPoints(profileInputPts){
  try{
   if(profilePts.length<2){alert('Marca al menos dos puntos para generar el perfil.');return;}profileMode=false;redrawProfileLine();
   const prof=interpolateProfilePoints(profilePts,profileAdaptiveSampleCount(profilePts));prof.path=profilePts.slice();
-  lastProfileWorld=lastProfileSource==='globe'||profilePts.some(ll=>!profileIsSpainLatLng(ll));
+  // Fuente altimétrica homogénea por recorrido: si el perfil/track sale de España,
+  // usar el DEM mundial para TODAS las muestras. Evita saltos de fuente en Pirineos,
+  // Portugal u otros recorridos transfronterizos. Las consultas puntuales siguen usando
+  // el DEM español/MDT25 cuando corresponda.
+  const forceWorldDem=lastProfileSource==='globe'||prof.points.some(p=>!profileIsSpainLatLng(p.ll));
+  lastProfileWorld=forceWorldDem;
   lastProfileMacrostratZoom=lastProfileSource==='globe'?macrostratGlobeQueryZoom():Math.max(2,Math.min(12,Math.round(map.getZoom())));
-  const result=document.getElementById('profileResult');result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · calculando altitudes…';
+  const result=document.getElementById('profileResult');result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · calculando altitudes…'+(forceWorldDem?' · DEM mundial continuo':'');
   const samples=new Array(prof.points.length),workers=Math.min(12,prof.points.length);let nextSample=0;
-  await Promise.all(Array.from({length:workers},async()=>{while(true){const i=nextSample++;if(i>=prof.points.length)break;const p=prof.points[i];samples[i]={d:p.d,ll:p.ll,z:await elevationAt(p.ll.lat,p.ll.lng)};}}));
+  await Promise.all(Array.from({length:workers},async()=>{while(true){const i=nextSample++;if(i>=prof.points.length)break;const p=prof.points[i];const z=forceWorldDem?await cesiumWorldElevationAt(p.ll.lat,p.ll.lng):await elevationAt(p.ll.lat,p.ll.lng);samples[i]={d:p.d,ll:p.ll,z};}}));
   const valid=samples.filter(x=>x.z!==null);if(valid.length<2){result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · sin datos altimétricos suficientes';status('Perfil: sin datos altimétricos suficientes');return;}
   const zs=valid.map(x=>x.z),zmin=Math.min(...zs),zmax=Math.max(...zs);let gain=0,loss=0,last=null;
   for(const x of valid){if(last!==null){const dz=x.z-last;if(dz>0)gain+=dz;else loss-=dz;}last=x.z;}
@@ -21425,6 +21430,112 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 
  // Exponer la nueva capa al panel Capas activas.
  window.__anambroSpainHydroFix=Object.assign(window.__anambroSpainHydroFix||{}, {bach:()=>bachLayer,setBach});
+})();
+</script>
+
+
+<style id="anambro-iberian-hydro-final-20261007-css">
+#spainIberianHydroStatus{display:block;margin-top:5px;color:#52616d;font-size:10.5px;line-height:1.25}
+#spainIberianHydroStatus.ok{color:#17633a}#spainIberianHydroStatus.warn{color:#8a5a00}
+</style>
+<script id="anambro-iberian-hydro-final-20261007-js">
+(function(){
+ 'use strict';
+ const q=id=>document.getElementById(id);
+ if(!window.L||typeof map==='undefined')return;
+ function ensurePane(name,z){let p=map.getPane(name);if(!p){p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents='none'}return p}
+ ensurePane('spainHydroNetworkPane',574);ensurePane('spainBachRiversPane',576);
+
+ // Clonar los dos checks elimina listeners de versiones anteriores y deja una sola lógica final.
+ const oldNet=q('spainHydroNetworkCheck'),oldBach=q('spainRiversCheck');
+ if(!oldNet||!oldBach)return;
+ const netCheck=oldNet.cloneNode(true),bachCheck=oldBach.cloneNode(true);
+ oldNet.parentNode.replaceChild(netCheck,oldNet);oldBach.parentNode.replaceChild(bachCheck,oldBach);
+
+ let statusEl=q('spainIberianHydroStatus');
+ if(!statusEl){statusEl=document.createElement('small');statusEl.id='spainIberianHydroStatus';const host=bachCheck.closest('details')?.querySelector('.layerSubBlock');host?.appendChild(statusEl)}
+ function setStatus(t,cls=''){if(statusEl){statusEl.textContent=t;statusEl.className=cls}}
+
+ const TILE_URL='https://tiles.openfreemap.org/planet/latest/{z}/{x}/{y}.pbf';
+ const tileCache=new Map();let libsPromise=null;
+ async function libs(){
+   if(libsPromise)return libsPromise;
+   libsPromise=(async()=>{if(typeof worldVectorLibs==='function')return worldVectorLibs();const [vt,pbf]=await Promise.all([import('https://cdn.jsdelivr.net/npm/@mapbox/vector-tile@2.0.4/+esm'),import('https://cdn.jsdelivr.net/npm/pbf@4.0.1/+esm')]);return {VectorTile:vt.VectorTile,Pbf:pbf.default||pbf}})();
+   return libsPromise;
+ }
+ async function waterwayTile(z,x,y){
+   const key=z+'/'+x+'/'+y;if(tileCache.has(key))return tileCache.get(key);
+   const p=(async()=>{const {VectorTile,Pbf}=await libs(),u=TILE_URL.replace('{z}',z).replace('{x}',x).replace('{y}',y),r=await fetch(u,{cache:'force-cache'});if(!r.ok)throw new Error('MVT '+r.status);const t=new VectorTile(new Pbf(new Uint8Array(await r.arrayBuffer())));return t.layers.waterway||null})();
+   tileCache.set(key,p);if(tileCache.size>500){const k=tileCache.keys().next().value;tileCache.delete(k)}
+   try{return await p}catch(e){tileCache.delete(key);throw e}
+ }
+ function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/^\s*(rio|riu|river)\s+/,'').trim()}
+ const CANON={'mino':'Miño','minho':'Miño','duero':'Duero','douro':'Duero','tajo':'Tajo','tejo':'Tajo','guadiana':'Guadiana','guadalquivir':'Guadalquivir','ebro':'Ebro','segura':'Segura','nalon':'Nalón','nervion':'Nervión','bidasoa':'Bidasoa','llobregat':'Llobregat','turia':'Turia','jucar':'Júcar','xuquer':'Júcar'};
+ function canonical(p){for(const k of ['name:es','name:pt','name','name_en']){const n=CANON[norm(p?.[k])];if(n)return n}return ''}
+
+ // -------- Red hidrográfica ibérica completa --------
+ // Grid vectorial: continuidad España-Portugal y nivel de detalle dependiente del zoom.
+ const IberianHydro=L.GridLayer.extend({
+   options:{pane:'spainHydroNetworkPane',tileSize:256,minZoom:0,maxZoom:18,opacity:.92,updateWhenIdle:true,keepBuffer:2},
+   createTile:function(coords,done){
+     const cv=document.createElement('canvas');cv.width=256;cv.height=256;const cx=cv.getContext('2d');
+     (async()=>{try{
+       const n=2**coords.z,west=coords.x/n*360-180,east=(coords.x+1)/n*360-180;const lat=y=>180/Math.PI*Math.atan(Math.sinh(Math.PI*(1-2*y/n))),north=lat(coords.y),south=lat(coords.y+1);
+       if(east<-10.9||west>5.2||north<35.0||south>44.8){done(null,cv);return}
+       const layer=await waterwayTile(coords.z,coords.x,coords.y);if(!layer){done(null,cv);return}
+       cx.lineCap='round';cx.lineJoin='round';
+       for(let i=0;i<layer.length;i++){
+         const f=layer.feature(i),p=f.properties||{},cls=String(p.class||p.waterway||'').toLowerCase();
+         if(coords.z<=7&&!/river|canal/.test(cls))continue;
+         if(coords.z<=9&&/stream|ditch|drain/.test(cls))continue;
+         const width=/river/.test(cls)?(coords.z<=7?1.35:1.6):/canal/.test(cls)?1.05:.72;
+         cx.strokeStyle='rgba(8,127,181,.90)';cx.lineWidth=width;
+         const geoms=f.loadGeometry();for(const g of geoms||[]){if(!g||g.length<2)continue;cx.beginPath();for(let j=0;j<g.length;j++){const x=g[j].x/layer.extent*256,y=g[j].y/layer.extent*256;j?cx.lineTo(x,y):cx.moveTo(x,y)}cx.stroke()}
+       }
+       done(null,cv);
+     }catch(e){console.warn('Red hidrográfica ibérica:',e);done(null,cv)}})();return cv;
+   }
+ });
+ let networkLayer=null;
+ function setNetwork(on){
+   if(on){if(!networkLayer)networkLayer=new IberianHydro();if(!map.hasLayer(networkLayer))networkLayer.addTo(map);setStatus('Red hidrográfica ibérica activa · continuidad España-Portugal.','ok')}
+   else if(networkLayer&&map.hasLayer(networkLayer))map.removeLayer(networkLayer);
+   setTimeout(()=>{try{updateLegend()}catch(_){};try{window.anambroActiveLayerOrder?.sync?.()}catch(_){}},0);
+ }
+ netCheck.addEventListener('change',()=>setNetwork(netCheck.checked));
+
+ // -------- Ríos 2.º Bachillerato --------
+ const RIVERS=['Miño','Duero','Tajo','Guadiana','Guadalquivir','Ebro','Segura','Nalón','Nervión','Bidasoa','Llobregat','Turia','Júcar'];
+ const CORRIDORS={
+   'Miño':[-8.95,41.85,-6.85,43.05],'Duero':[-8.85,40.25,-1.35,42.45],'Tajo':[-9.55,39.15,-1.35,41.0],
+   'Guadiana':[-7.65,36.95,-2.75,39.85],'Guadalquivir':[-7.05,36.55,-2.45,38.45],'Ebro':[-3.25,40.55,1.05,43.15],
+   'Segura':[-2.85,37.35,-0.45,38.75],'Nalón':[-6.20,42.95,-5.20,43.72],'Nervión':[-3.30,42.85,-2.45,43.58],
+   'Bidasoa':[-2.02,42.98,-1.50,43.52],'Llobregat':[1.25,41.15,2.35,42.25],'Turia':[-2.10,38.95,-0.15,40.65],'Júcar':[-2.40,38.60,-0.05,40.60]
+ };
+ const DETAIL_Z={'Miño':10,'Duero':9,'Tajo':9,'Guadiana':9,'Guadalquivir':9,'Ebro':9,'Segura':10,'Nalón':10,'Nervión':10,'Bidasoa':10,'Llobregat':10,'Turia':10,'Júcar':10};
+ function xy(lon,lat,z){const n=2**z,x=(lon+180)/360*n,r=Math.max(-85.0511,Math.min(85.0511,lat))*Math.PI/180,y=(1-Math.asinh(Math.tan(r))/Math.PI)/2*n;return {x:Math.floor(x),y:Math.floor(y)}}
+ function keysFor(b,z){const [w,s,e,n]=b,a=xy(w,n,z),c=xy(e,s,z),out=[];for(let x=Math.min(a.x,c.x);x<=Math.max(a.x,c.x);x++)for(let y=Math.min(a.y,c.y);y<=Math.max(a.y,c.y);y++)out.push({z,x,y});return out}
+ function ll(pt,extent,k){const n=2**k.z,gx=k.x+pt.x/extent,gy=k.y+pt.y/extent;return [Math.atan(Math.sinh(Math.PI*(1-2*gy/n)))*180/Math.PI,gx/n*360-180]}
+ const bachLayer=L.layerGroup([], {pane:'spainBachRiversPane'}),riverGroups=new Map(),seen=new Set();let bachLoaded=false,bachLoading=null;
+ function group(name){if(!riverGroups.has(name)){const g=L.layerGroup([], {pane:'spainBachRiversPane'});riverGroups.set(name,g);g.addTo(bachLayer)}return riverGroups.get(name)}
+ function addGeom(g,name,k,extent,featureKey){if(!g||g.length<2)return;const pts=g.map(p=>ll(p,extent,k)),a=pts[0],b=pts[pts.length-1],sig=name+'|'+featureKey+'|'+a[0].toFixed(5)+','+a[1].toFixed(5)+'|'+b[0].toFixed(5)+','+b[1].toFixed(5);if(seen.has(sig))return;seen.add(sig);L.polyline(pts,{pane:'spainBachRiversPane',color:'#087fb5',weight:3.0,opacity:.98,lineCap:'round',lineJoin:'round',interactive:true}).bindTooltip('Río '+name,{sticky:true,className:'anambro-spain-river-name'}).addTo(group(name))}
+ async function loadRiver(name){
+   const z=DETAIL_Z[name],keys=keysFor(CORRIDORS[name],z),g=group(name);g.clearLayers();let found=0,idx=0;
+   async function worker(){while(idx<keys.length){const k=keys[idx++];try{const layer=await waterwayTile(k.z,k.x,k.y);if(!layer)continue;for(let i=0;i<layer.length;i++){const f=layer.feature(i),nm=canonical(f.properties||{});if(nm!==name)continue;for(let j=0;j<(f.loadGeometry()||[]).length;j++){const geom=f.loadGeometry()[j];if(geom?.length>1){addGeom(geom,name,k,layer.extent,k.z+'/'+k.x+'/'+k.y+'/'+i+'/'+j);found++}}}}catch(e){console.warn('Río '+name,k,e)}}}
+   await Promise.all(Array.from({length:Math.min(6,keys.length||1)},worker));return found;
+ }
+ async function loadBach(){
+   if(bachLoaded)return;if(bachLoading)return bachLoading;
+   bachLoading=(async()=>{bachLayer.clearLayers();riverGroups.clear();seen.clear();setStatus('Cargando Ríos 2.º de Bachillerato…');const found=[];let done=0,idx=0;
+     async function worker(){while(idx<RIVERS.length){const name=RIVERS[idx++],n=await loadRiver(name);if(n)found.push(name);done++;setStatus('Cargando Ríos 2.º de Bachillerato… '+done+'/13')}}
+     await Promise.all(Array.from({length:4},worker));bachLoaded=found.length>0;const missing=RIVERS.filter(n=>!found.includes(n));if(!bachLoaded)throw new Error('Sin geometrías fluviales');setStatus(missing.length?'Capa activa · '+found.length+'/13 ríos. Pendientes: '+missing.join(', ')+'.':'Capa activa · 13/13 ríos con geometría detallada. ',missing.length?'warn':'ok');
+   })().catch(e=>{console.warn('Ríos 2.º Bachillerato:',e);setStatus('No se pudo completar la capa; el visor sigue operativo.','warn')}).finally(()=>bachLoading=null);return bachLoading;
+ }
+ async function setBach(on){if(on){await loadBach();if(bachLoaded&&!map.hasLayer(bachLayer))bachLayer.addTo(map)}else if(map.hasLayer(bachLayer))map.removeLayer(bachLayer);setTimeout(()=>{try{updateLegend()}catch(_){};try{window.anambroActiveLayerOrder?.sync?.()}catch(_){}},0)}
+ bachCheck.addEventListener('change',()=>setBach(bachCheck.checked));
+
+ // Capas activas debe apuntar a estas instancias finales.
+ window.__anambroSpainHydroFix=Object.assign(window.__anambroSpainHydroFix||{}, {network:()=>networkLayer,bach:()=>bachLayer,setNetwork,setBach});
 })();
 </script>
 
