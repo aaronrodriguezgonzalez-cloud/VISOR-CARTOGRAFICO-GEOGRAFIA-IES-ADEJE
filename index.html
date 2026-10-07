@@ -3061,9 +3061,10 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <details class="layerCategory"><summary>🌋 Geografía Física</summary>
 <details class="layerSubcategory"><summary>🗺️ Relieve e hidrografía de España</summary>
 <label><input id="spainHypsometryCheck" type="checkbox"/> <b>Hipsometría de España · altitud y relieve sombreado</b></label>
-<label><input id="spainRiversCheck" type="checkbox"/> <b>Ríos principales didácticos · solo los 13 del temario</b></label>
+<label><input id="spainHydroNetworkCheck" type="checkbox"/> <b>Red hidrográfica de España · red completa</b></label>
+<label><input id="spainRiversCheck" type="checkbox"/> <b>Ríos 2.º de Bachillerato · 13 ríos del temario</b></label>
 <label><input id="spainReliefToponymsCheck" type="checkbox"/> <b>Toponimia didáctica · relieve, ríos, costas, islas y cumbres</b></label>
-<div class="layerSubBlock"><small>Las tres capas pueden activarse por separado o combinarse para estudiar el relieve de España. La red hidrográfica muestra exclusivamente los ríos incluidos en la toponimia didáctica y la toponimia reproduce exactamente la relación seleccionada para el alumnado.</small><button class="action" id="openSpainReliefMapInside" type="button" style="width:100%;margin-top:7px">🏔️ Generar mapa de relieve</button></div>
+<div class="layerSubBlock"><small>Las cuatro capas son independientes: hipsometría, red hidrográfica completa, los 13 ríos de 2.º de Bachillerato y la toponimia didáctica.</small><button class="action" id="openSpainReliefMapInside" type="button" style="width:100%;margin-top:7px">🏔️ Generar mapa de relieve</button></div>
 </details>
 <details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="spainGeologyCheck" type="checkbox"/> <b>Mapa geológico continuo · España peninsular y Baleares (GEODE)</b></label>
 <div class="layerSubBlock">
@@ -3128,7 +3129,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><input id="worldRiversCheck" type="checkbox"/> <b>Red hidrográfica · ríos</b></label>
 <div class="layerSubBlock">
 <small>Grandes ríos a escala mundial; al acercarte se completa bajo demanda con cauces nombrados de OpenStreetMap.</small>
-<label><input id="worldRiverLabelsCheck" type="checkbox" checked/> Rotular ríos</label>
+<label><input id="worldRiverLabelsCheck" type="checkbox" checked/> <b>Mostrar nombres de los ríos</b></label>
 <label><small><b>Opacidad</b> <span id="worldRiversOpacityValue">90 %</span></small><input id="worldRiversOpacity" max="1" min="0.2" step="0.05" style="width:100%" type="range" value="0.90"/></label>
 <small id="worldRiversStatus">Capa desactivada.</small>
 </div>
@@ -3331,7 +3332,8 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <button class="action" id="spainReliefPresetFull" type="button">🏔️ Relieve + ríos + topónimos</button>
 <button class="action" id="spainReliefPresetMute" type="button">🗺️ Mapa mudo · relieve + ríos</button>
 <button class="action" id="spainReliefPresetHyps" type="button">⛰️ Solo hipsometría</button>
-<button class="action" id="spainReliefPresetRivers" type="button">🌊 Solo ríos relevantes</button>
+<button class="action" id="spainReliefPresetHydroAll" type="button">🌊 Red hidrográfica completa</button>
+<button class="action" id="spainReliefPresetRivers" type="button">🎓 Solo Ríos 2.º de Bachillerato</button>
 </div>
 <div class="row" style="margin-top:8px"><button class="action" id="spainReliefFrameIberia" type="button">Península y Baleares</button><button class="action" id="spainReliefFrameCanarias" type="button">Canarias</button></div>
 <button class="action politicalExit" id="spainReliefPresetOff" type="button" style="width:100%;margin-top:8px">Desactivar capas de relieve</button>
@@ -14806,8 +14808,30 @@ html body .historyPopup .leaflet-popup-close-button{
    const key=politicalCountryWikiKey(f);if(politicalCountryWikiCache.has(key))return politicalCountryWikiCache.get(key);
    const task=(async()=>{const title=await politicalCountryWikipediaTitle(f),u='https://es.wikipedia.org/w/api.php?action=parse&page='+encodeURIComponent(title)+'&prop=text|displaytitle&format=json&origin=*',r=await fetch(u,{cache:'force-cache'});if(!r.ok)throw new Error('Wikipedia '+r.status);const j=await r.json(),html=j?.parse?.text?.['*']||'';if(!html)throw new Error('Sin ficha');const doc=new DOMParser().parseFromString(html,'text/html'),box=doc.querySelector('table.infobox,.infobox');if(!box)throw new Error('El artículo no tiene ficha lateral reconocible');
      const pairs=[];for(const tr of box.querySelectorAll('tr')){const th=tr.querySelector(':scope > th'),td=tr.querySelector(':scope > td');if(!th||!td)continue;const label=politicalCountryWikiClean(th),value=politicalCountryWikiClean(td);if(label&&value)pairs.push({label,value,n:politicalCountryWikiNorm(label)})}
+     function metricValue(kind,start){
+       const block=pairs.slice(start,Math.min(pairs.length,start+7));
+       if(kind==='Superficie'){
+         for(const x of block){
+           const m=String(x.value).match(/(\d[\d\s\u00a0.,]*?\d|\d)\s*(km(?:²|2)|km\s*²)\b/i);
+           if(m)return (m[1].replace(/\s+/g,' ').trim()+' km²');
+         }
+       }
+       if(kind==='Población'){
+         const preferred=block.filter(x=>/total|censo|estimacion|estimación|habitantes?/.test(x.n+' '+String(x.value).toLowerCase()));
+         for(const x of [...preferred,...block]){
+           const v=String(x.value).replace(/puesto\s*\d+(?:[.ºª°]|\s)*(?:de\s*\d+)?/ig,' ').replace(/\s+/g,' ').trim();
+           let m=v.match(/(\d[\d\s\u00a0.]*?\d|\d)\s*(?:hab(?:itantes?)?\.?)(?:\s|$)/i);
+           if(m)return m[1].replace(/\s+/g,' ').trim()+' hab.';
+           if(/total|censo|estimacion|estimación/.test(x.n)){
+             const nums=[...v.matchAll(/\b\d{1,3}(?:[.\s\u00a0]\d{3})+\b|\b\d{1,9}\b/g)].map(mm=>mm[0]).filter(n=>!/^\d{4}$/.test(n));
+             if(nums.length)return nums[nums.length-1].replace(/\s+/g,' ').trim()+' hab.';
+           }
+         }
+       }
+       return '';
+     }
      const fields=[['Capital',[/^capital$/,/capital y/]],['Superficie',[/^superficie/]],['Población',[/^poblacion/]],['Idiomas oficiales',[/idioma.*oficial/]],['Moneda',[/^moneda/]],['Forma de gobierno',[/forma de gobierno/,/sistema de gobierno/]],['Jefe del Estado',[/jefe de estado/,/^rey$/, /^reina$/, /^presidente$/]],['Jefe del Gobierno',[/jefe de gobierno/,/primer ministro/,/presidente del gobierno/]],['Gentilicio',[/^gentilicio/]],['Huso horario',[/huso horario/]]];
-     const rows=[];const used=new Set();for(const [out,rxs] of fields){const hit=pairs.find((x,i)=>!used.has(i)&&rxs.some(rx=>rx.test(x.n)));if(hit){const idx=pairs.indexOf(hit);used.add(idx);let v=hit.value;if(v.length>220)v=v.slice(0,217)+'…';rows.push([out,v]);if(rows.length>=9)break}}
+     const rows=[];const used=new Set();for(const [out,rxs] of fields){const hit=pairs.find((x,i)=>!used.has(i)&&rxs.some(rx=>rx.test(x.n)));if(hit){const idx=pairs.indexOf(hit);used.add(idx);let v=(out==='Superficie'||out==='Población')?(metricValue(out,idx)||hit.value):hit.value;if(v.length>220)v=v.slice(0,217)+'…';rows.push([out,v]);if(rows.length>=9)break}}
      return {title:j?.parse?.title||title,rows,url:'https://es.wikipedia.org/wiki/'+encodeURIComponent(String(j?.parse?.title||title).replace(/ /g,'_'))};})();
    politicalCountryWikiCache.set(key,task);try{return await task}catch(e){politicalCountryWikiCache.delete(key);throw e}
  }
@@ -19570,7 +19594,8 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   munSpainCheck:{name:'Municipios · España',p:62,get:()=>[typeof adminMun!=='undefined'?adminMun:null]},
   toponymyCheck:{name:'Toponimia · IGN',p:72,get:()=>[typeof toponymy!=='undefined'?toponymy:null]},
   spainHypsometryCheck:{name:'Hipsometría de España · relieve sombreado',p:32,get:()=>[window.__anambroIberiaReliefHydro?.hypsometry?.()]},
-  spainRiversCheck:{name:'Ríos principales didácticos · España',p:57,get:()=>[window.__anambroIberiaReliefHydro?.rivers?.()?.relevant]},
+  spainHydroNetworkCheck:{name:'Red hidrográfica de España · completa',p:56,get:()=>[window.__anambroSpainHydroFix?.network?.()]},
+  spainRiversCheck:{name:'Ríos 2.º de Bachillerato',p:57,get:()=>[window.__anambroSpainHydroFix?.bach?.()]},
   spainReliefToponymsCheck:{name:'Toponimia didáctica · relieve de España',p:76,get:()=>[window.__anambroSpainStudyToponymy?.layer?.()]},
   spainGeologyCheck:{name:'Geología · España',p:38,get:()=>[typeof geologySpain!=='undefined'?geologySpain:null]},
   spainClimateCheck:{name:'Climas · España',p:36,get:()=>[typeof spainClimate!=='undefined'?spainClimate:null]},
@@ -21194,6 +21219,100 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
 @media(min-width:761px){html body #anambroZoomSliderControl{left:auto!important;right:12px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important}}
 @media(max-width:760px){html body #anambroZoomSliderControl{transform:none!important}}
 </style>
+
+
+<style id="anambro-rivers-fix-20261007">
+.anambro-world-river-name,.anambro-spain-river-name{background:rgba(242,250,255,.9)!important;border:0!important;box-shadow:none!important;color:#075985!important;font:italic 800 10.5px/1.05 system-ui,-apple-system,sans-serif!important;padding:1px 3px!important;text-shadow:0 1px #fff,1px 0 #fff,-1px 0 #fff,0 -1px #fff!important;white-space:nowrap!important}
+.anambro-world-river-name:before,.anambro-spain-river-name:before{display:none!important}
+</style>
+<script id="anambro-rivers-fix-20261007-js">
+(function(){
+ 'use strict';
+ const q=id=>document.getElementById(id);
+ if(!window.L||typeof map==='undefined'||window.__anambroSpainHydroFix)return;
+ function ensurePane(name,z){let p=map.getPane(name);if(!p){p=map.createPane(name);p.style.zIndex=String(z);p.style.pointerEvents='none'}return p}
+ ensurePane('spainHydroNetworkPane',574);ensurePane('spainBachRiversPane',576);ensurePane('spainBachRiverLabelsPane',586);ensurePane('worldMajorRiverLabelsPane',586);
+
+ // -------- España: red completa oficial IGN --------
+ const netCheck=q('spainHydroNetworkCheck');
+ const bachOld=q('spainRiversCheck');
+ if(!netCheck||!bachOld)return;
+ // Clone the didactic checkbox so the broken SLD listener from the previous version is removed.
+ const bachCheck=bachOld.cloneNode(true);bachOld.parentNode.replaceChild(bachCheck,bachOld);
+ const IGN_HYDRO='https://servicios.idee.es/wms-inspire/hidrografia';
+ let networkLayer=null;
+ function setNetwork(on){
+   if(on){if(!networkLayer)networkLayer=L.tileLayer.wms(IGN_HYDRO,{layers:'HY.Network',format:'image/png',transparent:true,version:'1.3.0',opacity:.92,pane:'spainHydroNetworkPane',crossOrigin:true,attribution:'IGN/SCNE · IGR Hidrografía'});if(!map.hasLayer(networkLayer))networkLayer.addTo(map)}
+   else if(networkLayer&&map.hasLayer(networkLayer))map.removeLayer(networkLayer);
+   setTimeout(()=>{try{updateLegend()}catch(_){};try{window.anambroActiveLayerOrder?.sync?.()}catch(_){}},0);
+ }
+ netCheck.addEventListener('change',()=>setNetwork(netCheck.checked));
+
+ // -------- España: 13 ríos de 2.º Bachillerato --------
+ const targets=[
+  ['Miño',['miño','mino','minho']],['Guadalquivir',['guadalquivir']],['Ebro',['ebro']],['Segura',['segura']],
+  ['Duero',['duero','douro']],['Nalón',['nalón','nalon']],['Llobregat',['llobregat']],['Tajo',['tajo','tejo']],
+  ['Nervión',['nervión','nervion']],['Turia',['turia']],['Guadiana',['guadiana']],['Bidasoa',['bidasoa']],['Júcar',['júcar','jucar','xúquer','xuquer']]
+ ];
+ const alias=new Map();for(const [canon,names] of targets)for(const n of names)alias.set(norm(n),canon);
+ function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/^(rio|riu|ribeira)\s+/,'').trim()}
+ let bachLayer=L.layerGroup([], {pane:'spainBachRiversPane'}),bachLabels=L.layerGroup([], {pane:'spainBachRiverLabelsPane'}),bachLoaded=false,bachLoading=null;
+ const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+ function displayName(tags){const raw=String(tags?.['name:es']||tags?.name||'').trim(),n=norm(raw);if(alias.has(n))return alias.get(n);for(const [k,v] of alias)if(n===k||n.includes(k)||k.includes(n))return v;return''}
+ async function overpass(query){let last;for(const url of OVERPASS){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}catch(e){last=e;console.warn('Ríos 2.º Bachillerato · Overpass',url,e)}}throw last||new Error('Overpass no disponible')}
+ async function loadBach(){
+   if(bachLoaded)return;if(bachLoading)return bachLoading;
+   bachLoading=(async()=>{
+     const regex='Mi(?:ñ|n)o|Minho|Guadalquivir|Ebro|Segura|Duero|Douro|Nal[oó]n|Llobregat|Tajo|Tejo|Nervi[oó]n|Turia|Guadiana|Bidasoa|J[uú]car|X[uú]quer';
+     const query='[out:json][timeout:40];(way["waterway"~"^(river|canal)$"]["name"~"('+regex+')",i](35,-10.8,44.9,4.9););out geom;';
+     const data=await overpass(query);bachLayer.clearLayers();bachLabels.clearLayers();const best=new Map();let count=0;
+     for(const el of data.elements||[]){if(!Array.isArray(el.geometry)||el.geometry.length<2)continue;const name=displayName(el.tags);if(!name)continue;const pts=el.geometry.map(p=>[p.lat,p.lon]);L.polyline(pts,{pane:'spainBachRiversPane',color:'#087fb5',weight:2.7,opacity:.98,lineCap:'round',lineJoin:'round',interactive:true}).bindTooltip('Río '+name,{sticky:true,className:'anambro-spain-river-name'}).addTo(bachLayer);count++;let len=0;for(let i=1;i<pts.length;i++)len+=L.latLng(pts[i-1]).distanceTo(L.latLng(pts[i]));if(!best.has(name)||len>best.get(name).len)best.set(name,{len,mid:pts[Math.floor(pts.length/2)]})}
+     for(const [name,v] of best)L.marker(v.mid,{pane:'spainBachRiverLabelsPane',interactive:false,icon:L.divIcon({className:'anambro-spain-river-name',html:'Río '+name,iconSize:null})}).addTo(bachLabels);
+     bachLoaded=count>0;if(!bachLoaded)throw new Error('La consulta no devolvió geometrías de los ríos del temario');
+   })().finally(()=>{bachLoading=null});return bachLoading;
+ }
+ async function setBach(on){
+   if(on){try{await loadBach();if(!map.hasLayer(bachLayer))bachLayer.addTo(map);if(!map.hasLayer(bachLabels))bachLabels.addTo(map)}catch(e){console.error(e);bachCheck.checked=false;alert('No se pudo cargar ahora la capa «Ríos 2.º de Bachillerato».') }}
+   else{if(map.hasLayer(bachLayer))map.removeLayer(bachLayer);if(map.hasLayer(bachLabels))map.removeLayer(bachLabels)}
+   setTimeout(()=>{try{updateLegend()}catch(_){};try{window.anambroActiveLayerOrder?.sync?.()}catch(_){}},0);
+ }
+ bachCheck.addEventListener('change',()=>setBach(bachCheck.checked));
+
+ // -------- Presets del panel de relieve: rewire after cloning checkbox --------
+ function setCheck(id,on){const e=q(id);if(!e)return;e.checked=!!on;e.dispatchEvent(new Event('change',{bubbles:true}))}
+ q('spainReliefPresetHydroAll')?.addEventListener('click',()=>{setCheck('spainHypsometryCheck',false);setCheck('spainHydroNetworkCheck',true);setCheck('spainRiversCheck',false);setCheck('spainReliefToponymsCheck',false)});
+ // Capture the didactic button before the older listener can leave stale state; repeated assignments are harmless.
+ q('spainReliefPresetRivers')?.addEventListener('click',()=>{setCheck('spainHydroNetworkCheck',false);setCheck('spainHypsometryCheck',false);setCheck('spainRiversCheck',true);setCheck('spainReliefToponymsCheck',false)});
+ q('spainReliefPresetFull')?.addEventListener('click',()=>{setCheck('spainHydroNetworkCheck',false);setCheck('spainRiversCheck',true)});
+ q('spainReliefPresetMute')?.addEventListener('click',()=>{setCheck('spainHydroNetworkCheck',false);setCheck('spainRiversCheck',true)});
+ q('spainReliefPresetOff')?.addEventListener('click',()=>{setCheck('spainHydroNetworkCheck',false);setCheck('spainRiversCheck',false)});
+
+ // -------- Mundo: etiquetas permanentes de los grandes ríos --------
+ const worldRivers=q('worldRiversCheck'),worldLabels=q('worldRiverLabelsCheck');
+ let worldMajorLabels=L.layerGroup([], {pane:'worldMajorRiverLabelsPane'}),worldMajorFC=null;
+ const NE='https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_rivers_lake_centerlines.geojson';
+ function worldName(p){return String(p?.name_es||p?.name||p?.NAME_ES||p?.NAME||p?.name_en||'').trim()}
+ function lineCoords(g,out=[]){if(!g)return out;if(g.type==='LineString')out.push(g.coordinates);else if(g.type==='MultiLineString')for(const l of g.coordinates||[])out.push(l);return out}
+ function rebuildWorldLabels(){
+   worldMajorLabels.clearLayers();if(!worldRivers?.checked||!worldLabels?.checked||!worldMajorFC)return;
+   const z=map.getZoom();
+   for(const f of worldMajorFC.features||[]){const name=worldName(f.properties);if(!name)continue;const rank=Number(f.properties?.scalerank??f.properties?.min_zoom??99);if(z<=3&&Number.isFinite(rank)&&rank>4)continue;if(z<=5&&Number.isFinite(rank)&&rank>6)continue;const lines=lineCoords(f.geometry);let best=null;for(const a of lines)if(Array.isArray(a)&&a.length>1&&(!best||a.length>best.length))best=a;if(!best)continue;const c=best[Math.floor(best.length/2)];if(!c||!Number.isFinite(+c[0])||!Number.isFinite(+c[1]))continue;L.marker([+c[1],+c[0]],{pane:'worldMajorRiverLabelsPane',interactive:false,icon:L.divIcon({className:'anambro-world-river-name',html:name,iconSize:null})}).addTo(worldMajorLabels)}
+   if(!map.hasLayer(worldMajorLabels))worldMajorLabels.addTo(map);
+ }
+ async function ensureWorldFC(){if(worldMajorFC)return worldMajorFC;try{const r=await fetch(NE,{mode:'cors',cache:'force-cache'});if(!r.ok)throw new Error('HTTP '+r.status);worldMajorFC=await r.json();return worldMajorFC}catch(e){console.warn('Etiquetas de ríos mundiales:',e);return null}}
+ async function syncWorldLabels(){if(!worldRivers?.checked||!worldLabels?.checked){if(map.hasLayer(worldMajorLabels))map.removeLayer(worldMajorLabels);return}await ensureWorldFC();rebuildWorldLabels()}
+ worldLabels?.addEventListener('change',syncWorldLabels);worldRivers?.addEventListener('change',()=>setTimeout(syncWorldLabels,80));map.on('zoomend',()=>{if(worldRivers?.checked&&worldLabels?.checked)rebuildWorldLabels()});
+ setTimeout(syncWorldLabels,200);
+
+ // Legend/source wrappers for Spain layers.
+ const oldLegend=typeof activeLegendHTML==='function'?activeLegendHTML:null;
+ if(oldLegend)window.activeLegendHTML=function(){let h=oldLegend.apply(this,arguments)||'';if(netCheck.checked)h+='<div style="margin-top:7px"><b>Red hidrográfica de España</b><br><small>Red completa · IGN/SCNE · IGR Hidrografía.</small></div>';if(bachCheck.checked)h+='<div style="margin-top:7px"><b>Ríos 2.º de Bachillerato</b><br><small>Miño, Duero, Tajo, Guadiana, Guadalquivir, Ebro, Segura, Nalón, Nervión, Bidasoa, Llobregat, Turia y Júcar.</small></div>';return h};
+ const oldSources=typeof activeSourcesText==='function'?activeSourcesText:null;
+ if(oldSources)window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||'';const x=[];if(netCheck.checked)x.push('IGN/SCNE · IGR Hidrografía HY.Network');if(bachCheck.checked)x.push('OpenStreetMap / Overpass · Ríos 2.º de Bachillerato');return [s,...x].filter(Boolean).join(' · ')};
+
+ window.__anambroSpainHydroFix={network:()=>networkLayer,bach:()=>bachLayer,bachLabels:()=>bachLabels,setNetwork,setBach};
+})();
+</script>
 
 </body>
 </html>
