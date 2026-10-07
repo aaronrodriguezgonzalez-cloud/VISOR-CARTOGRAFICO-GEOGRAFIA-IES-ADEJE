@@ -21251,33 +21251,71 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
  }
  netCheck?.addEventListener('change',()=>setNetwork(netCheck.checked));
 
- // España · Ríos 2.º Bachillerato. Sustituye la consulta Overpass por la API Features oficial del IGN.
+ // España · Ríos 2.º Bachillerato.
+ // Geometrías reales OSM de toda la Península Ibérica. Los tramos se dibujan
+ // individualmente: NUNCA se unen extremos por proximidad ni por orden de llegada.
  const oldBach=q('spainRiversCheck');if(!oldBach)return;
  const bachCheck=oldBach.cloneNode(true);oldBach.parentNode.replaceChild(bachCheck,oldBach);
- const targets=[
-  {name:'Miño',aliases:['Río Miño','Miño','Rio Miño']},{name:'Duero',aliases:['Río Duero','Duero']},{name:'Tajo',aliases:['Río Tajo','Tajo']},
-  {name:'Guadiana',aliases:['Río Guadiana','Guadiana']},{name:'Guadalquivir',aliases:['Río Guadalquivir','Guadalquivir']},{name:'Ebro',aliases:['Río Ebro','Ebro']},
-  {name:'Segura',aliases:['Río Segura','Segura']},{name:'Nalón',aliases:['Río Nalón','Nalón']},{name:'Nervión',aliases:['Río Nervión','Nervión']},
-  {name:'Bidasoa',aliases:['Río Bidasoa','Bidasoa']},{name:'Llobregat',aliases:['Río Llobregat','Llobregat','Riu Llobregat']},
-  {name:'Turia',aliases:['Río Turia','Turia']},{name:'Júcar',aliases:['Río Júcar','Júcar','Riu Xúquer','Xúquer']}
- ];
+ const BACH_CANON={
+   'mino':'Miño','minho':'Miño','duero':'Duero','douro':'Duero','tajo':'Tajo','tejo':'Tajo',
+   'guadiana':'Guadiana','guadalquivir':'Guadalquivir','ebro':'Ebro','segura':'Segura',
+   'nalon':'Nalón','nervion':'Nervión','bidasoa':'Bidasoa','llobregat':'Llobregat',
+   'turia':'Turia','jucar':'Júcar','xuquer':'Júcar'
+ };
+ function bachNorm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/^\s*(rio|riu)\s+/,'').trim()}
+ function bachCanonical(s){return BACH_CANON[bachNorm(s)]||''}
+ const BACH_REGEX='^((Río|Rio|Riu)[ ]*)?(Miño|Minho|Duero|Douro|Tajo|Tejo|Guadiana|Guadalquivir|Ebro|Segura|Nalón|Nalon|Nervión|Nervion|Bidasoa|Llobregat|Turia|Júcar|Jucar|Xúquer|Xuquer)$';
+ const BACH_BBOX='35.0,-10.8,44.3,4.6';
+ const OVERPASS_ENDPOINTS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
  let bachLayer=L.layerGroup([], {pane:'spainBachRiversPane'}),bachLoaded=false,bachLoading=null;
- const API='https://api-features.idee.es/collections/watercourselink/items';
- async function fetchAlias(aliasName){
-   const u=API+'?nombre='+encodeURIComponent(aliasName)+'&f=json&limit=2000';
-   const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(!r.ok)throw new Error('IGN API '+r.status);
-   const g=await r.json();return Array.isArray(g?.features)?g.features:[];
+ function bachStyle(){return {color:'#087fb5',weight:3.0,opacity:.98,lineCap:'round',lineJoin:'round',interactive:true}}
+ function bachAddSegment(coords,name,key,seen){
+   if(!Array.isArray(coords)||coords.length<2||!name)return 0;
+   const pts=coords.map(p=>Array.isArray(p)?[+p[1],+p[0]]:[+p.lat,+p.lon]).filter(p=>Number.isFinite(p[0])&&Number.isFinite(p[1]));
+   if(pts.length<2)return 0;
+   const first=pts[0],last=pts[pts.length-1],sig=key+'|'+pts.length+'|'+first[0].toFixed(5)+','+first[1].toFixed(5)+'|'+last[0].toFixed(5)+','+last[1].toFixed(5);
+   if(seen.has(sig))return 0;seen.add(sig);
+   L.polyline(pts,{pane:'spainBachRiversPane',...bachStyle()}).bindTooltip('Río '+name,{sticky:true,className:'anambro-spain-river-name'}).addTo(bachLayer);
+   return 1;
  }
- async function fetchTarget(t){
-   let last=null;for(const a of t.aliases){try{const fs=await fetchAlias(a);if(fs.length)return fs}catch(e){last=e;console.warn('Ríos 2.º Bachillerato · IGN API',a,e)}}
-   if(last)throw last;return[];
+ async function bachFetchOverpass(){
+   const query='[out:json][timeout:70];('+
+     'way["waterway"="river"]["name"~"'+BACH_REGEX+'",i]('+BACH_BBOX+');'+
+     'relation["waterway"="river"]["name"~"'+BACH_REGEX+'",i]('+BACH_BBOX+');'+
+     'relation["type"="waterway"]["name"~"'+BACH_REGEX+'",i]('+BACH_BBOX+');'+
+     ');out geom;';
+   let last=null;
+   for(const endpoint of OVERPASS_ENDPOINTS){
+     try{
+       const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),75000);
+       const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query),signal:controller.signal});clearTimeout(timer);
+       if(!r.ok)throw new Error('Overpass HTTP '+r.status);
+       const d=await r.json();if(!Array.isArray(d?.elements))throw new Error('Respuesta Overpass no válida');return d.elements;
+     }catch(e){last=e;console.warn('Ríos 2.º Bachillerato · Overpass',endpoint,e)}
+   }
+   throw last||new Error('No se pudo consultar la red fluvial');
  }
  async function loadBach(){
    if(bachLoaded)return;if(bachLoading)return bachLoading;
-   bachLoading=(async()=>{bachLayer.clearLayers();let total=0;const seen=new Set();
-     const results=await Promise.allSettled(targets.map(async t=>[t,await fetchTarget(t)]));
-     for(const rr of results){if(rr.status!=='fulfilled')continue;const [t,features]=rr.value;for(const f of features){const id=String(f.id||f.properties?.id||'');if(id&&seen.has(id))continue;if(id)seen.add(id);const g=f.geometry;if(!g)continue;const lyr=L.geoJSON(f,{pane:'spainBachRiversPane',style:{color:'#087fb5',weight:3.0,opacity:.98,lineCap:'round',lineJoin:'round'},interactive:true,onEachFeature:(_,l)=>l.bindTooltip('Río '+t.name,{sticky:true,className:'anambro-spain-river-name'})});lyr.addTo(bachLayer);total++}}
-     bachLoaded=total>0;if(!bachLoaded)throw new Error('La API oficial no devolvió geometrías de los ríos del temario');
+   bachLoading=(async()=>{
+     bachLayer.clearLayers();const elements=await bachFetchOverpass(),seen=new Set(),relByName=new Map(),wayByName=new Map();
+     for(const el of elements){
+       const raw=String(el.tags?.['name:es']||el.tags?.name||'').trim(),name=bachCanonical(raw);if(!name)continue;
+       if(el.type==='relation'){
+         const segs=[];for(const m of el.members||[])if(Array.isArray(m.geometry)&&m.geometry.length>1)segs.push(m.geometry);
+         if(segs.length){if(!relByName.has(name))relByName.set(name,[]);relByName.get(name).push(...segs)}
+       }else if(el.type==='way'&&Array.isArray(el.geometry)&&el.geometry.length>1){if(!wayByName.has(name))wayByName.set(name,[]);wayByName.get(name).push(el.geometry)}
+     }
+     let total=0;const found=[];
+     for(const name of ['Miño','Duero','Tajo','Guadiana','Guadalquivir','Ebro','Segura','Nalón','Nervión','Bidasoa','Llobregat','Turia','Júcar']){
+       const segs=(relByName.get(name)?.length?relByName.get(name):wayByName.get(name))||[];
+       let n=0;for(let i=0;i<segs.length;i++)n+=bachAddSegment(segs[i],name,name+'#'+i,seen);
+       if(n){total+=n;found.push(name)}
+     }
+     bachLoaded=total>0;
+     if(!bachLoaded)throw new Error('No se devolvieron geometrías de los ríos del temario');
+     const missing=['Miño','Duero','Tajo','Guadiana','Guadalquivir','Ebro','Segura','Nalón','Nervión','Bidasoa','Llobregat','Turia','Júcar'].filter(n=>!found.includes(n));
+     if(missing.length)console.warn('Ríos 2.º Bachillerato sin geometría en esta consulta:',missing.join(', '));
    })().finally(()=>{bachLoading=null});return bachLoading;
  }
  async function setBach(on){
@@ -21311,7 +21349,7 @@ body.political-map-mode.political-canary-physical #map .leaflet-tile-pane{
  const oldLegend=typeof activeLegendHTML==='function'?activeLegendHTML:null;
  if(oldLegend)window.activeLegendHTML=function(){let h=oldLegend.apply(this,arguments)||'';if(netCheck?.checked)h+='<div style="margin-top:7px"><b>Red hidrográfica de España</b><br><small>Red completa · IGN/SCNE · IGR Hidrografía.</small></div>';if(bachCheck.checked)h+='<div style="margin-top:7px"><b>Ríos 2.º de Bachillerato</b><br><small>Miño, Duero, Tajo, Guadiana, Guadalquivir, Ebro, Segura, Nalón, Nervión, Bidasoa, Llobregat, Turia y Júcar.</small></div>';return h};
  const oldSources=typeof activeSourcesText==='function'?activeSourcesText:null;
- if(oldSources)window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||'';const x=[];if(netCheck?.checked)x.push('IGN/SCNE · IGR Hidrografía HY.Network');if(bachCheck.checked)x.push('IGN/SCNE · API Features · Ríos 2.º de Bachillerato');return [s,...x].filter(Boolean).join(' · ')};
+ if(oldSources)window.activeSourcesText=function(){let s=oldSources.apply(this,arguments)||'';const x=[];if(netCheck?.checked)x.push('IGN/SCNE · IGR Hidrografía HY.Network');if(bachCheck.checked)x.push('OpenStreetMap · geometrías fluviales reales · Ríos 2.º de Bachillerato');return [s,...x].filter(Boolean).join(' · ')};
  window.__anambroSpainHydroFix={network:()=>networkLayer,bach:()=>bachLayer,bachLabels:()=>null,setNetwork,setBach};
 })();
 </script>
