@@ -3,7 +3,7 @@
   "metadata": {
     "editor_schema": "anambro_indigenous_partition_v3_municipal_base",
     "title": "Particiones territoriales indígenas de Canarias",
-    "updated_at": "2026-10-08T21:40:16.977Z",
+    "updated_at": "2026-10-08T21:49:59.789Z",
     "coast_source": "Servicio cartográfico: IDECanarias · Fuente: Gobierno de Canarias / GRAFCAN",
     "base_geometry": "municipal_dissolve",
     "municipal_count": 88
@@ -14,7 +14,7 @@
       "properties": {
         "id": "el-hierro-1",
         "island": "El Hierro",
-        "name": "El Hierro",
+        "name": "ESERÓ",
         "kind": "Unidad territorial",
         "notes": "",
         "color": "#d97941",
@@ -9892,7 +9892,7 @@
       "properties": {
         "id": "la-gomera-112",
         "island": "La Gomera",
-        "name": "",
+        "name": "HIPALÁN",
         "kind": "Unidad territorial",
         "notes": "",
         "color": "#b37a4a",
@@ -32793,7 +32793,7 @@
       "properties": {
         "id": "tenerife-102",
         "island": "Tenerife",
-        "name": "Tegueste",
+        "name": "TEGUESTE",
         "kind": "Unidad territorial",
         "notes": "",
         "color": "#7f8e3f",
@@ -90962,7 +90962,7 @@
       "properties": {
         "id": "lanzarote-1",
         "island": "Lanzarote",
-        "name": "Lanzarote",
+        "name": "TYTEROGAKA",
         "kind": "Unidad territorial",
         "notes": "",
         "color": "#9b68a6",
