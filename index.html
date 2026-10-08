@@ -6001,16 +6001,46 @@ geoGrid.addTo(map);
 redrawGeoGrid();
 
 
-// Límites municipales vectoriales · v0.3: GRAFCAN generalizado, remoto y bajo demanda.
-// Evita transportar la geometría en el repositorio y conserva la visualización habitual como superposición.
+// Límites municipales vectoriales · motor canónico compartido.
+// Una única geometría y una única caché para Capas, Mapa político, ISTAC y Análisis geográfico.
+const CANARY_MUNICIPAL_URLS=[
+ 'https://datos.canarias.es/api/estadisticas/geographical-resources/indicadoresdemograficos/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Municipios-20220101&outputFormat=application/json',
+ 'https://datos.canarias.es/catalogos/estadisticas/dataset/6dd8baf4-14f4-43a3-88b2-984d034c965c/resource/d31b5422-df3b-4eae-b0eb-b4acbecb8ef0/download/municipios_desde2007_generalizada_20170101.json',
+ 'https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios.geojson',
+ 'https://ctim.ulpgc.es/AEDV/data/geo_canarias_municipios.geojson',
+ 'data/admin/municipios-canarias.geojson'
+];
+let canaryMunicipalData=null,canaryMunicipalDataLoading=null;
+async function getCanaryMunicipalDataCanonical(){
+ if(canaryMunicipalData?.features?.length)return canaryMunicipalData;
+ if(canaryMunicipalDataLoading)return canaryMunicipalDataLoading;
+ canaryMunicipalDataLoading=(async()=>{
+  let lastErr=null;
+  for(const u of CANARY_MUNICIPAL_URLS){
+   try{
+    const r=await fetch(u,{mode:'cors',cache:'force-cache'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d?.type!=='FeatureCollection'||!Array.isArray(d.features)||d.features.length<80)throw new Error('GeoJSON municipal incompleto');
+    canaryMunicipalData=d;
+    window.__anambroCanaryMunicipalData=canaryMunicipalData;
+    return canaryMunicipalData;
+   }catch(e){lastErr=e;console.warn('Municipios Canarias · fuente no disponible',u,e)}
+  }
+  throw lastErr||new Error('No hay fuente municipal disponible');
+ })().finally(()=>{canaryMunicipalDataLoading=null;});
+ return canaryMunicipalDataLoading;
+}
+window.getCanaryMunicipalDataCanonical=getCanaryMunicipalDataCanonical;
+
 let munOpacity=1,municipios=null,municipiosLoading=null;
 async function ensureCanaryMunicipios(){
  if(municipios)return municipios;
  if(municipiosLoading)return municipiosLoading;
  municipiosLoading=(async()=>{
-  const r=await fetch('https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios-generalizados.geojson',{mode:'cors',cache:'force-cache'});
-  if(!r.ok)throw new Error('Municipios Canarias HTTP '+r.status);
-  const data=await r.json();
+  // Si el motor político ya está disponible, usa exactamente su dataset ya enriquecido/caché.
+  // Durante el arranque temprano usa el mismo cargador canónico; politicalData reutilizará ese objeto después.
+  const data=(typeof politicalData==='function')?await politicalData('canary-municipalities'):await getCanaryMunicipalDataCanonical();
   municipios=L.geoJSON(data,{style:()=>({color:'#ffffff',weight:2.2,opacity:munOpacity,fill:false,interactive:false})});
   return municipios;
  })().catch(e=>{console.warn('Municipios Canarias:',e);status('No se pudieron cargar los límites municipales de Canarias');return null;})
@@ -6018,21 +6048,20 @@ async function ensureCanaryMunicipios(){
  return municipiosLoading;
 }
 async function syncCanaryMunicipios(){
- const wanted=document.getElementById('munCheck').checked && map.getZoom()>=8;
+ const wanted=!!document.getElementById('munCheck')?.checked;
  if(wanted){
   const layer=await ensureCanaryMunicipios();
-  if(layer&&document.getElementById('munCheck').checked&&map.getZoom()>=8&&!map.hasLayer(layer))layer.addTo(map);
+  if(layer&&document.getElementById('munCheck')?.checked&&!map.hasLayer(layer))layer.addTo(map);
  }else if(municipios&&map.hasLayer(municipios))map.removeLayer(municipios);
  updateLegend();
 }
 document.getElementById('munCheck').onchange=syncCanaryMunicipios;
-map.on('zoomend',syncCanaryMunicipios);
 document.getElementById('munOpacity').oninput=e=>{
  munOpacity=parseFloat(e.target.value);
  if(municipios)municipios.setStyle({opacity:munOpacity});
  document.getElementById('munOpacityValue').textContent=Math.round(munOpacity*100)+' %';
 };
-// Mantiene el estado inicial de v0.1, pero la descarga solo comienza si realmente debe verse.
+// La capa está marcada inicialmente: se carga sin depender del nivel de zoom.
 queueMicrotask(syncCanaryMunicipios);
 
 // Espacios Naturales Protegidos · v0.2: datos externos y carga por categoría.
@@ -14724,7 +14753,7 @@ html body .historyPopup .leaflet-popup-close-button{
 
  // ---------- Editor de mapas políticos / mudos v0.5 ----------
  const POLITICAL_URLS={
-  'canary-municipalities':['https://datos.canarias.es/api/estadisticas/geographical-resources/indicadoresdemograficos/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Municipios-20220101&outputFormat=application/json','https://datos.canarias.es/catalogos/estadisticas/dataset/6dd8baf4-14f4-43a3-88b2-984d034c965c/resource/d31b5422-df3b-4eae-b0eb-b4acbecb8ef0/download/municipios_desde2007_generalizada_20170101.json','https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios.geojson','https://ctim.ulpgc.es/AEDV/data/geo_canarias_municipios.geojson','data/admin/municipios-canarias.geojson'],
+  'canary-municipalities':CANARY_MUNICIPAL_URLS,
   'spain-provinces':['https://raw.githubusercontent.com/codeforgermany/click_that_hood/refs/heads/main/public/data/spain-provinces.geojson','https://mapas.fomento.gob.es/arcgis/rest/services/SIU/ENTIDADES_TERRITORIALES_EGRN/MapServer/2/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&outSR=4326'],
   'spain-ccaa':['https://raw.githubusercontent.com/codeforgermany/click_that_hood/refs/heads/main/public/data/spain-communities.geojson','https://mapas.fomento.gob.es/arcgis/rest/services/SIU/ENTIDADES_TERRITORIALES_EGRN/MapServer/1/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&outSR=4326'],
   'europe-countries':['https://gisco-services.ec.europa.eu/distribution/v2/countries/geojson/CNTR_RG_10M_2024_4326.geojson','https://gisco-services.ec.europa.eu/distribution/v2/countries/geojson/CNTR_RG_20M_2024_4326.geojson']
@@ -14812,8 +14841,12 @@ html body .historyPopup .leaflet-popup-close-button{
    const d={type:'FeatureCollection',features:fs};politicalDataCache.set(scope,d);return d;
   }
   if(politicalDataCache.has(scope))return politicalDataCache.get(scope);
-  let d=await politicalFetch(POLITICAL_URLS[scope]);
-  if(scope==='canary-municipalities')d=await enrichCanaryMunicipalityNames(d);
+  let d=scope==='canary-municipalities'?await getCanaryMunicipalDataCanonical():await politicalFetch(POLITICAL_URLS[scope]);
+  if(scope==='canary-municipalities'){
+   d=await enrichCanaryMunicipalityNames(d);
+   canaryMunicipalData=d;
+   window.__anambroCanaryMunicipalData=d;
+  }
   if(scope==='europe-countries')d={type:'FeatureCollection',features:(d.features||[]).filter(f=>EUROPE_CODES.has(String(f?.properties?.CNTR_ID||f?.properties?.ISO2_CODE||f?.properties?.ISO_A2||'').toUpperCase()))};
   politicalDataCache.set(scope,d);return d;
  }
@@ -15502,13 +15535,7 @@ html body .leaflet-popup-content{padding-top:5px}
  /* ----- Atlas territorial de Canarias · ISTAC · motor multiescala (ANAMBRO v0.16) ----- */
  const ISTAC_SYSTEM='C00067A';
  const ISTAC_BASE='https://datos.canarias.es/api/estadisticas/indicators/v1.0/';
- const ISTAC_GEO_URLS=[
-  'https://datos.canarias.es/api/estadisticas/geographical-resources/indicadoresdemograficos/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Municipios-20220101&outputFormat=application/json',
-  'https://datos.canarias.es/catalogos/estadisticas/dataset/6dd8baf4-14f4-43a3-88b2-984d034c965c/resource/d31b5422-df3b-4eae-b0eb-b4acbecb8ef0/download/municipios_desde2007_generalizada_20170101.json',
-  'https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios.geojson',
-  'https://ctim.ulpgc.es/AEDV/data/geo_canarias_municipios.geojson',
-  'data/admin/municipios-canarias.geojson'
- ];
+ const ISTAC_GEO_URLS=CANARY_MUNICIPAL_URLS; // alias de compatibilidad: la fuente real es el motor municipal canónico.
  const ISTAC_MUNICIPAL_CSV='https://datos.canarias.es/catalogos/estadisticas/dataset/6dd8baf4-14f4-43a3-88b2-984d034c965c/resource/74237bc8-1e5f-43f1-9f6b-24ef9e073903/download/municipios_desde2007_20170101.csv';
 
  // Secciones censales 2025: geometría y datos se separan deliberadamente.
@@ -16487,26 +16514,10 @@ html body .leaflet-popup-content{padding-top:5px}
  async function loadIstacGeo(){
   if(istacTerritoryLevel==='section')return loadIstacSectionGeo();
   if(istacMunicipalGeo)return istacMunicipalGeo;
-  let lastErr=null;
-  // Primera opción: reutilizar exactamente la geometría municipal que ya usa y funciona
-  // en el módulo de mapas políticos de ANAMBRO. Evita cargar otra cartografía distinta.
-  try{
-   if(typeof politicalData==='function'){
-    const j=await politicalData('canary-municipalities');
-    if(j?.type==='FeatureCollection'&&Array.isArray(j.features)&&j.features.length>=80){
-     istacMunicipalGeo=await istacEnrichGeoNames(j);return istacMunicipalGeo;
-    }
-   }
-  }catch(e){lastErr=e;console.warn('Atlas ISTAC · geometría municipal ANAMBRO',e)}
-  for(const u of ISTAC_GEO_URLS){
-   try{
-    const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);
-    const j=await r.json();if(j?.type!=='FeatureCollection'||!Array.isArray(j.features)||j.features.length<80)throw Error('GeoJSON municipal incompleto');
-    istacMunicipalGeo=await istacEnrichGeoNames(j);
-    return istacMunicipalGeo;
-   }catch(e){lastErr=e;console.warn('Atlas ISTAC · geometría municipal',u,e)}
-  }
-  throw lastErr||Error('No se pudieron cargar los límites municipales');
+  const j=typeof politicalData==='function'?await politicalData('canary-municipalities'):await getCanaryMunicipalDataCanonical();
+  if(j?.type!=='FeatureCollection'||!Array.isArray(j.features)||j.features.length<80)throw Error('GeoJSON municipal incompleto');
+  istacMunicipalGeo=await istacEnrichGeoNames(j);
+  return istacMunicipalGeo;
  }
  function ensureIstacPanes(){
   if(!map.getPane('istacMunicipalPane')){const p=map.createPane('istacMunicipalPane');p.style.zIndex='645';p.style.pointerEvents='auto'}
@@ -17927,10 +17938,11 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   const label=map.getPane('istacLabelPane');if(label)label.style.zIndex='648';
  };
  async function municipalReferenceGeo(){
-  if(istacMunicipalGeo)return istacMunicipalGeo;let lastErr=null;
-  try{if(typeof politicalData==='function'){const j=await politicalData('canary-municipalities');if(j?.features?.length>=80){istacMunicipalGeo=await istacEnrichGeoNames(j);return istacMunicipalGeo}}}catch(e){lastErr=e}
-  for(const u of ISTAC_GEO_URLS){try{const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();if(j?.features?.length<80)throw Error('incompleto');istacMunicipalGeo=await istacEnrichGeoNames(j);return istacMunicipalGeo}catch(e){lastErr=e}}
-  throw lastErr||Error('sin límites municipales');
+  if(istacMunicipalGeo)return istacMunicipalGeo;
+  const j=typeof politicalData==='function'?await politicalData('canary-municipalities'):await getCanaryMunicipalDataCanonical();
+  if(!j?.features?.length||j.features.length<80)throw Error('sin límites municipales');
+  istacMunicipalGeo=await istacEnrichGeoNames(j);
+  return istacMunicipalGeo;
  }
  async function showMunicipalReference(){
   clearMunicipalReference();if(istacTerritoryLevel==='municipality')return;
@@ -18844,23 +18856,10 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 
  async function loadMunicipalGeo(){
   if(municipalGeoCache?.features?.length>=80)return municipalGeoCache;
-  try{
-   if(typeof ensureCanaryMunicipios==='function'){
-    const base=await ensureCanaryMunicipios();
-    const gj=base?.toGeoJSON?.();
-    if(gj?.features?.length>=80){municipalGeoCache=gj;return gj}
-   }
-  }catch(_){}
-  const urls=[
-   'https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios-generalizados.geojson',
-   'https://opendata.sitcan.es/upload/unidades-administrativas/gobcan_unidades-administrativas_municipios.geojson',
-   'https://datos.canarias.es/api/estadisticas/geographical-resources/indicadoresdemograficos/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Municipios-20220101&outputFormat=application/json'
-  ];
-  let last=null;
-  for(const u of urls){
-   try{const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();if(j?.type!=='FeatureCollection'||!Array.isArray(j.features)||j.features.length<80)throw Error('GeoJSON municipal incompleto');municipalGeoCache=j;return j}catch(e){last=e}
-  }
-  throw last||Error('No se pudieron cargar los municipios');
+  const j=typeof politicalData==='function'?await politicalData('canary-municipalities'):await getCanaryMunicipalDataCanonical();
+  if(j?.type!=='FeatureCollection'||!Array.isArray(j.features)||j.features.length<80)throw Error('GeoJSON municipal incompleto');
+  municipalGeoCache=j;
+  return municipalGeoCache;
  }
 
  async function drawMunicipalWhite(level,token=renderToken){
@@ -22720,7 +22719,7 @@ function geomAreaKm2(g){let a=0;for(const poly of geomRings(g)){if(!poly?.length
 function featureName(f,i=0){const p=f?.properties||{},keys=['__name','nombre','NOMBRE','etiqueta','ETIQUETA','DENOMINACION','denominacion','MUNICIPIO','municipio','NOM_MUN','NOMBRE_MUN','NAME','name'];for(const k of keys){const v=p[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v).trim()}for(const [k,v] of Object.entries(p)){if(/nombre|denom|munic/i.test(k)&&v!=null&&String(v).trim())return String(v).trim()}return 'Municipio '+(i+1)}
 function bboxCenter(b){return[(b[0]+b[2])/2,(b[1]+b[3])/2]}
 function isTenerifeFeature(f){const b=geomBBox(f.geometry),c=bboxCenter(b);return c[0]>=TF_BBOX[0]&&c[0]<=TF_BBOX[2]&&c[1]>=TF_BBOX[1]&&c[1]<=TF_BBOX[3]&&bboxHit(b,TF_BBOX)}
-async function municipalitiesTenerife(){if(analysisMunicipalFC)return analysisMunicipalFC;if(typeof ensureCanaryMunicipios!=='function')throw Error('Motor municipal no disponible');const layer=await ensureCanaryMunicipios();const fc=layer?.toGeoJSON?.();if(!fc?.features?.length)throw Error('No se pudo obtener la geometría municipal');let fs=fc.features.filter(isTenerifeFeature);if(fs.length!==31)console.warn('Análisis geográfico · municipios detectados en Tenerife:',fs.length);analysisMunicipalFC={type:'FeatureCollection',features:fs};return analysisMunicipalFC}
+async function municipalitiesTenerife(){if(analysisMunicipalFC)return analysisMunicipalFC;let fc=null;if(typeof politicalData==='function')fc=await politicalData('canary-municipalities');else if(typeof getCanaryMunicipalDataCanonical==='function')fc=await getCanaryMunicipalDataCanonical();if(!fc?.features?.length)throw Error('No se pudo obtener la geometría municipal');let fs=fc.features.filter(isTenerifeFeature);if(fs.length!==31)console.warn('Análisis geográfico · municipios detectados en Tenerife:',fs.length);analysisMunicipalFC={type:'FeatureCollection',features:fs};return analysisMunicipalFC}
 async function enpTenerife(){if(typeof ensureEnp!=='function'||typeof ENP_CONFIG==='undefined')throw Error('Motor ENP no disponible');const layers=await Promise.all(Object.keys(ENP_CONFIG).map(c=>ensureEnp(c)));const fs=[];for(const l of layers){const fc=l?.toGeoJSON?.();if(!fc?.features)continue;for(const f of fc.features)if(bboxHit(geomBBox(f.geometry),TF_BBOX))fs.push(f)}if(!fs.length)throw Error('No se pudieron cargar los Espacios Naturales Protegidos');return fs}
 function adaptiveGrid(b,res){const w=Math.max(1e-9,b[2]-b[0]),h=Math.max(1e-9,b[3]-b[1]);let nx,ny;if(w>=h){nx=res;ny=Math.max(24,Math.round(res*h/w))}else{ny=res;nx=Math.max(24,Math.round(res*w/h))}return[nx,ny]}
 async function analyzeMunicipality(f,enp,res,index,total){const b=geomBBox(f.geometry),[nx,ny]=adaptiveGrid(b,res),dx=(b[2]-b[0])/nx,dy=(b[3]-b[1])/ny,candidates=enp.filter(e=>bboxHit(geomBBox(e.geometry),b));let inside=0,prot=0,samples=0;for(let iy=0;iy<ny;iy++){const y=b[1]+(iy+.5)*dy,w=Math.cos(y*Math.PI/180);for(let ix=0;ix<nx;ix++){const x=b[0]+(ix+.5)*dx;if(!pointGeom(x,y,f.geometry))continue;inside+=w;samples++;for(const e of candidates)if(pointGeom(x,y,e.geometry)){prot+=w;break}}if(iy%16===0)await new Promise(r=>setTimeout(r,0))}const frac=inside?prot/inside:0,area=geomAreaKm2(f.geometry);return{name:featureName(f,index),feature:f,area,protectedArea:area*frac,pct:frac*100,samples,candidates:candidates.length}}
