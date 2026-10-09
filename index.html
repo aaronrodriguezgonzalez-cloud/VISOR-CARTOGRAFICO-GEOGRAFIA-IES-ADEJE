@@ -3017,9 +3017,9 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <small id="canaryHypsometryStatus">Capa desactivada.</small>
 </div>
 </details>
-<details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="canaryGeologyCheck" type="checkbox"/> <b>Mapa geológico continuo · Canarias (GEODE)</b></label>
+<details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="canaryGeologyCheck" type="checkbox"/> <b>Mapa geológico continuo · Canarias (IGME)</b></label>
 <div class="layerSubBlock">
-<small>IGME-CSIC · limitado al Archipiélago Canario.</small>
+<small>IGME-CSIC · mapa 1:1.000.000 coloreado en vista general y GEODE al acercarse · limitado a Canarias.</small>
 <small><b>Opacidad</b> <span id="canaryGeologyOpacityValue">70 %</span></small>
 <input id="canaryGeologyOpacity" max="1" min="0" step="0.05" style="width:100%" type="range" value="0.70"/>
 <div id="canaryGeologyLegendWrap" style="display:none;margin-top:7px;padding-top:7px;border-top:1px solid #ddd">
@@ -3119,9 +3119,9 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><input id="spainReliefToponymsCheck" type="checkbox"/> <b>Toponimia didáctica · relieve, ríos, costas, islas y cumbres</b></label>
 <div class="layerSubBlock"><small>Las cuatro capas son independientes: hipsometría, red hidrográfica completa, los 13 ríos de 2.º de Bachillerato y la toponimia didáctica.</small><button class="action" id="openSpainReliefMapInside" type="button" style="width:100%;margin-top:7px">🏔️ Generar mapa de relieve</button></div>
 </details>
-<details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="spainGeologyCheck" type="checkbox"/> <b>Mapa geológico continuo · España peninsular y Baleares (GEODE)</b></label>
+<details class="layerSubcategory"><summary>🪨 Geología</summary><label><input id="spainGeologyCheck" type="checkbox"/> <b>Mapa geológico continuo · España peninsular y Baleares (IGME)</b></label>
 <div class="layerSubBlock">
-<small>IGME-CSIC · excluye Canarias.</small>
+<small>IGME-CSIC · mapa 1:1.000.000 coloreado en vista general y GEODE al acercarse · excluye Canarias.</small>
 <small><b>Opacidad</b> <span id="spainGeologyOpacityValue">70 %</span></small>
 <input id="spainGeologyOpacity" max="1" min="0" step="0.05" style="width:100%" type="range" value="0.70"/>
 <div id="spainGeologyLegendWrap" style="display:none;margin-top:7px;padding-top:7px;border-top:1px solid #ddd">
@@ -5818,30 +5818,37 @@ const toponymy=L.tileLayer.wms('https://www.ign.es/wms-inspire/ngbe',{noWrap:tru
  minZoom:6,maxZoom:19,opacity:0.90,attribution:'Toponimia · NGBE · © IGN/CNIG · CC BY 4.0'
 });
 
-// Cartografía geológica oficial IGME-CSIC · visualización multiescala.
-// Vista general: Mapa Geológico 1:1.000.000 (litologías coloreadas, tramas y contactos).
-// Detalle: GEODE 1:50.000/1:25.000.
-const GEOLOGY_WMS='https://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geode_50/MapServer/WMSServer';
-const GEOLOGY_WMS_1M='https://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer';
-const GEOLOGY_CANARY_BOUNDS=L.latLngBounds([[27.0,-18.9],[29.8,-12.7]]);
-const GEOLOGY_SPAIN_BOUNDS=L.latLngBounds([[35.0,-10.8],[44.7,5.2]]);
-function makeScopedGeology(bounds){
- const overview=L.tileLayer.wms(GEOLOGY_WMS_1M,{noWrap:true,
-  layers:'4,3,2',format:'image/png',transparent:true,version:'1.3.0',
-  opacity:0.70,bounds,maxZoom:10,attribution:'Mapa Geológico 1:1.000.000 · © IGME-CSIC'
+// Cartografía geológica oficial IGME-CSIC · visualización multiescala, sin capas de relleno vacías.
+// Vista general: mapa geológico 1:1.000.000 de 2018, con unidades geológicas coloreadas.
+// Detalle: GEODE 1:50.000/1:25.000; se excluye "Zonas GEODE" (capa 9), que solo dibuja contornos a pequeña escala.
+const GEOLOGY_DETAIL_WMS='https://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geode_50/MapServer/WMSServer';
+const GEOLOGY_OVERVIEW_WMS='https://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_EP_Geologico_1M_2018/MapServer/WMSServer';
+const GEOLOGY_SWITCH_ZOOM=11;
+const GEOLOGY_BOUNDS_CANARY=L.latLngBounds([[27.0,-18.9],[29.8,-12.7]]);
+const GEOLOGY_BOUNDS_SPAIN=L.latLngBounds([[35.0,-10.8],[44.7,5.2]]);
+
+function makeScopedGeology(scope,bounds){
+ const overviewLayers=scope==='canary'?'7,2':'8,5';
+ const overview=L.tileLayer.wms(GEOLOGY_OVERVIEW_WMS,{noWrap:true,
+  layers:overviewLayers,format:'image/png',transparent:true,version:'1.3.0',
+  opacity:0.70,bounds,maxZoom:GEOLOGY_SWITCH_ZOOM-1,attribution:'Mapa geológico 1:1.000.000 · © IGME-CSIC / LNEG'
  });
- const detail=L.tileLayer.wms(GEOLOGY_WMS,{noWrap:true,
-  layers:'1,2,3,4,5,6,7,8,9',format:'image/png',transparent:true,version:'1.3.0',
-  opacity:0.70,bounds,minZoom:11,attribution:'GEODE · © IGME-CSIC'
+ const detail=L.tileLayer.wms(GEOLOGY_DETAIL_WMS,{noWrap:true,
+  // Recintos geológicos + contactos + estructuras y rótulos. Capa 9 excluida deliberadamente.
+  layers:'8,7,6,5,4,3,2,1,0',format:'image/png',transparent:true,version:'1.3.0',
+  opacity:0.70,bounds,minZoom:GEOLOGY_SWITCH_ZOOM,attribution:'GEODE · © IGME-CSIC'
  });
  const group=L.layerGroup([overview,detail]);
- group.__overview=overview;group.__detail=detail;
+ group.__overview=overview;
+ group.__detail=detail;
+ group.__scope=scope;
+ group.__bounds=bounds;
  group.setOpacity=v=>{overview.setOpacity(v);detail.setOpacity(v);return group;};
  group.bringToFront=()=>{try{overview.bringToFront()}catch(_){}try{detail.bringToFront()}catch(_){}return group;};
  return group;
 }
-const geologyCanary=makeScopedGeology(GEOLOGY_CANARY_BOUNDS);
-const geologySpain=makeScopedGeology(GEOLOGY_SPAIN_BOUNDS);
+const geologyCanary=makeScopedGeology('canary',GEOLOGY_BOUNDS_CANARY);
+const geologySpain=makeScopedGeology('spain',GEOLOGY_BOUNDS_SPAIN);
 function isCanaryLatLng(ll){return !!ll&&ll.lat>=27.0&&ll.lat<=29.8&&ll.lng>=-18.9&&ll.lng<=-12.7;}
 function isPeninsularBalearicLatLng(ll){return !!ll&&ll.lat>=35.0&&ll.lat<=44.7&&ll.lng>=-10.8&&ll.lng<=5.2;}
 function geologyEnabledAt(lat,lon){
@@ -5853,7 +5860,28 @@ function bringGeologyToFront(){
  if(map.hasLayer(geologyCanary))geologyCanary.bringToFront();
  if(map.hasLayer(geologySpain))geologySpain.bringToFront();
 }
-
+function ensureGeologyView(scope,bounds){
+ const z=map.getZoom(),center=map.getCenter(),view=map.getBounds();
+ const minUseful=scope==='canary'?7:5;
+ const needsFrame=!view.intersects(bounds)||(!bounds.contains(center)&&z<=6)||z<minUseful;
+ if(needsFrame){
+  map.fitBounds(bounds,{padding:[28,28],maxZoom:scope==='canary'?8:6,animate:false});
+ }
+}
+function updateGeologyLegend(scope){
+ const detail=map.getZoom()>=GEOLOGY_SWITCH_ZOOM;
+ const wrap=document.getElementById(scope==='canary'?'canaryGeologyLegendWrap':'spainGeologyLegendWrap');
+ const img=wrap?.querySelector('img');
+ if(!img)return;
+ if(detail){
+  img.alt='Leyenda GEODE · recintos geológicos';
+  img.src=GEOLOGY_DETAIL_WMS+'?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&FORMAT=image%2Fpng&LAYER=8';
+ }else{
+  const layer=scope==='canary'?'7':'8';
+  img.alt='Leyenda mapa geológico 1:1.000.000 · IGME';
+  img.src=GEOLOGY_OVERVIEW_WMS+'?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&FORMAT=image%2Fpng&LAYER='+layer;
+ }
+}
 
 // v4.0 · capas nacionales oficiales, apagadas por defecto y bajo demanda
 const vegetationPotential=L.geoJSON(null,{style:f=>({color:'#555',weight:.45,fillColor:vegetationColor((f.properties||{}).__serie||''),fillOpacity:.72})});
@@ -5940,24 +5968,16 @@ document.querySelectorAll('input[data-base-choice]').forEach(r=>r.addEventListen
 }));
 document.getElementById('toponymyCheck').onchange=e=>{if(e.target.checked){toponymy.addTo(map);toponymy.bringToFront();status('Toponimia IGN activada');}else{map.removeLayer(toponymy);status('Toponimia IGN desactivada');}};
 document.getElementById('toponymyOpacity').oninput=e=>toponymy.setOpacity(+e.target.value);
-function focusScopedLayer(bounds,minZoom){
- const center=map.getCenter();
- if(!bounds.contains(center)){
-  map.fitBounds(bounds,{padding:[24,24],maxZoom:minZoom,animate:true});
-  return;
- }
- if(map.getZoom()<minZoom)map.setZoom(minZoom,{animate:true});
-}
-function bindScopedGeology(checkId,layer,bounds,minZoom,legendId,opacityId,valueId,label){
+function bindScopedGeology(checkId,layer,legendId,opacityId,valueId,label,scope){
  const check=document.getElementById(checkId),legend=document.getElementById(legendId),slider=document.getElementById(opacityId);
  check.onchange=e=>{
   legend.style.display=e.target.checked?'block':'none';
   if(e.target.checked){
-   layer.addTo(map);
-   focusScopedLayer(bounds,minZoom);
-   layer.bringToFront();
+   ensureGeologyView(scope,layer.__bounds);
+   layer.addTo(map);layer.bringToFront();
+   updateGeologyLegend(scope);
    if(document.getElementById('toponymyCheck')?.checked)toponymy.bringToFront();
-   status('Geología IGME · '+label+' activada · encuadre automático');
+   status('Geología IGME · '+label+' activada · 1:1M en vista general / GEODE al acercarse');
   }else{
    if(map.hasLayer(layer))map.removeLayer(layer);
    status('Geología IGME · '+label+' desactivada');
@@ -5966,8 +5986,12 @@ function bindScopedGeology(checkId,layer,bounds,minZoom,legendId,opacityId,value
  };
  slider.oninput=e=>{const v=+e.target.value;layer.setOpacity(v);document.getElementById(valueId).textContent=Math.round(v*100)+' %';};
 }
-bindScopedGeology('canaryGeologyCheck',geologyCanary,GEOLOGY_CANARY_BOUNDS,7,'canaryGeologyLegendWrap','canaryGeologyOpacity','canaryGeologyOpacityValue','Canarias');
-bindScopedGeology('spainGeologyCheck',geologySpain,GEOLOGY_SPAIN_BOUNDS,6,'spainGeologyLegendWrap','spainGeologyOpacity','spainGeologyOpacityValue','España peninsular y Baleares');
+bindScopedGeology('canaryGeologyCheck',geologyCanary,'canaryGeologyLegendWrap','canaryGeologyOpacity','canaryGeologyOpacityValue','Canarias','canary');
+bindScopedGeology('spainGeologyCheck',geologySpain,'spainGeologyLegendWrap','spainGeologyOpacity','spainGeologyOpacityValue','España peninsular y Baleares','spain');
+map.on('zoomend',()=>{
+ if(document.getElementById('canaryGeologyCheck')?.checked)updateGeologyLegend('canary');
+ if(document.getElementById('spainGeologyCheck')?.checked)updateGeologyLegend('spain');
+});
 
 
 // Red geográfica adaptativa (WGS84)
@@ -9119,8 +9143,8 @@ function updateLegend(){
  if(visibleENP.length) h+='<div style="margin-bottom:8px"><b>Espacios Naturales Protegidos</b>'+visibleENP.join('')+'</div>';
 
  // Capas temáticas territoriales
- if(document.getElementById('canaryGeologyCheck')?.checked&&map.hasLayer(geologyCanary))h+='<div style="margin-bottom:8px"><b>Geología · Canarias</b><br>GEODE · IGME-CSIC</div>';
- if(document.getElementById('spainGeologyCheck')?.checked&&map.hasLayer(geologySpain))h+='<div style="margin-bottom:8px"><b>Geología · España peninsular y Baleares</b><br>GEODE · IGME-CSIC</div>';
+ if(document.getElementById('canaryGeologyCheck')?.checked&&map.hasLayer(geologyCanary))h+='<div style="margin-bottom:8px"><b>Geología · Canarias</b><br>IGME 1:1M / GEODE según escala</div>';
+ if(document.getElementById('spainGeologyCheck')?.checked&&map.hasLayer(geologySpain))h+='<div style="margin-bottom:8px"><b>Geología · España peninsular y Baleares</b><br>IGME 1:1M / GEODE según escala</div>';
  if((document.getElementById('canaryClimateCheck')?.checked&&map.hasLayer(canaryClimate))||(document.getElementById('spainClimateCheck')?.checked&&map.hasLayer(spainClimate))){
   h+='<div style="margin-bottom:8px"><b>Clima Köppen-Geiger</b><br>'+WORLD_CLIMATE_INFO.map(([n,c])=>'<div><span class="sw" style="background:'+c+'"></span>'+esc(n)+'</div>').join('')+'</div>';
  }
