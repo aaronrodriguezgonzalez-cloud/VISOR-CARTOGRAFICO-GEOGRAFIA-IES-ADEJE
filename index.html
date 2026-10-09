@@ -3353,6 +3353,31 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
   <div id="geoAnalysisTableWrap" class="geoAnalysisTableWrap"></div>
   <small class="geoAnalysisMethod">Método inicial: estadística zonal por muestreo espacial adaptativo de alta resolución; los solapes entre ENP se contabilizan una sola vez. Superficies calculadas geodésicamente. Fuente cartográfica: IDECanarias / Gobierno de Canarias / GRAFCAN.</small>
 </div>
+<hr style="margin:10px 0;border:0;border-top:1px solid #cfd8dc">
+<details id="geoGeneralBlock" open>
+<summary><b>🧪 Análisis general</b> · generar indicadores y mapas derivados</summary>
+<p style="margin:7px 0 5px">Calcula un indicador para cada unidad territorial y genera <b>mapa temático + gráfico + tabla + CSV</b>.</p>
+<label><b>Unidades</b><select id="geoGeneralUnits"><option value="tf">Municipios de Tenerife · 31</option><option value="canarias">Municipios de Canarias · 88</option></select></label>
+<label><b>Indicador</b><select id="geoGeneralMetric">
+<option value="area">Superficie municipal · km²</option>
+<option value="enp-pct">Superficie incluida en ENP · %</option>
+<option value="enp-km2">Superficie incluida en ENP · km²</option>
+<option value="elev-mean">Altitud media · m</option>
+<option value="elev-min">Altitud mínima · m</option>
+<option value="elev-max">Altitud máxima · m</option>
+<option value="elev-range">Rango altitudinal · m</option>
+</select></label>
+<label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
+<div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
+<small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
+<div id="geoGeneralResult" class="geoAnalysisResult" hidden>
+ <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
+ <canvas id="geoGeneralCanvas" width="760" height="520"></canvas>
+ <div class="row geoAnalysisResultActions"><button class="action" id="geoGeneralToggleMap" type="button">🗺️ Mostrar/ocultar mapa</button><button class="action" id="geoGeneralCsv" type="button">⬇ CSV</button></div>
+ <div id="geoGeneralTableWrap" class="geoAnalysisTableWrap"></div>
+ <small class="geoAnalysisMethod">Superficie: cálculo geodésico. ENP: muestreo zonal sin doble contabilización de solapes. Altitud: muestreo zonal mediante el motor de elevación ya existente en ANAMBRO (MDT25 local en Canarias).</small>
+</div>
+</details>
 </div>
 
 <div id="profilePanel" class="panel hidden"><h3>Perfil topográfico</h3>
@@ -8800,7 +8825,7 @@ function clearProfile(){lastProfilePath=null;lastProfileAnalysis=null;lastProfil
 
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeProfileModal();});
-map.on('click',e=>{if(typeof trackBuildActive!=='undefined'&&trackBuildActive){addTrackBuilderPoint(e.latlng);return;}if(profileMode){addProfilePoint(e.latlng);return;}if(measureMode){addMeasurePoint(e.latlng);return;}if(document.getElementById('worldHistoryCheck')?.checked){L.popup({maxWidth:390,className:'historyPopup',autoPan:true,autoPanPaddingTopLeft:L.point(24,125),autoPanPaddingBottomRight:L.point(24,120)}).setLatLng(e.latlng).setContent('<div class="historyCard"><div class="historyCardTitle">🏛️ '+escHtml(historyYearText(historyYear))+'</div>No hay una entidad política de Cliopatria identificada en este punto para el año seleccionado.<div class="historyCardNote">No se muestran topónimos, países ni divisiones actuales mientras la capa histórica está activa.</div></div>').openOn(map);return;}showPoint(e.latlng);});
+map.on('click',e=>{if(typeof trackBuildActive!=='undefined'&&trackBuildActive){addTrackBuilderPoint(e.latlng);return;}if(profileMode){addProfilePoint(e.latlng);return;}if(measureMode){addMeasurePoint(e.latlng);return;}const featureOwner=e.propagatedFrom||e.layer||null;if(featureOwner&&featureOwner!==map&&typeof featureOwner.getPopup==='function'&&featureOwner.getPopup()){coordQuerySeq++;return;}if(document.getElementById('worldHistoryCheck')?.checked){L.popup({maxWidth:390,className:'historyPopup',autoPan:true,autoPanPaddingTopLeft:L.point(24,125),autoPanPaddingBottomRight:L.point(24,120)}).setLatLng(e.latlng).setContent('<div class="historyCard"><div class="historyCardTitle">🏛️ '+escHtml(historyYearText(historyYear))+'</div>No hay una entidad política de Cliopatria identificada en este punto para el año seleccionado.<div class="historyCardNote">No se muestran topónimos, países ni divisiones actuales mientras la capa histórica está activa.</div></div>').openOn(map);return;}showPoint(e.latlng);});
 function goCoords(){const lat=parseFloat(latIn.value),lon=parseFloat(lonIn.value);if(!isFinite(lat)||!isFinite(lon))return alert('Introduce latitud y longitud válidas.');const ll=L.latLng(lat,lon);map.setView(ll,16);closePanels();showPoint(ll,'Coordenadas introducidas');}
 
 // GPS
@@ -22716,7 +22741,18 @@ function pointRing(x,y,r){let inside=false;for(let i=0,j=r.length-1;i<r.length;j
 function pointGeom(x,y,g){for(const poly of geomRings(g)){if(!poly?.length||!pointRing(x,y,poly[0]))continue;let hole=false;for(let h=1;h<poly.length;h++)if(pointRing(x,y,poly[h])){hole=true;break}if(!hole)return true}return false}
 function ringAreaKm2(r){if(!Array.isArray(r)||r.length<3)return 0;let s=0;for(let i=0;i<r.length-1;i++){const p1=r[i],p2=r[i+1],lon1=p1[0]*Math.PI/180,lon2=p2[0]*Math.PI/180,lat1=p1[1]*Math.PI/180,lat2=p2[1]*Math.PI/180;s+=(lon2-lon1)*(2+Math.sin(lat1)+Math.sin(lat2))}return Math.abs(s)*R*R/2}
 function geomAreaKm2(g){let a=0;for(const poly of geomRings(g)){if(!poly?.length)continue;let pa=ringAreaKm2(poly[0]);for(let h=1;h<poly.length;h++)pa-=ringAreaKm2(poly[h]);a+=Math.max(0,pa)}return a}
-function featureName(f,i=0){const p=f?.properties||{},keys=['__name','nombre','NOMBRE','etiqueta','ETIQUETA','DENOMINACION','denominacion','MUNICIPIO','municipio','NOM_MUN','NOMBRE_MUN','NAME','name'];for(const k of keys){const v=p[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v).trim()}for(const [k,v] of Object.entries(p)){if(/nombre|denom|munic/i.test(k)&&v!=null&&String(v).trim())return String(v).trim()}return 'Municipio '+(i+1)}
+function featureName(f,i=0){
+ const p=f?.properties||{};
+ // El código municipal sirve para unir datos, nunca como etiqueta visible.
+ // Se priorizan los mismos campos nominales humanos que usa el mapa político.
+ const keys=['NAM_2','NAM_1','NAME_2','NAME_1','ADM2NM','P_NAME_2','NAM_2_NTVE','NAM_2_WIKI','shapeName','__name_popup_es','__name_es','NOMBRE_MUNICIPIO','NOMBRE_MUN','NOM_MUN','NOMBRE','nombre','MUNICIPIO','municipio','DENOMINACION','denominacion','NAMEUNIT','NAME','name','etiqueta','ETIQUETA','__name'];
+ const clean=v=>{let s=String(v??'').trim();const m=s.match(/^\d{5}\s*[-–—:|]?\s*(.+\D.+)$/);if(m)s=m[1].trim();return s};
+ const codeOnly=s=>/^[A-Z]{0,5}[-_.:]?\d{2,}(?:[-_.:]?\d+)*$/i.test(s)||/^\d{3,}$/.test(s);
+ let fallback='';
+ for(const k of keys){const v=p[k];if(v===undefined||v===null)continue;const s=clean(v);if(!s)continue;if(!fallback)fallback=s;if(!codeOnly(s))return s}
+ for(const [k,v] of Object.entries(p)){if(!/nombre|denom|munic|label|etiqueta/i.test(k)||v==null)continue;const s=clean(v);if(s&&!codeOnly(s))return s}
+ return fallback&&!codeOnly(fallback)?fallback:'Municipio '+(i+1)
+}
 function bboxCenter(b){return[(b[0]+b[2])/2,(b[1]+b[3])/2]}
 function isTenerifeFeature(f){const b=geomBBox(f.geometry),c=bboxCenter(b);return c[0]>=TF_BBOX[0]&&c[0]<=TF_BBOX[2]&&c[1]>=TF_BBOX[1]&&c[1]<=TF_BBOX[3]&&bboxHit(b,TF_BBOX)}
 async function municipalitiesTenerife(){if(analysisMunicipalFC)return analysisMunicipalFC;let fc=null;if(typeof politicalData==='function')fc=await politicalData('canary-municipalities');else if(typeof getCanaryMunicipalDataCanonical==='function')fc=await getCanaryMunicipalDataCanonical();if(!fc?.features?.length)throw Error('No se pudo obtener la geometría municipal');let fs=fc.features.filter(isTenerifeFeature);if(fs.length!==31)console.warn('Análisis geográfico · municipios detectados en Tenerife:',fs.length);analysisMunicipalFC={type:'FeatureCollection',features:fs};return analysisMunicipalFC}
@@ -22736,6 +22772,46 @@ function clearAll(){analysisRows=[];clearMapLayer();q('geoAnalysisResult').hidde
 function csv(){if(!analysisRows.length)return;const rows=['Municipio;Superficie_km2;Superficie_protegida_km2;Porcentaje_municipal_protegido;Porcentaje_del_protegido_de_Tenerife',...analysisRows.map(r=>[r.name,r.area.toFixed(3),r.protectedArea.toFixed(3),r.pct.toFixed(3),r.share.toFixed(3)].join(';'))],blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ANAMBRO_Tenerife_municipios_ENP.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800)}
 run.addEventListener('click',execute);clearBtn.addEventListener('click',clearAll);q('geoAnalysisMetric')?.addEventListener('change',()=>{if(analysisRows.length){renderChart();renderTable()}});q('geoAnalysisChart')?.addEventListener('change',()=>{if(analysisRows.length)renderChart()});q('geoAnalysisToggleMap')?.addEventListener('click',()=>{if(!analysisLayer)return;if(map.hasLayer(analysisLayer)){map.removeLayer(analysisLayer);analysisVisible=false}else{analysisLayer.addTo(map);analysisVisible=true}});q('geoAnalysisCsv')?.addEventListener('click',csv);
 window.__anambroGeographicAnalysis={run:execute,clear:clearAll,rows:()=>analysisRows,layer:()=>analysisLayer};
+})();
+</script>
+
+<script id="anambro-geographic-analysis-general-js">
+(function(){
+'use strict';
+const q=id=>document.getElementById(id),run=q('geoGeneralRun'),clearBtn=q('geoGeneralClear');
+if(!run||typeof L==='undefined'||typeof map==='undefined')return;
+const TF_BBOX=[-16.96,27.92,-16.04,28.66],R=6371.0088;
+let rows=[],layer=null,legend=null,visible=true,lastMetric='area';
+function stat(t,bad=false){const e=q('geoGeneralStatus');if(e){e.textContent=t;e.style.color=bad?'#a32921':'#5c472c'}}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function geomRings(g,out=[]){if(!g)return out;if(g.type==='Polygon'){out.push(g.coordinates);return out}if(g.type==='MultiPolygon'){for(const p of g.coordinates)out.push(p)}return out}
+function ringBBox(r,b=[Infinity,Infinity,-Infinity,-Infinity]){for(const p of r||[]){const x=+p?.[0],y=+p?.[1];if(!Number.isFinite(x)||!Number.isFinite(y))continue;b[0]=Math.min(b[0],x);b[1]=Math.min(b[1],y);b[2]=Math.max(b[2],x);b[3]=Math.max(b[3],y)}return b}
+function geomBBox(g){const b=[Infinity,Infinity,-Infinity,-Infinity];for(const poly of geomRings(g))for(const r of poly)ringBBox(r,b);return b}
+function bboxHit(a,b){return a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1]}
+function pointRing(x,y,r){let inside=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const xi=+r[i][0],yi=+r[i][1],xj=+r[j][0],yj=+r[j][1];const hit=((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/((yj-yi)||1e-30)+xi);if(hit)inside=!inside}return inside}
+function pointGeom(x,y,g){for(const poly of geomRings(g)){if(!poly?.length||!pointRing(x,y,poly[0]))continue;let hole=false;for(let h=1;h<poly.length;h++)if(pointRing(x,y,poly[h])){hole=true;break}if(!hole)return true}return false}
+function ringAreaKm2(r){if(!Array.isArray(r)||r.length<3)return 0;let s=0;for(let i=0;i<r.length-1;i++){const p1=r[i],p2=r[i+1],lon1=p1[0]*Math.PI/180,lon2=p2[0]*Math.PI/180,lat1=p1[1]*Math.PI/180,lat2=p2[1]*Math.PI/180;s+=(lon2-lon1)*(2+Math.sin(lat1)+Math.sin(lat2))}return Math.abs(s)*R*R/2}
+function geomAreaKm2(g){let a=0;for(const poly of geomRings(g)){if(!poly?.length)continue;let pa=ringAreaKm2(poly[0]);for(let h=1;h<poly.length;h++)pa-=ringAreaKm2(poly[h]);a+=Math.max(0,pa)}return a}
+function humanName(f,i=0){const p=f?.properties||{},keys=['NAM_2','NAM_1','NAME_2','NAME_1','ADM2NM','P_NAME_2','NAM_2_NTVE','NAM_2_WIKI','shapeName','__name_popup_es','__name_es','NOMBRE_MUNICIPIO','NOMBRE_MUN','NOM_MUN','NOMBRE','nombre','MUNICIPIO','municipio','DENOMINACION','denominacion','NAMEUNIT','NAME','name','etiqueta','ETIQUETA','__name'];const clean=v=>{let s=String(v??'').trim();const m=s.match(/^\d{5}\s*[-–—:|]?\s*(.+\D.+)$/);if(m)s=m[1].trim();return s},codeOnly=s=>/^[A-Z]{0,5}[-_.:]?\d{2,}(?:[-_.:]?\d+)*$/i.test(s)||/^\d{3,}$/.test(s);for(const k of keys){const s=clean(p[k]);if(s&&!codeOnly(s))return s}return 'Municipio '+(i+1)}
+function center(b){return[(b[0]+b[2])/2,(b[1]+b[3])/2]}
+function isTF(f){const b=geomBBox(f.geometry),c=center(b);return c[0]>=TF_BBOX[0]&&c[0]<=TF_BBOX[2]&&c[1]>=TF_BBOX[1]&&c[1]<=TF_BBOX[3]&&bboxHit(b,TF_BBOX)}
+async function units(){let fc=null;if(typeof politicalData==='function')fc=await politicalData('canary-municipalities');else if(typeof getCanaryMunicipalDataCanonical==='function')fc=await getCanaryMunicipalDataCanonical();if(!fc?.features?.length)throw Error('No se pudo obtener la geometría municipal');const fs=q('geoGeneralUnits').value==='tf'?fc.features.filter(isTF):fc.features;return {type:'FeatureCollection',features:fs}}
+async function enpFeatures(){if(typeof ensureEnp!=='function'||typeof ENP_CONFIG==='undefined')throw Error('Motor ENP no disponible');const ls=await Promise.all(Object.keys(ENP_CONFIG).map(c=>ensureEnp(c)));const fs=[];for(const l of ls){const fc=l?.toGeoJSON?.();if(fc?.features)fs.push(...fc.features)}if(!fs.length)throw Error('No se pudieron cargar los Espacios Naturales Protegidos');return fs}
+function gridPoints(f,n){const b=geomBBox(f.geometry),w=b[2]-b[0],h=b[3]-b[1],nx=Math.max(3,n),ny=Math.max(3,Math.round(n*h/Math.max(w,1e-9))),pts=[];for(let iy=0;iy<ny;iy++){const y=b[1]+(iy+.5)*h/ny;for(let ix=0;ix<nx;ix++){const x=b[0]+(ix+.5)*w/nx;if(pointGeom(x,y,f.geometry))pts.push([x,y])}}return pts}
+async function protectedStats(f,enp,n){const pts=gridPoints(f,Math.max(16,n*4)),b=geomBBox(f.geometry),cand=enp.filter(e=>bboxHit(geomBBox(e.geometry),b));let prot=0;for(let i=0;i<pts.length;i++){const [x,y]=pts[i];for(const e of cand)if(pointGeom(x,y,e.geometry)){prot++;break}if(i%200===0)await new Promise(r=>setTimeout(r,0))}const frac=pts.length?prot/pts.length:0,a=geomAreaKm2(f.geometry);return{valuePct:frac*100,valueKm2:a*frac}}
+async function elevationStats(f,n){if(typeof elevationAt!=='function')throw Error('Motor de elevación no disponible');let pts=gridPoints(f,n),zs=[];for(let start=0;start<pts.length;start+=6){const chunk=pts.slice(start,start+6);const vals=await Promise.all(chunk.map(([x,y])=>elevationAt(y,x).catch(()=>null)));for(const z of vals)if(Number.isFinite(z)&&z>=-10)zs.push(+z);await new Promise(r=>setTimeout(r,0))}if(!zs.length)return{mean:null,min:null,max:null,range:null,count:0};const sum=zs.reduce((a,b)=>a+b,0),min=Math.min(...zs),max=Math.max(...zs);return{mean:sum/zs.length,min,max,range:max-min,count:zs.length}}
+function metricMeta(m){return({area:{label:'Superficie municipal',unit:'km²'},'enp-pct':{label:'Superficie incluida en ENP',unit:'%'},'enp-km2':{label:'Superficie incluida en ENP',unit:'km²'},'elev-mean':{label:'Altitud media',unit:'m'},'elev-min':{label:'Altitud mínima',unit:'m'},'elev-max':{label:'Altitud máxima',unit:'m'},'elev-range':{label:'Rango altitudinal',unit:'m'}})[m]||{label:m,unit:''}}
+function color(v,min,max){const t=max>min?Math.max(0,Math.min(1,(v-min)/(max-min))):.5;return 'hsl('+(204-160*t)+' 68% '+(92-44*t)+'%)'}
+function clearMap(){if(layer&&map.hasLayer(layer))map.removeLayer(layer);layer=null;if(legend)try{map.removeControl(legend)}catch(_){}legend=null}
+function drawMap(metric){clearMap();const vals=rows.map(r=>r.value).filter(Number.isFinite),min=Math.min(...vals),max=Math.max(...vals),meta=metricMeta(metric);const fc={type:'FeatureCollection',features:rows.map(r=>{const f=JSON.parse(JSON.stringify(r.feature));f.properties={...(f.properties||{}),__ga_name:r.name,__ga_value:r.value};return f})};layer=L.geoJSON(fc,{style:f=>({color:'#fff',weight:1.1,fill:true,fillColor:color(+f.properties.__ga_value,min,max),fillOpacity:.8}),onEachFeature:(f,l)=>l.bindPopup('<b>'+esc(f.properties.__ga_name)+'</b><br><b>'+esc(meta.label)+':</b> '+Number(f.properties.__ga_value).toLocaleString('es-ES',{maximumFractionDigits:2})+' '+meta.unit+'<br><small>Análisis geográfico · ANAMBRO</small>')}).addTo(map);visible=true;legend=L.control({position:'bottomright'});legend.onAdd=()=>{const d=L.DomUtil.create('div','indigenousTerritoryLegend');d.innerHTML='<b>🧮 '+esc(meta.label)+'</b><div style="margin-top:4px;height:10px;width:180px;background:linear-gradient(90deg,'+color(min,min,max)+','+color(max,min,max)+');border:1px solid #777"></div><div style="display:flex;justify-content:space-between"><small>'+min.toLocaleString('es-ES',{maximumFractionDigits:1})+'</small><small>'+max.toLocaleString('es-ES',{maximumFractionDigits:1})+' '+meta.unit+'</small></div>';L.DomEvent.disableClickPropagation(d);return d};legend.addTo(map)}
+function drawChart(metric){const c=q('geoGeneralCanvas'),ctx=c.getContext('2d'),meta=metricMeta(metric),sorted=[...rows].sort((a,b)=>b.value-a.value);c.width=760;c.height=Math.max(520,sorted.length*18+72);ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#1f2f38';ctx.font='12px system-ui';ctx.fillText(meta.label+' · '+(q('geoGeneralUnits').value==='tf'?'municipios de Tenerife':'municipios de Canarias'),16,21);const left=185,right=46,top=38,rowH=17,max=Math.max(...sorted.map(r=>r.value),1);ctx.font='9.5px system-ui';for(let i=0;i<sorted.length;i++){const r=sorted[i],y=top+i*rowH,w=(c.width-left-right)*Math.max(0,r.value)/max;ctx.fillStyle='#263238';ctx.textAlign='right';ctx.fillText(r.name.slice(0,27),left-6,y+10);ctx.fillStyle=color(r.value,0,max);ctx.fillRect(left,y,w,11);ctx.fillStyle='#263238';ctx.textAlign='left';ctx.fillText(r.value.toLocaleString('es-ES',{maximumFractionDigits:1})+' '+meta.unit,left+w+4,y+10)}ctx.textAlign='left'}
+function renderTable(metric){const meta=metricMeta(metric),w=q('geoGeneralTableWrap'),sorted=[...rows].sort((a,b)=>b.value-a.value);let h='<table class="geoAnalysisTable"><thead><tr><th>Municipio</th><th>'+esc(meta.label)+'</th></tr></thead><tbody>';for(const r of sorted)h+='<tr><td><b>'+esc(r.name)+'</b></td><td class="num">'+r.value.toLocaleString('es-ES',{maximumFractionDigits:2})+' '+meta.unit+'</td></tr>';w.innerHTML=h+'</tbody></table>'}
+function render(metric){const meta=metricMeta(metric),vals=rows.map(r=>r.value).filter(Number.isFinite),avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;q('geoGeneralResult').hidden=false;q('geoGeneralSummary').innerHTML='<b>'+rows.length+' municipios.</b> '+esc(meta.label)+' · media de las unidades: <b>'+avg.toLocaleString('es-ES',{maximumFractionDigits:1})+' '+meta.unit+'</b>.';drawChart(metric);renderTable(metric);drawMap(metric)}
+async function execute(){run.disabled=true;clearBtn.disabled=true;clearMap();rows=[];q('geoGeneralResult').hidden=true;const metric=q('geoGeneralMetric').value,n=+q('geoGeneralPrecision').value||7;lastMetric=metric;try{stat('Cargando unidades municipales…');const fc=await units();let enp=null;if(metric.startsWith('enp-')){stat('Cargando Espacios Naturales Protegidos…');enp=await enpFeatures()}for(let i=0;i<fc.features.length;i++){const f=fc.features[i],name=humanName(f,i);stat('Analizando '+name+' · '+(i+1)+'/'+fc.features.length+'…');let value=null;if(metric==='area')value=geomAreaKm2(f.geometry);else if(metric==='enp-pct'||metric==='enp-km2'){const z=await protectedStats(f,enp,n);value=metric==='enp-pct'?z.valuePct:z.valueKm2}else{const z=await elevationStats(f,n);value=metric==='elev-mean'?z.mean:metric==='elev-min'?z.min:metric==='elev-max'?z.max:z.range}if(Number.isFinite(value))rows.push({name,feature:f,value})}if(!rows.length)throw Error('No se obtuvieron resultados válidos');render(metric);stat('✓ Análisis terminado · '+rows.length+' municipios.')}catch(e){console.error('Análisis general',e);stat('No se pudo completar el análisis: '+(e?.message||e),true)}finally{run.disabled=false;clearBtn.disabled=false}}
+function clearAll(){rows=[];clearMap();q('geoGeneralResult').hidden=true;const c=q('geoGeneralCanvas');c?.getContext('2d')?.clearRect(0,0,c.width,c.height);stat('Análisis limpiado.')}
+function csv(){if(!rows.length)return;const meta=metricMeta(lastMetric),lines=['Municipio;'+meta.label.replace(/;/g,',')+'_'+meta.unit,...rows.map(r=>[r.name,r.value.toFixed(4)].join(';'))],blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ANAMBRO_'+lastMetric+'_'+q('geoGeneralUnits').value+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800)}
+run.addEventListener('click',execute);clearBtn.addEventListener('click',clearAll);q('geoGeneralToggleMap')?.addEventListener('click',()=>{if(!layer)return;if(map.hasLayer(layer)){map.removeLayer(layer);visible=false}else{layer.addTo(map);visible=true}});q('geoGeneralCsv')?.addEventListener('click',csv);
+window.__anambroGeographicAnalysisGeneral={run:execute,clear:clearAll,rows:()=>rows,layer:()=>layer};
 })();
 </script>
 
