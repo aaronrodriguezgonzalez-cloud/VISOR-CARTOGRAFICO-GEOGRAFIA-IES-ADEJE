@@ -6216,12 +6216,15 @@ async function elevationAtRaw(lat,lon){
   const entry=Object.entries(MDT25).find(([k,v])=>x>=v.bbox[0]&&x<=v.bbox[2]&&y>=v.bbox[1]&&y<=v.bbox[3]);
   if(entry){
    const [key,meta]=entry;
+   // Una sola carga del GeoTIFF por isla, incluso con solicitudes simultáneas.
    if(!mdtCache[key]){
-    const tif=await GeoTIFF.fromUrl('mdt25_web/'+meta.file);
-    const image=await tif.getImage();
-    mdtCache[key]={image,bbox:image.getBoundingBox(),w:image.getWidth(),h:image.getHeight()};
+    mdtCache[key]=(async()=>{
+     const tif=await GeoTIFF.fromUrl('mdt25_web/'+meta.file);
+     const image=await tif.getImage();
+     return {image,bbox:image.getBoundingBox(),w:image.getWidth(),h:image.getHeight()};
+    })().catch(err=>{delete mdtCache[key];throw err;});
    }
-   const d=mdtCache[key], b=d.bbox;
+   const d=await mdtCache[key], b=d.bbox;
    const col=Math.floor((x-b[0])/(b[2]-b[0])*d.w);
    const row=Math.floor((b[3]-y)/(b[3]-b[1])*d.h);
    if(col>=0&&row>=0&&col<d.w&&row<d.h){
@@ -6845,7 +6848,7 @@ function profileAdaptiveSampleCount(pts){
  let inSpain=true;try{inSpain=pts.every(ll=>typeof profileIsSpainLatLng==='function'&&profileIsSpainLatLng(ll));}catch(e){inSpain=false;}
  // MDT25: ~30 m entre muestras en España/Canarias, con límites para no castigar el rendimiento.
  // Fuera de España se reduce la densidad porque la elevación puede depender de servicios remotos.
- const spacing=inSpain?30:100,maxN=inSpain?600:400;
+ const spacing=inSpain?30:100,maxN=inSpain?320:260;
  return Math.max(100,Math.min(maxN,Math.ceil(total/spacing)+1));
 }
 async function finishProfile(){
@@ -6877,18 +6880,31 @@ async function finishProfileFromPoints(profileInputPts){
   document.getElementById('profileBox').style.display='none';result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total);
   const turns=detectProfileTurns(samples,prof.total,zmin,zmax);
   let profileLabels=[],profileTurns=turns;
-  if(lastProfileWorld){
-   // Mundo: evita la consulta NGBE/IGN sobre un bbox planetario y obtiene primero fuentes vectoriales rápidas.
-   const [worldLabels,countryBlocks]=await Promise.all([profileWorldToponyms(prof),profileCountryBlocks(prof)]);
-   profileLabels=worldLabels;lastProfileCountries=countryBlocks;
-  }else{
-   const topo=await profileToponyms(prof,turns);profileLabels=topo.labels;profileTurns=topo.turns;lastProfileCountries=[];
-  }
+  // Mostrar inmediatamente el perfil altimétrico. Ninguna red de topónimos ni
+  // fronteras puede bloquear su apertura; se incorporan cuando respondan.
+  lastProfileCountries=[];
   updateProfileThemeAvailability();updateProfileTopoNote();
-  openProfileModal();lastProfilePath=prof;lastProfileAnalysis=null;lastProfileDraw=[samples,prof.total,zmin,zmax,profileLabels,profileTurns];
+  lastProfilePath=prof;lastProfileAnalysis=null;lastProfileDraw=[samples,prof.total,zmin,zmax,profileLabels,profileTurns];
+  openProfileModal();
   requestAnimationFrame(()=>drawProfileLarge(...lastProfileDraw));renderProfileLegend();
-  analyzeProfileTerritory(prof).catch(()=>{document.getElementById('profileBandsContent').innerHTML='<span class="profileLegendHint">No se pudo completar el análisis temático del perfil.</span>';});
+  analyzeProfileTerritory(prof).catch(()=>{if(lastProfilePath===prof)document.getElementById('profileBandsContent').innerHTML='<span class="profileLegendHint">No se pudo completar el análisis temático del perfil.</span>';});
   status('Perfil topográfico generado · '+fmtDistance(prof.total));
+  if(lastProfileWorld){
+   Promise.allSettled([profileWorldToponyms(prof),profileCountryBlocks(prof)]).then(([labels,countries])=>{
+    if(enrichSeq!==profileLabelEnrichSeq||lastProfilePath!==prof)return;
+    if(labels.status==='fulfilled')profileLabels=labels.value;
+    if(countries.status==='fulfilled')lastProfileCountries=countries.value;
+    lastProfileDraw=[samples,prof.total,zmin,zmax,profileLabels,profileTurns];
+    if(document.getElementById('profileModal')?.classList.contains('open'))requestAnimationFrame(()=>drawProfileLarge(...lastProfileDraw));
+   });
+  }else{
+   profileToponyms(prof,turns).then(topo=>{
+    if(enrichSeq!==profileLabelEnrichSeq||lastProfilePath!==prof)return;
+    profileLabels=topo.labels;profileTurns=topo.turns;
+    lastProfileDraw=[samples,prof.total,zmin,zmax,profileLabels,profileTurns];
+    if(document.getElementById('profileModal')?.classList.contains('open'))requestAnimationFrame(()=>drawProfileLarge(...lastProfileDraw));
+   }).catch(e=>console.warn('Topónimos del perfil:',e));
+  }
 
   // Nominatim conserva exactamente su función (topónimos próximos + nombres de accidentes),
   // pero deja de bloquear la apertura del perfil. Se enriquece y redibuja en segundo plano.
