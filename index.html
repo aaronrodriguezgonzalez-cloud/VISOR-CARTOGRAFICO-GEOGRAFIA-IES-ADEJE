@@ -6728,13 +6728,16 @@ function toggleImportedTrackVisibility(){
  updateTrackVisibilityButton();
 }
 async function profileImportedTrack(){
- const live=(typeof currentTrackProfilePath==='function'?currentTrackProfilePath():importedTrackProfilePts);if(live?.length>1)importedTrackProfilePts=live.slice();
- if(importedTrackProfilePts.length<2){alert('Carga o genera primero un track.');return;}
+ const live=(typeof currentTrackProfilePath==='function'?currentTrackProfilePath():importedTrackProfilePts);
+ const trackPath=(live?.length>1?live:importedTrackProfilePts).slice();
+ if(trackPath.length<2){alert('Carga o genera primero un track.');return;}
+ importedTrackProfilePts=trackPath.slice();
  const fromGlobe=document.body.classList.contains('globe-mode');
  lastProfileSource=fromGlobe?'globe':'map';lastProfileCountries=[];
- document.getElementById('profileResult').innerHTML='<b>Resultado:</b> '+fmtDistance(trackSegmentDistance(importedTrackProfilePts))+' · preparando perfil del track…';
+ document.getElementById('profileResult').innerHTML='<b>Resultado:</b> '+fmtDistance(trackSegmentDistance(trackPath))+' · preparando perfil del track…';
  status('Generando perfil del track · '+importedTrackName);
- await finishProfileFromPoints(importedTrackProfilePts.slice());
+ // El perfil de track conserva el muestreo rápido histórico: 100 muestras sobre la geometría exacta del track.
+ await finishProfileFromPoints(trackPath,{sampleCount:100,profileKind:'track'});
 }
 
 // Generador/Editor de tracks v0.10 · enrutamiento por caminos OSM mediante BRouter + tramos manuales.
@@ -6906,55 +6909,68 @@ async function finishProfile(){
  lastProfileSource='map';lastProfileCountries=[];
  await finishProfileFromPoints(effectiveProfilePts());
 }
-let profileLabelEnrichSeq=0;
-async function finishProfileFromPoints(profileInputPts){
- const oldPts=profilePts;profilePts=profileInputPts;const enrichSeq=++profileLabelEnrichSeq;
- try{
-  if(profilePts.length<2){alert('Marca al menos dos puntos para generar el perfil.');return;}profileMode=false;redrawProfileLine();
-  const prof=interpolateProfilePoints(profilePts,profileAdaptiveSampleCount(profilePts));prof.path=profilePts.slice();
-  // Fuente altimétrica homogénea por recorrido: si el perfil/track sale de España,
-  // usar el DEM mundial para TODAS las muestras. Evita saltos de fuente en Pirineos,
-  // Portugal u otros recorridos transfronterizos. Las consultas puntuales siguen usando
-  // el DEM español/MDT25 cuando corresponda.
-  const forceWorldDem=lastProfileSource==='globe'||prof.points.some(p=>!profileIsSpainLatLng(p.ll));
-  lastProfileWorld=forceWorldDem;
-  lastProfileMacrostratZoom=lastProfileSource==='globe'?macrostratGlobeQueryZoom():Math.max(2,Math.min(12,Math.round(map.getZoom())));
-  const result=document.getElementById('profileResult');result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · calculando altitudes…'+(forceWorldDem?' · DEM mundial continuo':'');
-  const samples=new Array(prof.points.length),workers=Math.min(12,prof.points.length);let nextSample=0;
-  await Promise.all(Array.from({length:workers},async()=>{while(true){const i=nextSample++;if(i>=prof.points.length)break;const p=prof.points[i];const z=forceWorldDem?await cesiumWorldElevationAt(p.ll.lat,p.ll.lng):await elevationAt(p.ll.lat,p.ll.lng);samples[i]={d:p.d,ll:p.ll,z};}}));
-  const valid=samples.filter(x=>x.z!==null);if(valid.length<2){result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · sin datos altimétricos suficientes';status('Perfil: sin datos altimétricos suficientes');return;}
-  const zs=valid.map(x=>x.z),zmin=Math.min(...zs),zmax=Math.max(...zs);let gain=0,loss=0,last=null;
-  for(const x of valid){if(last!==null){const dz=x.z-last;if(dz>0)gain+=dz;else loss-=dz;}last=x.z;}
-  const summary='<b>Distancia:</b> '+fmtDistance(prof.total)+' · <b>Cota mín.:</b> '+fmtNum(zmin,0)+' m · <b>Cota máx.:</b> '+fmtNum(zmax,0)+' m · <b>Ascenso aprox.:</b> +'+fmtNum(gain,0)+' m · <b>Descenso aprox.:</b> −'+fmtNum(loss,0)+' m';
-  document.getElementById('profileSummary').innerHTML=summary;document.getElementById('profileModalSummary').innerHTML=summary;
-  document.getElementById('profileBox').style.display='none';result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total);
-  const turns=detectProfileTurns(samples,prof.total,zmin,zmax);
-  let profileLabels=[],profileTurns=turns;
-  if(lastProfileWorld){
-   // Mundo: evita la consulta NGBE/IGN sobre un bbox planetario y obtiene primero fuentes vectoriales rápidas.
-   const [worldLabels,countryBlocks]=await Promise.all([profileWorldToponyms(prof),profileCountryBlocks(prof)]);
-   profileLabels=worldLabels;lastProfileCountries=countryBlocks;
-  }else{
-   const topo=await profileToponyms(prof,turns);profileLabels=topo.labels;profileTurns=topo.turns;lastProfileCountries=[];
-  }
-  updateProfileThemeAvailability();updateProfileTopoNote();
-  openProfileModal();lastProfilePath=prof;lastProfileAnalysis=null;lastProfileDraw=[samples,prof.total,zmin,zmax,profileLabels,profileTurns];
-  requestAnimationFrame(()=>drawProfileLarge(...lastProfileDraw));renderProfileLegend();
-  analyzeProfileTerritory(prof).catch(()=>{document.getElementById('profileBandsContent').innerHTML='<span class="profileLegendHint">No se pudo completar el análisis temático del perfil.</span>';});
-  status('Perfil topográfico generado · '+fmtDistance(prof.total));
+let profileLabelEnrichSeq=0,profileGenerationSeq=0;
+async function finishProfileFromPoints(profileInputPts,options={}){
+ const workingPts=(profileInputPts||[]).slice();
+ const generationSeq=++profileGenerationSeq;
+ const enrichSeq=++profileLabelEnrichSeq;
+ if(workingPts.length<2){alert('Marca al menos dos puntos para generar el perfil.');return;}
+ // Solo se usa el estado global durante el redibujado síncrono. Nunca queda secuestrado mientras hay awaits pendientes.
+ const savedProfilePts=profilePts;
+ try{profilePts=workingPts;profileMode=false;redrawProfileLine();}
+ finally{profilePts=savedProfilePts;}
+ const requestedCount=Number(options?.sampleCount);
+ const sampleCount=Number.isFinite(requestedCount)?Math.max(2,Math.round(requestedCount)):profileAdaptiveSampleCount(workingPts);
+ const prof=interpolateProfilePoints(workingPts,sampleCount);prof.path=workingPts.slice();
+ // Fuente altimétrica homogénea por recorrido: si el perfil/track sale de España,
+ // usar el DEM mundial para TODAS las muestras. Evita saltos de fuente en Pirineos,
+ // Portugal u otros recorridos transfronterizos. Las consultas puntuales siguen usando
+ // el DEM español/MDT25 cuando corresponda.
+ const forceWorldDem=lastProfileSource==='globe'||prof.points.some(p=>!profileIsSpainLatLng(p.ll));
+ lastProfileWorld=forceWorldDem;
+ lastProfileMacrostratZoom=lastProfileSource==='globe'?macrostratGlobeQueryZoom():Math.max(2,Math.min(12,Math.round(map.getZoom())));
+ const result=document.getElementById('profileResult');result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · calculando altitudes…'+(forceWorldDem?' · DEM mundial continuo':'');
+ const samples=new Array(prof.points.length),workers=Math.min(12,prof.points.length);let nextSample=0;
+ await Promise.all(Array.from({length:workers},async()=>{while(generationSeq===profileGenerationSeq){const i=nextSample++;if(i>=prof.points.length)break;const p=prof.points[i];const z=forceWorldDem?await cesiumWorldElevationAt(p.ll.lat,p.ll.lng):await elevationAt(p.ll.lat,p.ll.lng);if(generationSeq!==profileGenerationSeq)break;samples[i]={d:p.d,ll:p.ll,z};}}));
+ // Una generación antigua jamás puede volver a pintar ni alterar el perfil actual.
+ if(generationSeq!==profileGenerationSeq)return;
+ const valid=samples.filter(x=>x&&x.z!==null);if(valid.length<2){result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · sin datos altimétricos suficientes';status('Perfil: sin datos altimétricos suficientes');return;}
+ const zs=valid.map(x=>x.z),zmin=Math.min(...zs),zmax=Math.max(...zs);let gain=0,loss=0,last=null;
+ for(const x of valid){if(last!==null){const dz=x.z-last;if(dz>0)gain+=dz;else loss-=dz;}last=x.z;}
+ const summary='<b>Distancia:</b> '+fmtDistance(prof.total)+' · <b>Cota mín.:</b> '+fmtNum(zmin,0)+' m · <b>Cota máx.:</b> '+fmtNum(zmax,0)+' m · <b>Ascenso aprox.:</b> +'+fmtNum(gain,0)+' m · <b>Descenso aprox.:</b> −'+fmtNum(loss,0)+' m';
+ document.getElementById('profileSummary').innerHTML=summary;document.getElementById('profileModalSummary').innerHTML=summary;
+ document.getElementById('profileBox').style.display='none';result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total);
+ const turns=detectProfileTurns(samples,prof.total,zmin,zmax);
+ let profileLabels=[],profileTurns=turns;
+ if(lastProfileWorld){
+  // Mundo: evita la consulta NGBE/IGN sobre un bbox planetario y obtiene primero fuentes vectoriales rápidas.
+  const [worldLabels,countryBlocks]=await Promise.all([profileWorldToponyms(prof),profileCountryBlocks(prof)]);
+  if(generationSeq!==profileGenerationSeq)return;
+  profileLabels=worldLabels;lastProfileCountries=countryBlocks;
+ }else{
+  const topo=await profileToponyms(prof,turns);
+  if(generationSeq!==profileGenerationSeq)return;
+  profileLabels=topo.labels;profileTurns=topo.turns;lastProfileCountries=[];
+ }
+ updateProfileThemeAvailability();updateProfileTopoNote();
+ if(generationSeq!==profileGenerationSeq)return;
+ openProfileModal();lastProfilePath=prof;lastProfileAnalysis=null;lastProfileDraw=[samples,prof.total,zmin,zmax,profileLabels,profileTurns];
+ requestAnimationFrame(()=>{if(generationSeq===profileGenerationSeq)drawProfileLarge(...lastProfileDraw)});renderProfileLegend();
+ analyzeProfileTerritory(prof).catch(()=>{if(generationSeq===profileGenerationSeq)document.getElementById('profileBandsContent').innerHTML='<span class="profileLegendHint">No se pudo completar el análisis temático del perfil.</span>';});
+ status('Perfil topográfico generado · '+fmtDistance(prof.total));
 
-  // Nominatim conserva exactamente su función (topónimos próximos + nombres de accidentes),
-  // pero deja de bloquear la apertura del perfil. Se enriquece y redibuja en segundo plano.
-  if(lastProfileWorld){
-   Promise.all([profileWorldNearestLabels(prof),nameWorldProfileTurns(turns)]).then(([nearestLabels,namedTurns])=>{
-    if(enrichSeq!==profileLabelEnrichSeq||lastProfilePath!==prof)return;
-    const enrichedLabels=mergeProfileToponyms(profileLabels,nearestLabels);
-    lastProfileDraw=[samples,prof.total,zmin,zmax,enrichedLabels,namedTurns];
-    if(document.getElementById('profileModal')?.classList.contains('open'))requestAnimationFrame(()=>drawProfileLarge(...lastProfileDraw));
-   }).catch(e=>console.warn('Enriquecimiento toponímico del perfil:',e));
-  }
- }finally{profilePts=oldPts;}
+ // Nominatim conserva exactamente su función (topónimos próximos + nombres de accidentes),
+ // pero deja de bloquear la apertura del perfil. Se enriquece y redibuja en segundo plano.
+ if(lastProfileWorld){
+  Promise.all([profileWorldNearestLabels(prof),nameWorldProfileTurns(turns)]).then(([nearestLabels,namedTurns])=>{
+   if(generationSeq!==profileGenerationSeq||enrichSeq!==profileLabelEnrichSeq||lastProfilePath!==prof)return;
+   const enrichedLabels=mergeProfileToponyms(profileLabels,nearestLabels);
+   lastProfileDraw=[samples,prof.total,zmin,zmax,enrichedLabels,namedTurns];
+   if(document.getElementById('profileModal')?.classList.contains('open'))requestAnimationFrame(()=>{if(generationSeq===profileGenerationSeq)drawProfileLarge(...lastProfileDraw)});
+  }).catch(e=>console.warn('Enriquecimiento toponímico del perfil:',e));
+ }
 }
+
 let lastProfileAnalysis=null,lastProfileDraw=null,lastProfilePath=null,lastProfileSource='map',lastProfileCountries=[],lastProfileWorld=false,lastProfileMacrostratZoom=8;
 function profileVegetationKind(){return document.querySelector('input[name="profileTheme"]:checked')?.value==='veg_potential'?'potential':'actual';}
 function themeColor(txt){let h=0;for(const c of String(txt))h=(h*33+c.charCodeAt(0))%360;return 'hsl('+h+' 48% 68%)';}
