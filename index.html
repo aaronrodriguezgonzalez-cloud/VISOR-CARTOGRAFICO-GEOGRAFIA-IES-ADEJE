@@ -3857,7 +3857,43 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 </div>
 
 <div id="status">Híbrido PNOA + cartografía · límites municipales blancos · pulsa el mapa para ver coordenadas</div>
-<script src="https://unpkg.com/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+<script id="anambro-lazy-libs-20261011">
+/* ANAMBRO · carga diferida de librerías pesadas (GeoTIFF, html2canvas, jsPDF) y caché de descargas grandes.
+   Las librerías se descargan cuando se necesitan (GeoTIFF también en segundo plano al terminar la carga). */
+(function(){
+ var U={geotiff:'https://unpkg.com/geotiff@2.1.3/dist-browser/geotiff.js',
+        html2canvas:'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+        jspdf:'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'},
+     G={geotiff:'GeoTIFF',html2canvas:'html2canvas',jspdf:'jspdf'}, P={};
+ window.__anLib=function(n){
+  if(window[G[n]])return Promise.resolve(window[G[n]]);
+  if(P[n])return P[n];
+  P[n]=new Promise(function(ok,ko){
+   var s=document.createElement('script');s.src=U[n];s.async=true;
+   s.onload=function(){ok(window[G[n]])};
+   s.onerror=function(){delete P[n];try{s.remove()}catch(_){}ko(new Error('No se pudo cargar la librería '+n+'. Comprueba la conexión e inténtalo de nuevo.'))};
+   document.head.appendChild(s);
+  });
+  return P[n];
+ };
+ window.addEventListener('load',function(){
+  (window.requestIdleCallback||function(f){setTimeout(f,1500)})(function(){try{window.__anLib('geotiff').catch(function(){})}catch(_){}});
+ });
+ /* fetch con caché persistente del navegador (Cache API); si no está disponible, se comporta como fetch normal */
+ window.__anCachedFetch=async function(url,cacheName,maxAgeDays){
+  var c=null;
+  try{
+   if(typeof caches==='undefined')return fetch(url);
+   c=await caches.open(cacheName);
+   var hit=await c.match(url);
+   if(hit){var d=Date.parse(hit.headers.get('x-anambro-cached-at')||'');if(d&&Date.now()-d<(maxAgeDays||30)*864e5)return hit;}
+  }catch(_){c=null}
+  var r=await fetch(url);
+  if(c&&r.ok){try{var h=new Headers(r.headers);h.set('x-anambro-cached-at',new Date().toISOString());var b=await r.clone().blob();await c.put(url,new Response(b,{status:200,headers:h}))}catch(_){}}
+  return r;
+ };
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
 function toggleLegend(){
@@ -3872,8 +3908,6 @@ function toggleLegend(){
 }
 
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script id="anambro-diagnostics-20261011">
 /* ANAMBRO · diagnóstico (añadido). No modifica ninguna función existente.
    - Registra los errores que antes se descartaban en silencio (bloques catch vacíos).
@@ -3969,18 +4003,19 @@ function engancharTeselas(){
       var u=(e&&e.tile&&e.tile.src)||this._url||'';
       var h=(String(u).match(/^[a-z]+:\/\/([^\/?#]+)/i)||[])[1];
       if(!h)return;
-      var ahora=Date.now(), s=hosts[h]||(hosts[h]={t:[],avisado:0});
+      var ahora=Date.now(), s=hosts[h]||(hosts[h]={t:[],avisado:0,ok:0});
       reg('teselas','Fallan teselas de '+h);
       s.t.push(ahora);
       while(s.t.length&&ahora-s.t[0]>10000)s.t.shift();
-      if(AVISOS_CAPAS&&s.t.length>=12&&ahora-s.avisado>120000&&avisosMostrados<3){
+      if(AVISOS_CAPAS&&s.t.length>=12&&ahora-s.ok>10000&&ahora-s.avisado>120000&&avisosMostrados<3){
         s.avisado=ahora;
         avisosMostrados++;
         aviso('Algunas teselas de '+h+' no se han podido cargar (servicio caído o sin datos en esta zona).');
       }
     }catch(_){}
   }
-  L.TileLayer.addInitHook(function(){this.on('tileerror',alFallarTesela)});
+  function alCargarTesela(e){try{var u=(e&&e.tile&&e.tile.src)||this._url||'',h=(String(u).match(/^[a-z]+:\/\/([^\/?#]+)/i)||[])[1];if(h)(hosts[h]||(hosts[h]={t:[],avisado:0,ok:0})).ok=Date.now()}catch(_){}}
+  L.TileLayer.addInitHook(function(){this.on('tileerror',alFallarTesela);this.on('tileload',alCargarTesela)});
 }
 try{engancharTeselas()}catch(_){}
 })();
@@ -5213,7 +5248,8 @@ async function ensureWorldBiomes(){
    maxAllowableOffset:'0.035',
    f:'geojson'
   });
-  const r=await fetch(base+'?'+params);
+  const __bu=base+'?'+params;
+  const r=await (window.__anCachedFetch?window.__anCachedFetch(__bu,'anambro-biomes-v1',60):fetch(__bu));
   if(!r.ok)throw new Error('RESOLVE '+r.status);
   const g=await r.json();
   worldBiomesData=g;buildCompleteEcoregionSpanishCatalog(g.features||[]);
@@ -6330,7 +6366,7 @@ async function elevationAtRaw(lat,lon){
    // Una sola carga del GeoTIFF por isla, incluso con solicitudes simultáneas.
    if(!mdtCache[key]){
     mdtCache[key]=(async()=>{
-     const tif=await GeoTIFF.fromUrl('mdt25_web/'+meta.file);
+     await __anLib('geotiff');const tif=await GeoTIFF.fromUrl('mdt25_web/'+meta.file);
      const image=await tif.getImage();
      return {image,bbox:image.getBoundingBox(),w:image.getWidth(),h:image.getHeight()};
     })().catch(err=>{delete mdtCache[key];throw err;});
@@ -8494,7 +8530,7 @@ async function refreshLayoutSnapshot(){
    const gridWasVisible=typeof geoGrid!=='undefined'&&map.hasLayer(geoGrid);
    if(!exportGridWanted&&gridWasVisible)map.removeLayer(geoGrid);
    try{
-    canvas=await html2canvas(document.getElementById('map'),{
+    await __anLib('html2canvas');canvas=await html2canvas(document.getElementById('map'),{
      useCORS:true,allowTaint:false,logging:false,
      backgroundColor:statisticalExport?'#d9eef6':(((typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)||document.getElementById('worldHistoryCheck')?.checked)?'#d9eef6':'#d9dde1'),
      ignoreElements:el=>el.classList?.contains('leaflet-control')||el.id==='status'
@@ -8905,11 +8941,11 @@ async function exportLayoutPDF(){
    mapImg.style.objectFit='fill';mapImg.style.objectPosition='50% 50%';mapImg.style.transform='none';mapImg.style.transformOrigin='50% 50%';
   }
   let canvas;
-  try{canvas=await html2canvas(page,{useCORS:true,backgroundColor:'#fff',scale:captureScale,logging:false});}
+  try{await __anLib('html2canvas');canvas=await html2canvas(page,{useCORS:true,backgroundColor:'#fff',scale:captureScale,logging:false});}
   finally{restoreLayoutMapImageAfterExport(flatMap);}
   const paper=document.getElementById('layoutPaper').value.toUpperCase();
   const orientation=document.getElementById('layoutOrientation').value;
-  const {jsPDF}=window.jspdf;
+  await __anLib('jspdf');const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation,unit:'mm',format:paper.toLowerCase(),compress:true});
   const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
   pdf.addImage(canvas.toDataURL('image/jpeg',dpi>=300?.96:.94),'JPEG',0,0,pw,ph,undefined,'FAST');
@@ -12413,7 +12449,7 @@ document.getElementById('worldBiomesCheck').addEventListener('change',async e=>{
   if(globeViewer)toggleWorldBiomesGlobe(false);
   status('Biomas mundiales desactivados');return;
  }
- status('Cargando biomas mundiales…');
+ status('Cargando biomas mundiales… (la primera vez puede tardar; después se guardan en este navegador)');
  try{
   const l=await ensureWorldBiomes();
   if(e.target.checked){
@@ -23151,6 +23187,110 @@ try{if(typeof activeLegendHTML==='function'){const prev=activeLegendHTML;activeL
 try{if(typeof activeSourcesText==='function'){const prev=activeSourcesText;activeSourcesText=function(){const x=prev.apply(this,arguments)||'';return[x,check.checked?COAST_SOURCE:''].filter(Boolean).join(' · ')}}}catch(_){typeof __anLog=='function'&&__anLog(_,'L23121');}
 try{if(typeof defaultLayoutTitle==='function'){const prev=defaultLayoutTitle;defaultLayoutTitle=function(){if(check.checked)return 'Particiones territoriales indígenas de Canarias';return prev.apply(this,arguments)}}}catch(_){typeof __anLog=='function'&&__anLog(_,'L23122');}
 window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlobe,editor:{start:startEditor,stop:stopEditor,select:selectFeature,vertices:()=>editableRing(featureById(selectedId)),cut:(mode='straight')=>beginCut(mode),applyCut,export:exportGeoJSON,publish:publishMaster,reset:()=>{const before=snapshot();DATA=clone(INITIAL);commit(before);selectedId=null;renderAll();renderTable();syncSelectedInfo()}}};
+})();
+</script>
+
+<style id="anambro-touch-layout-20261012">
+/* ANAMBRO · iPad y móvil horizontal: herramientas agrupadas y ventanas siempre por debajo de la cabecera. */
+
+/* ---- iPad (vertical y horizontal): mismo botón agrupado «Herramientas» que en móvil ---- */
+html.anambro-ipad body .toolbar .tool:not(.toolHubBtn):not(.mobileLayersCore):not(#globeToggle):not(#mobileToolsBtn){display:none!important}
+html.anambro-ipad body .toolbar .toolHubBtn,
+html.anambro-ipad body .toolbar .mobileLayersCore,
+html.anambro-ipad body .toolbar #globeToggle,
+html.anambro-ipad body .toolbar #mobileToolsBtn{display:flex!important;align-items:center!important;justify-content:flex-start!important}
+html.anambro-ipad body .toolbar{overflow:visible!important;max-height:none!important}
+html.anambro-ipad body #mobileToolsPanel{
+  position:fixed!important;
+  top:var(--anambro-panel-top,126px)!important;
+  left:150px!important;right:auto!important;bottom:auto!important;
+  width:min(470px,calc(100vw - 164px))!important;max-width:none!important;
+  max-height:calc(100vh - var(--anambro-panel-top,126px) - 12px)!important;
+  overflow:auto!important;z-index:7100!important;
+  border-radius:14px!important;padding:12px!important;
+  background:rgba(255,255,255,.98)!important;box-shadow:0 6px 24px rgba(0,0,0,.30)!important;
+}
+html.anambro-ipad body #mobileToolsPanel.hidden{display:none!important}
+html.anambro-ipad body #mobileToolsPanel:not(.hidden){display:block!important}
+html.anambro-ipad body #mobileToolsPanel .mobileToolsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html.anambro-ipad body #mobileToolsPanel .mobileToolsGrid button{
+  min-height:52px;border:1px solid #cbd5df;border-radius:10px;background:#f7fafc;color:#17324d;
+  padding:8px 9px;font-weight:800;font-size:12px;line-height:1.15;display:flex;align-items:center;gap:8px;text-align:left}
+html.anambro-ipad body #mobileToolsPanel .mobileToolsGrid button span{font-size:20px;flex:0 0 auto}
+html.anambro-ipad body #mobileToolsPanel .mobileToolsPanelHead{position:sticky;top:-12px;margin:-12px -12px 10px;padding:11px 12px 9px;background:rgba(255,255,255,.98);border-bottom:1px solid #d8dde1;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:2}
+html.anambro-ipad body #mobileToolsPanel .mobileToolsPanelHead b{font-size:14px;color:#17324d}
+html.anambro-ipad body #mobileToolsPanel #mobileToolsClose{border:0;background:#17324d;color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;font-weight:900}
+
+/* ---- Móvil en horizontal y tabletas táctiles: la barra nunca se sale de la pantalla ---- */
+@media (min-width:761px) and (hover:none) and (pointer:coarse){
+  html body .toolbar{max-height:calc(100vh - var(--anambro-panel-top,126px) - 6px)!important;overflow-y:auto!important}
+}
+</style>
+<script id="anambro-touch-layout-js-20261012">
+(function(){
+ 'use strict';
+ if(window.__anambroTouchLayout)return;
+ var GAP=8, MARGIN=8, placed=new WeakSet(), obs=null, raf=0;
+ function header(){return document.querySelector('.brand.brandWide')}
+ function isIpad(){return document.documentElement.classList.contains('anambro-ipad')}
+ function isTouchWide(){
+  try{return window.innerWidth>760&&window.matchMedia('(hover:none) and (pointer:coarse)').matches}catch(_){return false}
+ }
+ /* En teléfono vertical las ventanas ya son hojas inferiores bajo la cabecera: place() las deja como están. */
+ function active(){return isIpad()||isTouchWide()}
+ function minTop(){var h=header();return h?Math.ceil(h.getBoundingClientRect().bottom)+GAP:0}
+ function syncVar(){
+  var t=minTop();
+  if(t>0)document.documentElement.style.setProperty('--anambro-panel-top',t+'px');
+ }
+ function release(p){
+  if(!placed.has(p))return;
+  placed.delete(p);
+  if(p.classList.contains('panel-user-moved'))return;   /* la posición la fijó el usuario al arrastrar */
+  p.style.removeProperty('top');p.style.removeProperty('max-height');p.style.removeProperty('overflow-y');p.style.removeProperty('box-sizing');
+ }
+ function place(p){
+  if(!p||p.nodeType!==1)return;
+  if(p.classList.contains('hidden')){release(p);return}
+  if(!active()||p.classList.contains('panel-user-moved'))return;
+  if(getComputedStyle(p).position!=='fixed')return;
+  var top=minTop();if(top<=GAP)return;
+  var r=p.getBoundingClientRect();
+  if(r.height===0)return;
+  if(r.top>=top-0.5&&!placed.has(p))return;        /* ya está por debajo de la cabecera (leyenda, hojas inferiores...) */
+  var avail=Math.max(160,window.innerHeight-top-MARGIN);
+  p.style.setProperty('top',top+'px','important');
+  p.style.setProperty('max-height',avail+'px','important');
+  p.style.setProperty('overflow-y','auto','important');
+  p.style.setProperty('box-sizing','border-box','important');   /* el alto máximo incluye el relleno */
+  placed.add(p);
+ }
+ function all(){document.querySelectorAll('.panel').forEach(place)}
+ function schedule(){cancelAnimationFrame(raf);raf=requestAnimationFrame(function(){syncVar();all()})}
+ function watch(p){
+  if(!obs||p.__anTouchWatched)return;
+  p.__anTouchWatched=true;
+  obs.observe(p,{attributes:true,attributeFilter:['class']});
+ }
+ function init(){
+  syncVar();
+  obs=new MutationObserver(function(ms){
+   for(var i=0;i<ms.length;i++){var t=ms[i].target;if(t&&t.classList&&t.classList.contains('panel'))place(t)}
+  });
+  document.querySelectorAll('.panel').forEach(watch);
+  /* paneles creados más tarde por otros scripts (hijos directos del body) */
+  new MutationObserver(function(ms){
+   for(var i=0;i<ms.length;i++)for(var j=0;j<ms[i].addedNodes.length;j++){var n=ms[i].addedNodes[j];if(n.nodeType===1&&n.classList&&n.classList.contains('panel')){watch(n);place(n)}}
+  }).observe(document.body,{childList:true});
+  window.addEventListener('resize',schedule,{passive:true});
+  window.addEventListener('orientationchange',function(){schedule();setTimeout(schedule,250);setTimeout(schedule,700)},{passive:true});
+  var h=header();
+  if(h&&window.ResizeObserver)new ResizeObserver(schedule).observe(h);
+  try{document.fonts&&document.fonts.ready&&document.fonts.ready.then(schedule)}catch(_){}
+  setTimeout(schedule,300);setTimeout(schedule,1200);
+ }
+ window.__anambroTouchLayout={sync:schedule,minTop:minTop};
+ if(document.body)init();else document.addEventListener('DOMContentLoaded',init,{once:true});
 })();
 </script>
 
