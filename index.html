@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Visor Cartográfico ANAMBRO v0.43 · Aarón Rodríguez González · Docente del Departamento de Geografía e Historia · IES ADEJE</title>
+<title>Visor Cartográfico ANAMBRO v0.44 · Aarón Rodríguez González · Docente del Departamento de Geografía e Historia · IES ADEJE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Satisfy&display=swap" rel="stylesheet">
@@ -20688,7 +20688,7 @@ body.political-map-mode #map{background:var(--political-sea,#cfe8f3)!important}
   qs.addEventListener('change',syncScope);q('politicalCountrySelect')?.addEventListener('change',syncLevelNames);q('politicalLevel1Check')?.addEventListener('change',keepOneLevel);q('politicalLevel2Check')?.addEventListener('change',keepOneLevel);q('politicalLevel3Check')?.addEventListener('change',keepOneLevel);
   q('politicalGameStart')?.addEventListener('click',async()=>{try{syncScope();q('politicalGameMsg').textContent='Preparando mapa…';await window.anambroPoliticalV042.startGame(q('politicalGameMode').value,q('politicalGameCount').value);q('politicalGameStop').style.display='inline-block'}catch(e){q('politicalGameMsg').textContent=e?.message||String(e)}});
   q('politicalGameStop')?.addEventListener('click',()=>{window.anambroPoliticalV042.stopGame();q('politicalGameStop').style.display='none';q('politicalGamePrompt').style.display='none';q('politicalGameMsg').textContent='Partida detenida.'});
-  window.addEventListener('anambro:political-game',e=>{const d=e.detail||{},prompt=q('politicalGamePrompt');q('politicalGameCorrect').textContent=d.correct??0;q('politicalGameFailed').textContent=d.failed??0;q('politicalGameProgress').textContent=(Math.min((d.index??0)+1,d.total||0))+'/'+(d.total||0);if(d.active&&d.prompt){prompt.style.display='block';prompt.textContent='Localiza: '+d.prompt}else if(d.finished){prompt.style.display='block';prompt.textContent='Partida terminada';q('politicalGameStop').style.display='none'}if(d.result==='correct')q('politicalGameMsg').textContent='✓ Correcto';else if(d.result==='wrong')q('politicalGameMsg').textContent='No. Te '+(d.remaining===1?'queda 1 intento':'quedan '+d.remaining+' intentos');else if(d.result==='failed')q('politicalGameMsg').textContent='✗ Era '+d.answer;else if(d.finished)q('politicalGameMsg').textContent='Resultado: '+(d.correct||0)+' aciertos y '+(d.failed||0)+' fallos.';});
+  window.addEventListener('anambro:political-game',e=>{const d=e.detail||{},prompt=q('politicalGamePrompt');if(!prompt||!q('politicalGameCorrect')||!q('politicalGameFailed')||!q('politicalGameProgress')||!q('politicalGameMsg'))return;q('politicalGameCorrect').textContent=d.correct??0;q('politicalGameFailed').textContent=d.failed??0;q('politicalGameProgress').textContent=(Math.min((d.index??0)+1,d.total||0))+'/'+(d.total||0);if(d.active&&d.prompt){prompt.style.display='block';prompt.textContent='Localiza: '+d.prompt}else if(d.finished){prompt.style.display='block';prompt.textContent='Partida terminada';if(q('politicalGameStop'))q('politicalGameStop').style.display='none'}if(d.result==='correct')q('politicalGameMsg').textContent='✓ Correcto';else if(d.result==='wrong')q('politicalGameMsg').textContent='No. Te '+(d.remaining===1?'queda 1 intento':'quedan '+d.remaining+' intentos');else if(d.result==='failed')q('politicalGameMsg').textContent='✗ Era '+d.answer;else if(d.finished)q('politicalGameMsg').textContent='Resultado: '+(d.correct||0)+' aciertos y '+(d.failed||0)+' fallos.';});
   syncScope();
  }
  setTimeout(install,0);
@@ -23206,7 +23206,7 @@ html.anambro-ipad body #mobileToolsPanel{
   left:150px!important;right:auto!important;bottom:auto!important;
   width:min(470px,calc(100vw - 164px))!important;max-width:none!important;
   max-height:calc(100vh - var(--anambro-panel-top,126px) - 12px)!important;
-  overflow:auto!important;z-index:7100!important;
+  overflow:auto!important;z-index:7100!important;box-sizing:border-box!important;
   border-radius:14px!important;padding:12px!important;
   background:rgba(255,255,255,.98)!important;box-shadow:0 6px 24px rgba(0,0,0,.30)!important;
 }
@@ -23220,6 +23220,36 @@ html.anambro-ipad body #mobileToolsPanel .mobileToolsGrid button span{font-size:
 html.anambro-ipad body #mobileToolsPanel .mobileToolsPanelHead{position:sticky;top:-12px;margin:-12px -12px 10px;padding:11px 12px 9px;background:rgba(255,255,255,.98);border-bottom:1px solid #d8dde1;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:2}
 html.anambro-ipad body #mobileToolsPanel .mobileToolsPanelHead b{font-size:14px;color:#17324d}
 html.anambro-ipad body #mobileToolsPanel #mobileToolsClose{border:0;background:#17324d;color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;font-weight:900}
+
+/* ---- Móvil en horizontal y tabletas táctiles: también agrupado ---- */
+@media (min-width:761px) and (hover:none) and (pointer:coarse){
+html body .toolbar .tool:not(.toolHubBtn):not(.mobileLayersCore):not(#globeToggle):not(#mobileToolsBtn){display:none!important}
+html body .toolbar .toolHubBtn,
+html body .toolbar .mobileLayersCore,
+html body .toolbar #globeToggle,
+html body .toolbar #mobileToolsBtn{display:flex!important;align-items:center!important;justify-content:flex-start!important}
+html body .toolbar{overflow:visible!important;max-height:none!important}
+html body #mobileToolsPanel{
+  position:fixed!important;
+  top:var(--anambro-panel-top,126px)!important;
+  left:150px!important;right:auto!important;bottom:auto!important;
+  width:min(470px,calc(100vw - 164px))!important;max-width:none!important;
+  max-height:calc(100vh - var(--anambro-panel-top,126px) - 12px)!important;
+  overflow:auto!important;z-index:7100!important;box-sizing:border-box!important;
+  border-radius:14px!important;padding:12px!important;
+  background:rgba(255,255,255,.98)!important;box-shadow:0 6px 24px rgba(0,0,0,.30)!important;
+}
+html body #mobileToolsPanel.hidden{display:none!important}
+html body #mobileToolsPanel:not(.hidden){display:block!important}
+html body #mobileToolsPanel .mobileToolsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html body #mobileToolsPanel .mobileToolsGrid button{
+  min-height:52px;border:1px solid #cbd5df;border-radius:10px;background:#f7fafc;color:#17324d;
+  padding:8px 9px;font-weight:800;font-size:12px;line-height:1.15;display:flex;align-items:center;gap:8px;text-align:left}
+html body #mobileToolsPanel .mobileToolsGrid button span{font-size:20px;flex:0 0 auto}
+html body #mobileToolsPanel .mobileToolsPanelHead{position:sticky;top:-12px;margin:-12px -12px 10px;padding:11px 12px 9px;background:rgba(255,255,255,.98);border-bottom:1px solid #d8dde1;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:2}
+html body #mobileToolsPanel .mobileToolsPanelHead b{font-size:14px;color:#17324d}
+html body #mobileToolsPanel #mobileToolsClose{border:0;background:#17324d;color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;font-weight:900}
+}
 
 /* ---- Móvil vertical: los botones de la izquierda quedan POR DEBAJO de las ventanas abiertas ---- */
 @media (max-width:760px){
