@@ -23221,6 +23221,14 @@ html.anambro-ipad body #mobileToolsPanel .mobileToolsPanelHead{position:sticky;t
 html.anambro-ipad body #mobileToolsPanel .mobileToolsPanelHead b{font-size:14px;color:#17324d}
 html.anambro-ipad body #mobileToolsPanel #mobileToolsClose{border:0;background:#17324d;color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;font-weight:900}
 
+/* ---- Móvil vertical: los botones de la izquierda quedan POR DEBAJO de las ventanas abiertas ---- */
+@media (max-width:760px){
+  html body #anambroMobileDock{z-index:6900!important}
+}
+/* ---- iPad: se usa la barra agrupada; el dock del móvil no debe aparecer (evita botones duplicados y solapes) ---- */
+html.anambro-ipad body #anambroMobileDock,
+html.anambro-ipad body #anambroMobileAllTools{display:none!important}
+
 /* ---- Móvil en horizontal y tabletas táctiles: la barra nunca se sale de la pantalla ---- */
 @media (min-width:761px) and (hover:none) and (pointer:coarse){
   html body .toolbar{max-height:calc(100vh - var(--anambro-panel-top,126px) - 6px)!important;overflow-y:auto!important}
