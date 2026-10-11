@@ -2996,7 +2996,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <div class="layerSubBlock" style="margin-top:7px;border-top:1px solid #ddd;padding-top:7px">
 <small><b>🏺 Patrimonio arqueológico insular</b></small>
 <label><input id="archLaPalmaCheck" type="checkbox"/> <b>La Palma · inventario arqueológico</b></label>
-<small>Cabildo de La Palma · inventario oficial georreferenciado (servicio ArcGIS del Cabildo).</small>
+<small>Cabildo de La Palma · inventario oficial de 390 elementos georreferenciados (GeoJSON).</small>
 <label><input class="archGcCheck" data-archgc="rupestres" type="checkbox"/> Gran Canaria · manifestaciones rupestres</label>
 <label><input class="archGcCheck" data-archgc="arqueoastro" type="checkbox"/> Gran Canaria · arqueoastronomía</label>
 <label><input class="archGcCheck" data-archgc="poblamiento" type="checkbox"/> Gran Canaria · poblamiento</label>
@@ -11634,7 +11634,7 @@ function historyHash(s){let h=2166136261;for(const ch of String(s)){h^=ch.charCo
 const HISTORY_PALETTE=['#e45756','#ed7d3f','#e6a62f','#d4bd35','#a9bd3f','#73b657','#43ae75','#2eaa96','#2b9fb0','#3389c6','#4a72cf','#665fc9','#8558bf','#a952b0','#c4529a','#d55b82','#dc695f','#d88345','#c89f35','#9eae42','#65aa63','#3ca081','#3693a2','#507fb6','#6d6fb8','#895fac','#a75b9c','#c05f86','#d06d68','#d18b4f'];
 function historyColor(n){return HISTORY_PALETTE[historyHash(n)%HISTORY_PALETTE.length];}
 function historyProp(p,...ks){for(const k of ks)if(p&&p[k]!==undefined&&p[k]!==null&&String(p[k]).trim()!=='')return p[k];return '';}
-function historyFeatureData(f){const p=f?.properties||{};return{name:historyProp(p,'__name','Name','name','Polity','polity')||'Entidad política',from:Number(historyProp(p,'__from','FromYear','from_year','from')),to:Number(historyProp(p,'__to','ToYear','to_year','to')),wikidata:historyProp(p,'__wikidata','Wikidata','WikidataID','wikidata'),wikipedia:historyProp(p,'__wikipedia','Wikipedia','WikipediaPage','wikipedia'),seshat:historyProp(p,'__seshat','SeshatID','seshat_id'),area:historyProp(p,'__area','Area','area'),member:historyProp(p,'__member','MemberOf'),sub:historyProp(p,'__sub','SubPolityOf'),comp:historyProp(p,'__comp','Components')};}
+function historyFeatureData(f){const p=f?.properties||{};return{name:historyProp(p,'__name','Name','name','Polity','polity')||'Entidad política',from:Number(historyProp(p,'__from','FromYear','from_year','from')),to:Number(historyProp(p,'__to','ToYear','to_year','to')),wikidata:historyProp(p,'__wikidata','Wikidata','WikidataID','wikidata'),wikipedia:historyProp(p,'__wikipedia','Wikipedia','WikipediaPage','wikipedia'),seshat:historyProp(p,'__seshat','SeshatID','seshat_id'),area:historyProp(p,'__area','Area','area')};}
 function historyPeriodText(d){const a=Number.isFinite(d?.from)?historyYearText(d.from):'',b=Number.isFinite(d?.to)?historyYearText(d.to):'';return a&&b?(a===b?a:a+' – '+b):(a||b);}
 function historyCardHtml(d){
  const per=historyPeriodText(d);
@@ -11662,7 +11662,7 @@ function makeHistoryWorker(){
   let fs=[],ready=false;
   function p(o,...ks){for(const k of ks)if(o&&o[k]!==undefined&&o[k]!==null&&String(o[k]).trim()!=='')return o[k];return '';}
   async function init(){try{self.postMessage({type:'phase',text:'Descargando Cliopatria…'});try{importScripts('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js')}catch(_){importScripts('https://unpkg.com/jszip@3.10.1/dist/jszip.min.js')}const urls=['https://cdn.jsdelivr.net/gh/Seshat-Global-History-Databank/cliopatria@main/cliopatria.geojson.zip','https://raw.githubusercontent.com/Seshat-Global-History-Databank/cliopatria/main/cliopatria.geojson.zip'];let r=null,last=null;for(const u of urls){try{const x=await fetch(u,{cache:'force-cache'});if(x.ok){r=x;break}last=new Error('HTTP '+x.status+' · '+u)}catch(e){last=e}}if(!r)throw last||new Error('No se pudo descargar Cliopatria');const zip=await JSZip.loadAsync(await r.arrayBuffer());self.postMessage({type:'phase',text:'Descomprimiendo cartografía histórica…'});const n=Object.keys(zip.files).find(x=>/\\.geojson$/i.test(x));if(!n)throw new Error('GeoJSON no encontrado');const d=JSON.parse(await zip.file(n).async('string'));fs=(d.features||[]).filter(f=>f&&f.geometry&&String(p(f.properties||{},'Type','type')||'POLITY').toUpperCase()==='POLITY');ready=true;self.postMessage({type:'ready',count:fs.length});}catch(e){self.postMessage({type:'error',message:String(e&&e.message||e)});}}
-  function year(y,seq){if(!ready)return;const out=[];for(const f of fs){const o=f.properties||{},a=Number(p(o,'FromYear','from_year','from')),b=Number(p(o,'ToYear','to_year','to'));if(!Number.isFinite(a)||!Number.isFinite(b)||y<a||y>b)continue;out.push({type:'Feature',geometry:f.geometry,properties:{__name:p(o,'Name','name','Polity','polity')||'Entidad política',__from:a,__to:b,__wikidata:p(o,'Wikidata','WikidataID','wikidata'),__wikipedia:p(o,'Wikipedia','WikipediaPage','wikipedia'),__seshat:p(o,'SeshatID','seshat_id'),__area:p(o,'Area','area'),__member:p(o,'MemberOf','member_of'),__sub:p(o,'SubPolityOf','sub_polity_of'),__comp:p(o,'Components','components')}});}self.postMessage({type:'year',seq,year:y,count:out.length,fc:{type:'FeatureCollection',features:out}});}
+  function year(y,seq){if(!ready)return;const out=[];for(const f of fs){const o=f.properties||{},a=Number(p(o,'FromYear','from_year','from')),b=Number(p(o,'ToYear','to_year','to'));if(!Number.isFinite(a)||!Number.isFinite(b)||y<a||y>b)continue;out.push({type:'Feature',geometry:f.geometry,properties:{__name:p(o,'Name','name','Polity','polity')||'Entidad política',__from:a,__to:b,__wikidata:p(o,'Wikidata','WikidataID','wikidata'),__wikipedia:p(o,'Wikipedia','WikipediaPage','wikipedia'),__seshat:p(o,'SeshatID','seshat_id'),__area:p(o,'Area','area')}});}self.postMessage({type:'year',seq,year:y,count:out.length,fc:{type:'FeatureCollection',features:out}});}
   self.onmessage=e=>{const m=e.data||{};if(m.type==='init')init();else if(m.type==='year')year(Number(m.year),m.seq);};
  `;
  historyWorkerUrl=URL.createObjectURL(new Blob([code],{type:'application/javascript'}));historyWorker=new Worker(historyWorkerUrl);
@@ -15680,30 +15680,11 @@ html body .leaflet-popup-content{padding-top:5px}
  const ARCH_LP_GEOJSON='https://lapalmasmart-open.lapalma.es/datosabiertos/catalogo/dataset/8e0f3928-0a73-4dbe-ad4b-3d0609043b4b/resource/f18eb39e-c8b3-414f-8e01-a1802db31dc8/download/lugares-interes-historico-la-palma-20260514.geojson';
  let archLaPalmaLayer=null,archLaPalmaData=null;
  function archStatus(t){const e=document.getElementById('archaeologyStatus');if(e)e.textContent=t}
- function archColor(p){const t=norm([p.tipo,p.subtipo,p.categoria,p.tipologia,p.TIPO,p.SUBTIPO,p._capa,p.YACIM_MAG].filter(Boolean).join(' '));if(t.includes('grabado'))return '#8e44ad';if(t.includes('funer'))return '#2c3e50';if(t.includes('cueva'))return '#d35400';if(t.includes('cabana')||t.includes('cabaña'))return '#16a085';if(t.includes('pastor'))return '#27ae60';if(t.includes('canal')||t.includes('cazoleta'))return '#2980b9';return '#b03a2e'}
- function archPropsHtml(p){const wanted=[['Nombre',p.nombre||p.NOMBRE||p.ETIQUETA],['Tipo',p.tipo||p.TIPO||p._capa],['Categoría',p.YACIM_MAG],['Naturaleza',p.NATURALEZA],['Subtipo',p.subtipo||p.SUBTIPO],['Municipio',p.municipio||p.MUNICIPIO],['Descripción',p.descripcion||p.DESCRIPCION||p.descripcio],['Superficie',p.superficie_m2||p.superficie||p.SUPERFICIE]];return wanted.filter(x=>x[1]!=null&&String(x[1]).trim()).map(x=>'<b>'+esc(x[0])+':</b> '+esc(String(x[1]))).join('<br>')}
+ function archColor(p){const t=norm([p.tipo,p.subtipo,p.categoria,p.tipologia,p.TIPO,p.SUBTIPO].filter(Boolean).join(' '));if(t.includes('grabado'))return '#8e44ad';if(t.includes('funer'))return '#2c3e50';if(t.includes('cueva'))return '#d35400';if(t.includes('cabana')||t.includes('cabaña'))return '#16a085';if(t.includes('pastor'))return '#27ae60';if(t.includes('canal')||t.includes('cazoleta'))return '#2980b9';return '#b03a2e'}
+ function archPropsHtml(p){const wanted=[['Nombre',p.nombre||p.NOMBRE],['Tipo',p.tipo||p.TIPO],['Subtipo',p.subtipo||p.SUBTIPO],['Municipio',p.municipio||p.MUNICIPIO],['Descripción',p.descripcion||p.DESCRIPCION||p.descripcio],['Superficie',p.superficie_m2||p.superficie||p.SUPERFICIE]];return wanted.filter(x=>x[1]!=null&&String(x[1]).trim()).map(x=>'<b>'+esc(x[0])+':</b> '+esc(String(x[1]))).join('<br>')}
  async function loadLaPalmaArchaeology(){
   if(archLaPalmaData)return archLaPalmaData;
   archStatus('La Palma · cargando inventario oficial…');
-  /* Fuente principal: servicio ArcGIS público del Cabildo (admite CORS). El GeoJSON del portal de datos abiertos queda como alternativa. */
-  try{
-   const base='https://services.arcgis.com/hkQNLKNeDVYBjvFE/arcgis/rest/services/PIOLP_Patrimonio/FeatureServer/';
-   const capas={11:'Amontonamiento de piedras',12:'Canalillos y cazoletas',13:'Cueva funeraria',14:'Grabado rupestre',15:'Hábitat pastoril',16:'Poblado de cabañas',17:'Poblado de cuevas',19:'BIC · Cueva habitación',20:'BIC · Grabado rupestre'};
-   const partes=await Promise.all(Object.keys(capas).map(async id=>{
-    const r=await fetch(base+id+'/query?where=1%3D1&outFields=*&outSR=4326&resultRecordCount=2000&f=geojson',{mode:'cors'});
-    if(!r.ok)throw Error('ArcGIS '+r.status);
-    const j=await r.json();if(j.error)throw Error(j.error.message||'ArcGIS');
-    return (j.features||[]).map(f=>{
-     const pr=Object.assign({},f.properties||{},{_capa:capas[id]});let g=f.geometry;
-     /* Los recintos son pequeños: se representan por su centro para que se vean a cualquier escala. */
-     if(g&&/Polygon/.test(g.type)){try{const b=L.geoJSON(f).getBounds().getCenter();g={type:'Point',coordinates:[b.lng,b.lat]}}catch(_){}}
-     return {type:'Feature',properties:pr,geometry:g};
-    }).filter(f=>f.geometry);
-   }));
-   const feats=[].concat(...partes);
-   if(!feats.length)throw Error('ArcGIS sin elementos');
-   archLaPalmaData={type:'FeatureCollection',features:feats};return archLaPalmaData;
-  }catch(e){typeof __anLog=='function'&&__anLog(e,'archLP-arcgis')}
   const rr=await fetch(ARCH_LP_GEOJSON,{cache:'force-cache',mode:'cors'});
   if(!rr.ok)throw Error('GeoJSON '+rr.status);
   const gj=await rr.json();if(!gj?.features?.length)throw Error('GeoJSON sin elementos');
@@ -15711,14 +15692,13 @@ html body .leaflet-popup-content{padding-top:5px}
  }
  async function toggleLaPalmaArchaeology(on){
   if(!on){if(archLaPalmaLayer&&map.hasLayer(archLaPalmaLayer))map.removeLayer(archLaPalmaLayer);archStatus('Capas arqueológicas insulares oficiales.');return}
-  try{const gj=await loadLaPalmaArchaeology();if(!archLaPalmaLayer){archLaPalmaLayer=L.geoJSON(gj,{pointToLayer:(f,ll)=>L.circleMarker(ll,{radius:6,color:'#fff',weight:1.2,fillColor:archColor(f.properties||{}),fillOpacity:.92}),style:f=>({color:archColor(f.properties||{}),weight:(f.geometry&&f.geometry.type==='Point'?1.2:1.4),fillColor:archColor(f.properties||{}),opacity:+(document.getElementById('heritageOpacity')?.value||.82),fillOpacity:(f.geometry&&f.geometry.type==='Point'?.92:.28*+(document.getElementById('heritageOpacity')?.value||.82))}),onEachFeature:(f,l)=>{const h=archPropsHtml(f.properties||{});l.bindPopup('<b>🏺 Patrimonio arqueológico · La Palma</b><br>'+(h||'Elemento del inventario oficial')+'<br><small>Fuente: Cabildo Insular de La Palma · localización aproximada</small>')}})}if(!map.hasLayer(archLaPalmaLayer))archLaPalmaLayer.addTo(map);archStatus('La Palma · '+gj.features.length+' elementos del inventario oficial cargados.')}catch(e){console.warn('Arqueología La Palma',e);archStatus('La Palma · no se pudo cargar el inventario (servicio del Cabildo no disponible).');const c=document.getElementById('archLaPalmaCheck');if(c)c.checked=false}
+  try{const gj=await loadLaPalmaArchaeology();if(!archLaPalmaLayer){archLaPalmaLayer=L.geoJSON(gj,{style:f=>({color:archColor(f.properties||{}),weight:1.4,fillColor:archColor(f.properties||{}),opacity:+(document.getElementById('heritageOpacity')?.value||.82),fillOpacity:.28*+(document.getElementById('heritageOpacity')?.value||.82)}),onEachFeature:(f,l)=>{const h=archPropsHtml(f.properties||{});l.bindPopup('<b>🏺 Patrimonio arqueológico · La Palma</b><br>'+(h||'Elemento del inventario oficial')+'<br><small>Fuente: Cabildo Insular de La Palma</small>')}})}if(!map.hasLayer(archLaPalmaLayer))archLaPalmaLayer.addTo(map);archStatus('La Palma · '+gj.features.length+' elementos del inventario oficial cargados.')}catch(e){console.warn('Arqueología La Palma',e);archStatus('La Palma · el servidor oficial ha bloqueado la carga directa.');const c=document.getElementById('archLaPalmaCheck');if(c)c.checked=false}
  }
  const ARCH_GC_URL='https://ide2.idegrancanaria.es/wms/PC_RISCO_CAIDO?';
  const ARCH_GC={
-  /* Nombres reales (Name) según el GetCapabilities del WMS; los títulos antiguos quedan como último recurso. */
-  rupestres:{label:'Manifestaciones rupestres',candidates:['RUPESTRES','CUEVAS','Manifestaciones Rupestres','Manifestaciones_Rupestres','MANIFESTACIONES_RUPESTRES','ManifestacionesRupestres']},
-  arqueoastro:{label:'Arqueoastronomía',candidates:['G_ARQUEOASTRONOMIA','ARQUEOASTRONOMIA','Arqueoastronomía','Arqueoastronomia']},
-  poblamiento:{label:'Poblamiento',candidates:['POBLAMIENTO','AMBITOS','Poblamiento']}
+  rupestres:{label:'Manifestaciones rupestres',candidates:['Manifestaciones Rupestres','Manifestaciones_Rupestres','MANIFESTACIONES_RUPESTRES','ManifestacionesRupestres']},
+  arqueoastro:{label:'Arqueoastronomía',candidates:['Arqueoastronomía','Arqueoastronomia','ARQUEOASTRONOMIA']},
+  poblamiento:{label:'Poblamiento',candidates:['Poblamiento','POBLAMIENTO']}
  };
  const archGcLayers=new Map(),archGcCandidate=new Map();
  function gcWmsLayer(layerName){return L.tileLayer.wms(ARCH_GC_URL,{layers:layerName,format:'image/png',transparent:true,version:'1.1.1',opacity:+(document.getElementById('heritageOpacity')?.value||.82),attribution:'Patrimonio arqueológico · Cabildo de Gran Canaria / IDEGranCanaria'})}
@@ -23210,82 +23190,6 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
 })();
 </script>
 
-<script id="anambro-history-popup-rich-20261012">
-/* Ficha de Cliopatria enriquecida: resumen de Wikipedia con imagen, enlaces a las fuentes y limpieza de datos vacíos.
-   Es aditivo: envuelve enrichHistoryElement y no modifica la lógica original. */
-(function(){
- 'use strict';
- if(typeof enrichHistoryElement!=='function'||typeof historyWikipediaContext!=='function')return;
- const sumCache=new Map();
- const esc=s=>(typeof escHtml==='function'?escHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
- async function summary(title,lang){
-  if(!title)return null;const k=lang+'|'+title;if(sumCache.has(k))return sumCache.get(k);
-  const job=(async()=>{try{
-   const r=await fetch('https://'+lang+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title.replace(/ /g,'_'))+'?redirect=true',{cache:'force-cache'});
-   if(!r.ok)return null;const j=await r.json();if(!j||j.type==='disambiguation'||!j.extract)return null;
-   return {extract:j.extract,thumb:j.thumbnail&&j.thumbnail.source||'',url:j.content_urls&&j.content_urls.desktop&&j.content_urls.desktop.page||'',lang,title:j.title||title};
-  }catch(_){return null}})();
-  sumCache.set(k,job);return job;
- }
- function cut(t,n){t=String(t||'').trim();if(t.length<=n)return t;const c=t.slice(0,n),i=Math.max(c.lastIndexOf('. '),c.lastIndexOf('; '));return (i>n*.55?c.slice(0,i+1):c.replace(/\s+\S*$/,'')+'…')}
- function years(d){const a=Number(d&&d.from),b=Number(d&&d.to);return Number.isFinite(a)&&Number.isFinite(b)&&b>=a?(b-a+1):null}
- function block(d,c,s){
-  let h='<div class="anHistRich">';
-  if(s&&s.extract){
-   h+='<div class="anHistSum">'+(s.thumb?'<img src="'+esc(s.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'')+
-      '<div><b>📖 '+(s.lang==='es'?'Resumen':'Resumen (en inglés)')+'</b><br>'+esc(cut(s.extract,620))+'</div></div>';
-  }else{
-   h+='<div class="anHistNote">No hay artículo de Wikipedia asociado a esta entidad para este intervalo.</div>';
-  }
-  const bits=[],n=years(d);
-  if(n)bits.push('<b>Duración de esta fase:</b> '+n.toLocaleString('es-ES')+(n===1?' año':' años'));
-  if(d&&d.member)bits.push('<b>Pertenece a:</b> '+esc(d.member));
-  if(d&&d.sub)bits.push('<b>Subentidad de:</b> '+esc(d.sub));
-  if(d&&d.comp)bits.push('<b>Incluye:</b> '+esc(cut(String(d.comp).replace(/[\[\]'"]/g,''),220)));
-  if(bits.length)h+='<div class="anHistFacts">'+bits.join('<br>')+'</div>';
-  const links=[];
-  const wu=(s&&s.url)||(c&&c.url);
-  if(wu)links.push('<a href="'+esc(wu)+'" target="_blank" rel="noopener">Wikipedia</a>');
-  const q=(c&&c.qid)||(d&&d.wikidata);
-  if(q&&/^Q\d+$/i.test(String(q).trim()))links.push('<a href="https://www.wikidata.org/wiki/'+esc(String(q).trim())+'" target="_blank" rel="noopener">Wikidata</a>');
-  if(d&&d.seshat&&/^\d+$/.test(String(d.seshat).trim()))links.push('<a href="https://seshat-db.com/core/polity/'+esc(String(d.seshat).trim())+'/" target="_blank" rel="noopener">Seshat</a>');
-  if(links.length)h+='<div class="anHistLinks"><b>Fuentes:</b> '+links.join(' · ')+'</div>';
-  return h+'</div>';
- }
- const prev=enrichHistoryElement;
- enrichHistoryElement=async function(el,d,token){
-  const y=historyYear;
-  const pre=(async()=>{try{
-   const c=await historyWikipediaContext(d,y);
-   let s=await summary(c&&c.entityTitleEs,'es');
-   if(!s)s=await summary((c&&c.entityTitleEn)||(typeof cliopatriaWikipediaTitle==='function'?cliopatriaWikipediaTitle(d):''),'en');
-   return {c,s};
-  }catch(_){return {c:null,s:null}}})();
-  try{await prev.call(this,el,d,token)}catch(e){typeof __anLog=='function'&&__anLog(e,'hist-prev')}
-  try{
-   if(token!==historyWikiSeq||historyYear!==y)return;
-   const {c,s}=await pre;if(token!==historyWikiSeq||historyYear!==y)return;
-   const slot=el&&el.querySelector&&el.querySelector('.historyWikiSlot');if(!slot)return;
-   /* Se quitan las cajas sin dato («Sin dato temporal fiable») para no mostrar relleno. */
-   slot.querySelectorAll('.historyDossierBox:not(.historyDossierWide)').forEach(b=>{if(/Sin dato temporal fiable/i.test(b.textContent||''))b.remove()});
-   slot.querySelectorAll('.historyDossierBox.historyDossierWide').forEach(b=>{if(/^\s*🏙️/.test(b.textContent||'')&&/Sin dato temporal fiable/i.test(b.textContent||''))b.remove()});
-   const grid=slot.querySelector('.historyDossierGrid');
-   if(grid&&!grid.querySelector('.historyDossierBox'))grid.remove();
-   if(!slot.querySelector('.anHistRich')){slot.insertAdjacentHTML('afterbegin',block(d,c,s))}
-  }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-rich')}
- };
-})();
-</script>
-<style id="anambro-history-popup-rich-css-20261012">
-.anHistRich{margin:2px 0 10px;font-size:13px;line-height:1.42;color:#1d2f3f}
-.anHistSum{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid #d7dde1;border-radius:10px;background:#f7fafc}
-.anHistSum img{flex:0 0 auto;width:92px;max-height:110px;object-fit:cover;border-radius:7px;border:1px solid #d7dde1;background:#fff}
-.anHistFacts{margin-top:8px;padding:0 2px}
-.anHistLinks{margin-top:7px;padding:0 2px}
-.anHistLinks a{color:#1a5fa8;font-weight:700}
-.anHistNote{padding:7px 10px;border-radius:8px;background:#f1f3f5;color:#53626f;font-size:12px}
-@media (max-width:560px){.anHistSum{flex-direction:column}.anHistSum img{width:100%;max-height:150px}}
-</style>
 <style id="anambro-touch-layout-20261012">
 /* ANAMBRO · iPad y móvil horizontal: herramientas agrupadas y ventanas siempre por debajo de la cabecera. */
 
