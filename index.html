@@ -5227,7 +5227,7 @@ async function ensureWorldBiomes(){
      L.DomEvent.stopPropagation(e);
      if(profileMode){addProfilePoint(e.latlng);return;}
      if(measureMode){addMeasurePoint(e.latlng);return;}
-     showPoint(e.latlng,'Punto consultado',true);
+     {const __h=window.__anambroHigherPointHit&&window.__anambroHigherPointHit(e.latlng,'worldBiomesCheck');if(__h){setTimeout(()=>{try{__h.layer.openPopup()}catch(_){typeof __anLog=='function'&&__anLog(_,'L5217');}},0);return;}} showPoint(e.latlng,'Punto consultado',true);
     });
    }
   });
@@ -9354,7 +9354,7 @@ async function selectCandidate(x,name,globeMode=document.body.classList.contains
 }
 document.getElementById('searchQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace();});
 
-map.on('layeradd layerremove zoomend',()=>{setTimeout(updateLegend,0);});
+{let __anLegT=0;map.on('layeradd layerremove zoomend',()=>{clearTimeout(__anLegT);__anLegT=setTimeout(updateLegend,0);});}
 map.on('moveend zoomend',()=>{
  if(document.getElementById('countryLabelsCheck')?.checked&&!document.body.classList.contains('globe-mode'))toggleCountryLabels2D(true);
  if(document.getElementById('worldToponymsCheck')?.checked&&!document.body.classList.contains('globe-mode'))updateWorldToponyms2D(false);
@@ -20104,6 +20104,36 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   ents.sort((a,b)=>{const ra=rank(entityLayerId(a)),rb=rank(entityLayerId(b));if(ra!==rb)return ra-rb;const pa=a.__anambroSearchedPlaceId!==undefined?-20:0,pb=b.__anambroSearchedPlaceId!==undefined?-20:0;return pa-pb});
   return ents[0];
  }
+/* ANAMBRO 2026-10-11 · clic 3D: si hay un volcán, terremoto o volcán activo a pocos píxeles del clic, tiene prioridad sobre polígonos (biomas, placas...) aunque el picking exacto no lo detecte */
+ function __anNearMarker(pos){
+  if(!globeViewer||!window.Cesium||!pos)return null;
+  const scene=globeViewer.scene,now=Cesium.JulianDate.now(),TOL=14,seen=new Set(),cand=[];
+  let occ=null;try{occ=new Cesium.EllipsoidalOccluder(Cesium.Ellipsoid.WGS84,scene.camera.positionWC)}catch(_){occ=null}
+  const toWin=c=>{try{return (Cesium.SceneTransforms.wgs84ToWindowCoordinates||Cesium.SceneTransforms.worldToWindowCoordinates)(scene,c)}catch(_){return null}};
+  const test=(ent,c)=>{
+   if(!ent||!c||seen.has(ent))return;seen.add(ent);
+   if(occ){try{if(!occ.isPointVisible(c))return}catch(_){}}
+   const w=toWin(c);if(!w)return;
+   const d=Math.hypot(w.x-pos.x,w.y-pos.y);if(d<=TOL)cand.push({ent,d});
+  };
+  const posOf=e=>{try{return e.position?.getValue?.(now)||e.position||null}catch(_){return null}};
+  const isMarker=e=>e&&(e.__anambroVolcano||e.__anambroQuake||e.__anambroRecentVolcano);
+  try{for(const r of (window.anambroFastVolcanoes?.records?.()||[]))test(r.id,r.point?.position)}catch(_){typeof __anLog=='function'&&__anLog(_,'L20121')}
+  try{for(const e of globeViewer.entities.values||[])if(isMarker(e))test(e,posOf(e))}catch(_){typeof __anLog=='function'&&__anLog(_,'L20122')}
+  try{const ds=globeViewer.dataSources;for(let i=0;i<(ds?.length||0);i++){const s=ds.get(i);if(!s||s.show===false)continue;for(const e of s.entities.values||[])if(isMarker(e))test(e,posOf(e))}}catch(_){typeof __anLog=='function'&&__anLog(_,'L20123')}
+  if(!cand.length)return null;
+  cand.sort((a,b)=>rank(entityLayerId(a.ent))-rank(entityLayerId(b.ent))||a.d-b.d);
+  return cand[0].ent;
+ }
+ {const __basePGE=priorityGlobeEntity;priorityGlobeEntity=function(pos){
+  const e=__basePGE.apply(this,arguments);
+  try{
+   if(e&&e.__anambroSearchedPlaceId!==undefined)return e;
+   const near=__anNearMarker(pos);
+   if(near&&(!e||rank(entityLayerId(near))<rank(entityLayerId(e))))return near;
+  }catch(_){typeof __anLog=='function'&&__anLog(_,'L20124')}
+  return e;
+ }}
  function showPlateGlobe(ent,screenPos){
   const box=q('globeInfo');if(!box)return;box.classList.remove('empty','historyWide');globeInfoCartesian=null;
   const n=ent?.__anambroPlateName||'Placa tectónica';
@@ -20140,7 +20170,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
 
  makeUI();
  document.querySelectorAll('#layersPanel input[type=checkbox],#layersPanel input[type=radio],#layersPanel select').forEach(el=>el.addEventListener('change',()=>setTimeout(sync,0)));
- try{map.on('layerremove',()=>setTimeout(sync,60))}catch(_){typeof __anLog=='function'&&__anLog(_,'L20143');}
+ window.__anambroHigherPointHit=function(latlng,id){try{const r=rank(id);return pointCandidates2D(latlng).find(x=>rank(x.id)<r)||null}catch(_){return null}}; try{let __anSyncT=0;const __anSyncDeb=()=>{clearTimeout(__anSyncT);__anSyncT=setTimeout(sync,60)};map.on('layerremove',__anSyncDeb);map.on('layeradd',e=>{const l=e&&e.layer;if(l&&((L.Popup&&l instanceof L.Popup)||(L.Tooltip&&l instanceof L.Tooltip)))return;__anSyncDeb()})}catch(_){typeof __anLog=='function'&&__anLog(_,'L20143');}
  window.addEventListener('anambro:thematic-sync',()=>setTimeout(sync,30));
  q('activeLayersPanel')?.addEventListener('transitionend',render);
  setTimeout(()=>{sync();ensureGlobePriority()},100);
@@ -20327,7 +20357,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   }catch(e){console.error('Volcanes GVP · colección rápida',e);removeFast();}
  }
  toggleWorldVolcanoesGlobe=fastToggle;
- window.anambroFastVolcanoes={restack,count:()=>fastVolcanoRecords.length};
+ window.anambroFastVolcanoes={restack,count:()=>fastVolcanoRecords.length,records:()=>fastVolcanoRecords};
  document.getElementById('worldVolcanoesOpacity')?.addEventListener('input',e=>{
   if(!fastVolcanoPoints)return;const a=Math.max(0,Math.min(1,+e.target.value||0));
   const fill=Cesium.Color.fromCssColorString('#d8432f').withAlpha(a),outline=Cesium.Color.fromCssColorString('#4a160e').withAlpha(a);
