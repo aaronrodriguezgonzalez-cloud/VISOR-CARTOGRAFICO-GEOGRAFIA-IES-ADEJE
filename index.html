@@ -23422,7 +23422,8 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   const wu=(st.sum&&st.sum.url);if(wu)links.push('<a href="'+esc(wu)+'" target="_blank" rel="noopener">Wikipedia</a>');
   links.push('<a href="https://es.wikipedia.org/wiki/'+encodeURIComponent(y<0?Math.abs(y)+'_a._C.':String(y))+'" target="_blank" rel="noopener">Año '+esc(typeof historyYearText==='function'?historyYearText(y):y)+'</a>');
   if(d&&d.seshat&&/^[\w-]+$/.test(String(d.seshat)))links.push('<span>Seshat: '+esc(d.seshat)+'</span>');
-  h+='<div class="anHistLinks"><b>Fuentes:</b> '+links.join(' · ')+'</div></div>';
+  h+='<div class="anHistLinks"><b>Fuentes:</b> '+links.join(' · ')+'</div>';
+  h+='<div class="historyCardNote" style="margin-top:6px;font-size:.82em">⚠️ Las fronteras históricas son reconstrucciones de Cliopatria/Seshat y pueden contener errores u omisiones (por ejemplo, entidades que faltan o nombres asignados a otro territorio). Los acontecimientos proceden de Wikipedia.</div></div>';
   slot.innerHTML=h;
  }
  const ok=(el,token,y)=>token===historyWikiSeq&&historyYear===y&&document.body.contains(el);
