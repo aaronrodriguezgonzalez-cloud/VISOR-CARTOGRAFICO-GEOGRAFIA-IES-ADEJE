@@ -2962,7 +2962,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><input data-base-choice="shadowCanary" name="baseCanary" type="radio"/> <b>Modelo de Sombras · GRAFCAN</b></label>
 <label><input data-base-choice="landCanary" name="baseCanary" type="radio"/> <b>Ocupación del suelo · GRAFCAN (MOS 2002)</b></label>
 <div id="canaryLandLegendWrap" class="layerSubBlock" style="display:none"><small><b>Leyenda oficial · Mapa de Ocupación del Suelo</b></small><div id="canaryLandLegend" style="max-height:210px;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:6px;padding:5px;margin-top:4px"><small>Cargando leyenda de GRAFCAN…</small></div><small>Toca un punto del mapa para consultar su clase de ocupación.</small></div>
-<label><input data-base-choice="historic" name="baseCanary" type="radio"/> Mapa histórico · 1.ª edición MTN50</label></details><details class="layerSubcategory"><summary>🧭 Territorio y patrimonio</summary><label><input checked="" id="munCheck" type="checkbox"/> <b>Municipios · Canarias</b></label>
+<label><input data-base-choice="historic" name="baseCanary" type="radio"/> Mapa histórico · 1.ª edición MTN50</label></details><details class="layerSubcategory"><summary>🧭 Territorio y patrimonio</summary><label><input id="munCheck" type="checkbox"/> <b>Municipios · Canarias</b></label>
 <div class="layerSubBlock">
 <small><b>Opacidad</b> <span id="munOpacityValue">100 %</span></small>
 <input id="munOpacity" max="1" min="0" step="0.05" style="width:100%" type="range" value="1"/>
@@ -3858,7 +3858,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
   </div>
 </div>
 
-<div id="status">Híbrido PNOA + cartografía · límites municipales blancos · pulsa el mapa para ver coordenadas</div>
+<div id="status">Híbrido PNOA + cartografía · pulsa el mapa para ver coordenadas</div>
 <script id="anambro-lazy-libs-20261011">
 /* ANAMBRO · carga diferida de librerías pesadas (GeoTIFF, html2canvas, jsPDF) y caché de descargas grandes.
    Las librerías se descargan cuando se necesitan (GeoTIFF también en segundo plano al terminar la carga). */
@@ -6695,7 +6695,7 @@ function adminHtml(a){
  }
  const rows=[];
  let statisticalAtlas=false;try{statisticalAtlas=!!window.anambroStatisticalAtlasActive?.()}catch(_){typeof __anLog=='function'&&__anLog(_,'L6654');}
- if((statisticalAtlas||document.getElementById('munSpainCheck').checked||document.getElementById('munCheck').checked)&&a.muni)rows.push('<b>Municipio:</b> '+escHtml(a.muni));
+ if((statisticalAtlas||document.getElementById('munSpainCheck').checked||document.getElementById('munCheck').checked||/las palmas|santa cruz de tenerife/i.test(a.province||''))&&a.muni)rows.push('<b>Municipio:</b> '+escHtml(a.muni));
  if((statisticalAtlas||document.getElementById('provCheck').checked)&&a.province)rows.push('<b>Provincia:</b> '+escHtml(a.province));
  if((statisticalAtlas||document.getElementById('ccaaCheck').checked)&&a.ccaa)rows.push('<b>Comunidad autónoma:</b> '+escHtml(a.ccaa));
  return rows.length?'<br>'+rows.join('<br>'):'';
@@ -23531,10 +23531,18 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const N=65,MAXZ=13,MAXPAR=8;
  let running=0;const queue=[];
  function slot(){return new Promise(res=>{const go=()=>{running++;res()};running<MAXPAR?go():queue.push(go)})}
- function free(){running--;const n=queue.shift();if(n)n()}
+ function free(){running--;const n=queue.pop();if(n)n()} // LIFO: primero las teselas pedidas más recientemente (las de la vista actual)
  const cvs=document.createElement('canvas');cvs.width=cvs.height=256;
  const ctx=cvs.getContext('2d',{willReadFrequently:true});
+ const lru=new Map(),LRU_MAX=400; // alturas ya decodificadas: evita volver a bajar y decodificar teselas que Cesium descarta y vuelve a pedir
  async function tileHeights(z,x,y){
+  const key=z+'/'+x+'/'+y,hit=lru.get(key);
+  if(hit){lru.delete(key);lru.set(key,hit);return hit}
+  const hh=await tileHeights0(z,x,y);
+  lru.set(key,hh);if(lru.size>LRU_MAX)lru.delete(lru.keys().next().value);
+  return hh;
+ }
+ async function tileHeights0(z,x,y){
   await slot();
   try{
    const r=await fetch('https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+z+'/'+x+'/'+y+'.png',{mode:'cors'});
@@ -23930,7 +23938,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   const png=c.fmts.includes('image/png'),fmt=opts.jpeg&&c.fmts.includes('image/jpeg')?'image/jpeg':(png?'image/png':'image/jpeg');
   const crs=c.merc?undefined:(c.geo?L.CRS.EPSG4326:undefined);
   const base=c.url+(c.url.includes('?')?'':'?');
-  const o={layers:l.name,format:fmt,transparent:fmt==='image/png',version:'1.1.1',uppercase:true,noWrap:true,pane:(ensurePane(),'idecanExplorerPane'),bounds:BOUNDS,minZoom:4,maxZoom:21,opacity:opts.opacity||1,attribution:ATTR};
+  const o={layers:l.name,format:fmt,transparent:fmt==='image/png',version:'1.1.1',uppercase:true,noWrap:true,pane:(ensurePane(),'idecanExplorerPane'),bounds:BOUNDS,minZoom:4,maxZoom:21,opacity:opts.opacity||1,attribution:ATTR,tileSize:512,keepBuffer:3,updateWhenZooming:false};
   if(crs)o.crs=crs;
   const layer=L.tileLayer.wms(base,o);
   layer.addTo(map);
@@ -24036,7 +24044,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   }
   if(!pick){const c=d.cands[d.cands.length-1];pick={url:c.url,layer:c.layer||'WMS_OrtoExpress',merc:true,geo:false,fmts:[]}}
   const fmt=pick.fmts.includes(d.fmt)||!pick.fmts.length?d.fmt:(pick.fmts.includes('image/jpeg')?'image/jpeg':'image/png');
-  const o={layers:pick.layer,format:fmt,transparent:false,version:'1.1.1',uppercase:true,noWrap:true,bounds:BOUNDS,minZoom:4,maxZoom:21,attribution:d.attr};
+  const o={layers:pick.layer,format:fmt,transparent:false,version:'1.1.1',uppercase:true,noWrap:true,bounds:BOUNDS,minZoom:4,maxZoom:21,attribution:d.attr,tileSize:512,keepBuffer:3,updateWhenZooming:false};
   if(!pick.merc&&pick.geo)o.crs=L.CRS.EPSG4326;
   const layer=L.tileLayer.wms(pick.url+'?',o);
   layer.__idecan={url:pick.url,layer:pick.layer,title:d.title};
@@ -24352,6 +24360,8 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   const mk=(id,txt,key)=>{const lab=document.createElement('label');lab.style.marginTop='3px';lab.innerHTML='<input type="checkbox" id="'+id+'"> '+txt;box.insertBefore(lab,anchor);const cb=lab.querySelector('input');cb.checked=st[key];cb.addEventListener('change',()=>{st[key]=cb.checked;try{localStorage.setItem(key==='pnoa'?'anambro.globePnoa':'anambro.globeGrafcan',cb.checked?'1':'0')}catch(_){}apply()})};
   mk('globePnoaOn','🛰️ Ortofoto PNOA (España)','pnoa');
   mk('globeGrafcanOn','🛰️ Ortofoto GRAFCAN (Canarias)','gc');
+  const fl=document.createElement('label');fl.style.marginTop='3px';fl.innerHTML='<input type="checkbox" id="globeFpsOn"> ⏱️ Mostrar FPS (rendimiento)';box.insertBefore(fl,anchor);
+  fl.querySelector('input').addEventListener('change',function(){try{globeViewer.scene.debugShowFramesPerSecond=this.checked;globeViewer.scene.requestRender()}catch(_){}});
   const inf=document.createElement('div');inf.id='globeBestImgInfo';inf.style.cssText='font:400 11px system-ui;color:#455;max-width:300px';box.insertBefore(inf,anchor);
   return true;
  }
