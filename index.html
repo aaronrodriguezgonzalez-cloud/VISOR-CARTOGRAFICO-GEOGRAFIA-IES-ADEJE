@@ -14698,12 +14698,21 @@ function hdSourceNote(c){const bits=['Cliopatria/Seshat para identidad, geometr�
 
 // Resolver seguro de identidad: nunca hace búsquedas genéricas que puedan saltar a otra entidad moderna.
 historyWikipediaContext=async function(d,year=historyYear){
- const key=['safe',d?.name||'',d?.seshat||'',d?.wikidata||'',d?.wikipedia||''].join('|');
+ const key=['safe2',d?.name||'',d?.seshat||'',d?.wikidata||'',d?.wikipedia||'',d?.from,d?.to].join('|');
  if(historyWikiCache.has(key))return historyWikiCache.get(key);
  const job=(async()=>{
   let qid=hdQid(d?.wikidata),entityTitleEn=cliopatriaWikipediaTitle(d),entityTitleEs='',ent=null;
   if(entityTitleEn){entityTitleEs=await wikiLangLink(entityTitleEn,'en','es');if(!qid)qid=await hdTitleQid(entityTitleEn,'en');}
   if(qid)ent=await hdEntity(qid);
+  /* Coherencia temporal: si el artículo/entidad que Cliopatria asigna existió en otra época (p. ej. «Restauración borbónica» para Francia en 1789), se resuelve por el nombre de la entidad. */
+  const hdSpan=e=>{const f=pr=>{for(const st of e?.claims?.[pr]||[]){const y=hdTimeYear(st?.mainsnak?.datavalue?.value);if(Number.isFinite(y))return y;}return NaN};const a=[f('P571'),f('P580')].find(Number.isFinite),b=[f('P576'),f('P582')].find(Number.isFinite);return {a,b}};
+  const hdFits=e=>{const {a,b}=hdSpan(e);const lo=Number.isFinite(d?.from)?d.from:year,hi=Number.isFinite(d?.to)?d.to:year;if(Number.isFinite(a)&&hi<a-10)return false;if(Number.isFinite(b)&&lo>b+10)return false;return true};
+  if(ent&&!hdFits(ent)){
+   const nm=String(d?.rawName||'').trim();
+   let q2=nm?await hdTitleQid(nm,'en'):'';
+   const e2=q2?await hdEntity(q2):null;
+   if(e2&&hdFits(e2)){qid=q2;ent=e2;entityTitleEn=e2?.sitelinks?.enwiki?.title||nm;entityTitleEs=e2?.sitelinks?.eswiki?.title||'';}
+  }
   if(!entityTitleEs)entityTitleEs=ent?.sitelinks?.eswiki?.title||'';
   if(!entityTitleEn)entityTitleEn=ent?.sitelinks?.enwiki?.title||'';
   const displayName=ent?.labels?.es?.value||entityTitleEs||ent?.labels?.en?.value||entityTitleEn||String(d?.name||'Entidad política');
