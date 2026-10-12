@@ -7020,7 +7020,8 @@ async function finishProfileFromPoints(profileInputPts){
   // usar el DEM mundial para TODAS las muestras. Evita saltos de fuente en Pirineos,
   // Portugal u otros recorridos transfronterizos. Las consultas puntuales siguen usando
   // el DEM español/MDT25 cuando corresponda.
-  const forceWorldDem=lastProfileSource==='globe'||prof.points.some(p=>!profileIsSpainLatLng(p.ll));
+  // En el globo, un recorrido íntegramente dentro de España/Canarias se trata igual que en el 2D (MDT, GRAFCAN/MITECO, IGME); solo se usa el modo mundial si algún punto queda fuera.
+  const forceWorldDem=prof.points.some(p=>!profileIsSpainLatLng(p.ll));
   lastProfileWorld=forceWorldDem;
   lastProfileMacrostratZoom=lastProfileSource==='globe'?macrostratGlobeQueryZoom():Math.max(2,Math.min(12,Math.round(map.getZoom())));
   const result=document.getElementById('profileResult');result.innerHTML='<b>Resultado:</b> '+fmtDistance(prof.total)+' · calculando altitudes…'+(forceWorldDem?' · DEM mundial continuo':'');
