@@ -10750,10 +10750,14 @@ function installGlobeClickTools(){if(globeClickHandler||!globeViewer)return;glob
   showGlobePoint(ll,ev.position);
  },Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
+let globeEoxExplicit=false;
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.name==='baseWorld'&&t.dataset&&t.dataset.baseChoice==='eoxsat'&&t.checked)globeEoxExplicit=true},true);
 function selectedWorldSatelliteChoice(){
  const v=document.querySelector('input[name="baseWorld"]:checked')?.dataset?.baseChoice;
- // EOxCloudless es el fondo mundial por defecto; Esri solo si se selecciona expresamente.
- return v==='worldsat'?'worldsat':'eoxsat';
+ // En el globo, Esri World Imagery es la imagen mundial por defecto; EOxCloudless solo si se elige expresamente.
+ // (OpenStreetMap conserva el comportamiento anterior: fondo EOxCloudless en el globo.)
+ if(v==='worldsat'||(v==='eoxsat'&&!globeEoxExplicit))return 'worldsat';
+ return 'eoxsat';
 }
 function globeSatelliteProvider(choice){
  if(choice==='eoxsat')return new Cesium.UrlTemplateImageryProvider({
@@ -24407,7 +24411,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const GC_BASE='https://idecan1.grafcan.es/ServicioWMS/OrtoExpress';
  const RECT_ES=[-9.4,35.9,4.4,43.9],RECT_CAN=[-18.4,27.55,-13.3,29.5];
  const st={pnoa:false,gc:false};
- try{st.pnoa=localStorage.getItem('anambro.globePnoa')==='1';st.gc=localStorage.getItem('anambro.globeGrafcan')==='1'}catch(_){}
+ try{localStorage.removeItem('anambro.globePnoa');localStorage.removeItem('anambro.globeGrafcan')}catch(_){} // a demanda: siempre arrancan desactivadas
  const lay={pnoa:[],gc:null};let gcBusy=false;
  const dbg=window.__anambroGlobeImagery={pnoa:0,grafcan:'',layer:'',errs:0,lastErr:''};
  function onErr(prov){try{prov.errorEvent.addEventListener(e=>{e.retry=false;dbg.errs++;dbg.lastErr=String(e&&e.message||e).slice(0,140)})}catch(_){}}
