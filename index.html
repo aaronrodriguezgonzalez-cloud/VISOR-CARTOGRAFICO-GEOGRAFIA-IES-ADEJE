@@ -15702,12 +15702,22 @@ html body .leaflet-popup-content{padding-top:5px}
   poblamiento:{label:'Poblamiento',candidates:['POBLAMIENTO','AMBITOS','Poblamiento']}
  };
  const archGcLayers=new Map(),archGcCandidate=new Map(),archGcBusy=new Set();
- function gcWmsLayer(layerName){return L.tileLayer.wms(ARCH_GC_URL,{layers:layerName,format:'image/png',transparent:true,version:'1.1.1',opacity:+(document.getElementById('heritageOpacity')?.value||.82),attribution:'Patrimonio arqueológico · Cabildo de Gran Canaria / IDEGranCanaria'})}
+ /* El WMS de Gran Canaria solo sirve EPSG:32628 (UTM 28N): cada tesela del mapa se pide reproyectada a UTM con proj4. */
+ const GcUtmWms=L.TileLayer.WMS.extend({
+  getTileUrl:function(coords){
+   const nwse=this._tileCoordsToNwSe(coords),a=nwse[0],b=nwse[1],sz=this.getTileSize();
+   const pts=[[a.lng,a.lat],[b.lng,a.lat],[a.lng,b.lat],[b.lng,b.lat]].map(c=>proj4('EPSG:4326','EPSG:32628',c));
+   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+   return this._url+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS='+encodeURIComponent(this.wmsParams.layers)+'&STYLES=&SRS=EPSG:32628&FORMAT=image/png&TRANSPARENT=TRUE&WIDTH='+sz.x+'&HEIGHT='+sz.y+
+    '&BBOX='+[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)].map(v=>v.toFixed(2)).join(',');
+  }
+ });
+ function gcWmsLayer(layerName){return new GcUtmWms(ARCH_GC_URL,{layers:layerName,format:'image/png',transparent:true,version:'1.1.1',opacity:+(document.getElementById('heritageOpacity')?.value||.82),attribution:'Patrimonio arqueológico · Cabildo de Gran Canaria / IDEGranCanaria'})}
  /* Prueba el servicio FUERA del mapa con una imagen de muestra: si responde con imagen, se añade la capa una sola vez.
     Así un servicio que falle nunca provoca altas y bajas repetidas de capas en el mapa. */
  function gcProbe(name){
   return new Promise(res=>{
-   const im=new Image(),u=ARCH_GC_URL+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS='+encodeURIComponent(name)+'&STYLES=&SRS=EPSG:3857&BBOX=-1760000,3220000,-1690000,3290000&WIDTH=128&HEIGHT=128&FORMAT=image/png&TRANSPARENT=TRUE';
+   const im=new Image(),u=ARCH_GC_URL+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS='+encodeURIComponent(name)+'&STYLES=&SRS=EPSG:32628&BBOX=420000,3070000,470000,3120000&WIDTH=128&HEIGHT=128&FORMAT=image/png&TRANSPARENT=TRUE';
    const t=setTimeout(()=>{im.onload=im.onerror=null;res(false)},12000);
    im.onload=()=>{clearTimeout(t);res(true)};im.onerror=()=>{clearTimeout(t);res(false)};im.src=u;
   });
