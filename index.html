@@ -23723,7 +23723,8 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
     recs.push({ch,poly:[],lines:[],pt:e});n++;
    }
   });
-  return {ds,recs,n};
+  recs.forEach(r=>[...r.poly,...r.lines,r.pt].forEach(e=>{if(e)e.__anLeaf=r.ch}));
+ return {ds,recs,n};
  }
  function restyle(b){
   for(const r of b.recs){
@@ -23793,6 +23794,100 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  }
  if(!addControl()){const iv=setInterval(()=>{if(addControl())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),15000)}
  if(typeof ensureGlobe==='function'){const prev=ensureGlobe;ensureGlobe=async function(){const r=await prev.apply(this,arguments);later();return r}}
+})();
+</script>
+<script id="anambro-globe-layer-info-20261012">
+(function(){
+ 'use strict';
+ if(window.__anambroGlobeLayerInfo)return;window.__anambroGlobeLayerInfo=true;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ let seq=0,watchers=[];
+ function stopWatch(){watchers.forEach(f=>{try{f()}catch(_){}});watchers=[]}
+ function show(ll,pos,html){
+  const box=document.getElementById('globeInfo');if(!box)return;
+  try{globeInfoCartesian=Cesium.Cartesian3.fromDegrees(ll.lng,ll.lat,500)}catch(_){}
+  box.classList.remove('empty','historyWide','searchedPlaceCompact');
+  box.innerHTML='<button class="globeInfoClose" onclick="globeInfoCartesian=null;this.parentElement.classList.add(\'empty\')">×</button><div class="anGlobeLayerInfo">'+html+'</div>';
+  requestAnimationFrame(()=>{try{pos?placeGlobeInfoAtCanvasPoint(pos):positionGlobeInfo()}catch(_){}});
+ }
+ // Ejecuta "trigger" (que hace que el código 2D abra un popup Leaflet) y refleja su contenido en la ficha del globo.
+ function watch(trigger,ll,pos,ms){
+  return new Promise(res=>{
+   const my=++seq;stopWatch();
+   let got=false,obs=null,node=null;
+   const render=()=>{if(my!==seq||!node)return;const h=node.innerHTML;if(h&&h.trim())show(ll,pos,h)};
+   const on=e=>{
+    if(my!==seq)return;
+    const p=e.popup;let n=p&&(p._contentNode||(p.getElement&&p.getElement().querySelector('.leaflet-popup-content')));
+    if(!n)return;
+    node=n;if(obs)obs.disconnect();
+    try{obs=new MutationObserver(render);obs.observe(n,{childList:true,subtree:true,characterData:true})}catch(_){}
+    render();if(!got){got=true;res(true)}
+    setTimeout(()=>{try{map.closePopup(p)}catch(_){}},0);
+   };
+   map.on('popupopen',on);
+   const off=()=>{try{map.off('popupopen',on)}catch(_){}if(obs)obs.disconnect()};
+   watchers.push(off);setTimeout(()=>{if(my===seq)off()},30000);
+   try{trigger()}catch(e){log(e,'globe-info-trigger')}
+   setTimeout(()=>{if(!got)res(false)},ms);
+  });
+ }
+ function atlasActive(){try{return !!(window.anambroStatisticalAtlasActive&&window.anambroStatisticalAtlasActive())}catch(_){return false}}
+ function thematic(ll){
+  if(atlasActive())return true;
+  try{if(typeof activeBase!=='undefined'&&(activeBase===landCanary||activeBase===shadowCanary)&&isCanaryPoint(ll.lat,ll.lng))return true}catch(_){}
+  try{if(typeof canaryHeritageActive==='function'&&canaryHeritageActive()&&isCanaryPoint(ll.lat,ll.lng))return true}catch(_){}
+  try{if(typeof profileIsSpainLatLng==='function'&&profileIsSpainLatLng(ll)){
+   if(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id)?.checked))return true;
+   if(typeof geologyEnabledAt==='function'&&geologyEnabledAt(ll.lat,ll.lng))return true;
+  }}catch(_){}
+  return false;
+ }
+ function evt(latlng){
+  let cp=null,lp=null;try{cp=map.latLngToContainerPoint(latlng);lp=map.latLngToLayerPoint(latlng)}catch(_){}
+  return {latlng,containerPoint:cp,layerPoint:lp,originalEvent:{type:'click',target:map.getContainer(),stopPropagation(){},preventDefault(){}}};
+ }
+ function keepView(){
+  const c=map.getCenter(),z=map.getZoom();
+  setTimeout(()=>{try{if(document.body.classList.contains('globe-mode')){const d=map.getCenter();if(map.getZoom()!==z||Math.abs(d.lat-c.lat)+Math.abs(d.lng-c.lng)>1e-6)map.setView(c,z,{animate:false})}}catch(_){}},6000);
+ }
+ async function layerEntityPopup(ll,pos){
+  let picks=[];try{picks=globeViewer.scene.drillPick(pos,12)||[]}catch(_){}
+  const leaf=picks.map(p=>p&&p.id&&p.id.__anLeaf).find(Boolean);
+  if(!leaf)return false;
+  const latlng=L.latLng(ll.lat,ll.lng);
+  keepView();
+  return watch(()=>{
+   const hasP=typeof leaf.getPopup==='function'&&leaf.getPopup();
+   if(hasP&&!leaf.isPopupOpen?.()){leaf.openPopup(latlng)}
+   else leaf.fire('click',evt(latlng),true);
+  },ll,pos,900);
+ }
+ async function mirror2D(ll,pos){
+  const latlng=L.latLng(ll.lat,ll.lng);
+  keepView();
+  let wait=0;
+  try{if(atlasActive()&&!map.getBounds().contains(latlng)){map.setView(latlng,Math.max(map.getZoom(),8),{animate:false});wait=1800}}catch(_){}
+  show(ll,pos,'<b>🌍 Punto consultado</b><br>consultando la capa activa…');
+  if(wait)await new Promise(r=>setTimeout(r,wait));
+  return watch(()=>map.fire('click',evt(latlng)),ll,pos,6000);
+ }
+ function install(){
+  if(typeof showGlobePoint!=='function'||showGlobePoint.__anLayerInfo)return;
+  const old=showGlobePoint;
+  const w=async function(ll,screenPos){
+   try{
+    if(ll&&screenPos&&window.Cesium&&globeViewer){
+     if(await layerEntityPopup(ll,screenPos))return;
+     if(thematic(ll)&&await mirror2D(ll,screenPos))return;
+    }
+   }catch(e){log(e,'globe-layer-info')}
+   return old.apply(this,arguments);
+  };
+  w.__anLayerInfo=true;showGlobePoint=w;
+ }
+ install();setTimeout(install,0);setTimeout(install,1500);
+ const st=document.createElement('style');st.textContent='.anGlobeLayerInfo{max-width:420px;max-height:46vh;overflow:auto;-webkit-overflow-scrolling:touch}';document.head.appendChild(st);
 })();
 </script>
 <style id="anambro-history-popup-rich-css-20261012">
