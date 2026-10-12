@@ -11087,9 +11087,21 @@ async function toggleHistoryBasemapGlobe(on){
 const historyWikiCache=new Map();
 let historyWikiSeq=0;
 function stripWikiHtml(s){const d=document.createElement('div');d.innerHTML=String(s||'');return (d.textContent||'').replace(/\s+/g,' ').trim();}
+async function anFetchRetry(url,opts){
+ /* Wikipedia/Wikidata devuelven 429 si se lanzan muchas consultas a la vez: se reintenta con espera creciente. */
+ let r;
+ for(let i=0;i<4;i++){
+  r=await fetch(url,opts);
+  if(r.status!==429&&r.status!==503)return r;
+  const ra=Number(r.headers&&r.headers.get&&r.headers.get('Retry-After'));
+  await new Promise(res=>setTimeout(res,Math.min(7000,(Number.isFinite(ra)&&ra>0?ra*1000:900*Math.pow(2,i))+Math.random()*400)));
+ }
+ return r;
+}
+window.anFetchRetry=anFetchRetry;
 async function wikiApi(params,lang='es'){
  const url='https://'+lang+'.wikipedia.org/w/api.php?origin=*&'+new URLSearchParams({...params,format:'json',formatversion:'2'});
- const r=await fetch(url,{cache:'force-cache'});if(!r.ok)throw new Error('Wikipedia '+r.status);return r.json();
+ const r=await anFetchRetry(url,{cache:'force-cache'});if(!r.ok)throw new Error('Wikipedia '+r.status);return r.json();
 }
 async function wikiSearchTitle(query,lang='es'){
  const j=await wikiApi({action:'query',list:'search',srsearch:query,srlimit:'4',srnamespace:'0'},lang);
@@ -14388,7 +14400,7 @@ html body.istac-export-clean #map{background:#d9eef6!important;}
    const batch=unique.slice(i,i+50),promise=(async()=>{
     try{
      const u='https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&origin=*&props=labels&languages=es%7Cen&ids='+encodeURIComponent(batch.join('|'));
-     const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(!r.ok)throw new Error('Wikidata '+r.status);const j=await r.json();
+     const r=await (window.anFetchRetry||fetch)(u,{mode:'cors',cache:'force-cache'});if(!r.ok)throw new Error('Wikidata '+r.status);const j=await r.json();
      for(const q of batch){const e=j?.entities?.[q],lab=e?.labels?.es?.value||e?.labels?.en?.value||'';if(lab)historyEsCache.set(q,lab);}
     }catch(e){console.warn('Traducción histórica Wikidata',e);}
    })();
@@ -14582,7 +14594,7 @@ const hdEntityCache=new Map(),hdLabelCache=new Map(),hdDossierCache=new Map(),hd
 function hdQid(v){const m=String(v||'').match(/(?:^|\/)(Q\d+)(?:$|\b)/i);return m?m[1].toUpperCase():'';}
 async function hdFetchJson(url,opts={},timeout=10000){
  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),timeout);
- try{const r=await fetch(url,{...opts,signal:ac.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
+ try{const r=await window.anFetchRetry(url,{...opts,signal:ac.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
  finally{clearTimeout(t);}
 }
 async function hdWdApi(params){
@@ -14592,7 +14604,7 @@ async function hdWdApi(params){
 async function hdEntity(qid){
  qid=hdQid(qid);if(!qid)return null;if(hdEntityCache.has(qid))return hdEntityCache.get(qid);
  const job=(async()=>{try{const j=await hdWdApi({action:'wbgetentities',ids:qid,props:'labels|descriptions|sitelinks|claims',languages:'es|en',languagefallback:'1'});return j?.entities?.[qid]||null;}catch(e){console.warn('Wikidata entidad',qid,e);return null;}})();
- hdEntityCache.set(qid,job);return job;
+ hdEntityCache.set(qid,job);job.then(v=>{if(!v)hdEntityCache.delete(qid)});return job;
 }
 async function hdTitleQid(title,lang='en'){
  if(!title)return '';try{const j=await wikiApi({action:'query',prop:'pageprops',ppprop:'wikibase_item',redirects:'1',titles:title},lang);return hdQid(j?.query?.pages?.[0]?.pageprops?.wikibase_item||'');}catch(e){return '';}
@@ -14725,7 +14737,7 @@ historyWikipediaContext=async function(d,year=historyYear){
   const regimeFallback=historyWikiRegime('',displayName+' '+String(d?.name||''));
   return {qid,entity:ent,lang:entityTitleEs?'es':'en',entityTitle:entityTitleEs||entityTitleEn,entityTitleEn,entityTitleEs,displayName,intro:'',regime:regimeFallback,url:entityTitleEs?'https://es.wikipedia.org/wiki/'+encodeURIComponent(entityTitleEs.replace(/ /g,'_')):(entityTitleEn?'https://en.wikipedia.org/wiki/'+encodeURIComponent(entityTitleEn.replace(/ /g,'_')):''),identitySource:'Cliopatria → identidad histórica'};
  })();
- historyWikiCache.set(key,job);return job;
+ historyWikiCache.set(key,job);job.then(c=>{if(c&&c.qid&&!c.entity)historyWikiCache.delete(key)}).catch(()=>historyWikiCache.delete(key));return job;
 };
 
 // Conservar la geometría exacta del polígono en los datos de la ficha para filtrar acontecimientos.
@@ -23451,7 +23463,13 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   const y=historyYear;
   const pre=(async()=>{try{
    const c=await historyWikipediaContext(d,y);
-   const wd=await wdInfo((c&&c.qid)||(d&&d.wikidata));
+   let wd=await wdInfo((c&&c.qid)||(d&&d.wikidata));
+   /* Identidad por el nombre que el mapa muestra (rawName): es lo que el usuario ha pulsado y no depende de enlaces erróneos de Cliopatria. */
+   const raw=String((d&&(d.rawName||d.name))||'').trim();
+   let esN='';
+   try{if(raw&&typeof wikiLangLink==='function')esN=await wikiLangLink(raw,'en','es')||''}catch(_){}
+   if(esN&&(!wd||wd.esTitle!==esN))wd={esLabel:esN,esTitle:esN,enTitle:raw,enLabel:raw,aliases:[],byName:true};
+   window.__anambroHistDebug={raw,esN,qid:c&&c.qid,wdEs:wd&&wd.esTitle,year:y};
    const esT=(wd&&wd.esTitle)||(c&&c.entityTitleEs)||'';
    let s=await summary(esT,'es');
    if(!s)s=await summary((wd&&wd.enTitle)||(c&&c.entityTitleEn)||(typeof cliopatriaWikipediaTitle==='function'?cliopatriaWikipediaTitle(d):''),'en');
@@ -23473,6 +23491,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    const evBox=slot.querySelector('.historyDossierEvents');
    if(evBox&&!evBox.querySelector('.historyDossierEvent')){
     const evs=await yearEvents(d,c,wd,y,domNames(slot));
+    try{window.__anambroHistDebug.nEv=evs.length}catch(_){}
     if(token!==historyWikiSeq||historyYear!==y)return;
     if(evs.length){evBox.innerHTML=evs.map(t=>'<div class="historyDossierEvent"><div>'+esc(t)+'</div></div>').join('')+'<div class="historyDossierSource">Fuente: Wikipedia, artículo del año '+esc(historyYearText(y))+', filtrado por la entidad.</div>'}
     else{const b=evBox.closest('.historyDossierBox');if(b)b.remove()}
