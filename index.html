@@ -23520,6 +23520,76 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  };
 })();
 </script>
+<script id="anambro-globe-relief-20261012">
+/* Relieve 3D del Globo: terreno de Cesium a partir del DEM mundial Terrarium (Mapzen/AWS), el mismo que usa el visor
+   para perfiles y altitudes. Aditivo: no modifica el globo existente; solo asigna el terreno y la exageración vertical. */
+(function(){
+ 'use strict';
+ if(typeof ensureGlobe!=='function')return;
+ let on=true,k=2,provider=null,flat=null;
+ try{const s=JSON.parse(localStorage.getItem('anambro.globeRelief')||'null');if(s){on=s.on!==false;k=Math.min(8,Math.max(1,Number(s.k)||2))}}catch(_){}
+ const N=65,MAXZ=13,MAXPAR=8;
+ let running=0;const queue=[];
+ function slot(){return new Promise(res=>{const go=()=>{running++;res()};running<MAXPAR?go():queue.push(go)})}
+ function free(){running--;const n=queue.shift();if(n)n()}
+ const cvs=document.createElement('canvas');cvs.width=cvs.height=256;
+ const ctx=cvs.getContext('2d',{willReadFrequently:true});
+ async function tileHeights(z,x,y){
+  await slot();
+  try{
+   const r=await fetch('https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+z+'/'+x+'/'+y+'.png',{mode:'cors'});
+   if(!r.ok)throw new Error('HTTP '+r.status);
+   const bmp=await createImageBitmap(await r.blob());
+   ctx.clearRect(0,0,256,256);ctx.drawImage(bmp,0,0,256,256);
+   const d=ctx.getImageData(0,0,256,256).data,h=new Float32Array(N*N);
+   for(let j=0;j<N;j++){const py=Math.min(255,Math.round(j*255/(N-1)));
+    for(let i=0;i<N;i++){const px=Math.min(255,Math.round(i*255/(N-1))),o=(py*256+px)*4;h[j*N+i]=d[o]*256+d[o+1]+d[o+2]/256-32768}}
+   return h;
+  }finally{free()}
+ }
+ function makeProvider(){
+  const C=Cesium,ts=new C.WebMercatorTilingScheme();
+  return {
+   tilingScheme:ts,errorEvent:new C.Event(),hasWaterMask:false,hasVertexNormals:false,
+   credit:new C.Credit('Relieve: Mapzen Terrain Tiles / AWS (Terrarium)'),ready:true,readyPromise:Promise.resolve(true),availability:undefined,
+   getLevelMaximumGeometricError(l){return C.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(ts.ellipsoid,N,ts.getNumberOfXTilesAtLevel(0))/(1<<l)},
+   getTileDataAvailable(x,y,l){return l<=MAXZ},
+   loadTileDataAvailability(){return undefined},
+   requestTileGeometry(x,y,l){
+    if(l>MAXZ)return undefined;
+    return tileHeights(l,x,y).then(h=>new C.HeightmapTerrainData({buffer:h,width:N,height:N,childTileMask:15,createdByUpsampling:false}))
+     .catch(()=>new C.HeightmapTerrainData({buffer:new Float32Array(N*N),width:N,height:N,childTileMask:0,createdByUpsampling:false}));
+   }
+  };
+ }
+ function apply(){
+  try{
+   if(typeof globeViewer==='undefined'||!globeViewer||typeof Cesium==='undefined')return;
+   if(!provider)provider=makeProvider();
+   if(!flat)flat=new Cesium.EllipsoidTerrainProvider();
+   globeViewer.terrainProvider=on?provider:flat;
+   globeViewer.scene.verticalExaggeration=on?k:1;
+   globeViewer.scene.globe.depthTestAgainstTerrain=true;
+   globeViewer.scene.requestRender();
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-relief')}
+ }
+ const css=document.createElement('style');
+ css.textContent='#globeReliefBox{display:none;position:fixed;z-index:1451;left:10px;bottom:84px;background:rgba(255,255,255,.94);border:1px solid #263238;border-radius:7px;padding:6px 9px;box-shadow:0 1px 7px #0005;font:600 12px system-ui,-apple-system,sans-serif;color:#111}body.globe-mode #globeReliefBox{display:block}#globeReliefBox label{display:flex;align-items:center;gap:6px;cursor:pointer}#globeReliefBox input[type=range]{width:120px;vertical-align:middle}#globeReliefBox small{font-weight:400;color:#455}@media(max-width:700px){#globeReliefBox{left:7px;bottom:70px}}';
+ document.head.appendChild(css);
+ const box=document.createElement('div');box.id='globeReliefBox';
+ box.innerHTML='<label><input type="checkbox" id="globeReliefOn"> ⛰️ Relieve 3D</label><div id="globeReliefK"><input type="range" id="globeReliefRange" min="1" max="8" step="0.5"> <span id="globeReliefVal"></span></div><small>Exageración vertical · DEM Terrarium/AWS</small>';
+ document.body.appendChild(box);
+ const cb=box.querySelector('#globeReliefOn'),rg=box.querySelector('#globeReliefRange'),vl=box.querySelector('#globeReliefVal');
+ const sync=()=>{cb.checked=on;rg.value=k;vl.textContent='×'+k;rg.disabled=!on};
+ const save=()=>{try{localStorage.setItem('anambro.globeRelief',JSON.stringify({on,k}))}catch(_){}};
+ cb.addEventListener('change',()=>{on=cb.checked;sync();save();apply()});
+ rg.addEventListener('input',()=>{k=Number(rg.value);sync();save();apply()});
+ sync();
+ const prev=ensureGlobe;
+ ensureGlobe=async function(){const r=await prev.apply(this,arguments);apply();return r};
+ if(typeof globeViewer!=='undefined'&&globeViewer)apply();
+})();
+</script>
 <style id="anambro-history-popup-rich-css-20261012">
 .anHistRich{margin:2px 0 10px;font-size:13px;line-height:1.42;color:#1d2f3f}
 .anHistSum{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid #d7dde1;border-radius:10px;background:#f7fafc}
