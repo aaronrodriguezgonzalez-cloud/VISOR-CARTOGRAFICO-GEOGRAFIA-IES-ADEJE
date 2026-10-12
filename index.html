@@ -23934,6 +23934,8 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    const render=()=>{if(my!==seq||!node)return;const h=node.innerHTML;if(h&&h.trim())show(ll,pos,h)};
    const on=e=>{
     if(my!==seq)return;
+    // Solo actúa mientras se está en el globo: en el visor 2D los popups (volcanes, etc.) nunca se interceptan ni se cierran.
+    if(!document.body.classList.contains('globe-mode'))return;
     const p=e.popup;let n=p&&(p._contentNode||(p.getElement&&p.getElement().querySelector('.leaflet-popup-content')));
     if(!n)return;
     node=n;if(obs)obs.disconnect();
@@ -25005,6 +25007,50 @@ async function applyLeg(){
   return true;
  }
  if(!mount()){const iv=setInterval(()=>{if(mount())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),20000)}
+})();
+</script>
+
+<script id="anambro-2d-volcano-hit-20261012">
+/* Visor 2D: al tocar cerca de un volcán (capas «Volcanes del mundo» o «Actividad volcánica reciente») se abre SU ficha,
+   no la ficha genérica del punto. Los marcadores son pequeños y con el dedo (o el ratón) es fácil quedarse a unos píxeles:
+   se acepta un margen de 14 px (22 px en pantallas táctiles). */
+(function(){
+ 'use strict';
+ if(window.__anambroVolcanoHit)return;window.__anambroVolcanoHit=true;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ const tol=()=>{try{return matchMedia('(pointer:coarse)').matches?22:14}catch(_){return 14}};
+ let fromClick=false;
+ function layers(){ // la capa rica (GVP) tiene prioridad sobre la de actividad reciente
+  const out=[];
+  try{if(typeof worldVolcanoesLayer!=='undefined'&&worldVolcanoesLayer&&map.hasLayer(worldVolcanoesLayer))out.push(worldVolcanoesLayer)}catch(_){}
+  try{if(typeof worldRecentVolcanoesLayer!=='undefined'&&worldRecentVolcanoesLayer&&map.hasLayer(worldRecentVolcanoesLayer))out.push(worldRecentVolcanoesLayer)}catch(_){}
+  return out;
+ }
+ function nearest(latlng){
+  const pt=map.latLngToContainerPoint(latlng),T=tol();
+  for(const lay of layers()){
+   let best=null,bd=Infinity;
+   lay.eachLayer(l=>{try{const p=map.latLngToContainerPoint(l.getLatLng()),d=Math.hypot(p.x-pt.x,p.y-pt.y);if(d<bd){bd=d;best=l}}catch(_){}});
+   if(best&&bd<=T)return best;
+  }
+  return null;
+ }
+ try{
+  map.on('preclick',()=>{fromClick=true;setTimeout(()=>{fromClick=false},0)});
+  if(typeof showPoint==='function'&&!showPoint.__anVolc){
+   const old=showPoint;
+   const w=function(ll){
+    try{
+     if(fromClick&&ll&&!document.body.classList.contains('globe-mode')){
+      const l=nearest(L.latLng(ll.lat,ll.lng));
+      if(l&&typeof l.openPopup==='function'){l.openPopup();return}
+     }
+    }catch(e){log(e,'volcano-hit')}
+    return old.apply(this,arguments);
+   };
+   w.__anVolc=true;showPoint=w;
+  }
+ }catch(e){log(e,'volcano-hit-install')}
 })();
 </script>
 
