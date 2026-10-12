@@ -24631,20 +24631,19 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
 <script id="anambro-timezones-20261012">
 /* Mundo · Tiempo y husos horarios: husos naturales (bandas de 15°), husos legales (hora oficial) y terminador día/noche.
    Todo es aditivo: crea su propia categoría, sus propias capas (2D y globo) y su ficha. Todo empieza desactivado.
-   Fuentes: Natural Earth «Time Zones» (dominio público) para dibujar los husos legales; tz-lookup (MIT, datos de
-   timezone-boundary-builder, ODbL © colaboradores de OpenStreetMap) para la zona horaria IANA de un punto. */
+   Husos legales: se pintan consultando la zona horaria IANA de cada punto con tz-lookup (MIT; datos de timezone-boundary-builder,
+   ODbL © colaboradores de OpenStreetMap) y calculando con Intl el desfase vigente ahora mismo (incluye horario de verano).
+   No se usan polígonos generalizados: así las islas pequeñas (p. ej. Canarias) quedan en su zona real. */
 (function(){
  'use strict';
  if(window.__anambroTimezones)return;window.__anambroTimezones=true;
  const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
- const NE_URLS=[
-  'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@v5.1.2/geojson/ne_10m_time_zones.geojson',
-  'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_time_zones.geojson',
-  'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_time_zones.geojson'];
- const TZLOOKUP_URL='https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/tz.js';
- const st={nat:false,leg:false,night:false,op:0.45,data:null,loading:null,
-  natL:null,natLab:null,legL:null,nightL:null,natE:[],legDS:null,nightTimer:null,prevLighting:null,tzP:null};
+ const TZLOOKUP_URLS=[
+  'https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/tz.js',
+  'https://unpkg.com/tz-lookup@6.1.25/tz.js'];
+ const st={nat:false,leg:false,night:false,op:0.45,
+  natL:null,natLab:null,legOv:null,legGen:0,legGenG:0,legOn2D:false,legMoveRm:null,legTimer:null,nightL:null,natE:[],legLayer:null,nightTimer:null,prevLighting:null,tzP:null,offCache:new Map(),offCacheT:0};
 
  /* ---------- utilidades ---------- */
  function hsl2hex(h,s,l){s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
@@ -24668,39 +24667,53 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
  }
  const fmtDur=(min)=>{const s=min<0?'−':'+',a=Math.round(Math.abs(min)),h=Math.floor(a/60),m=a%60;return s+(h?h+' h ':'')+(m||!h?m+' min':'')};
 
- /* ---------- datos ---------- */
- function loadLegalData(){
-  if(st.data)return Promise.resolve(st.data);
-  if(st.loading)return st.loading;
-  st.loading=(async()=>{
-   let err=null;
-   for(const u of NE_URLS){
-    try{const r=await fetch(u,{mode:'cors'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
-     if(!j||!j.features||!j.features.length)throw new Error('GeoJSON vacío');
-     for(const f of j.features){const p=f.properties||{};let z=Number(p.zone);
-      if(!isFinite(z)){const m=/([+\-−])\s*(\d{1,2})(?::?(\d{2}))?/.exec(p.utc_format||p.name||'');z=m?(m[1]==='+'?1:-1)*(+m[2]+(+m[3]||0)/60):0}
-      f.__zone=z}
-     st.data=j;return j}catch(e){err=e}
-   }
-   st.loading=null;throw err||new Error('sin datos');
-  })();
-  return st.loading;
- }
+
+ /* ---------- tz-lookup + trama de husos legales ---------- */
  function loadTzLookup(){
   if(typeof window.tzlookup==='function')return Promise.resolve(window.tzlookup);
   if(st.tzP)return st.tzP;
-  st.tzP=new Promise(res=>{const s=document.createElement('script');s.src=TZLOOKUP_URL;s.async=true;
-   s.onload=()=>res(typeof window.tzlookup==='function'?window.tzlookup:null);s.onerror=()=>{st.tzP=null;res(null)};document.head.appendChild(s)});
+  st.tzP=(async()=>{
+   for(const u of TZLOOKUP_URLS){
+    try{
+     const r=await fetch(u,{mode:'cors'});if(!r.ok)throw new Error('HTTP '+r.status);
+     const code=await r.text(),m={exports:{}};
+     // funciona tanto si el archivo es CommonJS (module.exports) como si declara «var tzlookup» global
+     const ret=new Function('module','exports','window',code+'\n;return (typeof tzlookup!=="undefined")?tzlookup:undefined;')(m,m.exports,{});
+     const f=typeof m.exports==='function'?m.exports:(typeof ret==='function'?ret:(m.exports&&typeof m.exports.tzlookup==='function'?m.exports.tzlookup:null));
+     if(f){window.tzlookup=f;return f}
+    }catch(e){log(e,'tz-lookup '+u)}
+   }
+   st.tzP=null;return null;
+  })();
   return st.tzP;
  }
- function pip(lon,lat,ring){let c=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const a=ring[i],b=ring[j];
-  if((a[1]>lat)!==(b[1]>lat)&&lon<(b[0]-a[0])*(lat-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
- function legalZoneAt(lat,lon){ // respaldo sin tz-lookup: huso de Natural Earth que contiene el punto
-  if(!st.data)return null;
-  for(const f of st.data.features){const g=f.geometry;if(!g)continue;
-   const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];
-   for(const p of polys){if(pip(lon,lat,p[0])){let hole=false;for(let k=1;k<p.length;k++)if(pip(lon,lat,p[k])){hole=true;break}if(!hole)return f}}}
-  return null;
+ function offOf(tz){ // desfase vigente ahora (minutos) de una zona IANA, con caché de 10 min
+  const now=Date.now();if(now-st.offCacheT>600000){st.offCache.clear();st.offCacheT=now}
+  let v=st.offCache.get(tz);if(v===undefined){v=offMin(tz,new Date(now));st.offCache.set(tz,v)}return v;
+ }
+ const mercY=lat=>Math.log(Math.tan(Math.PI/4+lat*Math.PI/360));
+ const mercLat=y=>(2*Math.atan(Math.exp(y))-Math.PI/2)*180/Math.PI;
+ /* Pinta una trama de colores por desfase legal para el rectángulo {w,s,e,n}. mode 'merc' (Leaflet) o 'geo' (Cesium). */
+ async function renderLegalRaster(spec,isStale){
+  const f=await loadTzLookup();if(!f)throw new Error('tz-lookup no disponible');
+  const {w,s,e,n,mode}=spec,cells=spec.cells||90000;
+  const aspect=Math.max(.2,Math.min(5,(e-w)/Math.max(1e-6,(mode==='merc'?(mercY(n)-mercY(s))*180/Math.PI:(n-s)))));
+  let W=Math.max(16,Math.round(Math.sqrt(cells*aspect))),H=Math.max(16,Math.round(cells/W));
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d'),im=g.createImageData(W,H),px=im.data;
+  const y0=mode==='merc'?mercY(s):0,y1=mode==='merc'?mercY(n):0;
+  const rgb=new Map(),palette=tz=>{let c=rgb.get(tz);if(c)return c;const o=offOf(tz);
+   const hex=colOff((o==null?0:o)/60,50);c=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];rgb.set(tz,c);return c};
+  let t0=performance.now();
+  for(let j=0;j<H;j++){
+   const lat=mode==='merc'?mercLat(y1-(j+.5)/H*(y1-y0)):n-(j+.5)/H*(n-s);
+   for(let i=0;i<W;i++){
+    const lon=norm180(w+(i+.5)/W*(e-w));let tz=null;
+    try{tz=f(Math.max(-89.99,Math.min(89.99,lat)),lon)}catch(_){}
+    if(!tz)continue;const c=palette(tz),o=(j*W+i)*4;px[o]=c[0];px[o+1]=c[1];px[o+2]=c[2];px[o+3]=255;
+   }
+   if(performance.now()-t0>30){await new Promise(r=>setTimeout(r,0));t0=performance.now();if(isStale&&isStale())return null}
+  }
+  g.putImageData(im,0,0);return cv;
  }
 
  /* ---------- 2D · Leaflet ---------- */
@@ -24727,12 +24740,22 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
   }
  }
  function natRemove2D(){if(st.natL){map.removeLayer(st.natL);st.natL=null}if(st.natLab){map.off('moveend zoomend',natLabels2D);map.removeLayer(st.natLab);st.natLab=null}}
- function legStyle(f){const c=colOff(f.__zone,50);return {color:'#ffffff',weight:.5,opacity:.6,fillColor:c,fillOpacity:st.op}}
- function legAdd2D(){
-  if(typeof L==='undefined'||typeof map==='undefined'||st.legL||!st.data)return;
-  st.legL=L.geoJSON(st.data,{interactive:false,style:legStyle,renderer:L.canvas()}).addTo(map);
+function legBounds2D(){const b=map.getBounds().pad(.1);return {w:Math.max(-180,b.getWest()),e:Math.min(180,b.getEast()),s:Math.max(-85.05,b.getSouth()),n:Math.min(85.05,b.getNorth())}}
+ async function legRefresh2D(){
+  if(!st.leg||typeof L==='undefined'||typeof map==='undefined')return;
+  const gen=++st.legGen,b=legBounds2D();if(b.e<=b.w||b.n<=b.s)return;
+  try{
+   for(const cells of [14000,90000]){
+    const cv=await renderLegalRaster({w:b.w,s:b.s,e:b.e,n:b.n,mode:'merc',cells},()=>gen!==st.legGen||!st.leg);
+    if(!cv||gen!==st.legGen||!st.leg)return;
+    const ov=L.imageOverlay(cv.toDataURL('image/png'),[[b.s,b.w],[b.n,b.e]],{opacity:st.op,interactive:false,className:'tzRaster'}).addTo(map);
+    if(st.legOv)map.removeLayer(st.legOv);st.legOv=ov;
+   }
+  }catch(e){log(e,'timezones-legal-2d')}
  }
- function legRemove2D(){if(st.legL){map.removeLayer(st.legL);st.legL=null}}
+ const legMove=()=>{clearTimeout(st.legTimer);st.legTimer=setTimeout(legRefresh2D,300)};
+ function legEnable2D(){if(typeof map==='undefined'||st.legOn2D)return;st.legOn2D=true;map.on('moveend',legMove);legRefresh2D()}
+ function legDisable2D(){st.legGen++;clearTimeout(st.legTimer);if(typeof map==='undefined')return;if(st.legOn2D){map.off('moveend',legMove);st.legOn2D=false}if(st.legOv){map.removeLayer(st.legOv);st.legOv=null}}
  function nightRing(date){
   const p=sunPos(date),rad=Math.PI/180;let dec=p.dec;if(Math.abs(dec)<1e-6)dec=1e-6;
   const pts=[];for(let lon=-180;lon<=180;lon+=2){pts.push([Math.atan(-Math.cos((lon-p.lon)*rad)/Math.tan(dec))/rad,lon])}
@@ -24762,22 +24785,40 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
   v.scene.requestRender();
  }
  function natRemoveGlobe(){const v=gv();if(!v)return;for(const e of st.natE)try{v.entities.remove(e)}catch(_){}st.natE=[];try{v.scene.requestRender()}catch(_){}}
- async function legAddGlobe(){
-  const v=gv();if(!v||st.legDS||!st.data)return;
-  const C=Cesium;
-  try{
-   const ds=await C.GeoJsonDataSource.load(st.data,{clampToGround:true,stroke:cssc('#ffffff',.6),strokeWidth:1,fill:cssc('#888888',st.op)});
-   if(!st.leg){return}
-   for(const e of ds.entities.values){
-    let z=0;try{z=Number(e.properties.zone.getValue())}catch(_){}
-    if(!isFinite(z)){try{const m=/([+\-−])\s*(\d{1,2})(?::?(\d{2}))?/.exec(e.properties.utc_format.getValue()||'');z=m?(m[1]==='+'?1:-1)*(+m[2]+(+m[3]||0)/60):0}catch(_){z=0}}
-    e.__zone=z;if(e.polygon){e.polygon.material=cssc(colOff(z,50),st.op);e.polygon.outline=false;e.polygon.classificationType=C.ClassificationType.TERRAIN}
-   }
-   if(st.legDS){try{v.dataSources.remove(st.legDS,true)}catch(_){}}
-   st.legDS=ds;await v.dataSources.add(ds);v.scene.requestRender();
-  }catch(e){log(e,'timezones-globe')}
+ function legRectGlobe(){
+  const v=gv();let r=null;try{r=v.camera.computeViewRectangle(v.scene.globe.ellipsoid)}catch(_){}
+  let w=-180,e=180,s=-85,n=85;
+  if(r&&isFinite(r.west)&&r.east>=r.west){const D=180/Math.PI;w=r.west*D;e=r.east*D;s=Math.max(-85,r.south*D);n=Math.min(85,r.north*D);
+   const pl=(e-w)*.1,pa=(n-s)*.1;w=Math.max(-180,w-pl);e=Math.min(180,e+pl);s=Math.max(-85,s-pa);n=Math.min(85,n+pa)}
+  return {w,s,e,n};
  }
- function legRemoveGlobe(){const v=gv();if(!v||!st.legDS)return;try{v.dataSources.remove(st.legDS,true)}catch(_){}st.legDS=null;try{v.scene.requestRender()}catch(_){}}
+ async function legRefreshGlobe(){
+  const v=gv();if(!v||!st.leg||!window.Cesium)return;
+  const gen=++st.legGenG,b=legRectGlobe();
+  try{
+   for(const cells of [14000,90000]){
+    const cv=await renderLegalRaster({w:b.w,s:b.s,e:b.e,n:b.n,mode:'geo',cells},()=>gen!==st.legGenG||!st.leg);
+    if(!cv||gen!==st.legGenG||!st.leg)return;
+    const prov=await Cesium.SingleTileImageryProvider.fromUrl(cv.toDataURL('image/png'),{rectangle:Cesium.Rectangle.fromDegrees(b.w,b.s,b.e,b.n)});
+    if(gen!==st.legGenG||!st.leg)return;
+    const layer=v.imageryLayers.addImageryProvider(prov);layer.alpha=st.op;
+    if(st.legLayer){try{v.imageryLayers.remove(st.legLayer,true)}catch(_){}}
+    st.legLayer=layer;v.scene.requestRender();
+   }
+  }catch(e){log(e,'timezones-legal-globe')}
+ }
+ function legEnableGlobe(){
+  const v=gv();if(!v||st.legMoveRm)return;
+  let t=null;const h=()=>{clearTimeout(t);t=setTimeout(legRefreshGlobe,450)};
+  try{st.legMoveRm=v.camera.moveEnd.addEventListener(h)}catch(_){}
+  legRefreshGlobe();
+ }
+ function legDisableGlobe(){
+  st.legGenG++;const v=gv();if(!v)return;
+  if(st.legMoveRm){try{st.legMoveRm()}catch(_){}st.legMoveRm=null}
+  if(st.legLayer){try{v.imageryLayers.remove(st.legLayer,true)}catch(_){}st.legLayer=null}
+  try{v.scene.requestRender()}catch(_){}
+ }
  function nightApplyGlobe(on){
   const v=gv();if(!v)return;
   try{
@@ -24794,7 +24835,7 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
   const v=gv();if(!v)return;
   try{
    if(st.natE.length){let i=0;for(const b of natBands()){const e=st.natE[i];if(e&&e.rectangle)e.rectangle.material=cssc(natColor(b.n),st.op);i+=4}}
-   if(st.legDS)for(const e of st.legDS.entities.values)if(e.polygon&&e.__zone!=null)e.polygon.material=cssc(colOff(e.__zone,50),st.op);
+   if(st.legLayer)st.legLayer.alpha=st.op;
    v.scene.requestRender();
   }catch(_){}
  }
@@ -24803,21 +24844,23 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
  const anyOn=()=>st.nat||st.leg||st.night;
  function setStatus(t){const el=document.getElementById('tzStatus');if(el)el.textContent=t||''}
  async function applyNat(){if(st.nat){natAdd2D();natAddGlobe()}else{natRemove2D();natRemoveGlobe()}}
- async function applyLeg(){
+async function applyLeg(){
   if(st.leg){
-   setStatus('Cargando husos legales…');
-   try{await loadLegalData();if(!st.leg)return;legAdd2D();legAddGlobe();setStatus('Husos legales cargados ('+st.data.features.length+' zonas).');loadTzLookup()}
-   catch(e){log(e,'timezones-legal');st.leg=false;const c=document.getElementById('tzLegalOn');if(c)c.checked=false;setStatus('No se pudieron cargar los husos legales (sin conexión con el CDN).')}
-  }else{legRemove2D();legRemoveGlobe();if(!st.nat&&!st.night)setStatus('')}
+   setStatus('Preparando husos legales…');
+   const f=await loadTzLookup();
+   if(!st.leg)return;
+   if(!f){st.leg=false;const c=document.getElementById('tzLegalOn');if(c)c.checked=false;setStatus('No se pudo cargar tz-lookup (¿sin conexión con el CDN?): los husos legales no están disponibles.');return}
+   legEnable2D();legEnableGlobe();setStatus('Husos legales: colores según el desfase vigente ahora mismo, calculado con la zona horaria de cada punto.');
+  }else{legDisable2D();legDisableGlobe();if(!st.nat&&!st.night)setStatus('')}
  }
- function applyNight(){
+  function applyNight(){
   if(st.night){nightAdd2D();nightApplyGlobe(true);
    if(!st.nightTimer)st.nightTimer=setInterval(()=>{try{if(st.nightL)st.nightL.setLatLngs(nightRing(new Date()));const v=gv();if(v&&st.prevLighting){v.clock.currentTime=Cesium.JulianDate.fromDate(new Date());v.scene.requestRender()}}catch(_){}},60000);
   }else{nightRemove2D();nightApplyGlobe(false);if(st.nightTimer){clearInterval(st.nightTimer);st.nightTimer=null}}
  }
  function applyOpacity(){
   if(st.natL)st.natL.eachLayer(l=>l.setStyle({fillOpacity:st.op}));
-  if(st.legL)st.legL.setStyle(legStyle);
+  if(st.legOv)st.legOv.setOpacity(st.op);
   if(st.nightL)st.nightL.setStyle({fillOpacity:Math.min(.7,st.op*1.2)});
   opacityGlobe();
   const o=document.getElementById('tzOpacityValue');if(o)o.textContent=Math.round(st.op*100)+' %';
@@ -24830,11 +24873,10 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
   closePanel();
   if(!anyOn()||!ll||!isFinite(ll.lat)||!isFinite(ll.lng))return;
   const lat=ll.lat,lon=norm180(ll.lng);
-  let tz=null,fallbackZone=null;
+  let tz=null;
   if(st.leg){
    const f=await loadTzLookup().catch(()=>null);
    if(f){try{tz=f(lat,lon)}catch(_){tz=null}}
-   if(!tz){const ft=legalZoneAt(lat,lon);if(ft)fallbackZone=ft}
   }
   const el=document.createElement('div');el.id='tzInfo';document.body.appendChild(el);
   const natN=Math.round(lon/15);
@@ -24854,13 +24896,7 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
      rows.push('<div class="tzR"><span>Zona legal</span><b>'+esc(tz)+'</b></div>');
      rows.push('<div class="tzR"><span>Hora oficial</span><b>'+esc(t)+'</b></div>');
      if(legalMin!=null)rows.push('<div class="tzR"><span>Desfase</span><b>'+fmtUtc(legalMin/60)+(dst?' · horario de verano':'')+'</b></div>');
-    }else if(fallbackZone){
-     legalMin=Math.round(fallbackZone.__zone*60);
-     const d=new Date(now.getTime()+legalMin*60000);
-     const hh=String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+':'+String(d.getUTCSeconds()).padStart(2,'0');
-     rows.push('<div class="tzR"><span>Huso legal</span><b>'+fmtUtc(fallbackZone.__zone)+'</b></div>');
-     rows.push('<div class="tzR"><span>Hora oficial</span><b>'+hh+' <small>(sin horario de verano)</small></b></div>');
-    }else rows.push('<div class="tzR"><span>Huso legal</span><b>no disponible aquí</b></div>');
+        }else rows.push('<div class="tzR"><span>Zona legal</span><b>no disponible (tz-lookup no cargó)</b></div>');
    }
    if(st.nat||st.leg){
     const d=new Date(solarMs);
@@ -24880,7 +24916,7 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
    }
    const src=[];
    if(st.nat)src.push('Husos naturales: bandas de 15° (hora solar media)');
-   if(st.leg)src.push('Husos legales: Natural Earth (dominio público)'+(tz?'; zona IANA con tz-lookup (MIT, datos de timezone-boundary-builder · ODbL © colaboradores de OpenStreetMap)':''));
+   if(st.leg)src.push('Husos legales: zona IANA con tz-lookup (MIT, datos de timezone-boundary-builder · ODbL © colaboradores de OpenStreetMap); desfase con Intl del navegador');
    if(st.night)src.push('Posición del Sol calculada en el navegador');
    rows.push('<div class="tzS">Fuente: '+esc(src.join(' · '))+'</div>');
    el.innerHTML=rows.join('');
@@ -24917,7 +24953,7 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
    '<div id="tzLegend"></div><div id="tzLegendLab"><span>UTC−12</span><span>UTC±0</span><span>UTC+14</span></div>'+
    '<small id="tzStatus" style="display:block;margin-top:5px"></small>'+
    '<small>Toca un punto con alguna capa activa para ver la hora oficial, la hora solar y su diferencia. '+
-   'Fuentes: Natural Earth (dominio público) · tz-lookup (MIT) con datos de timezone-boundary-builder (ODbL © colaboradores de OpenStreetMap).</small></div>';
+   'Fuente de los husos legales: tz-lookup (MIT) con datos de timezone-boundary-builder (ODbL © colaboradores de OpenStreetMap).</small></div>';
   inner.appendChild(cat);
   const on=(id,k,fn)=>document.getElementById(id).addEventListener('change',function(){st[k]=this.checked;Promise.resolve(fn()).catch(e=>log(e,'timezones'));if(!anyOn())closePanel()});
   on('tzNaturalOn','nat',applyNat);on('tzLegalOn','leg',applyLeg);on('tzNightOn','night',applyNight);
@@ -24934,9 +24970,9 @@ html.anambro-ipad body #anambroMobileAllTools{display:none!important}
   w.__anTz=true;showGlobePoint=w}}catch(e){log(e,'timezones-wrap')}
  if(typeof ensureGlobe==='function'&&!ensureGlobe.__anTz){const prev=ensureGlobe;
   const w=async function(){const r=await prev.apply(this,arguments);
-   setTimeout(()=>{try{if(st.nat)natAddGlobe();if(st.leg&&st.data)legAddGlobe();if(st.night)nightApplyGlobe(true)}catch(e){log(e,'timezones-ensureGlobe')}},500);return r};
+   setTimeout(()=>{try{if(st.nat)natAddGlobe();if(st.leg){legDisableGlobe();legEnableGlobe()}if(st.night)nightApplyGlobe(true)}catch(e){log(e,'timezones-ensureGlobe')}},500);return r};
   w.__anTz=true;ensureGlobe=w}
- window.__anambroTimezonesTest={sunPos,sunElev,nightRing,offMin,fmtUtc,fmtDur,legalZoneAt,st};
+ window.__anambroTimezonesTest={sunPos,sunElev,nightRing,offMin,fmtUtc,fmtDur,renderLegalRaster,offOf,st};
 })();
 </script>
 
