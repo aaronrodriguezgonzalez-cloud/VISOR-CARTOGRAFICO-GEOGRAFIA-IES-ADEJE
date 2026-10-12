@@ -24412,6 +24412,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
  const PNOA='https://www.ign.es/wmts/pnoa-ma?service=WMTS&request=GetTile&version=1.0.0&Format=image/jpeg&layer=OI.OrthoimageCoverage&style=default&tilematrixset=GoogleMapsCompatible&TileMatrix={z}&TileRow={y}&TileCol={x}';
  const GC_BASE='https://idecan1.grafcan.es/ServicioWMS/OrtoExpress';
+ const GC_BASES=[GC_BASE,'https://idecan2.grafcan.es/ServicioWMS/OrtoExpress','https://idecan3.grafcan.es/ServicioWMS/OrtoExpress'];
  const RECT_ES=[-9.4,35.9,4.4,43.9],RECT_CAN=[-18.4,27.55,-13.3,29.5];
  const st={pnoa:false,gc:false};
  try{localStorage.removeItem('anambro.globePnoa');localStorage.removeItem('anambro.globeGrafcan')}catch(_){} // a demanda: siempre arrancan desactivadas
@@ -24433,20 +24434,26 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   }
  }
  async function grafcanProvider(){
-  const C=Cesium;
-  const txt=await (await fetch(GC_BASE+'?service=WMS&request=GetCapabilities&version=1.1.1')).text();
-  const doc=new DOMParser().parseFromString(txt,'text/xml');
-  const layers=[...doc.querySelectorAll('Layer > Name')].map(n=>n.textContent.trim()).filter(Boolean);
-  if(!layers.length)throw new Error('sin capas');
-  const pick=layers.find(n=>/ortoexpress/i.test(n))||layers.find(n=>/orto/i.test(n))||layers[layers.length-1];
-  const srs=[...doc.querySelectorAll('SRS,CRS')].map(n=>n.textContent.toUpperCase()).join(' ');
-  const merc=/EPSG:3857|EPSG:900913/.test(srs);
-  if(!merc)throw new Error('el servicio no ofrece Web Mercator');
-  const fmts=[...doc.querySelectorAll('GetMap > Format')].map(n=>n.textContent.trim());
-  const fmt=fmts.includes('image/png')?'image/png':'image/jpeg';
-  dbg.layer=pick+' · '+fmt;
-  const prov=new C.WebMapServiceImageryProvider({url:GC_BASE,layers:pick,parameters:{transparent:fmt==='image/png',format:fmt,version:'1.1.1',styles:''},tilingScheme:new C.WebMercatorTilingScheme(),tileWidth:256,tileHeight:256,maximumLevel:19,rectangle:C.Rectangle.fromDegrees(RECT_CAN[0],RECT_CAN[1],RECT_CAN[2],RECT_CAN[3]),credit:new C.Credit('Ortofoto © GRAFCAN · IDECanarias')});
-  onErr(prov);return prov;
+  const C=Cesium;let lastE=null;
+  // Varios servidores equivalentes de GRAFCAN y un tiempo máximo por intento: si uno no responde, se prueba el siguiente.
+  for(const base of GC_BASES){
+   try{
+    const ac=typeof AbortController!=='undefined'?new AbortController():null,tm=ac?setTimeout(()=>ac.abort(),10000):null;
+    let txt;try{txt=await (await fetch(base+'?service=WMS&request=GetCapabilities&version=1.1.1',ac?{signal:ac.signal}:undefined)).text()}finally{if(tm)clearTimeout(tm)}
+    const doc=new DOMParser().parseFromString(txt,'text/xml');
+    const layers=[...doc.querySelectorAll('Layer > Name')].map(n=>n.textContent.trim()).filter(Boolean);
+    if(!layers.length)throw new Error('sin capas');
+    const pick=layers.find(n=>/ortoexpress/i.test(n))||layers.find(n=>/orto/i.test(n))||layers[layers.length-1];
+    const srs=[...doc.querySelectorAll('SRS,CRS')].map(n=>n.textContent.toUpperCase()).join(' ');
+    if(!/EPSG:3857|EPSG:900913/.test(srs))throw new Error('el servicio no ofrece Web Mercator');
+    const fmts=[...doc.querySelectorAll('GetMap > Format')].map(n=>n.textContent.trim());
+    const fmt=fmts.includes('image/png')?'image/png':'image/jpeg';
+    dbg.layer=pick+' · '+fmt+' · '+base.replace(/^https:\/\//,'').split('/')[0];
+    const prov=new C.WebMapServiceImageryProvider({url:base,layers:pick,parameters:{transparent:fmt==='image/png',format:fmt,version:'1.1.1',styles:''},tilingScheme:new C.WebMercatorTilingScheme(),tileWidth:256,tileHeight:256,maximumLevel:19,rectangle:C.Rectangle.fromDegrees(RECT_CAN[0],RECT_CAN[1],RECT_CAN[2],RECT_CAN[3]),credit:new C.Credit('Ortofoto © GRAFCAN · IDECanarias')});
+    onErr(prov);return prov;
+   }catch(e){lastE=e;log(e,'globe-grafcan '+base)}
+  }
+  throw lastE||new Error('GRAFCAN no responde');
  }
  function syncGc(){
   const il=globeViewer.imageryLayers;
@@ -24464,7 +24471,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  function info(){
   const el=document.getElementById('globeBestImgInfo');if(!el)return;
   const a=[];if(st.pnoa)a.push('PNOA: '+(dbg.pnoa?'cargada':'no'));if(st.gc)a.push('GRAFCAN: '+(dbg.grafcan||'cargando…'));
-  if(a.length&&dbg.errs)a.push(dbg.errs+' error(es) de tesela');
+  if(a.length&&dbg.errs)a.push(dbg.errs+' error(es) de tesela'+(dbg.lastErr?' ('+dbg.lastErr+')':''));
   el.textContent=a.join(' · ');
  }
  function addControl(){
@@ -25052,6 +25059,60 @@ async function applyLeg(){
    w.__anVolc=true;showPoint=w;
   }
  }catch(e){log(e,'volcano-hit-install')}
+})();
+</script>
+
+<script id="anambro-globe-idecan-bases-20261012">
+/* Las bases de GRAFCAN elegidas en «Cartografía base · Canarias» del visor 2D (Ortofoto GRAFCAN, Mapa Topográfico Integrado)
+   se reflejan también en el globo 3D: lo que se ve cargado en el 2D se ve en el globo.
+   - Ortofoto GRAFCAN: marca la casilla «Ortofoto GRAFCAN (Canarias)» del globo (misma capa ya probada allí).
+   - Mapa Topográfico Integrado: añade al globo el mismo servicio WMS que usa el 2D. */
+(function(){
+ 'use strict';
+ if(window.__anambroGlobeIdecanBases)return;window.__anambroGlobeIdecanBases=true;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ const RECT=[-18.4,27.55,-13.3,29.5];
+ let mtiLayer=null,mirroredGc=false,seq=0;
+ const gv=()=>(typeof globeViewer!=='undefined'&&globeViewer&&window.Cesium)?globeViewer:null;
+ const chosen=()=>document.querySelector('input[name="baseCanary"]:checked')?.dataset?.baseChoice||'';
+ function setGc(on){
+  const cb=document.getElementById('globeGrafcanOn');if(!cb||cb.checked===on)return;
+  cb.__anMirror=true;cb.checked=on;cb.dispatchEvent(new Event('change'));cb.__anMirror=false;
+ }
+ function removeMti(){const v=gv();if(!v||!mtiLayer)return;try{v.imageryLayers.remove(mtiLayer,true)}catch(_){}mtiLayer=null;try{v.scene.requestRender()}catch(_){}}
+ async function addMti(my){
+  const v=gv();if(!v||mtiLayer)return;
+  let d=null;
+  for(let i=0;i<30&&my===seq;i++){d=window.__anambroGrafcanBaseDebug&&window.__anambroGrafcanBaseDebug.mtiCanary;if(d)break;await new Promise(r=>setTimeout(r,500))}
+  if(!d||my!==seq||d.crs!=='3857'||mtiLayer)return;
+  try{
+   const C=Cesium;
+   const p=new C.WebMapServiceImageryProvider({url:d.url,layers:d.layer,parameters:{transparent:false,format:d.format||'image/png',version:'1.1.1',styles:''},
+    tilingScheme:new C.WebMercatorTilingScheme(),tileWidth:256,tileHeight:256,maximumLevel:19,rectangle:C.Rectangle.fromDegrees(RECT[0],RECT[1],RECT[2],RECT[3]),
+    credit:new C.Credit('Mapa Topográfico Integrado © Gobierno de Canarias / GRAFCAN')});
+   try{p.errorEvent.addEventListener(e=>{e.retry=false})}catch(_){}
+   mtiLayer=v.imageryLayers.addImageryProvider(p);v.scene.requestRender();
+  }catch(e){log(e,'globe-mti')}
+ }
+ function sync(){
+  const my=++seq,c=chosen();
+  if(!gv()){return}
+  if(c==='ortoCanary'){removeMti();if(!document.getElementById('globeGrafcanOn')?.checked){mirroredGc=true}setGc(true)}
+  else{
+   if(mirroredGc){setGc(false);mirroredGc=false}
+   if(c==='mtiCanary')addMti(my);else removeMti();
+  }
+ }
+ document.addEventListener('change',e=>{const t=e.target;if(t&&t.name==='baseCanary')setTimeout(sync,60)});
+ // Si el usuario cambia a mano la casilla del globo, deja de considerarse «reflejada».
+ document.addEventListener('change',e=>{const t=e.target;if(t&&t.id==='globeGrafcanOn'&&!t.__anMirror)mirroredGc=false},true);
+ if(typeof ensureGlobe==='function'&&!ensureGlobe.__anIdecanBases){
+  const prev=ensureGlobe;
+  const w=async function(){const r=await prev.apply(this,arguments);setTimeout(sync,900);return r};
+  w.__anIdecanBases=true;ensureGlobe=w;
+ }
+ if(gv())setTimeout(sync,900);
+ window.__anambroGlobeIdecanBasesTest={sync,chosen};
 })();
 </script>
 
