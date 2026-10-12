@@ -23890,6 +23890,82 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const st=document.createElement('style');st.textContent='.anGlobeLayerInfo{max-width:420px;max-height:46vh;overflow:auto;-webkit-overflow-scrolling:touch}';document.head.appendChild(st);
 })();
 </script>
+<script id="anambro-globe-best-imagery-20261012">
+(function(){
+ 'use strict';
+ if(window.__anambroGlobeBestImagery)return;window.__anambroGlobeBestImagery=true;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ const PNOA='https://www.ign.es/wmts/pnoa-ma?service=WMTS&request=GetTile&version=1.0.0&Format=image/jpeg&layer=OI.OrthoimageCoverage&style=default&tilematrixset=GoogleMapsCompatible&TileMatrix={z}&TileRow={y}&TileCol={x}';
+ const GC_BASE='https://idecan1.grafcan.es/ServicioWMS/OrtoExpress';
+ const RECT_ES=[-9.4,35.9,4.4,43.9],RECT_CAN=[-18.4,27.55,-13.3,29.5];
+ const st={pnoa:false,gc:false};
+ try{st.pnoa=localStorage.getItem('anambro.globePnoa')==='1';st.gc=localStorage.getItem('anambro.globeGrafcan')==='1'}catch(_){}
+ const lay={pnoa:[],gc:null};let gcBusy=false;
+ const dbg=window.__anambroGlobeImagery={pnoa:0,grafcan:'',layer:'',errs:0,lastErr:''};
+ function onErr(prov){try{prov.errorEvent.addEventListener(e=>{e.retry=false;dbg.errs++;dbg.lastErr=String(e&&e.message||e).slice(0,140)})}catch(_){}}
+ const render=()=>{try{globeViewer.scene.requestRender()}catch(_){}};
+ function pnoaProv(r){
+  const C=Cesium;
+  const p=new C.UrlTemplateImageryProvider({url:PNOA,maximumLevel:19,minimumLevel:6,rectangle:C.Rectangle.fromDegrees(r[0],r[1],r[2],r[3]),credit:new C.Credit('PNOA © Instituto Geográfico Nacional de España · CC BY 4.0')});
+  onErr(p);return p;
+ }
+ function syncPnoa(){
+  const il=globeViewer.imageryLayers;
+  if(st.pnoa&&!lay.pnoa.length){
+   try{for(const r of [RECT_ES,RECT_CAN])lay.pnoa.push(il.addImageryProvider(pnoaProv(r),Math.min(1+lay.pnoa.length,il.length)));dbg.pnoa=lay.pnoa.length}catch(e){log(e,'globe-pnoa')}
+  }else if(!st.pnoa&&lay.pnoa.length){
+   lay.pnoa.forEach(l=>{try{il.remove(l,true)}catch(_){}});lay.pnoa=[];dbg.pnoa=0;
+  }
+ }
+ async function grafcanProvider(){
+  const C=Cesium;
+  const txt=await (await fetch(GC_BASE+'?service=WMS&request=GetCapabilities&version=1.1.1')).text();
+  const doc=new DOMParser().parseFromString(txt,'text/xml');
+  const layers=[...doc.querySelectorAll('Layer > Name')].map(n=>n.textContent.trim()).filter(Boolean);
+  if(!layers.length)throw new Error('sin capas');
+  const pick=layers.find(n=>/ortoexpress/i.test(n))||layers.find(n=>/orto/i.test(n))||layers[layers.length-1];
+  const srs=[...doc.querySelectorAll('SRS,CRS')].map(n=>n.textContent.toUpperCase()).join(' ');
+  const merc=/EPSG:3857|EPSG:900913/.test(srs);
+  if(!merc)throw new Error('el servicio no ofrece Web Mercator');
+  const fmts=[...doc.querySelectorAll('GetMap > Format')].map(n=>n.textContent.trim());
+  const fmt=fmts.includes('image/png')?'image/png':'image/jpeg';
+  dbg.layer=pick+' · '+fmt;
+  const prov=new C.WebMapServiceImageryProvider({url:GC_BASE,layers:pick,parameters:{transparent:fmt==='image/png',format:fmt,version:'1.1.1',styles:''},tilingScheme:new C.WebMercatorTilingScheme(),tileWidth:256,tileHeight:256,maximumLevel:19,rectangle:C.Rectangle.fromDegrees(RECT_CAN[0],RECT_CAN[1],RECT_CAN[2],RECT_CAN[3]),credit:new C.Credit('Ortofoto © GRAFCAN · IDECanarias')});
+  onErr(prov);return prov;
+ }
+ function syncGc(){
+  const il=globeViewer.imageryLayers;
+  if(st.gc&&!lay.gc&&!gcBusy){
+   gcBusy=true;
+   grafcanProvider().then(p=>{gcBusy=false;if(!st.gc)return;lay.gc=il.addImageryProvider(p,il.length);dbg.grafcan='ok';render();info()})
+    .catch(e=>{gcBusy=false;dbg.grafcan='error: '+(e&&e.message||e);log(e,'globe-grafcan');info()});
+  }else if(!st.gc&&lay.gc){try{il.remove(lay.gc,true)}catch(_){}lay.gc=null;dbg.grafcan=''}
+ }
+ function apply(){
+  if(typeof globeViewer==='undefined'||!globeViewer||!window.Cesium)return;
+  try{syncPnoa();syncGc()}catch(e){log(e,'globe-imagery')}
+  render();info();
+ }
+ function info(){
+  const el=document.getElementById('globeBestImgInfo');if(!el)return;
+  const a=[];if(st.pnoa)a.push('PNOA: '+(dbg.pnoa?'cargada':'no'));if(st.gc)a.push('GRAFCAN: '+(dbg.grafcan||'cargando…'));
+  if(a.length&&dbg.errs)a.push(dbg.errs+' error(es) de tesela');
+  el.textContent=a.join(' · ');
+ }
+ function addControl(){
+  const box=document.getElementById('globeReliefBox');if(!box||document.getElementById('globePnoaOn'))return false;
+  const anchor=box.querySelector('#globeLayersOn')?.parentElement||box.querySelector('small');
+  const mk=(id,txt,key)=>{const lab=document.createElement('label');lab.style.marginTop='3px';lab.innerHTML='<input type="checkbox" id="'+id+'"> '+txt;box.insertBefore(lab,anchor);const cb=lab.querySelector('input');cb.checked=st[key];cb.addEventListener('change',()=>{st[key]=cb.checked;try{localStorage.setItem(key==='pnoa'?'anambro.globePnoa':'anambro.globeGrafcan',cb.checked?'1':'0')}catch(_){}apply()})};
+  mk('globePnoaOn','🛰️ Ortofoto PNOA (España)','pnoa');
+  mk('globeGrafcanOn','🛰️ Ortofoto GRAFCAN (Canarias)','gc');
+  const inf=document.createElement('div');inf.id='globeBestImgInfo';inf.style.cssText='font:400 11px system-ui;color:#455;max-width:300px';box.insertBefore(inf,anchor);
+  return true;
+ }
+ if(!addControl()){const iv=setInterval(()=>{if(addControl())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),15000)}
+ if(typeof ensureGlobe==='function'){const prev=ensureGlobe;ensureGlobe=async function(){const r=await prev.apply(this,arguments);setTimeout(apply,300);return r}}
+ if(typeof globeViewer!=='undefined'&&globeViewer)setTimeout(apply,300);
+})();
+</script>
 <style id="anambro-history-popup-rich-css-20261012">
 .anHistRich{margin:2px 0 10px;font-size:13px;line-height:1.42;color:#1d2f3f}
 .anHistSum{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid #d7dde1;border-radius:10px;background:#f7fafc}
