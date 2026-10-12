@@ -23618,6 +23618,157 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  if(typeof globeViewer!=='undefined'&&globeViewer)apply();
 })();
 </script>
+<script id="anambro-globe-layers-20261012">
+/* Capas del visor en el Globo 3D (aditivo): WMS superpuestos, WMS en UTM 28N (Gran Canaria) y capas vectoriales
+   (L.GeoJSON) de Canarias/España activas en el mapa. Las bases y las capas que el globo ya gestiona se excluyen. */
+(function(){
+ 'use strict';
+ if(typeof map==='undefined'||typeof L==='undefined')return;
+ let on=true;
+ try{const s=localStorage.getItem('anambro.globeLayers');if(s!==null)on=s!=='0'}catch(_){}
+ const wmsB=new Map(),vecB=new Map();
+ const SKIP_URL=/wms\.gebco\.net|mapas\.igme\.es|ign\.es\/wms-inspire\/ngbe/i;
+ const SKIP_VARS=['shadowCanary','landCanary','gebco3D','politicalPhysicalBase'];
+ const MAX_ENT=9000;
+ const BOX={s:26.5,n:44.5,w:-19.5,e:5.5}; // Canarias + península + Baleares
+ function isVar(l){for(const n of SKIP_VARS){try{if(typeof eval(n)!=='undefined'&&eval(n)===l)return true}catch(_){}}return false}
+ const isUtm=l=>!!(l.getTileUrl&&String(l.getTileUrl).indexOf('32628')>=0);
+ function wmsCandidates(){
+  const out=[];if(!L.TileLayer||!L.TileLayer.WMS)return out;
+  map.eachLayer(l=>{
+   if(!(l instanceof L.TileLayer.WMS)||!l._url||!l.wmsParams||!l.wmsParams.layers)return;
+   if(SKIP_URL.test(l._url)||isVar(l))return;
+   if(!isUtm(l)){const code=l._crs&&l._crs.code;if(code&&code!=='EPSG:3857'&&code!=='EPSG:4326')return}
+   out.push(l);
+  });
+  return out;
+ }
+ function utmProvider(l){
+  const C=Cesium,prov=new C.UrlTemplateImageryProvider({url:'about:blank?{x}{y}{z}',tilingScheme:new C.WebMercatorTilingScheme(),maximumLevel:18});
+  const base=String(l._url).replace(/\?$/,'')+'?',layers=encodeURIComponent(String(l.wmsParams.layers));
+  prov.requestImage=function(x,y,level){
+   const r=this.tilingScheme.tileXYToRectangle(x,y,level),d=C.Math.toDegrees;
+   const pts=[[d(r.west),d(r.north)],[d(r.east),d(r.north)],[d(r.west),d(r.south)],[d(r.east),d(r.south)]].map(c=>proj4('EPSG:4326','EPSG:32628',c));
+   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+   const url=base+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS='+layers+'&STYLES=&SRS=EPSG:32628&FORMAT=image/png&TRANSPARENT=TRUE&WIDTH=256&HEIGHT=256&BBOX='+[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)].map(v=>v.toFixed(2)).join(',');
+   return C.ImageryProvider.loadImage(this,url);
+  };
+  return prov;
+ }
+ function syncWms(active){
+  const want=active?wmsCandidates():[],ids=new Set(want.map(l=>L.stamp(l)));
+  for(const [id,b] of wmsB){if(!ids.has(id)){try{globeViewer.imageryLayers.remove(b.cz,true)}catch(_){}wmsB.delete(id)}}
+  for(const l of want){
+   const id=L.stamp(l),op=typeof l.options.opacity==='number'?l.options.opacity:1;let b=wmsB.get(id);
+   if(!b){
+    try{
+     let prov;
+     if(isUtm(l)){if(typeof proj4==='undefined')continue;prov=utmProvider(l)}
+     else prov=new Cesium.WebMapServiceImageryProvider({url:String(l._url).replace(/\?$/,''),layers:String(l.wmsParams.layers),parameters:{transparent:true,format:l.wmsParams.format||'image/png',styles:l.wmsParams.styles||'',version:'1.1.1'},tileWidth:256,tileHeight:256,maximumLevel:18});
+     try{prov.errorEvent.addEventListener(e=>{e.retry=false})}catch(_){}
+     b={cz:globeViewer.imageryLayers.addImageryProvider(prov)};wmsB.set(id,b);
+    }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-layers-wms');continue}
+   }
+   b.cz.alpha=op;b.cz.show=true;
+  }
+ }
+ /* ---------- vectoriales ---------- */
+ const isLL=x=>x&&typeof x.lat==='number'&&typeof x.lng==='number';
+ const ring=r=>Cesium.Cartesian3.fromDegreesArray(r.flatMap(p=>[p.lng,p.lat]));
+ function polysOf(ll){if(!ll||!ll.length)return [];if(isLL(ll[0]))return [[ll]];if(isLL(ll[0][0]))return [ll];return ll}
+ function linesOf(ll){if(!ll||!ll.length)return [];if(isLL(ll[0]))return [ll];if(isLL(ll[0][0]))return ll;return ll.flat()}
+ const col=(c,a)=>{try{return Cesium.Color.fromCssColorString(c||'#3388ff').withAlpha(Math.max(0,Math.min(1,a==null?1:a)))}catch(_){return Cesium.Color.WHITE}};
+ function styleOf(o,poly){
+  const stroke=o.stroke!==false,fill=poly?o.fill!==false:false;
+  return {stroke,fill,color:col(o.color,o.opacity==null?1:o.opacity),fillc:col(o.fillColor||o.color,o.fillOpacity==null?0.2:o.fillOpacity),w:Math.max(1,Number(o.weight)||3)};
+ }
+ function buildVec(l){
+  const ds=new Cesium.CustomDataSource('anambro-lyr-'+L.stamp(l)),recs=[];let n=0;
+  l.eachLayer(ch=>{
+   if(n>MAX_ENT)return;const o=ch.options||{};
+   if(ch instanceof L.Polygon&&ch.getLatLngs){
+    const st=styleOf(o,true),polys=polysOf(ch.getLatLngs()),rec={ch,poly:[],lines:[],pt:null,poly1:true};
+    for(const pg of polys){
+     if(!pg[0]||pg[0].length<3)continue;
+     if(st.fill)rec.poly.push(ds.entities.add({polygon:{hierarchy:new Cesium.PolygonHierarchy(ring(pg[0]),pg.slice(1).map(h=>new Cesium.PolygonHierarchy(ring(h)))),material:st.fillc,classificationType:Cesium.ClassificationType.TERRAIN}}));
+     if(st.stroke){const pts=ring(pg[0]);pts.push(pts[0]);rec.lines.push(ds.entities.add({polyline:{positions:pts,width:st.w,material:st.color,clampToGround:true}}))}
+     n+=2;
+    }
+    recs.push(rec);
+   }else if(ch instanceof L.Polyline&&ch.getLatLngs){
+    const st=styleOf(o,false),rec={ch,poly:[],lines:[],pt:null};
+    for(const ln of linesOf(ch.getLatLngs())){if(ln.length<2)continue;rec.lines.push(ds.entities.add({polyline:{positions:ring(ln),width:st.w,material:st.color,clampToGround:true}}));n++}
+    recs.push(rec);
+   }else if(ch instanceof L.CircleMarker&&ch.getLatLng){
+    const ll=ch.getLatLng(),st=styleOf(o,true);if(!isLL(ll))return;
+    const e=ds.entities.add({position:Cesium.Cartesian3.fromDegrees(ll.lng,ll.lat),point:{pixelSize:Math.max(4,(Number(o.radius)||6)*2),color:st.fillc,outlineColor:st.color,outlineWidth:Math.min(3,st.w),heightReference:Cesium.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:0}});
+    recs.push({ch,poly:[],lines:[],pt:e});n++;
+   }
+  });
+  return {ds,recs,n};
+ }
+ function restyle(b){
+  for(const r of b.recs){
+   const o=r.ch.options||{},st=styleOf(o,!!r.poly1);
+   r.poly.forEach(e=>{e.polygon.material=st.fillc});
+   r.lines.forEach(e=>{e.polyline.material=st.color;e.polyline.width=st.w});
+   if(r.pt){r.pt.point.color=st.fillc;r.pt.point.outlineColor=st.color}
+  }
+  try{globeViewer.scene.requestRender()}catch(_){}
+ }
+ function vecCandidates(){
+  const out=[];
+  map.eachLayer(l=>{
+   if(!(l instanceof L.GeoJSON))return;
+   try{
+    const bd=l.getBounds&&l.getBounds();if(!bd||!bd.isValid())return;
+    if(bd.getSouth()<BOX.s||bd.getNorth()>BOX.n||bd.getWest()<BOX.w||bd.getEast()>BOX.e)return;
+    out.push(l);
+   }catch(_){}
+  });
+  return out;
+ }
+ function syncVec(active){
+  const want=active?vecCandidates():[],ids=new Set(want.map(l=>L.stamp(l)));
+  for(const [id,b] of vecB){if(!ids.has(id)){try{globeViewer.dataSources.remove(b.ds,true)}catch(_){}vecB.delete(id)}}
+  for(const l of want){
+   const id=L.stamp(l);let b=vecB.get(id);
+   if(!b){
+    try{
+     b=buildVec(l);
+     if(b.n>MAX_ENT){console.warn('Globo: capa con demasiadas geometrías, no se replica',b.n);vecB.set(id,{ds:b.ds,recs:[]});continue}
+     globeViewer.dataSources.add(b.ds);vecB.set(id,b);
+    }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-layers-vec');continue}
+   }else restyle(b);
+  }
+ }
+ function sync(){
+  try{
+   if(typeof globeViewer==='undefined'||!globeViewer||typeof Cesium==='undefined')return;
+   const active=on&&document.body.classList.contains('globe-mode');
+   syncWms(active);syncVec(active);
+   globeViewer.scene.requestRender();
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-layers')}
+ }
+ let t=null;const later=()=>{clearTimeout(t);t=setTimeout(sync,220)};
+ let t2=null;const laterStyle=()=>{clearTimeout(t2);t2=setTimeout(()=>{for(const b of vecB.values())if(b.recs&&b.recs.length)restyle(b);for(const [id,b] of wmsB){}},120)};
+ map.on('layeradd layerremove',later);
+ try{new MutationObserver(later).observe(document.body,{attributes:true,attributeFilter:['class']})}catch(_){}
+ try{const so=L.TileLayer.prototype.setOpacity;L.TileLayer.prototype.setOpacity=function(o){const r=so.apply(this,arguments);later();return r}}catch(_){}
+ try{const ps=L.Path.prototype.setStyle;L.Path.prototype.setStyle=function(){const r=ps.apply(this,arguments);laterStyle();return r}}catch(_){}
+ function addControl(){
+  const box=document.getElementById('globeReliefBox');if(!box||document.getElementById('globeLayersOn'))return false;
+  const lab=document.createElement('label');lab.style.marginTop='3px';
+  lab.innerHTML='<input type="checkbox" id="globeLayersOn"> 🗺️ Capas del visor (WMS y vectoriales)';
+  box.insertBefore(lab,box.querySelector('small'));
+  const cb=lab.querySelector('input');cb.checked=on;
+  cb.addEventListener('change',()=>{on=cb.checked;try{localStorage.setItem('anambro.globeLayers',on?'1':'0')}catch(_){}sync()});
+  return true;
+ }
+ if(!addControl()){const iv=setInterval(()=>{if(addControl())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),15000)}
+ if(typeof ensureGlobe==='function'){const prev=ensureGlobe;ensureGlobe=async function(){const r=await prev.apply(this,arguments);later();return r}}
+})();
+</script>
 <style id="anambro-history-popup-rich-css-20261012">
 .anHistRich{margin:2px 0 10px;font-size:13px;line-height:1.42;color:#1d2f3f}
 .anHistSum{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid #d7dde1;border-radius:10px;background:#f7fafc}
