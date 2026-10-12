@@ -15696,9 +15696,9 @@ html body .leaflet-popup-content{padding-top:5px}
  }
  const ARCH_GC_URL='https://ide2.idegrancanaria.es/wms/PC_RISCO_CAIDO?';
  const ARCH_GC={
-  rupestres:{label:'Manifestaciones rupestres',candidates:['RUPESTRES','CUEVAS','Manifestaciones Rupestres','Manifestaciones_Rupestres','MANIFESTACIONES_RUPESTRES','ManifestacionesRupestres']},
-  arqueoastro:{label:'Arqueoastronomía',candidates:['G_ARQUEOASTRONOMIA','ARQUEOASTRONOMIA','Arqueoastronomía','Arqueoastronomia']},
-  poblamiento:{label:'Poblamiento',candidates:['POBLAMIENTO','AMBITOS','Poblamiento']}
+  rupestres:{label:'Manifestaciones rupestres',candidates:['Manifestaciones Rupestres','Manifestaciones_Rupestres','MANIFESTACIONES_RUPESTRES','ManifestacionesRupestres']},
+  arqueoastro:{label:'Arqueoastronomía',candidates:['Arqueoastronomía','Arqueoastronomia','ARQUEOASTRONOMIA']},
+  poblamiento:{label:'Poblamiento',candidates:['Poblamiento','POBLAMIENTO']}
  };
  const archGcLayers=new Map(),archGcCandidate=new Map();
  function gcWmsLayer(layerName){return L.tileLayer.wms(ARCH_GC_URL,{layers:layerName,format:'image/png',transparent:true,version:'1.1.1',opacity:+(document.getElementById('heritageOpacity')?.value||.82),attribution:'Patrimonio arqueológico · Cabildo de Gran Canaria / IDEGranCanaria'})}
