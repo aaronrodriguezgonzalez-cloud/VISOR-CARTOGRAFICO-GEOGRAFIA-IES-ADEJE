@@ -25116,5 +25116,94 @@ async function applyLeg(){
 })();
 </script>
 
+<script id="anambro-globe-tiles-bridge-20261012">
+/* Globo 3D · teselas del visor 2D: refleja en el globo las capas de teselas «normales» (XYZ/WMTS: climas, mapa topográfico MTN,
+   LiDAR, ocupación del suelo, histórico, callejero, OpenStreetMap…) que estén activas en el mapa 2D. Se suma al puente de capas
+   que ya hace WMS y vectoriales. No toca lo que el globo ya gestiona (Esri/EOX, PNOA y GRAFCAN de su caja). */
+(function(){
+ 'use strict';
+ if(typeof map==='undefined'||typeof L==='undefined')return;
+ if(window.__anambroGlobeTilesBridge)return;window.__anambroGlobeTilesBridge=true;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ const SKIP=/arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery|tiles\.maps\.eox\.at/i; // bases mundiales que el globo ya gestiona
+ const B=new Map();const dbg=window.__anambroGlobeTiles={mirrored:[],skipped:[]};
+ const gv=()=>(typeof globeViewer!=='undefined'&&globeViewer&&window.Cesium)?globeViewer:null;
+ const baseSet=()=>{try{return new Set(Object.values(bases))}catch(_){return new Set()}};
+ const enabled=()=>{const c=document.getElementById('globeLayersOn');return c?c.checked:true};
+ function candidates(){
+  const out=[],bs=baseSet();dbg.skipped=[];
+  map.eachLayer(l=>{
+   if(!(l instanceof L.TileLayer)||(L.TileLayer.WMS&&l instanceof L.TileLayer.WMS)||!l._url)return;
+   const url=String(l._url);
+   if(SKIP.test(url)){return}
+   try{if(typeof worldClimate!=='undefined'&&l===worldClimate)return}catch(_){} // el clima mundial ya tiene su propia capa en el globo
+   if(/pnoa-ma/i.test(url)&&document.getElementById('globePnoaOn')?.checked){dbg.skipped.push('PNOA (ya en el globo)');return}
+   const code=l._crs&&l._crs.code;if(code&&code!=='EPSG:3857'){dbg.skipped.push('CRS '+code+': '+url.slice(0,70));return}
+   out.push({l,base:bs.has(l)});
+  });
+  return out;
+ }
+ function template(l){
+  let u=String(l._url).replace(/\{r\}/g,'');
+  if(l.options.tms)u=u.replace(/\{y\}/g,'{reverseY}');
+  u=u.replace(/\{-y\}/g,'{reverseY}');
+  return u;
+ }
+ function provider(l){
+  const C=Cesium,o=l.options||{};
+  const bd=o.bounds&&o.bounds.isValid&&o.bounds.isValid()?o.bounds:null;
+  const cfg={url:template(l),tilingScheme:new C.WebMercatorTilingScheme(),maximumLevel:Math.min(22,o.maxNativeZoom||o.maxZoom||18),
+   credit:new C.Credit(String(o.attribution||'').replace(/<[^>]*>/g,'')||'Capa del visor')};
+  if(o.minZoom>=3)cfg.minimumLevel=Math.round(o.minZoom);
+  if(typeof o.subdomains==='string')cfg.subdomains=o.subdomains;else if(Array.isArray(o.subdomains))cfg.subdomains=o.subdomains;
+  if(bd)cfg.rectangle=C.Rectangle.fromDegrees(bd.getWest(),bd.getSouth(),bd.getEast(),bd.getNorth());
+  const p=new C.UrlTemplateImageryProvider(cfg);
+  try{p.errorEvent.addEventListener(e=>{e.retry=false})}catch(_){}
+  return p;
+ }
+ function sync(){
+  try{
+   const v=gv();if(!v)return;
+   const active=enabled()&&document.body.classList.contains('globe-mode');
+   const want=active?candidates():[],ids=new Set(want.map(x=>L.stamp(x.l)));
+   for(const [id,b] of B){if(!ids.has(id)){try{v.imageryLayers.remove(b.cz,true)}catch(_){}B.delete(id)}}
+   for(const x of want){
+    const id=L.stamp(x.l),op=typeof x.l.options.opacity==='number'?x.l.options.opacity:1;let b=B.get(id);
+    if(!b){
+     try{
+      const p=provider(x.l);
+      // Las bases van justo encima de la imagen mundial; las superposiciones, arriba del todo.
+      const cz=x.base?v.imageryLayers.addImageryProvider(p,Math.min(1,v.imageryLayers.length)):v.imageryLayers.addImageryProvider(p);
+      b={cz,base:x.base};B.set(id,b);
+     }catch(e){log(e,'globe-tiles');continue}
+    }
+    b.cz.alpha=op;b.cz.show=true;
+   }
+   dbg.mirrored=[...B.values()].length;
+   info();v.scene.requestRender();
+  }catch(e){log(e,'globe-tiles-sync')}
+ }
+ function info(){
+  const el=document.getElementById('globeTilesInfo');if(!el)return;
+  el.textContent=enabled()&&B.size?('Teselas del 2D en el globo: '+B.size):'';
+ }
+ let t=null;const later=()=>{clearTimeout(t);t=setTimeout(sync,260)};
+ map.on('layeradd layerremove',later);
+ try{new MutationObserver(later).observe(document.body,{attributes:true,attributeFilter:['class']})}catch(_){}
+ try{const so=L.TileLayer.prototype.setOpacity;L.TileLayer.prototype.setOpacity=function(){const r=so.apply(this,arguments);later();return r}}catch(_){}
+ document.addEventListener('change',e=>{if(e.target&&e.target.id==='globeLayersOn')later()});
+ if(typeof ensureGlobe==='function'&&!ensureGlobe.__anTiles){const prev=ensureGlobe;const w=async function(){const r=await prev.apply(this,arguments);setTimeout(sync,1000);return r};w.__anTiles=true;ensureGlobe=w}
+ function addInfo(){
+  const box=document.getElementById('globeReliefBox');if(!box||document.getElementById('globeTilesInfo'))return !!document.getElementById('globeTilesInfo');
+  const el=document.createElement('div');el.id='globeTilesInfo';el.style.cssText='font:400 11px system-ui;color:#455;max-width:300px';
+  const anchor=document.getElementById('globeLayersInfo');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(el,anchor.nextSibling);else box.appendChild(el);
+  return true;
+ }
+ if(!addInfo()){const iv=setInterval(()=>{if(addInfo())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),20000)}
+ if(gv())setTimeout(sync,1000);
+ window.__anambroGlobeTilesSync=sync;
+})();
+</script>
+
 </body>
 </html>
