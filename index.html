@@ -15696,28 +15696,44 @@ html body .leaflet-popup-content{padding-top:5px}
  }
  const ARCH_GC_URL='https://ide2.idegrancanaria.es/wms/PC_RISCO_CAIDO?';
  const ARCH_GC={
-  rupestres:{label:'Manifestaciones rupestres',candidates:['Manifestaciones Rupestres','Manifestaciones_Rupestres','MANIFESTACIONES_RUPESTRES','ManifestacionesRupestres']},
-  arqueoastro:{label:'Arqueoastronomía',candidates:['Arqueoastronomía','Arqueoastronomia','ARQUEOASTRONOMIA']},
-  poblamiento:{label:'Poblamiento',candidates:['Poblamiento','POBLAMIENTO']}
+  /* Nombres reales (Name) del GetCapabilities del WMS; los títulos antiguos quedan como último recurso. */
+  rupestres:{label:'Manifestaciones rupestres',candidates:['RUPESTRES','CUEVAS','Manifestaciones Rupestres']},
+  arqueoastro:{label:'Arqueoastronomía',candidates:['G_ARQUEOASTRONOMIA','ARQUEOASTRONOMIA','Arqueoastronomía']},
+  poblamiento:{label:'Poblamiento',candidates:['POBLAMIENTO','AMBITOS','Poblamiento']}
  };
- const archGcLayers=new Map(),archGcCandidate=new Map();
+ const archGcLayers=new Map(),archGcCandidate=new Map(),archGcBusy=new Set();
  function gcWmsLayer(layerName){return L.tileLayer.wms(ARCH_GC_URL,{layers:layerName,format:'image/png',transparent:true,version:'1.1.1',opacity:+(document.getElementById('heritageOpacity')?.value||.82),attribution:'Patrimonio arqueológico · Cabildo de Gran Canaria / IDEGranCanaria'})}
- function toggleGcArchaeology(key,on){
-  const old=archGcLayers.get(key);if(!on){if(old&&map.hasLayer(old))map.removeLayer(old);return}
-  if(old){if(!map.hasLayer(old))old.addTo(map);return}
-  const cfg=ARCH_GC[key];if(!cfg)return;
-  let i=0,settled=false,layer=null;
-  const tryNext=()=>{
-   if(layer&&map.hasLayer(layer))map.removeLayer(layer);
-   if(i>=cfg.candidates.length){archStatus('Gran Canaria · el WMS oficial no aceptó la capa «'+cfg.label+'».');const c=document.querySelector('.archGcCheck[data-archgc="'+key+'"]');if(c)c.checked=false;return}
-   const name=cfg.candidates[i++];layer=gcWmsLayer(name);let errors=0;
-   layer.on('tileload',()=>{if(settled)return;settled=true;archGcLayers.set(key,layer);archGcCandidate.set(key,name);archStatus('Gran Canaria · '+cfg.label+' activa.');});
-   layer.on('tileerror',()=>{if(settled)return;if(++errors>=2){layer.off();tryNext()}});
-   layer.addTo(map);
-  };
-  tryNext();
+ /* Prueba el servicio FUERA del mapa con una imagen de muestra: si responde con imagen, se añade la capa una sola vez.
+    Así un servicio que falle nunca provoca altas y bajas repetidas de capas en el mapa. */
+ function gcProbe(name){
+  return new Promise(res=>{
+   const im=new Image(),u=ARCH_GC_URL+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS='+encodeURIComponent(name)+'&STYLES=&SRS=EPSG:3857&BBOX=-1760000,3220000,-1690000,3290000&WIDTH=128&HEIGHT=128&FORMAT=image/png&TRANSPARENT=TRUE';
+   const t=setTimeout(()=>{im.onload=im.onerror=null;res(false)},12000);
+   im.onload=()=>{clearTimeout(t);res(true)};im.onerror=()=>{clearTimeout(t);res(false)};im.src=u;
+  });
  }
- document.getElementById('archLaPalmaCheck')?.addEventListener('change',e=>toggleLaPalmaArchaeology(e.target.checked));
+ async function toggleGcArchaeology(key,on){
+  const old=archGcLayers.get(key);
+  const chk=document.querySelector('.archGcCheck[data-archgc="'+key+'"]');
+  if(!on){if(old&&map.hasLayer(old))map.removeLayer(old);return}
+  if(old){if(!map.hasLayer(old))old.addTo(map);return}
+  const cfg=ARCH_GC[key];if(!cfg||archGcBusy.has(key))return;
+  archGcBusy.add(key);archStatus('Gran Canaria · comprobando «'+cfg.label+'»…');
+  try{
+   for(const name of cfg.candidates){
+    if(chk&&!chk.checked)return;                       /* el usuario la desmarcó mientras se comprobaba */
+    if(await gcProbe(name)){
+     if(chk&&!chk.checked)return;
+     const layer=gcWmsLayer(name);archGcLayers.set(key,layer);archGcCandidate.set(key,name);
+     layer.addTo(map);archStatus('Gran Canaria · '+cfg.label+' activa.');return;
+    }
+   }
+   archStatus('Gran Canaria · el servicio oficial no devuelve imágenes para «'+cfg.label+'» en este mapa.');
+   if(chk)chk.checked=false;
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'archGC');if(chk)chk.checked=false}
+  finally{archGcBusy.delete(key)}
+ }
+document.getElementById('archLaPalmaCheck')?.addEventListener('change',e=>toggleLaPalmaArchaeology(e.target.checked));
  document.querySelectorAll('.archGcCheck').forEach(c=>c.addEventListener('change',()=>toggleGcArchaeology(c.dataset.archgc,c.checked)));
 
  /* ----- Atlas territorial de Canarias · ISTAC · motor multiescala (ANAMBRO v0.16) ----- */
