@@ -23562,7 +23562,33 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    }
   };
  }
+ function tilt(deg){
+  try{
+   const C=Cesium,cam=globeViewer.camera,sc=globeViewer.scene,cv=sc.canvas,ctr=new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2);
+   let target=null;
+   try{target=sc.globe.pick(cam.getPickRay(ctr),sc)}catch(_){}
+   if(!target)target=cam.pickEllipsoid(ctr);
+   if(!target)return;
+   const range=C.Cartesian3.distance(cam.positionWC,target);
+   cam.lookAt(target,new C.HeadingPitchRange(cam.heading,C.Math.toRadians(Math.min(75,Math.max(0,deg))-90),range));
+   cam.lookAtTransform(C.Matrix4.IDENTITY);
+   sc.requestRender();
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-tilt')}
+ }
+ let wired=false;
+ function wire(){
+  if(wired||typeof globeViewer==='undefined'||!globeViewer)return;wired=true;
+  try{
+   const C=Cesium,ctl=globeViewer.scene.screenSpaceCameraController;
+   ctl.enableTilt=true;
+   ctl.tiltEventTypes=[C.CameraEventType.MIDDLE_DRAG,C.CameraEventType.PINCH,{eventType:C.CameraEventType.LEFT_DRAG,modifier:C.KeyboardEventModifier.CTRL},{eventType:C.CameraEventType.RIGHT_DRAG,modifier:C.KeyboardEventModifier.CTRL},{eventType:C.CameraEventType.LEFT_DRAG,modifier:C.KeyboardEventModifier.SHIFT}];
+   globeViewer.camera.moveEnd.addEventListener(()=>{
+    try{const v=Math.round(90+C.Math.toDegrees(globeViewer.camera.pitch));const tr=document.getElementById('globeTiltRange');if(tr&&document.activeElement!==tr){tr.value=Math.max(0,Math.min(75,v));document.getElementById('globeTiltVal').textContent=Math.max(0,v)+'°'}}catch(_){}
+   });
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-tilt-wire')}
+ }
  function apply(){
+  wire();
   try{
    if(typeof globeViewer==='undefined'||!globeViewer||typeof Cesium==='undefined')return;
    if(!provider)provider=makeProvider();
@@ -23574,16 +23600,18 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-relief')}
  }
  const css=document.createElement('style');
- css.textContent='#globeReliefBox{display:none;position:fixed;z-index:1451;left:10px;bottom:84px;background:rgba(255,255,255,.94);border:1px solid #263238;border-radius:7px;padding:6px 9px;box-shadow:0 1px 7px #0005;font:600 12px system-ui,-apple-system,sans-serif;color:#111}body.globe-mode #globeReliefBox{display:block}#globeReliefBox label{display:flex;align-items:center;gap:6px;cursor:pointer}#globeReliefBox input[type=range]{width:120px;vertical-align:middle}#globeReliefBox small{font-weight:400;color:#455}@media(max-width:700px){#globeReliefBox{left:7px;bottom:70px}}';
+ css.textContent='#globeReliefBox{display:none;position:fixed;z-index:1451;left:260px;bottom:12px;background:rgba(255,255,255,.94);border:1px solid #263238;border-radius:7px;padding:6px 9px;box-shadow:0 1px 7px #0005;font:600 12px system-ui,-apple-system,sans-serif;color:#111}body.globe-mode #globeReliefBox{display:block}#globeReliefBox label{display:flex;align-items:center;gap:6px;cursor:pointer}#globeReliefBox input[type=range]{width:120px;vertical-align:middle}#globeReliefBox small{font-weight:400;color:#455}@media(max-width:900px){#globeReliefBox{left:7px;bottom:96px}}#globeReliefBox .row{margin-top:3px;display:flex;align-items:center;gap:6px}#globeReliefBox .row span.t{min-width:70px}';
  document.head.appendChild(css);
  const box=document.createElement('div');box.id='globeReliefBox';
- box.innerHTML='<label><input type="checkbox" id="globeReliefOn"> ⛰️ Relieve 3D</label><div id="globeReliefK"><input type="range" id="globeReliefRange" min="1" max="8" step="0.5"> <span id="globeReliefVal"></span></div><small>Exageración vertical · DEM Terrarium/AWS</small>';
+ box.innerHTML='<label><input type="checkbox" id="globeReliefOn"> ⛰️ Relieve 3D</label><div class="row" id="globeReliefK"><span class="t">Exageración</span><input type="range" id="globeReliefRange" min="1" max="8" step="0.5"> <span id="globeReliefVal"></span></div><div class="row"><span class="t">Inclinación</span><input type="range" id="globeTiltRange" min="0" max="75" step="1"> <span id="globeTiltVal">0°</span></div><small>DEM Terrarium/AWS · también: Mayús+arrastrar, o rueda central</small>';
  document.body.appendChild(box);
  const cb=box.querySelector('#globeReliefOn'),rg=box.querySelector('#globeReliefRange'),vl=box.querySelector('#globeReliefVal');
  const sync=()=>{cb.checked=on;rg.value=k;vl.textContent='×'+k;rg.disabled=!on};
  const save=()=>{try{localStorage.setItem('anambro.globeRelief',JSON.stringify({on,k}))}catch(_){}};
  cb.addEventListener('change',()=>{on=cb.checked;sync();save();apply()});
  rg.addEventListener('input',()=>{k=Number(rg.value);sync();save();apply()});
+ const tr=box.querySelector('#globeTiltRange'),tv=box.querySelector('#globeTiltVal');
+ tr.addEventListener('input',()=>{tv.textContent=tr.value+'°';tilt(Number(tr.value))});
  sync();
  const prev=ensureGlobe;
  ensureGlobe=async function(){const r=await prev.apply(this,arguments);apply();return r};
