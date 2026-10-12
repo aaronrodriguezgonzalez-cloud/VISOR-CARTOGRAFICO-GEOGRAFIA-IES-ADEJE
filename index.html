@@ -23947,7 +23947,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  function atlasActive(){try{return !!(window.anambroStatisticalAtlasActive&&window.anambroStatisticalAtlasActive())}catch(_){return false}}
  function thematic(ll){
   if(atlasActive())return true;
-  try{if(window.anambroIdecanQueryActive&&window.anambroIdecanQueryActive())return true}catch(_){}
+  try{if(window.anambroIdecanQueryActive&&window.anambroIdecanQueryActive(ll))return true}catch(_){}
   try{if(typeof activeBase!=='undefined'&&(activeBase===landCanary||activeBase===shadowCanary)&&isCanaryPoint(ll.lat,ll.lng))return true}catch(_){}
   try{if(typeof canaryHeritageActive==='function'&&canaryHeritageActive()&&isCanaryPoint(ll.lat,ll.lng))return true}catch(_){}
   try{if(typeof profileIsSpainLatLng==='function'&&profileIsSpainLatLng(ll)){
@@ -24203,7 +24203,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   try{if(document.getElementById('canaryHypsometryCheck')?.checked)out.push(Object.assign({kind:'hyps',fmt:'text/html'},HYPS))}catch(_){}
   return out;
  }
- window.anambroIdecanQueryActive=()=>targets().length>0;
+ window.anambroIdecanQueryActive=ll=>{try{if(ll&&!BOUNDS.contains(L.latLng(ll.lat,ll.lng)))return false}catch(_){}return targets().length>0};
  let panel=null;
  function showPanel(html){
   if(!panel||!panel.isConnected){panel=document.createElement('div');panel.id='idecanInfo';panel.style.cssText='position:fixed;right:12px;bottom:70px;z-index:1500;max-width:340px;max-height:42vh;overflow:auto;background:#fff;border:1px solid #263238;border-radius:8px;padding:8px 10px;font:12px system-ui;box-shadow:0 2px 10px rgba(0,0,0,.3)';document.body.appendChild(panel)}
@@ -24226,6 +24226,8 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   return txt.trim()?'<pre style="white-space:pre-wrap;margin:0">'+esc(txt.trim())+'</pre>':'';
  }
  map.on('click',async e=>{
+  if(panel&&panel.isConnected)panel.remove(); // quita la consulta anterior: nunca debe quedar información de otro lugar
+  try{if(!BOUNDS.contains(e.latlng))return}catch(_){}
   const ts=targets();if(!ts.length)return;
   let out='';
   for(const t of ts){
