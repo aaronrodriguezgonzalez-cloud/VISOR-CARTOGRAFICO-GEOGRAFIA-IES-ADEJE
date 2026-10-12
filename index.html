@@ -6701,7 +6701,7 @@ function adminHtml(a){
  return rows.length?'<br>'+rows.join('<br>'):'';
 }
 function pointHtml(lat,lon,title='Punto consultado',altText='Consultando altitud…',geo=null,veg=null,topo=null,adm=null,pending=false,climate=null,biome=null,worldGeo=null,landUse=null,shadowInfo=null,heritage=null){
- const c=coordsDMS(lat,lon),topoHtml=topo?'<br><b>Topónimo próximo:</b> '+escHtml(topo.name)+(Number.isFinite(topo.dist)?' <small>('+fmtDistance(topo.dist)+')</small>':''):'<br><b>Topónimo próximo:</b> '+(pending?'consultando…':'sin dato');
+ const c=coordsDMS(lat,lon),topoHtml=topo?'<br><b>Topónimo próximo:</b> '+escHtml(topo.name)+(Number.isFinite(topo.dist)?' <small>('+fmtDistance(topo.dist)+')</small>':'')+(topo.src?'<br><small style="color:#556">'+escHtml(topo.src)+'</small>':''):'<br><b>Topónimo próximo:</b> '+(pending?'consultando…':'sin dato');
  return '<b>📍 '+title+'</b>'+topoHtml+adminHtml(adm)+'<br><b>Latitud:</b> '+c.lat+'<br><b>Longitud:</b> '+c.lon+'<br><b>Altitud aprox.:</b> '+altText+(pending&&geologyEnabledAt(lat,lon)?'<hr><b>🪨 Geología:</b> consultando…':geologyHtml(geo))+(pending&&(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked))?'<hr><b>🌿 Vegetación:</b> consultando…':vegetationHtml(veg))+(pending&&document.getElementById('worldGeologyCheck')?.checked?'<hr><b>🪨 Geología mundial · Macrostrat:</b> consultando…':macrostratGeologyHtml(worldGeo))+(pending&&climateEnabledAt(lat,lon)?'<hr><b>🌦️ Clima Köppen-Geiger:</b> consultando…':climateHtml(climate))+(pending&&document.getElementById('worldBiomesCheck')?.checked?'<hr><b>🌿 Bioma terrestre:</b> consultando…':biomeDetailHtml(biome))+(pending&&typeof activeBase!=='undefined'&&activeBase===landCanary?'<hr><b>🟫 Ocupación del suelo · GRAFCAN:</b> consultando…':canaryLandUseHtml(landUse)+canaryShadowInfoHtml(shadowInfo)+canaryHeritageHtml(heritage,pending))+'<br><small>IGN/CNIG · CartoCiudad · MDT25/IDEE'+(geologyEnabledAt(lat,lon)?' · IGME-CSIC':'')+(['vegetationCheck','vegetationPotentialCanaryCheck','mfeCheck','mitecoPotentialCheck'].some(id=>document.getElementById(id).checked)?' · MITECO/GRAFCAN':'')+(document.getElementById('worldGeologyCheck')?.checked?' · Macrostrat':'')+(climateEnabledAt(lat,lon)?' · Beck et al.':'')+'</small>';
 }
 let coordMarker=null,coordQuerySeq=0;
@@ -8044,7 +8044,7 @@ function showProfilePoint(event){
   }else{
    Promise.all([nearestToponymAt(position.ll.lat,position.ll.lng),adminAt(position.ll.lat,position.ll.lng)]).then(([topo,admin])=>{
     if(request!==profilePointRequest||box.classList.contains('hidden'))return;
-    geo.innerHTML='<hr><b>Latitud:</b> '+escHtml(c.lat)+'<br><b>Longitud:</b> '+escHtml(c.lon)+'<br><b>Topónimo próximo:</b> '+(topo?escHtml(topo.name)+' ('+fmtDistance(topo.dist)+')':'Sin dato')+'<br><b>Municipio:</b> '+escHtml(admin?.muni||'Sin dato')+'<br><b>Provincia:</b> '+escHtml(admin?.province||'Sin dato')+'<br><b>Comunidad autónoma:</b> '+escHtml(admin?.ccaa||'Sin dato');
+    geo.innerHTML='<hr><b>Latitud:</b> '+escHtml(c.lat)+'<br><b>Longitud:</b> '+escHtml(c.lon)+'<br><b>Topónimo próximo:</b> '+(topo?escHtml(topo.name)+' ('+fmtDistance(topo.dist)+')'+(topo.src?'<br><small style="color:#556">'+escHtml(topo.src)+'</small>':''):'Sin dato')+'<br><b>Municipio:</b> '+escHtml(admin?.muni||'Sin dato')+'<br><b>Provincia:</b> '+escHtml(admin?.province||'Sin dato')+'<br><b>Comunidad autónoma:</b> '+escHtml(admin?.ccaa||'Sin dato');
    }).catch(()=>{if(request===profilePointRequest)geo.innerHTML+='<br>Localización administrativa: sin dato';});
   }
  }
@@ -24130,6 +24130,89 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  }
  install();setTimeout(install,0);setTimeout(install,1500);
  window.__anambroGrafcanSearchTest={jsonp,rows};
+})();
+</script>
+<script id="anambro-grafcan-toponym-reference-20261012">
+(function(){
+ 'use strict';
+ if(window.__anambroGrafcanTopo)return;window.__anambroGrafcanTopo=true;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ const BASE='https://idecan3.grafcan.es/ServicioWMS/MTI?';
+ const LAYER='WMS_MTI',STEPS=[25,60,120,250];
+ const cache=new Map();
+ const inCan=(la,lo)=>la>=27.4&&la<=29.6&&lo>=-18.4&&lo<=-13.2;
+ function merc(lat,lon){const R=6378137,x=R*lon*Math.PI/180,y=R*Math.log(Math.tan(Math.PI/4+lat*Math.PI/360));return [x,y]}
+ function names(html){
+  const t=String(html).replace(/<\/(td|th|tr|p|div|li|h\d)>|<br\s*\/?>/gi,'\n').replace(/<(script|style)[\s\S]*?<\/\1>/gi,'');
+  const txt=new DOMParser().parseFromString(t,'text/html').body.textContent||'';
+  const out=[];const re=/\bTexto:[ \t]*([^\n]*)\n?\s*([^\n]*)/gi;let m;
+  while((m=re.exec(txt))){
+   let v=(m[1]||'').trim();if(!v){const nx=(m[2]||'').trim();if(nx&&!/^(Elevaci|Capa|Descripci)/i.test(nx))v=nx}
+   if(v&&!/^[\d.,\s-]+$/.test(v))out.push(v);
+  }
+  return out;
+ }
+ function srcOf(html){
+  const t=String(html).replace(/<\/(td|th|tr|p|div|li|h\d)>|<br\s*\/?>/gi,'\n').replace(/<(script|style)[\s\S]*?<\/\1>/gi,'');
+  const txt=new DOMParser().parseFromString(t,'text/html').body.textContent||'';
+  const m=txt.match(/IDECanarias[^\n]*Mapa Topogr[^\n]*/i);
+  return (m?m[0].replace(/\s+/g,' ').trim():'IDECanarias Mapa Topográfico Integrado 1:5.000/1:1.000');
+ }
+ async function at(lat,lon,half){
+  const [x,y]=merc(lat,lon),W=101,h=half*10;
+  const u=BASE+new URLSearchParams({SERVICE:'WMS',VERSION:'1.1.1',REQUEST:'GetFeatureInfo',LAYERS:LAYER,QUERY_LAYERS:LAYER,STYLES:'',SRS:'EPSG:3857',BBOX:[x-h,y-h,x+h,y+h].join(','),WIDTH:W,HEIGHT:W,X:50,Y:50,INFO_FORMAT:'text/html',FEATURE_COUNT:10,FORMAT:'image/png'}).toString();
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),5000);
+  try{const r=await fetch(u,{signal:ctl.signal});if(!r.ok)return null;const html=await r.text(),n=names(html);return n.length?{name:n[0],dist:half,src:srcOf(html)}:null}
+  catch(_){return null}finally{clearTimeout(t)}
+ }
+ async function grafcanToponymAt(lat,lon){
+  const k=lat.toFixed(4)+','+lon.toFixed(4);
+  if(cache.has(k))return cache.get(k);
+  const res=await Promise.all(STEPS.map(s=>at(lat,lon,s)));
+  const hit=res.find(Boolean)||null;
+  if(hit){cache.set(k,hit);if(cache.size>200)cache.delete(cache.keys().next().value)}
+  return hit;
+ }
+ function install(){
+  if(typeof nearestToponymAt!=='function'||nearestToponymAt.__gc)return;
+  const orig=nearestToponymAt;
+  const w=async function(lat,lon){
+   try{if(inCan(lat,lon)){const g=await grafcanToponymAt(lat,lon);if(g)return {name:g.name,dist:g.dist,tipo:'GRAFCAN · MTI',src:g.src}}}catch(e){log(e,'grafcan-topo')}
+   return orig.apply(this,arguments);
+  };
+  w.__gc=true;nearestToponymAt=w;
+ }
+ // Ficha genérica del globo: en Canarias, sustituye el topónimo de referencia por el de GRAFCAN (MTI) e indica la fuente.
+ let gseq=0;
+ function installGlobe(){
+  if(typeof showGlobePoint!=='function'||showGlobePoint.__gcTopo)return;
+  const old=showGlobePoint;
+  const w=async function(ll){
+   const my=++gseq;
+   const r=await old.apply(this,arguments);
+   try{
+    if(ll&&inCan(ll.lat,ll.lng)){
+     const g=await nearestToponymAt(ll.lat,ll.lng);
+     const box=document.getElementById('globeInfo');
+     if(my===gseq&&g&&g.src&&box&&!box.classList.contains('empty')&&/Punto consultado/.test(box.textContent)){
+      const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      const line='<b>Topónimo de referencia:</b> '+esc(g.name)+' <small>(≈'+Math.round(g.dist)+' m)</small><br><small style="color:#556">'+esc(g.src)+'</small>';
+      let h=box.innerHTML;
+      const re=/<b>Topónimo \/ lugar próximo:<\/b>[^<]*/;
+      if(re.test(h))h=h.replace(re,line);
+      else h=h.replace(/(<b>🌍 Punto consultado<\/b>)/,'$1<br>'+line);
+      box.innerHTML=h;
+      try{typeof positionGlobeInfo==='function'&&0}catch(_){}
+     }
+    }
+   }catch(e){log(e,'grafcan-topo-globe')}
+   return r;
+  };
+  w.__gcTopo=true;showGlobePoint=w;
+ }
+ install();setTimeout(install,0);setTimeout(install,1500);
+ installGlobe();setTimeout(installGlobe,0);setTimeout(installGlobe,1500);
+ window.__anambroGrafcanTopoTest={names,at:grafcanToponymAt};
 })();
 </script>
 <script id="anambro-globe-best-imagery-20261012">
