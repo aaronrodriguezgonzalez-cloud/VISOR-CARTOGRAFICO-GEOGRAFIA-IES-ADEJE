@@ -15774,12 +15774,13 @@ html body .leaflet-popup-content{padding-top:5px}
  async function gcFeatureInfo(key,lat,lon){
   const layer=archGcLayers.get(key),name=archGcCandidate.get(key),cfg=ARCH_GC[key];
   if(!layer||!name||!map.hasLayer(layer))return null;
-  const c=proj4('EPSG:4326','EPSG:32628',[lon,lat]),res=40075016.686*Math.cos(lat*Math.PI/180)/(256*Math.pow(2,map.getZoom())),h=50*res;
-  const u=ARCH_GC_URL+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&LAYERS='+encodeURIComponent(name)+'&QUERY_LAYERS='+encodeURIComponent(name)+'&STYLES=&SRS=EPSG:32628&BBOX='+[c[0]-h,c[1]-h,c[0]+h,c[1]+h].map(v=>v.toFixed(2)).join(',')+'&WIDTH=101&HEIGHT=101&X=50&Y=50&FORMAT=image/png&INFO_FORMAT='+encodeURIComponent('application/vnd.ogc.gml')+'&FEATURE_COUNT=5';
+  const c=proj4('EPSG:4326','EPSG:32628',[lon,lat]),res=40075016.686*Math.cos(lat*Math.PI/180)/(256*Math.pow(2,map.getZoom())),h=31.5*res;   /* 21×21 px, cada píxel de consulta ≈ 3 px de pantalla */
+  const u=ARCH_GC_URL+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&LAYERS='+encodeURIComponent(name)+'&QUERY_LAYERS='+encodeURIComponent(name)+'&STYLES=&SRS=EPSG:32628&BBOX='+[c[0]-h,c[1]-h,c[0]+h,c[1]+h].map(v=>v.toFixed(2)).join(',')+'&WIDTH=21&HEIGHT=21&X=10&Y=10&FORMAT=image/png&INFO_FORMAT='+encodeURIComponent('application/vnd.ogc.gml')+'&FEATURE_COUNT=5';
   let txt;
   try{const r=await fetch(u,{mode:'cors'});if(!r.ok)throw Error('HTTP '+r.status);txt=await r.text()}
   catch(e){typeof __anLog=='function'&&__anLog(e,'archGC-info');return {label:'Gran Canaria · '+cfg.label,rows:[['Consulta','el servidor no permitió leer los atributos desde el visor']],__gcErr:true}}
   const rows=[];
+  try{window.__anambroGcLastInfo={key,name,url:u,respuesta:txt.slice(0,3000)}}catch(_){}
   try{
    const doc=new DOMParser().parseFromString(txt,'text/xml');
    const feats=[...doc.getElementsByTagName('*')].filter(n=>/_feature$/i.test(n.localName));
@@ -15791,6 +15792,7 @@ html body .leaflet-popup-content{padding-top:5px}
     }
    });
   }catch(e){typeof __anLog=='function'&&__anLog(e,'archGC-info-parse')}
+  if(!rows.length&&/_feature\b/i.test(txt))rows.push(['Elemento','identificado, pero el servidor no devolvió atributos legibles']);
   return rows.length?{label:'Gran Canaria · '+cfg.label,rows:rows.slice(0,24)}:null;
  }
  {
