@@ -14748,7 +14748,7 @@ historyWikipediaContext=async function(d,year=historyYear){
 
 // Conservar la geometría exacta del polígono en los datos de la ficha para filtrar acontecimientos.
 const hdOldHistoryFeatureData=historyFeatureData;
-historyFeatureData=function(f){const d=hdOldHistoryFeatureData(f);d.enName=d.rawName||'';d.rawName=d.name;d.geometry=f?.geometry||null;const p=f?.properties||{};if(p.__name_popup_es||p.__name_es)d.name=String(p.__name_popup_es||p.__name_es);return d;};
+historyFeatureData=function(f){const d=hdOldHistoryFeatureData(f);d.enName=String(d.rawName||'').trim().replace(/^\((.*)\)$/,'$1').replace(/\s*\([^)]*\)\s*$/,'').trim();d.rawName=d.name;d.geometry=f?.geometry||null;const p=f?.properties||{};if(p.__name_popup_es||p.__name_es)d.name=String(p.__name_popup_es||p.__name_es);return d;};
 
 async function hdDossier(d,c,year){
  const key=['simple',c?.qid||'',d?.seshat||d?.name||'',year].join('|');if(hdDossierCache.has(key))return hdDossierCache.get(key);
@@ -23333,176 +23333,112 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
 </script>
 
 <script id="anambro-history-popup-rich-20261012">
-/* Ficha de Cliopatria enriquecida (aditiva): todo en español, resumen de Wikipedia, enlaces a las fuentes y
-   acontecimientos del año tomados de la página anual de Wikipedia y filtrados por la entidad. */
+/* Ficha de Cliopatria (v3). Independiente de los enlaces de Wikidata de Cliopatria (a veces erróneos):
+   identifica la entidad por el nombre que muestra el mapa, todo en español, y selecciona del artículo
+   anual de Wikipedia las líneas que mencionan a esa entidad. */
 (function(){
  'use strict';
- if(typeof enrichHistoryElement!=='function'||typeof historyWikipediaContext!=='function')return;
- const esc=s=>(typeof escHtml==='function'?escHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
- const norm=s=>typeof normalizeHistoryText==='function'?normalizeHistoryText(s):String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').trim();
- const cache={sum:new Map(),wd:new Map(),art:new Map(),year:new Map()};
- const GENERIC=new Set(['reino','kingdom','imperio','empire','republica','republic','estado','state','dinastia','dynasty','principado','principality','califato','caliphate','sultanato','sultanate','union','confederacion','confederation','corona','crown','ducado','duchy','condado','county','gran','great','nuevo','nueva','tierra','pais','pueblo','khanate','kanato','horda','horde','federacion','federation','provincias','unidas','estados','estado','sacro','santo','romano','germanico']);
- const STOP=new Set(['rey','reina','principe','presidente','jefe','soberano','consejo','emperador','emperatriz','duque','conde','senor','papa','segun','desde','hasta','entre','durante','tambien','donde','cuando','aunque','pero','como','otros','otras','esta','este','estos','estas','sobre','tras','ante','bajo','cada','todo','toda','siglo','siglos','historia','epoca','periodo','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre','guerra','batalla','tratado','primer','primera','segundo','segunda','tercer','tercera']);
-
- async function getJson(url){const r=await fetch(url,{cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
- async function wdInfo(qid){
-  qid=String(qid||'').trim();if(!/^Q\d+$/i.test(qid))return null;
-  if(cache.wd.has(qid))return cache.wd.get(qid);
-  const job=(async()=>{try{
-   const j=await getJson('https://www.wikidata.org/w/api.php?origin=*&action=wbgetentities&format=json&ids='+qid+'&props=labels|aliases|sitelinks&languages=es|en');
-   const e=j&&j.entities&&j.entities[qid];if(!e)return null;
-   return {esLabel:e.labels&&e.labels.es&&e.labels.es.value||'',enLabel:e.labels&&e.labels.en&&e.labels.en.value||'',
-    aliases:((e.aliases&&e.aliases.es)||[]).map(a=>a.value),esTitle:e.sitelinks&&e.sitelinks.eswiki&&e.sitelinks.eswiki.title||'',enTitle:e.sitelinks&&e.sitelinks.enwiki&&e.sitelinks.enwiki.title||''};
-  }catch(_){return null}})();
-  cache.wd.set(qid,job);return job;
+ if(typeof enrichHistoryElement!=='function')return;
+ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const norm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').trim();
+ const GENERIC=new Set(['reino','kingdom','imperio','empire','republica','republic','estado','state','dinastia','dynasty','principado','principality','califato','caliphate','sultanato','sultanate','union','confederacion','confederation','corona','crown','ducado','duchy','condado','county','gran','great','nuevo','nueva','federacion','federation','provincias','unidas','estados','sacro','santo','romano','germanico','khanate','kanato','horda','horde','tierra','pais','pueblo','casa','de','del','la','las','los','el','of','the','and','y','en']);
+ /* nombres en español (base) y palabras clave que identifican la entidad en los artículos anuales */
+ const BASE={France:['Francia','franc','paris','versalles','bastilla','luis xvi','luis xv','napoleon','revolucion francesa'],Spain:['España','espan','madrid','borbon'],Castile:['Castilla','castell','reyes catolicos','isabel i','fernando ii','granada','cristobal colon'],Aragon:['Aragón','arag','fernando ii','barcelona'],Portugal:['Portugal','portugu','lisboa'],England:['Inglaterra','ingles','londres'],Britain:['Gran Bretaña','britani','londres','ingles'],'Great Britain':['Gran Bretaña','britani','londres','ingles'],Scotland:['Escocia','escoces'],Ireland:['Irlanda','irland'],Germany:['Alemania','aleman'],Prussia:['Prusia','prusi','berlin'],Austria:['Austria','austri','viena','habsburg'],Russia:['Rusia','rus','moscu','san petersburgo','zar'],Poland:['Polonia','polac','polon','varsovia'],Sweden:['Suecia','sueco','suec','estocolmo'],Denmark:['Dinamarca','dinamarq','danes','copenhague'],Norway:['Noruega','norueg'],Netherlands:['Países Bajos','neerland','holand','holanda','provincias unidas'],Venice:['Venecia','venecian','veneci'],Genoa:['Génova','genoves','genov'],Naples:['Nápoles','napolitan','napole'],Sardinia:['Cerdeña','cerden','piamonte','saboya'],Savoy:['Saboya','saboy'],Sicily:['Sicilia','sicili'],Hungary:['Hungría','hungar','hung','budapest'],Bohemia:['Bohemia','bohemi','praga'],Switzerland:['Suiza','suiz'],Ottoman:['Imperio otomano','otoman','turc','estambul','constantinopla','sultan'],Byzantine:['Imperio bizantino','bizantin','constantinopla'],Roman:['Imperio romano','roma','romano','emperador','trajano','adriano'],Rome:['Roma','roma','romano','emperador'],Persia:['Persia','persa','persi','iran'],Mughal:['Imperio mogol','mogol','delhi'],China:['China','chin','pekin'],Qing:['Dinastía Qing','qing','manch','pekin'],Ming:['Dinastía Ming','ming','pekin'],Japan:['Japón','japon','tokio','shogun'],Tokugawa:['Shogunato Tokugawa','japon','tokugawa','shogun','edo'],Egypt:['Egipto','egipci','egipt','el cairo'],Morocco:['Marruecos','marroqu'],Mexico:['México','mexic'],Brazil:['Brasil','brasil'],Peru:['Perú','peru'],'United States':['Estados Unidos','estadounid','washington'],Burgundy:['Borgoña','borgon'],Bavaria:['Baviera','bavar','munich'],Saxony:['Sajonia','sajon'],Lithuania:['Lituania','lituan'],Georgia:['Georgia','georgi'],Granada:['Granada','nazar','granada']};
+ const ES_PREFIX={Kingdom:'Reino',Republic:'República',Empire:'Imperio',Duchy:'Ducado',Principality:'Principado',County:'Condado',Sultanate:'Sultanato',Caliphate:'Califato',Khanate:'Kanato'};
+ function localInfo(en){
+  const m=String(en||'').match(/^(Kingdom|Republic|Empire|Duchy|Principality|County|Sultanate|Caliphate|Khanate)(?: of)? (?:the )?(.+)$/i);
+  let key=en,pref='';
+  if(m){pref=ES_PREFIX[m[1][0].toUpperCase()+m[1].slice(1).toLowerCase()]||'';key=m[2];}
+  let hit=null;
+  for(const k of Object.keys(BASE)){if(new RegExp('\\b'+k+'\\b','i').test(String(en||''))){hit=BASE[k];if(k.toLowerCase()===String(key).toLowerCase())break}}
+  const base=hit?hit[0]:null;
+  const es=base?((pref&&!/^(Imperio|Dinastía|Shogunato)/.test(base)?pref+' de ':'')+base):'';
+  return {es,terms:hit?hit.slice(1):[],base};
  }
- async function summary(title,lang){
-  if(!title)return null;const k=lang+'|'+title;if(cache.sum.has(k))return cache.sum.get(k);
-  const job=(async()=>{try{
-   const j=await getJson('https://'+lang+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title.replace(/ /g,'_'))+'?redirect=true');
-   if(!j||j.type==='disambiguation'||!j.extract)return null;
-   return {extract:j.extract,thumb:j.thumbnail&&j.thumbnail.source||'',url:j.content_urls&&j.content_urls.desktop&&j.content_urls.desktop.page||'',lang,title:j.title||title};
-  }catch(_){return null}})();
-  cache.sum.set(k,job);return job;
+ const cache=new Map();
+ async function getJson(url){const r=await (window.anFetchRetry||fetch)(url,{cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
+ function once(k,fn){if(!cache.has(k)){const p=fn().then(v=>{if(!v)cache.delete(k);return v},e=>{cache.delete(k);return null});cache.set(k,p)}return cache.get(k)}
+ const summary=(t,l)=>t?once('s|'+l+'|'+t,async()=>{try{const j=await getJson('https://'+l+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(t.replace(/ /g,'_'))+'?redirect=true');
+   if(!j||j.type==='disambiguation'||!j.extract)return null;return {extract:j.extract,thumb:j.thumbnail&&j.thumbnail.source||'',url:j.content_urls&&j.content_urls.desktop&&j.content_urls.desktop.page||'',lang:l,title:j.title||t}}catch(_){return null}}):Promise.resolve(null);
+ const langlink=(t)=>t?once('l|'+t,async()=>{try{return await wikiLangLink(t,'en','es')||null}catch(_){return null}}):Promise.resolve(null);
+ const yearHtml=y=>once('y|'+y,async()=>{try{const title=y<0?Math.abs(y)+' a. C.':String(y);const pg=await wikiParsePage(title,'es');if(!pg)return null;return typeof pg.text==='string'?pg.text:(pg.text&&pg.text['*'])||null}catch(_){return null}});
+ function cut(t,n){t=String(t||'').trim();if(t.length<=n)return t;const c=t.slice(0,n),i=Math.max(c.lastIndexOf('. '),c.lastIndexOf('; '));return i>n*.55?c.slice(0,i+1):c.replace(/\s+\S*$/,'')+'…'}
+ function termsFor(en,es,llEs,info){
+  const strong=new Set(info.terms.map(norm));
+  for(const s of [es,llEs,info.es]){for(const w of norm(s).split(' ')){if(w.length>=4&&!GENERIC.has(w))strong.add(w)}}
+  for(const w of norm(en).split(' ')){if(w.length>=4&&!GENERIC.has(w)&&!/^(kingdom|empire|republic)$/.test(w))strong.add(w)}
+  return [...strong].filter(Boolean);
  }
- function cut(t,n){t=String(t||'').trim();if(t.length<=n)return t;const c=t.slice(0,n),i=Math.max(c.lastIndexOf('. '),c.lastIndexOf('; '));return (i>n*.55?c.slice(0,i+1):c.replace(/\s+\S*$/,'')+'…')}
- function years(d){const a=Number(d&&d.from),b=Number(d&&d.to);return Number.isFinite(a)&&Number.isFinite(b)&&b>=a?(b-a+1):null}
-
- /* ---------- términos para reconocer la entidad en la página del año ---------- */
- function stemOf(t){return t.length>=7?t.slice(0,t.length-2):t}
- function nameTerms(list){
-  const out=new Set();
-  for(const s of list){for(const w of norm(s).split(' ')){if(w.length>=4&&!GENERIC.has(w)&&!STOP.has(w))out.add(w)}}
-  return out;
- }
- async function articleTerms(title,lang){
-  if(!title||typeof wikiPageExtract!=='function')return new Set();
-  const k=lang+'|'+title;if(cache.art.has(k))return cache.art.get(k);
-  const job=(async()=>{try{
-   const pg=await wikiPageExtract(title,lang,30000);const txt=pg&&pg.extract||'';
-   const freq=new Map();
-   for(const m of txt.matchAll(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]{3,}\b/g)){const w=norm(m[0]);if(!w||GENERIC.has(w)||STOP.has(w))continue;freq.set(w,(freq.get(w)||0)+1)}
-   return new Set([...freq.entries()].filter(e=>e[1]>=3).sort((a,b)=>b[1]-a[1]).slice(0,40).map(e=>e[0]));
-  }catch(_){return new Set()}})();
-  cache.art.set(k,job);return job;
- }
- function domNames(slot){
-  /* nombres de gobernantes y capital que la propia ficha ya ha obtenido de Wikidata */
-  const phrases=new Set(),words=new Set();
-  slot.querySelectorAll('.historyDossierBox').forEach(b=>{
-   const head=(b.querySelector('b')||{}).textContent||'';if(!/gobernante|capital/i.test(head))return;
-   const body=(b.textContent||'').replace(head,'');
-   for(const part of body.split(/[;]|\s·\s/)){
-    const nm=part.replace(/\b(jefe de estado|soberano|rey|reina|emperador|emperatriz|presidente|consejo|castilla)\b/ig,' ').trim();
-    const n=norm(nm);if(n.length>=5&&n.split(' ').length<=4&&!/sin dato/.test(n)){phrases.add(n);for(const w of n.split(' '))if(w.length>=5&&!STOP.has(w))words.add(w)}
-   }
-  });
-  return {phrases,words};
- }
- function hasTerm(textNorm,words,t){
+ function hit(textNorm,words,t){
   if(t.includes(' '))return (' '+textNorm+' ').includes(' '+t+' ');
-  if(t.length>=7){const st=stemOf(t);return words.some(w=>w.startsWith(st))}
+  if(t.length>=5)return words.some(w=>w.startsWith(t.length>=7?t.slice(0,t.length-2):t));
   return words.includes(t);
  }
- async function yearEvents(d,c,wd,year,names){
-  try{
-   if(typeof wikiParsePage!=='function'||typeof historyEventQuality!=='function')return [];
-   const title=year<0?Math.abs(year)+' a. C.':String(year);
-   let pg=cache.year.get(title);if(!pg){pg=wikiParsePage(title,'es');cache.year.set(title,pg)}
-   const page=await pg;if(!page||!page.text)return [];
-   const html=typeof page.text==='string'?page.text:(page.text['*']||'');
-   const doc=new DOMParser().parseFromString(html,'text/html');
-   const lead=[(wd&&wd.esLabel)||'',(wd&&wd.esTitle)||'',...((wd&&wd.aliases)||[]),(c&&c.entityTitleEs)||'',(c&&c.displayName)||'',(c&&c.entityTitleEn)||'',(d&&d.name)||''];
-   const strong=nameTerms(lead);
-   if(typeof historyContextTerms==='function'){try{historyContextTerms(d,c&&c.entityTitleEs||'',c&&c.entityTitleEn||'',[]).forEach(t=>{if(t.length>=4&&!GENERIC.has(t))strong.add(t)})}catch(_){}}
-   const weak=await articleTerms((wd&&wd.esTitle)||(c&&c.entityTitleEs)||'', 'es');
-   const strongPhr=[...(names?names.phrases:[])],strongW=[...strong,...(names?names.words:[])];
-   const rows=[];let skip=false;
-   for(const n of doc.querySelectorAll('h2,h3,h4,li')){
-    if(/^H[2-4]$/.test(n.tagName)){skip=/nacimientos|fallecimientos|births|deaths/i.test(n.textContent||'');continue}
-    if(skip)continue;
-    const clone=n.cloneNode(true);clone.querySelectorAll('ul,ol,sup,figure,table,style').forEach(x=>x.remove());
-    const parts=typeof splitHistoryEventText==='function'?splitHistoryEventText(clone.textContent||''):[clone.textContent||''];
-    for(const raw of parts){
-     const t=typeof cleanHistoryEventText==='function'?cleanHistoryEventText(raw):String(raw).trim();
-     const q=historyEventQuality(t,year,[]);if(q<5)continue;
-     const tn=norm(t),words=tn.split(' ');
-     let s=0,w=0;
-     for(const p of strongPhr)if(hasTerm(tn,words,p))s++;
-     for(const x of strongW)if(hasTerm(tn,words,x))s++;
-     for(const x of weak)if(hasTerm(tn,words,x))w++;
-     if(s<1&&w<2)continue;
-     rows.push({t,sc:q+6*Math.min(s,3)+2*Math.min(w,4),i:rows.length});
-    }
-   }
-   rows.sort((a,b)=>b.sc-a.sc);
-   const pick=[],seen=new Set();
-   for(const r of rows){const k=r.t.slice(0,60);if(seen.has(k))continue;seen.add(k);pick.push(r);if(pick.length>=5)break}
-   pick.sort((a,b)=>a.i-b.i);
-   return pick.map(r=>r.t.length>330?r.t.slice(0,327)+'…':r.t);
-  }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-year-events');return []}
- }
-
- function block(d,c,s,wd){
-  let h='<div class="anHistRich">';
-  if(s&&s.extract){
-   h+='<div class="anHistSum">'+(s.thumb?'<img src="'+esc(s.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'')+
-      '<div><b>📖 '+(s.lang==='es'?'Resumen':'Resumen (artículo solo disponible en inglés)')+'</b><br>'+esc(cut(s.extract,620))+'</div></div>';
-  }else{
-   h+='<div class="anHistNote">No hay artículo de Wikipedia asociado a esta entidad para este intervalo.</div>';
+ const MONTHS='enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre';
+ function pickEvents(html,terms,year){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const rows=[];let skip=false;
+  const dateRx=new RegExp('^\\s*(?:\\d{1,2}(?:º)?\\s+de\\s+(?:'+MONTHS+')|(?:'+MONTHS+'))\\b','i');
+  for(const n of doc.querySelectorAll('h2,h3,h4,li')){
+   if(/^H[2-4]$/.test(n.tagName)){skip=/nacimientos|fallecimientos|v[ií]nculos|v[eé]ase|referencias|notas|enlaces|bibliograf/i.test(n.textContent||'');continue}
+   if(skip)continue;
+   const c=n.cloneNode(true);c.querySelectorAll('ul,ol,sup,figure,table,style,.mw-editsection').forEach(x=>x.remove());
+   const t=(c.textContent||'').replace(/\[[^\]]*\]/g,'').replace(/\s+/g,' ').trim();
+   if(t.length<28||t.length>700||/^Archivo:|\bWayback Machine\b/.test(t))continue;
+   const tn=norm(t),words=tn.split(' ');
+   let s=0;for(const x of terms)if(hit(tn,words,x))s++;
+   if(!s)continue;
+   rows.push({t,sc:s*3+(dateRx.test(t)?4:0)+Math.min(t.length,200)/200,i:rows.length});
   }
-  const bits=[],n=years(d);
-  if(n)bits.push('<b>Duración de esta fase:</b> '+n.toLocaleString('es-ES')+(n===1?' año':' años'));
-  if(d&&d.member&&!/[;\[\]]/.test(String(d.member)))bits.push('<b>Pertenece a:</b> '+esc(d.member));
-  if(bits.length)h+='<div class="anHistFacts">'+bits.join('<br>')+'</div>';
-  const links=[];
-  const wu=(s&&s.url)||(c&&c.url);
-  if(wu)links.push('<a href="'+esc(wu)+'" target="_blank" rel="noopener">Wikipedia</a>');
-  const q=(c&&c.qid)||(d&&d.wikidata);
-  if(q&&/^Q\d+$/i.test(String(q).trim()))links.push('<a href="https://www.wikidata.org/wiki/'+esc(String(q).trim())+'" target="_blank" rel="noopener">Wikidata</a>');
-  if(d&&d.seshat&&/^\d+$/.test(String(d.seshat).trim()))links.push('<a href="https://seshat-db.com/core/polity/'+esc(String(d.seshat).trim())+'/" target="_blank" rel="noopener">Seshat</a>');
-  if(links.length)h+='<div class="anHistLinks"><b>Fuentes:</b> '+links.join(' · ')+'</div>';
-  return h+'</div>';
+  const seen=new Set(),pick=[];
+  for(const r of rows.sort((a,b)=>b.sc-a.sc)){const k=r.t.slice(0,50);if(seen.has(k))continue;seen.add(k);pick.push(r);if(pick.length>=6)break}
+  return pick.sort((a,b)=>a.i-b.i).map(r=>r.t.length>360?r.t.slice(0,357)+'…':r.t);
  }
- const prev=enrichHistoryElement;
+ function render(el,d,y,st){
+  const slot=el.querySelector('.historyWikiSlot');if(!slot)return;
+  let h='<div class="anHistRich">';
+  if(st.sum&&st.sum.extract)h+='<div class="anHistSum">'+(st.sum.thumb?'<img src="'+esc(st.sum.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'')+'<div><b>📖 Resumen'+(st.sum.lang==='es'?'':' (artículo disponible solo en inglés)')+'</b><br>'+esc(cut(st.sum.extract,640))+'</div></div>';
+  else if(st.loading)h+='<div class="anHistNote">Consultando Wikipedia…</div>';
+  const a=Number(d&&d.from),b=Number(d&&d.to),bits=[];
+  if(Number.isFinite(a)&&Number.isFinite(b)&&b>=a)bits.push('<b>Duración de esta fase:</b> '+(b-a+1).toLocaleString('es-ES')+(b-a+1===1?' año':' años'));
+  if(bits.length)h+='<div class="anHistFacts">'+bits.join('<br>')+'</div>';
+  h+='<div class="historyDossierBox historyDossierWide historyDossierEvents"><b>📅 '+esc(typeof historyYearText==='function'?historyYearText(y):y)+' en esta entidad</b>';
+  if(st.loading)h+='<div class="historyCardNote">Buscando en Wikipedia los acontecimientos de ese año…</div>';
+  else if(st.events&&st.events.length)h+=st.events.map(t=>'<div class="historyDossierEvent"><div>'+esc(t)+'</div></div>').join('')+'<div class="historyDossierSource">Fuente: Wikipedia, artículo «'+esc(typeof historyYearText==='function'?historyYearText(y):y)+'», filtrado por la entidad.</div>';
+  else h+='<div class="historyCardNote">'+(st.noYear?'No se pudo consultar el artículo de Wikipedia de ese año (servicio saturado). Vuelve a pulsar en unos segundos.':'El artículo de Wikipedia de ese año no menciona esta entidad de forma destacada.')+'</div>';
+  h+='</div>';
+  const links=[];
+  const wu=(st.sum&&st.sum.url);if(wu)links.push('<a href="'+esc(wu)+'" target="_blank" rel="noopener">Wikipedia</a>');
+  links.push('<a href="https://es.wikipedia.org/wiki/'+encodeURIComponent(y<0?Math.abs(y)+'_a._C.':String(y))+'" target="_blank" rel="noopener">Año '+esc(typeof historyYearText==='function'?historyYearText(y):y)+'</a>');
+  if(d&&d.seshat&&/^[\w-]+$/.test(String(d.seshat)))links.push('<span>Seshat: '+esc(d.seshat)+'</span>');
+  h+='<div class="anHistLinks"><b>Fuentes:</b> '+links.join(' · ')+'</div></div>';
+  slot.innerHTML=h;
+ }
+ const ok=(el,token,y)=>token===historyWikiSeq&&historyYear===y&&document.body.contains(el);
  enrichHistoryElement=async function(el,d,token){
   const y=historyYear;
-  const pre=(async()=>{try{
-   const c=await historyWikipediaContext(d,y);
-   let wd=await wdInfo((c&&c.qid)||(d&&d.wikidata));
-   /* Identidad por el nombre que el mapa muestra (rawName): es lo que el usuario ha pulsado y no depende de enlaces erróneos de Cliopatria. */
-   const raw=String((d&&(d.enName||d.rawName||d.name))||'').trim();
-   let esN='';
-   try{if(raw&&typeof wikiLangLink==='function')esN=await wikiLangLink(raw,'en','es')||''}catch(_){}
-   if(esN&&(!wd||wd.esTitle!==esN))wd={esLabel:esN,esTitle:esN,enTitle:raw,enLabel:raw,aliases:[],byName:true};
-   window.__anambroHistDebug={raw,esN,qid:c&&c.qid,wdEs:wd&&wd.esTitle,year:y};
-   const esT=(wd&&wd.esTitle)||(c&&c.entityTitleEs)||'';
-   let s=await summary(esT,'es');
-   if(!s)s=await summary((wd&&wd.enTitle)||(c&&c.entityTitleEn)||(typeof cliopatriaWikipediaTitle==='function'?cliopatriaWikipediaTitle(d):''),'en');
-   return {c,wd,s};
-  }catch(_){return {c:null,wd:null,s:null}}})();
-  try{await prev.call(this,el,d,token)}catch(e){typeof __anLog=='function'&&__anLog(e,'hist-prev')}
   try{
-   if(token!==historyWikiSeq||historyYear!==y)return;
-   const {c,wd,s}=await pre;if(token!==historyWikiSeq||historyYear!==y)return;
-   const slot=el&&el.querySelector&&el.querySelector('.historyWikiSlot');if(!slot)return;
-   /* Todo en español: el título de la ficha usa la etiqueta en español de Wikidata. */
-   const ttl=el.querySelector&&el.querySelector('.historyCardTitle'),esName=(wd&&(wd.esLabel||wd.esTitle))||'';
-   if(ttl&&esName)ttl.textContent='🏛️ '+esName;
-   slot.querySelectorAll('.historyDossierBox:not(.historyDossierWide)').forEach(b=>{if(/Sin dato temporal fiable/i.test(b.textContent||''))b.remove()});
-   slot.querySelectorAll('.historyDossierBox.historyDossierWide').forEach(b=>{if(/^\s*🏙️/.test(b.textContent||'')&&/Sin dato temporal fiable/i.test(b.textContent||''))b.remove()});
-   const grid=slot.querySelector('.historyDossierGrid');
-   if(grid&&!grid.querySelector('.historyDossierBox'))grid.remove();
-   if(!slot.querySelector('.anHistRich'))slot.insertAdjacentHTML('afterbegin',block(d,c,s,wd));
-   const evBox=slot.querySelector('.historyDossierEvents');
-   if(evBox&&!evBox.querySelector('.historyDossierEvent')){
-    const evs=await yearEvents(d,c,wd,y,domNames(slot));
-    try{window.__anambroHistDebug.nEv=evs.length}catch(_){}
-    if(token!==historyWikiSeq||historyYear!==y)return;
-    if(evs.length){evBox.innerHTML=evs.map(t=>'<div class="historyDossierEvent"><div>'+esc(t)+'</div></div>').join('')+'<div class="historyDossierSource">Fuente: Wikipedia, artículo del año '+esc(historyYearText(y))+', filtrado por la entidad.</div>'}
-    else{const b=evBox.closest('.historyDossierBox');if(b)b.remove()}
-   }
-  }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-rich')}
+   const en=String((d&&(d.enName||d.rawName||d.name))||'').trim().replace(/^\((.*)\)$/,'$1').replace(/\s*\([^)]*\)\s*$/,'').trim();
+   const info=localInfo(en);
+   const ttl=el.querySelector&&el.querySelector('.historyCardTitle');
+   if(ttl&&info.es)ttl.textContent='🏛️ '+info.es;
+   const st={loading:true};render(el,d,y,st);
+   const yp=yearHtml(y);
+   const ll=await langlink(en);
+   if(!ok(el,token,y))return;
+   const esTitle=ll||'';
+   if(ttl&&esTitle)ttl.textContent='🏛️ '+esTitle;
+   const [sum]=await Promise.all([ (async()=>{let s=await summary(esTitle,'es');if(!s)s=await summary(en,'en');return s})() ]);
+   if(!ok(el,token,y))return;
+   st.sum=sum;render(el,d,y,st);
+   const html=await yp;
+   if(!ok(el,token,y))return;
+   st.loading=false;
+   if(!html){st.noYear=true;st.events=[]}
+   else st.events=pickEvents(html,termsFor(en,esTitle,'',info),y);
+   window.__anambroHistDebug={en,esTitle,localEs:info.es,year:y,hasYearHtml:!!html,nEv:st.events.length};
+   render(el,d,y,st);
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-rich3')}
  };
 })();
 </script>
