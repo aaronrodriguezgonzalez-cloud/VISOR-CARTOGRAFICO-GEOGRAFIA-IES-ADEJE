@@ -23835,6 +23835,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  function atlasActive(){try{return !!(window.anambroStatisticalAtlasActive&&window.anambroStatisticalAtlasActive())}catch(_){return false}}
  function thematic(ll){
   if(atlasActive())return true;
+  try{if(window.anambroIdecanQueryActive&&window.anambroIdecanQueryActive())return true}catch(_){}
   try{if(typeof activeBase!=='undefined'&&(activeBase===landCanary||activeBase===shadowCanary)&&isCanaryPoint(ll.lat,ll.lng))return true}catch(_){}
   try{if(typeof canaryHeritageActive==='function'&&canaryHeritageActive()&&isCanaryPoint(ll.lat,ll.lng))return true}catch(_){}
   try{if(typeof profileIsSpainLatLng==='function'&&profileIsSpainLatLng(ll)){
@@ -23898,22 +23899,9 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  const SERVICES=[
-  ['MTI · Mapa Topográfico Integrado','https://idecan2.grafcan.es/ServicioWMS/MTI'],
-  ['OrtoExpress · ortofoto regional','https://idecan1.grafcan.es/ServicioWMS/OrtoExpress'],
   ['OrtoUrb · ortofoto urbana','https://idecan1.grafcan.es/ServicioWMS/OrtoUrb'],
-  ['OrtoExpress (servicio del visor GRAFCAN)','https://idecan3.grafcan.es/ServicioWMS/OrtoExpress_bat'],
-  ['MTI (servicio del visor GRAFCAN)','https://idecan3.grafcan.es/ServicioWMS/MTI'],
-  ['Callejero + textos','https://idecan3.grafcan.es/ServicioWMS/CallejeroTxt'],
   ['Callejero','https://idecan2.grafcan.es/ServicioWMS/Callejero'],
-  ['Cartografía estadística (CARTO_EST)','https://idecan2.grafcan.es/ServicioWMS/CARTO_EST'],
-  ['Bienes de Interés Cultural (BIC)','https://idecan2.grafcan.es/ServicioWMS/BIC'],
-  ['Ocupación del suelo (MOS)','https://idecan2.grafcan.es/ServicioWMS/MOS'],
-  ['Vegetación','https://idecan2.grafcan.es/ServicioWMS/Vegetacion'],
-  ['Espacios culturales','https://idecan2.grafcan.es/ServicioWMS/EspaciosCulturales'],
-  ['Esculturas','https://idecan2.grafcan.es/ServicioWMS/Esculturas'],
-  ['Hipsométrico','https://idecan1.grafcan.es/ServicioWMS/Hipsometrico'],
-  ['Topobatimétrico','https://idecan1.grafcan.es/ServicioWMS/Topobatimetrico'],
-  ['Modelo de sombras','https://idecan1.grafcan.es/ServicioWMS/MDSombras']
+  ['Callejero + textos','https://idecan3.grafcan.es/ServicioWMS/CallejeroTxt']
  ];
  const BOUNDS=L.latLngBounds([[27.45,-18.25],[29.55,-13.15]]);
  const ATTR='© Gobierno de Canarias · GRAFCAN / IDECanarias (uso no comercial, citando la fuente)';
@@ -23957,10 +23945,9 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  }
  // ---------- UI ----------
  const root=document.createElement('details');root.className='layerSubcategory';root.id='idecanExplorer';
- root.innerHTML='<summary>🧭 Explorador IDECanarias (GRAFCAN)</summary>'+
+ root.innerHTML='<summary>🧭 Otros servicios WMS · IDECanarias (avanzado)</summary>'+
   '<div class="layerSubBlock">'+
-  '<small>Servicios oficiales de IDECanarias. Elige uno, lee sus capas y actívalas; también se envían al globo 3D con «Capas del visor».</small>'+
-  '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button type="button" id="idxOrto">🛰️ Ortofoto GRAFCAN</button><button type="button" id="idxMti">🗺️ Mapa Topográfico Integrado</button></div>'+
+  '<small>Solo servicios que no tienen entrada propia en el visor (las capas de hipsometría, vegetación, ocupación del suelo, patrimonio, sombras o estadística están en su categoría). También puedes pegar la URL de otro WMS.</small>'+
   '<select id="idxService" style="width:100%"></select>'+
   '<input id="idxCustom" type="text" placeholder="…o pega la URL de otro WMS" style="width:100%;margin-top:4px">'+
   '<button type="button" id="idxRead" style="margin-top:4px">Leer capas</button>'+
@@ -23970,13 +23957,15 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   '<div id="idxMsg" style="font:400 11px system-ui;color:#455;margin-top:4px"></div>'+
   '</div>';
  function mount(){
-  const host=document.querySelector('#layersPanel .layerScopeInner');if(!host||document.getElementById('idecanExplorer'))return !!document.getElementById('idecanExplorer');
-  host.insertBefore(root,host.children[1]||null);
+  if(document.getElementById('idecanExplorer'))return true;
+  const scopes=[...document.querySelectorAll('#layersPanel details.layerScope')];
+  const common=scopes.find(d=>/Elementos comunes/.test(d.querySelector(':scope > summary')?.textContent||''));
+  const host=(common&&common.querySelector(':scope > .layerScopeInner'))||document.querySelector('#layersPanel .layerScopeInner');
+  if(!host)return false;
+  host.appendChild(root);
   const sel=root.querySelector('#idxService');sel.innerHTML=SERVICES.map((s,i)=>'<option value="'+i+'">'+esc(s[0])+'</option>').join('');
   root.querySelector('#idxRead').addEventListener('click',()=>load(root.querySelector('#idxCustom').value.trim()||SERVICES[sel.value][1]));
   root.querySelector('#idxFilter').addEventListener('input',renderList);
-  root.querySelector('#idxOrto').addEventListener('click',()=>preset('https://idecan3.grafcan.es/ServicioWMS/OrtoExpress_bat','WMS_OrtoExpress','Ortofoto GRAFCAN (OrtoExpress)',true));
-  root.querySelector('#idxMti').addEventListener('click',()=>preset('https://idecan3.grafcan.es/ServicioWMS/MTI','WMS_MTI','Mapa Topográfico Integrado',false));
   return true;
  }
  const msg=t=>{const m=root.querySelector('#idxMsg');if(m)m.textContent=t||''};
@@ -24025,12 +24014,74 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   box.querySelectorAll('[data-q]').forEach(c=>c.addEventListener('change',()=>{active[+c.dataset.q].query=c.checked}));
   renderList();
  }
+ // ---------- Fondos GRAFCAN propios (MTI y ortofoto) dentro de «Cartografía base · Canarias» ----------
+ const BASES=[
+  {key:'mtiCanary',label:'Mapa Topográfico Integrado · GRAFCAN (1:5.000/1:1.000)',url:'https://idecan3.grafcan.es/ServicioWMS/MTI',layer:'WMS_MTI',fmt:'image/png',title:'Mapa Topográfico Integrado',attr:'Mapa Topográfico Integrado · © Gobierno de Canarias / GRAFCAN'},
+  {key:'ortoCanary',label:'Imagen · Ortofoto GRAFCAN (OrtoExpress)',url:'https://idecan3.grafcan.es/ServicioWMS/OrtoExpress_bat',layer:'WMS_OrtoExpress',fmt:'image/jpeg',title:'Ortofoto GRAFCAN',attr:'Ortofoto · © Gobierno de Canarias / GRAFCAN'}
+ ];
+ async function makeBase(d){
+  if(bases[d.key])return bases[d.key];
+  let merc=true,geo=false;
+  try{const c=await readCaps(d.url);merc=c.merc;geo=c.geo}catch(e){log(e,'idecan-base-caps')}
+  const o={layers:d.layer,format:d.fmt,transparent:false,version:'1.1.1',uppercase:true,noWrap:true,bounds:BOUNDS,minZoom:4,maxZoom:21,attribution:d.attr};
+  if(!merc&&geo)o.crs=L.CRS.EPSG4326;
+  const layer=L.tileLayer.wms(d.url+'?',o);
+  layer.__idecan={url:d.url,layer:d.layer,title:d.title};
+  layer.on('tileerror',e=>console.warn('GRAFCAN '+d.title+': error de tesela',e));
+  bases[d.key]=layer;return layer;
+ }
+ function mountBases(){
+  if(typeof bases==='undefined'||typeof activeBase==='undefined')return false;
+  const rad=k=>document.querySelector('input[data-base-choice="'+k+'"][name="baseCanary"]')?.parentElement;
+  const rasterL=rad('raster'),histL=rad('historic'),pnoaL=rad('pnoa');
+  if(!rasterL||!histL||!pnoaL)return false;
+  if(document.querySelector('input[data-base-choice="mtiCanary"]'))return true;
+  // Nueva categoría «Mapas topográficos»: MTN (IGN), Mapa Topográfico Integrado (GRAFCAN) y primera edición MTN50.
+  const baseDet=rasterL.closest('details');
+  const cat=document.createElement('details');cat.className='layerSubcategory';cat.id='topoMapsCategory';
+  cat.innerHTML='<summary>🗺️ Mapas topográficos</summary>';
+  baseDet.parentNode.insertBefore(cat,baseDet.nextSibling);
+  cat.appendChild(rasterL);
+  for(const d of BASES){
+   const lab=document.createElement('label');
+   lab.innerHTML='<input data-base-choice="'+d.key+'" name="baseCanary" type="radio"/> <b>'+esc(d.label)+'</b>';
+   if(d.key==='mtiCanary')cat.appendChild(lab);else pnoaL.parentNode.insertBefore(lab,pnoaL.nextSibling);
+   lab.querySelector('input').addEventListener('change',async function(){
+    const value=this.dataset.baseChoice;
+    const layer=await makeBase(d);
+    if(!this.checked)return;
+    if(map.hasLayer(activeBase))map.removeLayer(activeBase);
+    activeBase=layer;
+    if(!document.getElementById('worldHistoryCheck')?.checked&&!(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length))activeBase.addTo(map);
+    document.querySelectorAll('input[data-base-choice]').forEach(x=>x.checked=(x.dataset.baseChoice===value));
+    const mos=document.getElementById('canaryLandLegendWrap');if(mos)mos.style.display='none';
+    try{typeof updateLegend==='function'&&setTimeout(updateLegend,0)}catch(_){}
+    try{typeof syncGlobeSatelliteBase==='function'&&syncGlobeSatelliteBase()}catch(_){}
+    try{typeof bringGeologyToFront==='function'&&bringGeologyToFront()}catch(_){}
+    try{document.getElementById('toponymyCheck')?.checked&&toponymy.bringToFront()}catch(_){}
+    try{typeof status==='function'&&status('Fondo: '+d.label)}catch(_){}
+   });
+  }
+  cat.appendChild(histL);
+  return true;
+ }
+ if(!mountBases()){const iv=setInterval(()=>{if(mountBases())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),15000)}
+
  // ---------- Consulta al tocar (GetFeatureInfo) ----------
+ // Objetivos: fondo GRAFCAN activo (MTI/ortofoto), capas del explorador y el hipsométrico.
+ const HYPS={url:'https://idecan1.grafcan.es/ServicioWMS/Hipsometrico',layer:'WMS_HIPSOMETRICO',title:'Hipsométrico · Canarias (GRAFCAN 2026)'};
+ function targets(){
+  const out=[];
+  try{if(typeof activeBase!=='undefined'&&activeBase&&activeBase.__idecan&&map.hasLayer(activeBase))out.push(Object.assign({kind:'base'},activeBase.__idecan))}catch(_){}
+  for(const r of active)if(r.query&&r.merc&&r.gfi&&r.gfi.length&&map.hasLayer(r.layer))out.push({kind:'x',url:r.url,layer:r.name,title:r.title,fmt:r.gfi.includes('text/html')?'text/html':r.gfi[0]});
+  try{if(document.getElementById('canaryHypsometryCheck')?.checked)out.push(Object.assign({kind:'hyps',fmt:'text/html'},HYPS))}catch(_){}
+  return out;
+ }
+ window.anambroIdecanQueryActive=()=>targets().length>0;
  let panel=null;
  function showPanel(html){
-  if(!panel){panel=document.createElement('div');panel.id='idecanInfo';panel.style.cssText='position:fixed;right:12px;bottom:70px;z-index:1500;max-width:340px;max-height:42vh;overflow:auto;background:#fff;border:1px solid #263238;border-radius:8px;padding:8px 10px;font:12px system-ui;box-shadow:0 2px 10px rgba(0,0,0,.3)';document.body.appendChild(panel)}
+  if(!panel||!panel.isConnected){panel=document.createElement('div');panel.id='idecanInfo';panel.style.cssText='position:fixed;right:12px;bottom:70px;z-index:1500;max-width:340px;max-height:42vh;overflow:auto;background:#fff;border:1px solid #263238;border-radius:8px;padding:8px 10px;font:12px system-ui;box-shadow:0 2px 10px rgba(0,0,0,.3)';document.body.appendChild(panel)}
   panel.innerHTML='<button type="button" style="float:right" onclick="this.parentElement.remove();">×</button>'+html;
-  if(!panel.isConnected)document.body.appendChild(panel);
  }
  function clean(html){
   const d=new DOMParser().parseFromString(html,'text/html');
@@ -24038,24 +24089,28 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   d.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>n.removeAttribute(a.name)));
   return d.body.innerHTML.trim();
  }
- async function gfi(rec,e){
-  const sz=map.getSize(),b=map.getBounds(),crs=map.options.crs;
-  const p1=crs.project(b.getSouthWest()),p2=crs.project(b.getNorthEast());
-  const bbox=[p1.x,p1.y,p2.x,p2.y].join(',');
-  const pt=map.latLngToContainerPoint(e.latlng);
-  const fmt=rec.gfi.includes('text/html')?'text/html':(rec.gfi.includes('text/plain')?'text/plain':rec.gfi[0]);
-  const u=rec.url+(rec.url.includes('?')?'&':'?')+new URLSearchParams({SERVICE:'WMS',VERSION:'1.1.1',REQUEST:'GetFeatureInfo',LAYERS:rec.name,QUERY_LAYERS:rec.name,STYLES:'',SRS:'EPSG:3857',BBOX:bbox,WIDTH:sz.x,HEIGHT:sz.y,X:Math.round(pt.x),Y:Math.round(pt.y),INFO_FORMAT:fmt,FEATURE_COUNT:5,FORMAT:'image/png'}).toString();
+ function merc3857(lat,lon){const R=6378137;return [R*lon*Math.PI/180,R*Math.log(Math.tan(Math.PI/4+lat*Math.PI/360))]}
+ async function gfi(t,latlng){
+  // Ventana centrada en el punto tocado (no depende de la vista del mapa 2D, así sirve también desde el globo).
+  const z=document.body.classList.contains('globe-mode')?15:Math.max(8,Math.min(20,map.getZoom())),res=156543.034/Math.pow(2,z);
+  const [x,y]=merc3857(latlng.lat,latlng.lng),h=50*res;
+  const u=t.url+(t.url.includes('?')?'&':'?')+new URLSearchParams({SERVICE:'WMS',VERSION:'1.1.1',REQUEST:'GetFeatureInfo',LAYERS:t.layer,QUERY_LAYERS:t.layer,STYLES:'',SRS:'EPSG:3857',BBOX:[x-h,y-h,x+h,y+h].join(','),WIDTH:101,HEIGHT:101,X:50,Y:50,INFO_FORMAT:t.fmt||'text/html',FEATURE_COUNT:5,FORMAT:'image/png'}).toString();
   const txt=await (await fetch(u)).text();
-  if(fmt==='text/html')return clean(txt);
+  if((t.fmt||'text/html')==='text/html')return clean(txt);
   return txt.trim()?'<pre style="white-space:pre-wrap;margin:0">'+esc(txt.trim())+'</pre>':'';
  }
  map.on('click',async e=>{
-  if(document.body.classList.contains('globe-mode'))return;
-  const qs=active.filter(r=>r.query&&r.merc&&r.gfi&&r.gfi.length&&map.hasLayer(r.layer));
-  if(!qs.length)return;
+  const ts=targets();if(!ts.length)return;
   let out='';
-  for(const r of qs){
-   try{const h=await gfi(r,e);if(h&&h.replace(/<[^>]*>/g,'').trim())out+='<div style="margin-bottom:6px"><b>'+esc(r.title)+'</b><br>'+h+'</div>'}catch(err){log(err,'idecan-gfi')}
+  for(const t of ts){
+   let h='';
+   try{h=await gfi(t,e.latlng)}catch(err){log(err,'idecan-gfi')}
+   const plain=(h||'').replace(/<[^>]*>/g,'').trim();
+   if(plain){out+='<div style="margin-bottom:6px"><b>'+esc(t.title)+'</b><br>'+h+'</div>';continue}
+   if(t.kind==='hyps'){
+    // Sin atributos propios en el servicio: se da la altitud sobre la que se pinta el tramo hipsométrico.
+    try{const z=await elevationAt(e.latlng.lat,e.latlng.lng);if(z!==null&&z!==undefined)out+='<div style="margin-bottom:6px"><b>'+esc(t.title)+'</b><br>Altitud en este punto: <b>'+Math.round(z).toLocaleString('es-ES')+' m</b><br><small>Tramo hipsométrico según la rampa oficial de GRAFCAN.</small></div>'}catch(_){}
+   }
   }
   if(out)showPanel(out);
  });
