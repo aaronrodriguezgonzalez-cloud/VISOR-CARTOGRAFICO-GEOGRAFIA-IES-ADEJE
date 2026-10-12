@@ -23345,7 +23345,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  if(typeof enrichHistoryElement!=='function')return;
  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const norm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').trim();
- const GENERIC=new Set(['reino','kingdom','imperio','empire','republica','republic','estado','state','dinastia','dynasty','principado','principality','califato','caliphate','sultanato','sultanate','union','confederacion','confederation','corona','crown','ducado','duchy','condado','county','gran','great','nuevo','nueva','federacion','federation','provincias','unidas','estados','sacro','santo','romano','germanico','khanate','kanato','horda','horde','tierra','pais','pueblo','casa','de','del','la','las','los','el','of','the','and','y','en']);
+ const GENERIC=new Set(['primera','primer','segunda','segundo','tercera','tercer','cuarta','cuarto','quinta','quinto','sexta','nueva','nuevo','antiguo','antigua','alta','baja','reino','kingdom','imperio','empire','republica','republic','estado','state','dinastia','dynasty','principado','principality','califato','caliphate','sultanato','sultanate','union','confederacion','confederation','corona','crown','ducado','duchy','condado','county','gran','great','nuevo','nueva','federacion','federation','provincias','unidas','estados','sacro','santo','romano','germanico','khanate','kanato','horda','horde','tierra','pais','pueblo','casa','de','del','la','las','los','el','of','the','and','y','en']);
  /* nombres en español (base) y palabras clave que identifican la entidad en los artículos anuales */
  const BASE={France:['Francia','franc','paris','versalles','bastilla','luis xvi','luis xv','napoleon','revolucion francesa'],Spain:['España','espan','madrid','borbon'],Castile:['Castilla','castell','reyes catolicos','isabel i','fernando ii','granada','cristobal colon'],Aragon:['Aragón','arag','fernando ii','barcelona'],Portugal:['Portugal','portugu','lisboa'],England:['Inglaterra','ingles','londres'],Britain:['Gran Bretaña','britani','londres','ingles'],'Great Britain':['Gran Bretaña','britani','londres','ingles'],Scotland:['Escocia','escoces'],Ireland:['Irlanda','irland'],Germany:['Alemania','aleman'],Prussia:['Prusia','prusi','berlin'],Austria:['Austria','austri','viena','habsburg'],Russia:['Rusia','ruso','rusa','rusos','rusia','moscu','san petersburgo','zar'],Poland:['Polonia','polac','polon','varsovia'],Sweden:['Suecia','sueco','suec','estocolmo'],Denmark:['Dinamarca','dinamarq','danes','copenhague'],Norway:['Noruega','norueg'],Netherlands:['Países Bajos','neerland','holand','holanda','provincias unidas'],Venice:['Venecia','venecian','veneci'],Genoa:['Génova','genoves','genov'],Naples:['Nápoles','napolitan','napole'],Sardinia:['Cerdeña','cerden','piamonte','saboya'],Savoy:['Saboya','saboy'],Sicily:['Sicilia','sicili'],Hungary:['Hungría','hungar','hung','budapest'],Bohemia:['Bohemia','bohemi','praga'],Switzerland:['Suiza','suiz'],Ottoman:['Imperio otomano','otoman','turc','estambul','constantinopla','sultan'],Byzantine:['Imperio bizantino','bizantin','constantinopla'],Roman:['Imperio romano','roma','romano','emperador','trajano','adriano'],Rome:['Roma','roma','romano','emperador'],Persia:['Persia','persa','persi','iran'],Mughal:['Imperio mogol','mogol','delhi'],China:['China','chin','pekin'],Qing:['Dinastía Qing','qing','manch','pekin'],Ming:['Dinastía Ming','ming','pekin'],Japan:['Japón','japon','tokio','shogun'],Tokugawa:['Shogunato Tokugawa','japon','tokugawa','shogun','edo'],Egypt:['Egipto','egipci','egipt','el cairo'],Morocco:['Marruecos','marroqu'],Mexico:['México','mexic','mejic'],Brazil:['Brasil','brasil'],Peru:['Perú','peru'],'United States':['Estados Unidos','estadounid','washington'],Burgundy:['Borgoña','borgon'],Bavaria:['Baviera','bavar','munich'],Saxony:['Sajonia','sajon'],Lithuania:['Lituania','lituan'],Georgia:['Georgia','georgi'],Greece:['Grecia','griego','griega','helen','atenas','esparta'],Turkey:['Turquía','turco','turca','otoman'],Italy:['Italia','italian','italic','roma'],Iran:['Irán','irani','persa'],Iraq:['Irak','iraqu'],India:['India','indio','hindu','delhi'],Arab:['califato','arabe','arabes'],Mongol:['Imperio mongol','mongol','gengis','kan'],Egyptian:['Egipto','egipci','faraon'],Carthage:['Cartago','cartagin','punic'],Macedon:['Macedonia','macedon','alejandro','filipo'],Alexander:['Imperio alejandrino','alejandr','macedon'],Athens:['Atenas','atenien'],Sparta:['Esparta','espartan'],Visigoth:['Reino visigodo','visigod','godo'],Frank:['Reino franco','franco','carlomagno','franc'],Lombard:['Lombardía','lombard','longobard'],Ethiopia:['Etiopía','etiop','abisin'],Korea:['Corea','corean'],Vietnam:['Vietnam','vietnam','annam'],Thailand:['Tailandia','siam','tailand'],Siam:['Siam','siames','tailand'],Burma:['Birmania','birman'],Tibet:['Tíbet','tibet'],Mali:['Mali','malien'],Songhai:['Songhai','songhai'],Inca:['Imperio inca','inca'],Aztec:['Imperio azteca','azteca','mexica'],Maya:['Maya','maya'],Colombia:['Colombia','colombi'],Argentina:['Argentina','argentin'],Chile:['Chile','chilen'],Granada:['Granada','nazar','granada']};
  const ES_PREFIX={Kingdom:'Reino',Republic:'República',Empire:'Imperio',Duchy:'Ducado',Principality:'Principado',County:'Condado',Sultanate:'Sultanato',Caliphate:'Califato',Khanate:'Kanato',Crown:'Corona',Emirate:'Emirato',Confederation:'Confederación',League:'Liga',Union:'Unión',Federation:'Federación'};
@@ -23385,7 +23385,25 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   return words.includes(t);
  }
  const MONTHS='enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre';
- function pickEvents(html,terms,year){
+ const BADLINK=/^(archivo|categoria|wikipedia|ayuda|especial|plantilla|portal|wikiproyecto|anexo|file|category)\b|^\d|^(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)$|^(europa|asia|africa|america|mundo|occidente|oriente)$/;
+ function linkKeys(root){
+  const out=new Map();
+  root.querySelectorAll('a[href]').forEach(a=>{
+   let t=a.getAttribute('title')||'';
+   if(!t){const h=a.getAttribute('href')||'';if(!/^(\.\/|\/wiki\/)/.test(h))return;try{t=decodeURIComponent(h.replace(/^(\.\/|\/wiki\/)/,'').split('#')[0]).replace(/_/g,' ')}catch(_){return}}
+   const k=norm(t);if(k.length<5||BADLINK.test(k))return;out.set(k,(out.get(k)||0)+1);
+  });
+  return out;
+ }
+ const entityLinks=(esTitle)=>esTitle?once('el|'+esTitle,async()=>{
+  try{
+   const r=await Promise.race([fetch('https://es.wikipedia.org/api/rest_v1/page/html/'+encodeURIComponent(esTitle.replace(/ /g,'_'))+'?redirect=true',{cache:'force-cache'}),new Promise((_,rej)=>setTimeout(()=>rej(0),9000))]);
+   if(!r.ok)return null;const t=await r.text();
+   const doc=new DOMParser().parseFromString(t,'text/html');
+   doc.querySelectorAll('.navbox,.reflist,.references,table.infobox ~ *:empty,sup').forEach(x=>x.remove());
+   return linkKeys(doc.body);
+  }catch(_){return null}}):Promise.resolve(null);
+ function pickEvents(html,terms,year,elinks){
   const doc=new DOMParser().parseFromString(html,'text/html');
   const rows=[];let skip=false,headHit=false;
   const dateRx=new RegExp('^\\s*(?:\\d{1,2}(?:º)?\\s+de\\s+(?:'+MONTHS+')|(?:'+MONTHS+'))\\b','i');
@@ -23398,6 +23416,8 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    const tn=norm(t),words=tn.split(' ');
    let s=0;for(const x of terms)if(hit(tn,words,x))s++;
    if(headHit)s+=2;
+   let shared=0;
+   if(elinks&&elinks.size){const lk=linkKeys(c);for(const k of lk.keys())if(elinks.has(k)&&elinks.get(k)>=1)shared++;s+=Math.min(shared,3)*2;}
    if(!s)continue;
    rows.push({t,sc:s*3+(dateRx.test(t)?4:0)+(c.querySelector('b,strong')?3:0)+Math.min(t.length,200)/200,i:rows.length});
   }
@@ -23436,6 +23456,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    if(ttl&&info.es)ttl.textContent='🏛️ '+info.es;
    const st={loading:true};render(el,d,y,st);
    const yp=yearHtml(y);
+   let elp=Promise.resolve(null);
    /* título español: primero el nombre local (sin red); el resumen REST confirma que existe; la API clásica solo como respaldo */
    const dn=String((d&&d.name)||'').replace(/^\((.*)\)$/,'$1').trim();
    const dnOk=dn&&dn!==en&&!/restauraci|revoluci|guerra|batalla|per[ií]odo|[eé]poca/i.test(dn)?dn:'';
@@ -23451,11 +23472,13 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    const [sum]=await Promise.all([ (async()=>{let s=sumEs||(esTitle?await summary(esTitle,'es'):null);if(modern(s))s=null;if(!s)s=await summary(en,'en');return s})() ]);
    if(!ok(el,token,y))return;
    st.sum=sum;render(el,d,y,st);
+   elp=entityLinks(esTitle&&sum&&sum.lang==='es'?sum.title:esTitle);
    const html=await yp;
+   const elinks=await elp;
    if(!ok(el,token,y))return;
    st.loading=false;
    if(!html){st.noYear=true;st.events=[]}
-   else st.events=pickEvents(html,termsFor(en,esTitle,dnOk,info),y);
+   else st.events=pickEvents(html,termsFor(en,esTitle,dnOk,info),y,elinks);
    window.__anambroHistDebug={en,esTitle,localEs:info.es,year:y,hasYearHtml:!!html,nEv:st.events.length};
    render(el,d,y,st);
   }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-rich3')}
