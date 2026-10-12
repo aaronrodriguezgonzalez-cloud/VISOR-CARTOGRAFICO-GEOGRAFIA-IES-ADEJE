@@ -23575,6 +23575,18 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    sc.requestRender();
   }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-tilt')}
  }
+ function rotate(deg){
+  try{
+   const C=Cesium,cam=globeViewer.camera,sc=globeViewer.scene,cv=sc.canvas,ctr=new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2);
+   let target=null;try{target=sc.globe.pick(cam.getPickRay(ctr),sc)}catch(_){}
+   if(!target)target=cam.pickEllipsoid(ctr);
+   if(!target)return;
+   const range=C.Cartesian3.distance(cam.positionWC,target);
+   cam.lookAt(target,new C.HeadingPitchRange(C.Math.toRadians(((deg%360)+360)%360),cam.pitch,range));
+   cam.lookAtTransform(C.Matrix4.IDENTITY);
+   sc.requestRender();
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-rotate')}
+ }
  let wired=false;
  function wire(){
   if(wired||typeof globeViewer==='undefined'||!globeViewer)return;wired=true;
@@ -23583,7 +23595,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    ctl.enableTilt=true;
    ctl.tiltEventTypes=[C.CameraEventType.MIDDLE_DRAG,C.CameraEventType.PINCH,{eventType:C.CameraEventType.LEFT_DRAG,modifier:C.KeyboardEventModifier.CTRL},{eventType:C.CameraEventType.RIGHT_DRAG,modifier:C.KeyboardEventModifier.CTRL},{eventType:C.CameraEventType.LEFT_DRAG,modifier:C.KeyboardEventModifier.SHIFT}];
    globeViewer.camera.moveEnd.addEventListener(()=>{
-    try{const v=Math.round(90+C.Math.toDegrees(globeViewer.camera.pitch));const tr=document.getElementById('globeTiltRange');if(tr&&document.activeElement!==tr){tr.value=Math.max(0,Math.min(75,v));document.getElementById('globeTiltVal').textContent=Math.max(0,v)+'°'}}catch(_){}
+    try{const v=Math.round(90+C.Math.toDegrees(globeViewer.camera.pitch));const tr=document.getElementById('globeTiltRange');if(tr&&document.activeElement!==tr){tr.value=Math.max(0,Math.min(75,v));document.getElementById('globeTiltVal').textContent=Math.max(0,v)+'°'}const rr=document.getElementById('globeRotRange');if(rr&&document.activeElement!==rr){const h=Math.round((C.Math.toDegrees(globeViewer.camera.heading)+360)%360);rr.value=h;document.getElementById('globeRotVal').textContent=h+'°'}}catch(_){}
    });
   }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-tilt-wire')}
  }
@@ -23600,10 +23612,10 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-relief')}
  }
  const css=document.createElement('style');
- css.textContent='#globeReliefBox{display:none;position:fixed;z-index:1451;left:260px;bottom:12px;background:rgba(255,255,255,.94);border:1px solid #263238;border-radius:7px;padding:6px 9px;box-shadow:0 1px 7px #0005;font:600 12px system-ui,-apple-system,sans-serif;color:#111}body.globe-mode #globeReliefBox{display:block}#globeReliefBox label{display:flex;align-items:center;gap:6px;cursor:pointer}#globeReliefBox input[type=range]{width:120px;vertical-align:middle}#globeReliefBox small{font-weight:400;color:#455}@media(max-width:900px){#globeReliefBox{left:7px;bottom:96px}}#globeReliefBox .row{margin-top:3px;display:flex;align-items:center;gap:6px}#globeReliefBox .row span.t{min-width:70px}';
+ css.textContent='#globeReliefBox{display:none;position:fixed;z-index:1451;left:260px;bottom:12px;background:rgba(255,255,255,.94);border:1px solid #263238;border-radius:7px;padding:6px 9px;box-shadow:0 1px 7px #0005;font:600 12px system-ui,-apple-system,sans-serif;color:#111}body.globe-mode #globeReliefBox{display:block}#globeReliefBox label{display:flex;align-items:center;gap:6px;cursor:pointer}#globeReliefBox input[type=range]{width:120px;vertical-align:middle}#globeReliefBox small{font-weight:400;color:#455}@media(max-width:900px){#globeReliefBox{left:7px;bottom:96px}}#globeReliefBox .row{margin-top:3px;display:flex;align-items:center;gap:6px}#globeReliefBox .row span.t{min-width:70px}#globeReliefBox button{border:1px solid #263238;background:#fff;border-radius:6px;padding:5px 10px;font:600 14px system-ui;cursor:pointer;min-height:34px}#globeReliefBox input[type=range]{touch-action:manipulation;height:28px}#globe,#globe canvas{touch-action:none}';
  document.head.appendChild(css);
  const box=document.createElement('div');box.id='globeReliefBox';
- box.innerHTML='<label><input type="checkbox" id="globeReliefOn"> ⛰️ Relieve 3D</label><div class="row" id="globeReliefK"><span class="t">Exageración</span><input type="range" id="globeReliefRange" min="1" max="8" step="0.5"> <span id="globeReliefVal"></span></div><div class="row"><span class="t">Inclinación</span><input type="range" id="globeTiltRange" min="0" max="75" step="1"> <span id="globeTiltVal">0°</span></div><small>DEM Terrarium/AWS · también: Mayús+arrastrar, o rueda central</small>';
+ box.innerHTML='<label><input type="checkbox" id="globeReliefOn"> ⛰️ Relieve 3D</label><div class="row" id="globeReliefK"><span class="t">Exageración</span><input type="range" id="globeReliefRange" min="1" max="8" step="0.5"> <span id="globeReliefVal"></span></div><div class="row"><span class="t">Inclinación</span><input type="range" id="globeTiltRange" min="0" max="75" step="1"> <span id="globeTiltVal">0°</span></div><div class="row"><span class="t">Rotación</span><input type="range" id="globeRotRange" min="0" max="360" step="1"> <span id="globeRotVal">0°</span></div><div class="row"><button type="button" id="globeRotL" title="Girar 15° a la izquierda">↺</button><button type="button" id="globeRotR" title="Girar 15° a la derecha">↻</button><button type="button" id="globeRotN" title="Orientar al norte y vista cenital">🧭 Norte</button></div><small>DEM Terrarium/AWS · táctil: dos dedos para inclinar/girar, pellizco para zoom</small>';
  document.body.appendChild(box);
  const cb=box.querySelector('#globeReliefOn'),rg=box.querySelector('#globeReliefRange'),vl=box.querySelector('#globeReliefVal');
  const sync=()=>{cb.checked=on;rg.value=k;vl.textContent='×'+k;rg.disabled=!on};
@@ -23612,6 +23624,12 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  rg.addEventListener('input',()=>{k=Number(rg.value);sync();save();apply()});
  const tr=box.querySelector('#globeTiltRange'),tv=box.querySelector('#globeTiltVal');
  tr.addEventListener('input',()=>{tv.textContent=tr.value+'°';tilt(Number(tr.value))});
+ const rr=box.querySelector('#globeRotRange'),rv=box.querySelector('#globeRotVal');
+ const curH=()=>{try{return (Cesium.Math.toDegrees(globeViewer.camera.heading)+360)%360}catch(_){return 0}};
+ rr.addEventListener('input',()=>{rv.textContent=rr.value+'°';rotate(Number(rr.value))});
+ box.querySelector('#globeRotL').addEventListener('click',()=>rotate(curH()-15));
+ box.querySelector('#globeRotR').addEventListener('click',()=>rotate(curH()+15));
+ box.querySelector('#globeRotN').addEventListener('click',()=>{rotate(0);tilt(0)});
  sync();
  const prev=ensureGlobe;
  ensureGlobe=async function(){const r=await prev.apply(this,arguments);apply();return r};
@@ -23626,7 +23644,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  if(typeof map==='undefined'||typeof L==='undefined')return;
  let on=true;
  try{const s=localStorage.getItem('anambro.globeLayers');if(s!==null)on=s!=='0'}catch(_){}
- const wmsB=new Map(),vecB=new Map();
+ const wmsB=new Map(),vecB=new Map();let errs=0,lastErr='';
  const SKIP_URL=/wms\.gebco\.net|mapas\.igme\.es|ign\.es\/wms-inspire\/ngbe/i;
  const SKIP_VARS=['shadowCanary','landCanary','gebco3D','politicalPhysicalBase'];
  const MAX_ENT=9000;
@@ -23664,8 +23682,8 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
     try{
      let prov;
      if(isUtm(l)){if(typeof proj4==='undefined')continue;prov=utmProvider(l)}
-     else prov=new Cesium.WebMapServiceImageryProvider({url:String(l._url).replace(/\?$/,''),layers:String(l.wmsParams.layers),parameters:{transparent:true,format:l.wmsParams.format||'image/png',styles:l.wmsParams.styles||'',version:'1.1.1'},tileWidth:256,tileHeight:256,maximumLevel:18});
-     try{prov.errorEvent.addEventListener(e=>{e.retry=false})}catch(_){}
+     else prov=new Cesium.WebMapServiceImageryProvider({url:String(l._url).replace(/\?$/,''),layers:String(l.wmsParams.layers),parameters:{transparent:true,format:l.wmsParams.format||'image/png',styles:l.wmsParams.styles||'',version:l.wmsParams.version||'1.1.1'},tilingScheme:new Cesium.WebMercatorTilingScheme(),tileWidth:256,tileHeight:256,maximumLevel:18});
+     try{prov.errorEvent.addEventListener(e=>{e.retry=false;errs++;lastErr=String(e&&e.message||e).slice(0,160)})}catch(_){}
      b={cz:globeViewer.imageryLayers.addImageryProvider(prov)};wmsB.set(id,b);
     }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-layers-wms');continue}
    }
@@ -23748,7 +23766,14 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    const active=on&&document.body.classList.contains('globe-mode');
    syncWms(active);syncVec(active);
    globeViewer.scene.requestRender();
+   setTimeout(info,1500);
   }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-layers')}
+ }
+ function info(){
+  const el=document.getElementById('globeLayersInfo');if(!el)return;
+  const w=wmsB.size,v=[...vecB.values()].filter(b=>b.recs&&b.recs.length).length;
+  el.textContent=on?('Enviadas al globo: '+w+' capa(s) WMS · '+v+' vectorial(es)'+(errs?' · '+errs+' error(es) de carga'+(lastErr?' ('+lastErr+')':''):'')):'';
+  window.__anambroGlobeLayers={wms:w,vec:v,errs,lastErr};
  }
  let t=null;const later=()=>{clearTimeout(t);t=setTimeout(sync,220)};
  let t2=null;const laterStyle=()=>{clearTimeout(t2);t2=setTimeout(()=>{for(const b of vecB.values())if(b.recs&&b.recs.length)restyle(b);for(const [id,b] of wmsB){}},120)};
@@ -23761,6 +23786,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   const lab=document.createElement('label');lab.style.marginTop='3px';
   lab.innerHTML='<input type="checkbox" id="globeLayersOn"> 🗺️ Capas del visor (WMS y vectoriales)';
   box.insertBefore(lab,box.querySelector('small'));
+  const inf=document.createElement('div');inf.id='globeLayersInfo';inf.style.cssText='font:400 11px system-ui;color:#455;max-width:300px';box.insertBefore(inf,box.querySelector('small'));
   const cb=lab.querySelector('input');cb.checked=on;
   cb.addEventListener('change',()=>{on=cb.checked;try{localStorage.setItem('anambro.globeLayers',on?'1':'0')}catch(_){}sync()});
   return true;
