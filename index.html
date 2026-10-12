@@ -23343,7 +23343,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const norm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').trim();
  const GENERIC=new Set(['reino','kingdom','imperio','empire','republica','republic','estado','state','dinastia','dynasty','principado','principality','califato','caliphate','sultanato','sultanate','union','confederacion','confederation','corona','crown','ducado','duchy','condado','county','gran','great','nuevo','nueva','federacion','federation','provincias','unidas','estados','sacro','santo','romano','germanico','khanate','kanato','horda','horde','tierra','pais','pueblo','casa','de','del','la','las','los','el','of','the','and','y','en']);
  /* nombres en español (base) y palabras clave que identifican la entidad en los artículos anuales */
- const BASE={France:['Francia','franc','paris','versalles','bastilla','luis xvi','luis xv','napoleon','revolucion francesa'],Spain:['España','espan','madrid','borbon'],Castile:['Castilla','castell','reyes catolicos','isabel i','fernando ii','granada','cristobal colon'],Aragon:['Aragón','arag','fernando ii','barcelona'],Portugal:['Portugal','portugu','lisboa'],England:['Inglaterra','ingles','londres'],Britain:['Gran Bretaña','britani','londres','ingles'],'Great Britain':['Gran Bretaña','britani','londres','ingles'],Scotland:['Escocia','escoces'],Ireland:['Irlanda','irland'],Germany:['Alemania','aleman'],Prussia:['Prusia','prusi','berlin'],Austria:['Austria','austri','viena','habsburg'],Russia:['Rusia','rus','moscu','san petersburgo','zar'],Poland:['Polonia','polac','polon','varsovia'],Sweden:['Suecia','sueco','suec','estocolmo'],Denmark:['Dinamarca','dinamarq','danes','copenhague'],Norway:['Noruega','norueg'],Netherlands:['Países Bajos','neerland','holand','holanda','provincias unidas'],Venice:['Venecia','venecian','veneci'],Genoa:['Génova','genoves','genov'],Naples:['Nápoles','napolitan','napole'],Sardinia:['Cerdeña','cerden','piamonte','saboya'],Savoy:['Saboya','saboy'],Sicily:['Sicilia','sicili'],Hungary:['Hungría','hungar','hung','budapest'],Bohemia:['Bohemia','bohemi','praga'],Switzerland:['Suiza','suiz'],Ottoman:['Imperio otomano','otoman','turc','estambul','constantinopla','sultan'],Byzantine:['Imperio bizantino','bizantin','constantinopla'],Roman:['Imperio romano','roma','romano','emperador','trajano','adriano'],Rome:['Roma','roma','romano','emperador'],Persia:['Persia','persa','persi','iran'],Mughal:['Imperio mogol','mogol','delhi'],China:['China','chin','pekin'],Qing:['Dinastía Qing','qing','manch','pekin'],Ming:['Dinastía Ming','ming','pekin'],Japan:['Japón','japon','tokio','shogun'],Tokugawa:['Shogunato Tokugawa','japon','tokugawa','shogun','edo'],Egypt:['Egipto','egipci','egipt','el cairo'],Morocco:['Marruecos','marroqu'],Mexico:['México','mexic'],Brazil:['Brasil','brasil'],Peru:['Perú','peru'],'United States':['Estados Unidos','estadounid','washington'],Burgundy:['Borgoña','borgon'],Bavaria:['Baviera','bavar','munich'],Saxony:['Sajonia','sajon'],Lithuania:['Lituania','lituan'],Georgia:['Georgia','georgi'],Granada:['Granada','nazar','granada']};
+ const BASE={France:['Francia','franc','paris','versalles','bastilla','luis xvi','luis xv','napoleon','revolucion francesa'],Spain:['España','espan','madrid','borbon'],Castile:['Castilla','castell','reyes catolicos','isabel i','fernando ii','granada','cristobal colon'],Aragon:['Aragón','arag','fernando ii','barcelona'],Portugal:['Portugal','portugu','lisboa'],England:['Inglaterra','ingles','londres'],Britain:['Gran Bretaña','britani','londres','ingles'],'Great Britain':['Gran Bretaña','britani','londres','ingles'],Scotland:['Escocia','escoces'],Ireland:['Irlanda','irland'],Germany:['Alemania','aleman'],Prussia:['Prusia','prusi','berlin'],Austria:['Austria','austri','viena','habsburg'],Russia:['Rusia','ruso','rusa','rusos','rusia','moscu','san petersburgo','zar'],Poland:['Polonia','polac','polon','varsovia'],Sweden:['Suecia','sueco','suec','estocolmo'],Denmark:['Dinamarca','dinamarq','danes','copenhague'],Norway:['Noruega','norueg'],Netherlands:['Países Bajos','neerland','holand','holanda','provincias unidas'],Venice:['Venecia','venecian','veneci'],Genoa:['Génova','genoves','genov'],Naples:['Nápoles','napolitan','napole'],Sardinia:['Cerdeña','cerden','piamonte','saboya'],Savoy:['Saboya','saboy'],Sicily:['Sicilia','sicili'],Hungary:['Hungría','hungar','hung','budapest'],Bohemia:['Bohemia','bohemi','praga'],Switzerland:['Suiza','suiz'],Ottoman:['Imperio otomano','otoman','turc','estambul','constantinopla','sultan'],Byzantine:['Imperio bizantino','bizantin','constantinopla'],Roman:['Imperio romano','roma','romano','emperador','trajano','adriano'],Rome:['Roma','roma','romano','emperador'],Persia:['Persia','persa','persi','iran'],Mughal:['Imperio mogol','mogol','delhi'],China:['China','chin','pekin'],Qing:['Dinastía Qing','qing','manch','pekin'],Ming:['Dinastía Ming','ming','pekin'],Japan:['Japón','japon','tokio','shogun'],Tokugawa:['Shogunato Tokugawa','japon','tokugawa','shogun','edo'],Egypt:['Egipto','egipci','egipt','el cairo'],Morocco:['Marruecos','marroqu'],Mexico:['México','mexic','mejic'],Brazil:['Brasil','brasil'],Peru:['Perú','peru'],'United States':['Estados Unidos','estadounid','washington'],Burgundy:['Borgoña','borgon'],Bavaria:['Baviera','bavar','munich'],Saxony:['Sajonia','sajon'],Lithuania:['Lituania','lituan'],Georgia:['Georgia','georgi'],Granada:['Granada','nazar','granada']};
  const ES_PREFIX={Kingdom:'Reino',Republic:'República',Empire:'Imperio',Duchy:'Ducado',Principality:'Principado',County:'Condado',Sultanate:'Sultanato',Caliphate:'Califato',Khanate:'Kanato'};
  function localInfo(en){
   const m=String(en||'').match(/^(Kingdom|Republic|Empire|Duchy|Principality|County|Sultanate|Caliphate|Khanate)(?: of)? (?:the )?(.+)$/i);
@@ -23361,7 +23361,12 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const summary=(t,l)=>t?once('s|'+l+'|'+t,async()=>{try{const j=await getJson('https://'+l+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(t.replace(/ /g,'_'))+'?redirect=true');
    if(!j||j.type==='disambiguation'||!j.extract)return null;return {extract:j.extract,thumb:j.thumbnail&&j.thumbnail.source||'',url:j.content_urls&&j.content_urls.desktop&&j.content_urls.desktop.page||'',lang:l,title:j.title||t}}catch(_){return null}}):Promise.resolve(null);
  const langlink=(t)=>t?once('l|'+t,async()=>{try{return await wikiLangLink(t,'en','es')||null}catch(_){return null}}):Promise.resolve(null);
- const yearHtml=y=>once('y|'+y,async()=>{try{const title=y<0?Math.abs(y)+' a. C.':String(y);const pg=await wikiParsePage(title,'es');if(!pg)return null;return typeof pg.text==='string'?pg.text:(pg.text&&pg.text['*'])||null}catch(_){return null}});
+ const yearHtml=y=>once('y|'+y,async()=>{
+  const title=y<0?Math.abs(y)+'_a._C.':String(y);
+  /* 1.º API REST (límite de peticiones mucho más holgado que w/api.php); 2.º API clásica como respaldo. */
+  try{const r=await fetch('https://es.wikipedia.org/api/rest_v1/page/html/'+encodeURIComponent(title)+'?redirect=true',{cache:'force-cache'});if(r.ok){const t=await r.text();if(t&&t.length>2000)return t}}catch(_){}
+  try{const pg=await wikiParsePage(title.replace(/_/g,' '),'es');if(pg)return typeof pg.text==='string'?pg.text:(pg.text&&pg.text['*'])||null}catch(_){}
+  return null;});
  function cut(t,n){t=String(t||'').trim();if(t.length<=n)return t;const c=t.slice(0,n),i=Math.max(c.lastIndexOf('. '),c.lastIndexOf('; '));return i>n*.55?c.slice(0,i+1):c.replace(/\s+\S*$/,'')+'…'}
  function termsFor(en,es,llEs,info){
   const strong=new Set(info.terms.map(norm));
@@ -23371,27 +23376,28 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  }
  function hit(textNorm,words,t){
   if(t.includes(' '))return (' '+textNorm+' ').includes(' '+t+' ');
-  if(t.length>=5)return words.some(w=>w.startsWith(t.length>=7?t.slice(0,t.length-2):t));
+  if(t.length>=5){let st=t.replace(/[aeiou]+$/,'');if(st.length<4)st=t;return words.some(w=>w.startsWith(st))}
   return words.includes(t);
  }
  const MONTHS='enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre';
  function pickEvents(html,terms,year){
   const doc=new DOMParser().parseFromString(html,'text/html');
-  const rows=[];let skip=false;
+  const rows=[];let skip=false,headHit=false;
   const dateRx=new RegExp('^\\s*(?:\\d{1,2}(?:º)?\\s+de\\s+(?:'+MONTHS+')|(?:'+MONTHS+'))\\b','i');
   for(const n of doc.querySelectorAll('h2,h3,h4,li')){
-   if(/^H[2-4]$/.test(n.tagName)){skip=/nacimientos|fallecimientos|v[ií]nculos|v[eé]ase|referencias|notas|enlaces|bibliograf/i.test(n.textContent||'');continue}
+   if(/^H[2-4]$/.test(n.tagName)){const ht=(n.textContent||'').replace(/\[[^\]]*\]/g,'');skip=/nacimientos|fallecimientos|v[ií]nculos|v[eé]ase|referencias|notas|enlaces|bibliograf/i.test(ht);const hn=norm(ht),hw=hn.split(' ');headHit=false;for(const x of terms)if(hit(hn,hw,x)){headHit=true;break}continue}
    if(skip)continue;
    const c=n.cloneNode(true);c.querySelectorAll('ul,ol,sup,figure,table,style,.mw-editsection').forEach(x=>x.remove());
    const t=(c.textContent||'').replace(/\[[^\]]*\]/g,'').replace(/\s+/g,' ').trim();
    if(t.length<28||t.length>700||/^Archivo:|\bWayback Machine\b/.test(t))continue;
    const tn=norm(t),words=tn.split(' ');
    let s=0;for(const x of terms)if(hit(tn,words,x))s++;
+   if(headHit)s+=2;
    if(!s)continue;
-   rows.push({t,sc:s*3+(dateRx.test(t)?4:0)+Math.min(t.length,200)/200,i:rows.length});
+   rows.push({t,sc:s*3+(dateRx.test(t)?4:0)+(c.querySelector('b,strong')?3:0)+Math.min(t.length,200)/200,i:rows.length});
   }
   const seen=new Set(),pick=[];
-  for(const r of rows.sort((a,b)=>b.sc-a.sc)){const k=r.t.slice(0,50);if(seen.has(k))continue;seen.add(k);pick.push(r);if(pick.length>=6)break}
+  for(const r of rows.sort((a,b)=>b.sc-a.sc)){const k=r.t.slice(0,50);if(seen.has(k))continue;seen.add(k);pick.push(r);if(pick.length>=7)break}
   return pick.sort((a,b)=>a.i-b.i).map(r=>r.t.length>360?r.t.slice(0,357)+'…':r.t);
  }
  function render(el,d,y,st){
@@ -23424,11 +23430,14 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    if(ttl&&info.es)ttl.textContent='🏛️ '+info.es;
    const st={loading:true};render(el,d,y,st);
    const yp=yearHtml(y);
-   const ll=await langlink(en);
+   /* título español: primero el nombre local (sin red); el resumen REST confirma que existe; la API clásica solo como respaldo */
+   let sumEs=info.es?await summary(info.es,'es'):null;
    if(!ok(el,token,y))return;
-   const esTitle=ll||'';
+   const ll=sumEs?'':await langlink(en);
+   if(!ok(el,token,y))return;
+   const esTitle=sumEs?sumEs.title:(ll||'');
    if(ttl&&esTitle)ttl.textContent='🏛️ '+esTitle;
-   const [sum]=await Promise.all([ (async()=>{let s=await summary(esTitle,'es');if(!s)s=await summary(en,'en');return s})() ]);
+   const [sum]=await Promise.all([ (async()=>{let s=sumEs||await summary(esTitle,'es');if(!s)s=await summary(en,'en');return s})() ]);
    if(!ok(el,token,y))return;
    st.sum=sum;render(el,d,y,st);
    const html=await yp;
