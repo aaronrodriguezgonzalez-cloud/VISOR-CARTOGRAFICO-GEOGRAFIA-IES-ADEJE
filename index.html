@@ -15792,7 +15792,20 @@ html body .leaflet-popup-content{padding-top:5px}
     }
     const sig=JSON.stringify(rows);if(!rows.length||seen.has(sig))continue;seen.add(sig);items.push(rows.slice(0,24));
    }
-   if(!items.length&&feats.length)items.push([['Elemento','identificado, pero el servidor no devolvió atributos legibles']]);
+   if(!items.length&&feats.length){
+    /* El GML solo trae geometría: se prueba el formato de texto, que a veces incluye más campos. */
+    let plano='';
+    try{const r2=await fetch(u.replace(/INFO_FORMAT=[^&]*/,'INFO_FORMAT=text%2Fplain'),{mode:'cors'});if(r2.ok)plano=await r2.text()}catch(_){}
+    try{window.__anambroGcLastInfo.plano=plano.slice(0,3000)}catch(_){}
+    const rows=[];
+    for(const ln of plano.split(/\r?\n/)){
+     const m=ln.match(/^\s*([^=\s][^=]*?)\s*=\s*'?(.*?)'?\s*$/);
+     if(!m)continue;const k=m[1].trim(),v=m[2].trim();
+     if(!v||/^\(?null\)?$/i.test(v)||/^(boundedBy|msGeometry|geometry|the_geom|geom|gml_id|shape)$/i.test(k)||/^(POINT|POLYGON|LINESTRING|MULTI)/i.test(v))continue;
+     rows.push([k.replace(/_/g,' '),v]);
+    }
+    items.push(rows.length?rows.slice(0,24):[['Estado','elemento catalogado; el servicio oficial no publica descripción asociada']]);
+   }
   }catch(e){typeof __anLog=='function'&&__anLog(e,'archGC-info-parse')}
   const n=Math.min(items.length,3);
   return n?items.slice(0,n).map((rows,i)=>({label:'Gran Canaria · '+cfg.label+(n>1?' ('+(i+1)+' de '+n+' elementos próximos)':''),rows})):null;
