@@ -23528,7 +23528,8 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  if(typeof ensureGlobe!=='function')return;
  let on=true,k=2,provider=null,flat=null;
  try{const s=JSON.parse(localStorage.getItem('anambro.globeRelief')||'null');if(s){on=s.on!==false;k=Math.min(8,Math.max(1,Number(s.k)||2))}}catch(_){}
- const N=65,MAXZ=13,MAXPAR=8;
+ let Q='normal';try{const s=JSON.parse(localStorage.getItem('anambro.globeRelief')||'null');if(s&&s.q==='high')Q='high'}catch(_){}
+ const Nl=l=>(Q==='high'&&l>=10)?129:65,MZ=()=>Q==='high'?14:13,MAXPAR=8;
  let running=0;const queue=[];
  function slot(){return new Promise(res=>{const go=()=>{running++;res()};running<MAXPAR?go():queue.push(go)})}
  function free(){running--;const n=queue.pop();if(n)n()} // LIFO: primero las teselas pedidas más recientemente (las de la vista actual)
@@ -23536,13 +23537,13 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const ctx=cvs.getContext('2d',{willReadFrequently:true});
  const lru=new Map(),LRU_MAX=400; // alturas ya decodificadas: evita volver a bajar y decodificar teselas que Cesium descarta y vuelve a pedir
  async function tileHeights(z,x,y){
-  const key=z+'/'+x+'/'+y,hit=lru.get(key);
+  const N=Nl(z),key=N+'/'+z+'/'+x+'/'+y,hit=lru.get(key);
   if(hit){lru.delete(key);lru.set(key,hit);return hit}
-  const hh=await tileHeights0(z,x,y);
+  const hh=await tileHeights0(z,x,y,N);
   lru.set(key,hh);if(lru.size>LRU_MAX)lru.delete(lru.keys().next().value);
   return hh;
  }
- async function tileHeights0(z,x,y){
+ async function tileHeights0(z,x,y,N){
   await slot();
   try{
    const r=await fetch('https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+z+'/'+x+'/'+y+'.png',{mode:'cors'});
@@ -23560,13 +23561,13 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   return {
    tilingScheme:ts,errorEvent:new C.Event(),hasWaterMask:false,hasVertexNormals:false,
    credit:new C.Credit('Relieve: Mapzen Terrain Tiles / AWS (Terrarium)'),ready:true,readyPromise:Promise.resolve(true),availability:undefined,
-   getLevelMaximumGeometricError(l){return C.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(ts.ellipsoid,N,ts.getNumberOfXTilesAtLevel(0))/(1<<l)},
-   getTileDataAvailable(x,y,l){return l<=MAXZ},
+   getLevelMaximumGeometricError(l){return C.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(ts.ellipsoid,Nl(l),ts.getNumberOfXTilesAtLevel(0))/(1<<l)},
+   getTileDataAvailable(x,y,l){return l<=MZ()},
    loadTileDataAvailability(){return undefined},
    requestTileGeometry(x,y,l){
-    if(l>MAXZ)return undefined;
-    return tileHeights(l,x,y).then(h=>new C.HeightmapTerrainData({buffer:h,width:N,height:N,childTileMask:15,createdByUpsampling:false}))
-     .catch(()=>new C.HeightmapTerrainData({buffer:new Float32Array(N*N),width:N,height:N,childTileMask:0,createdByUpsampling:false}));
+    if(l>MZ())return undefined;
+    const N=Nl(l);return tileHeights(l,x,y).then(h=>new C.HeightmapTerrainData({buffer:h,width:N,height:N,childTileMask:15,createdByUpsampling:false}))
+     .catch(()=>{const n=Nl(l);return new C.HeightmapTerrainData({buffer:new Float32Array(n*n),width:n,height:n,childTileMask:0,createdByUpsampling:false})});
    }
   };
  }
@@ -23627,9 +23628,13 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  document.body.appendChild(box);
  const cb=box.querySelector('#globeReliefOn'),rg=box.querySelector('#globeReliefRange'),vl=box.querySelector('#globeReliefVal');
  const sync=()=>{cb.checked=on;rg.value=k;vl.textContent='×'+k;rg.disabled=!on};
- const save=()=>{try{localStorage.setItem('anambro.globeRelief',JSON.stringify({on,k}))}catch(_){}};
+ const save=()=>{try{localStorage.setItem('anambro.globeRelief',JSON.stringify({on,k,q:Q}))}catch(_){}};
  cb.addEventListener('change',()=>{on=cb.checked;sync();save();apply()});
  rg.addEventListener('input',()=>{k=Number(rg.value);sync();save();apply()});
+ {const row=document.createElement('div');row.className='row';row.innerHTML='<span class="t">Calidad</span><select id="globeReliefQ"><option value="normal">Normal</option><option value="high">Alta (más detalle, más carga)</option></select>';
+  const k0=box.querySelector('#globeReliefK');box.insertBefore(row,k0?k0.nextSibling:null);
+  const sel=row.querySelector('select');sel.value=Q;
+  sel.addEventListener('change',()=>{Q=sel.value;save();provider=null;lru.clear();apply()});}
  const tr=box.querySelector('#globeTiltRange'),tv=box.querySelector('#globeTiltVal');
  tr.addEventListener('input',()=>{tv.textContent=tr.value+'°';tilt(Number(tr.value))});
  const rr=box.querySelector('#globeRotRange'),rv=box.querySelector('#globeRotVal');
@@ -23642,6 +23647,105 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const prev=ensureGlobe;
  ensureGlobe=async function(){const r=await prev.apply(this,arguments);apply();return r};
  if(typeof globeViewer!=='undefined'&&globeViewer)apply();
+})();
+</script>
+<script id="anambro-globe-hillshade-20261012">
+/* Sombreado del relieve (hillshade) del globo 3D: se calcula en el navegador a partir del mismo DEM Terrarium y se superpone
+   como capa de imagen semitransparente. Es lo que da sensación de volumen al relieve (el globo no usa iluminación). */
+(function(){
+ 'use strict';
+ if(window.__anambroHillshade)return;window.__anambroHillshade=true;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ let on=true,amt=0.7;
+ try{const s=JSON.parse(localStorage.getItem('anambro.globeShade')||'null');if(s){on=s.on!==false;amt=Math.min(1,Math.max(0.2,Number(s.a)||0.7))}}catch(_){}
+ const MAXZ=15,MAXPAR=6;let running=0;const queue=[];
+ const slot=()=>new Promise(res=>{const go=()=>{running++;res()};running<MAXPAR?go():queue.push(go)});
+ const free=()=>{running--;const n=queue.pop();if(n)n()};
+ const cv=document.createElement('canvas');cv.width=cv.height=256;
+ const cx=cv.getContext('2d',{willReadFrequently:true});
+ const out=document.createElement('canvas');out.width=out.height=256;
+ const lru=new Map(),LMAX=60;
+ const Z=2,AZ=315*Math.PI/180,ALT=42*Math.PI/180;
+ const ZEN=Math.PI/2-ALT,AZM=Math.PI/2-AZ; // acimut matemático
+ const cz=Math.cos(ZEN),sz=Math.sin(ZEN);
+ async function elev(z,x,y){
+  const key=z+'/'+x+'/'+y,c=lru.get(key);if(c){lru.delete(key);lru.set(key,c);return c}
+  await slot();
+  try{
+   const r=await fetch('https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+z+'/'+x+'/'+y+'.png',{mode:'cors'});
+   if(!r.ok)throw new Error('HTTP '+r.status);
+   const bmp=await createImageBitmap(await r.blob());
+   cx.clearRect(0,0,256,256);cx.drawImage(bmp,0,0,256,256);
+   const d=cx.getImageData(0,0,256,256).data,e=new Float32Array(65536);
+   for(let i=0,o=0;i<65536;i++,o+=4)e[i]=d[o]*256+d[o+1]+d[o+2]/256-32768;
+   lru.set(key,e);if(lru.size>LMAX)lru.delete(lru.keys().next().value);
+   return e;
+  }finally{free()}
+ }
+ function blank(){const c=document.createElement('canvas');c.width=c.height=256;return c}
+ async function shade(x,y,l,latRad){
+  const e=await elev(l,x,y);
+  const res=40075016.686*Math.cos(latRad)/(256*Math.pow(2,l)),den=8*res;
+  const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
+  const im=g.createImageData(256,256),px=im.data;
+  for(let j=0;j<256;j++){
+   const j0=Math.max(0,j-1)*256,j1=j*256,j2=Math.min(255,j+1)*256;
+   for(let i=0;i<256;i++){
+    const i0=Math.max(0,i-1),i2=Math.min(255,i+1);
+    const a=e[j0+i0],b=e[j0+i],cc=e[j0+i2],d=e[j1+i0],f=e[j1+i2],gg=e[j2+i0],h=e[j2+i],ii=e[j2+i2];
+    const dx=((cc+2*f+ii)-(a+2*d+gg))/den,dy=((gg+2*h+ii)-(a+2*b+cc))/den;
+    const slope=Math.atan(Z*Math.sqrt(dx*dx+dy*dy)),asp=Math.atan2(dy,-dx);
+    const s=cz*Math.cos(slope)+sz*Math.sin(slope)*Math.cos(AZM-asp);
+    const v=(s-cz)*1.5,o=(j*256+i)*4;
+    if(v<0){px[o]=0;px[o+1]=0;px[o+2]=10;px[o+3]=Math.min(190,-v*330)}
+    else{px[o]=255;px[o+1]=255;px[o+2]=240;px[o+3]=Math.min(110,v*220)}
+   }
+  }
+  g.putImageData(im,0,0);return c;
+ }
+ function makeProvider(){
+  const C=Cesium,ts=new C.WebMercatorTilingScheme();
+  const p=new C.UrlTemplateImageryProvider({url:'about:blank?{z}/{x}/{y}',tilingScheme:ts,minimumLevel:3,maximumLevel:MAXZ,credit:new C.Credit('Sombreado calculado con Terrarium/AWS')});
+  p.requestImage=function(x,y,l){
+   try{
+    if(l<3||l>MAXZ)return Promise.resolve(blank());
+    const r=ts.tileXYToRectangle(x,y,l);
+    return shade(x,y,l,(r.north+r.south)/2).catch(()=>blank());
+   }catch(_){return Promise.resolve(blank())}
+  };
+  try{p.errorEvent.addEventListener(e=>{e.retry=false})}catch(_){}
+  return p;
+ }
+ let layer=null;
+ function raise(){try{if(layer&&globeViewer.imageryLayers.contains(layer))globeViewer.imageryLayers.raiseToTop(layer)}catch(_){}}
+ function reliefOn(){const c=document.getElementById('globeReliefOn');return c?c.checked:true}
+ function apply(){
+  if(typeof globeViewer==='undefined'||!globeViewer||!window.Cesium)return;
+  try{
+   const want=on;
+   if(want&&!layer){layer=globeViewer.imageryLayers.addImageryProvider(makeProvider());layer.alpha=amt;
+    try{globeViewer.imageryLayers.layerAdded.addEventListener(l=>{if(l!==layer)setTimeout(raise,0)})}catch(_){}}
+   if(!want&&layer){try{globeViewer.imageryLayers.remove(layer,true)}catch(_){}layer=null}
+   if(layer){layer.alpha=amt;layer.show=true;raise()}
+   globeViewer.scene.requestRender();
+  }catch(e){log(e,'globe-hillshade')}
+ }
+ function addControl(){
+  const box=document.getElementById('globeReliefBox');if(!box||document.getElementById('globeShadeOn'))return false;
+  const row=document.createElement('div');row.className='row';
+  row.innerHTML='<label style="margin:0"><input type="checkbox" id="globeShadeOn"> 🌗 Sombreado</label> <input type="range" id="globeShadeRange" min="0.2" max="1" step="0.05" style="flex:1">';
+  const anchor=box.querySelector('#globeReliefK');box.insertBefore(row,anchor?anchor.nextSibling:box.firstChild);
+  const cb=row.querySelector('#globeShadeOn'),rg=row.querySelector('#globeShadeRange');
+  cb.checked=on;rg.value=amt;rg.disabled=!on;
+  const save=()=>{try{localStorage.setItem('anambro.globeShade',JSON.stringify({on,a:amt}))}catch(_){}};
+  cb.addEventListener('change',()=>{on=cb.checked;rg.disabled=!on;save();apply()});
+  rg.addEventListener('input',()=>{amt=Number(rg.value);save();if(layer){layer.alpha=amt;globeViewer.scene.requestRender()}});
+  return true;
+ }
+ if(!addControl()){const iv=setInterval(()=>{if(addControl())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),15000)}
+ if(typeof ensureGlobe==='function'){const prev=ensureGlobe;ensureGlobe=async function(){const r=await prev.apply(this,arguments);setTimeout(apply,400);return r}}
+ if(typeof globeViewer!=='undefined'&&globeViewer)setTimeout(apply,400);
+ window.__anambroHillshadeTest={shade,elev};
 })();
 </script>
 <script id="anambro-globe-layers-20261012">
