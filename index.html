@@ -24016,18 +24016,32 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  }
  // ---------- Fondos GRAFCAN propios (MTI y ortofoto) dentro de «Cartografía base · Canarias» ----------
  const BASES=[
-  {key:'mtiCanary',label:'Mapa Topográfico Integrado · GRAFCAN (1:5.000/1:1.000)',url:'https://idecan3.grafcan.es/ServicioWMS/MTI',layer:'WMS_MTI',fmt:'image/png',title:'Mapa Topográfico Integrado',attr:'Mapa Topográfico Integrado · © Gobierno de Canarias / GRAFCAN'},
-  {key:'ortoCanary',label:'Imagen · Ortofoto GRAFCAN (OrtoExpress)',url:'https://idecan3.grafcan.es/ServicioWMS/OrtoExpress_bat',layer:'WMS_OrtoExpress',fmt:'image/jpeg',title:'Ortofoto GRAFCAN',attr:'Ortofoto · © Gobierno de Canarias / GRAFCAN'}
+  {key:'mtiCanary',label:'Mapa Topográfico Integrado · GRAFCAN (1:5.000/1:1.000)',fmt:'image/png',title:'Mapa Topográfico Integrado',attr:'Mapa Topográfico Integrado · © Gobierno de Canarias / GRAFCAN',
+   cands:[{url:'https://idecan3.grafcan.es/ServicioWMS/MTI',layer:'WMS_MTI',re:/mti|topogr/i},{url:'https://idecan2.grafcan.es/ServicioWMS/MTI',layer:'WMS_MTI',re:/mti|topogr/i}]},
+  {key:'ortoCanary',label:'Imagen · Ortofoto GRAFCAN (OrtoExpress)',fmt:'image/jpeg',title:'Ortofoto GRAFCAN',attr:'Ortofoto · © Gobierno de Canarias / GRAFCAN',
+   // Primero el servicio que ya funciona en el globo (capa descubierta en su catálogo); después el del visor GRAFCAN.
+   cands:[{url:'https://idecan1.grafcan.es/ServicioWMS/OrtoExpress',layer:'',re:/ortoexpress/i},{url:'https://idecan3.grafcan.es/ServicioWMS/OrtoExpress_bat',layer:'WMS_OrtoExpress',re:/ortoexpress|orto/i}]}
  ];
+ window.__anambroGrafcanBaseDebug={};
  async function makeBase(d){
   if(bases[d.key])return bases[d.key];
-  let merc=true,geo=false;
-  try{const c=await readCaps(d.url);merc=c.merc;geo=c.geo}catch(e){log(e,'idecan-base-caps')}
-  const o={layers:d.layer,format:d.fmt,transparent:false,version:'1.1.1',uppercase:true,noWrap:true,bounds:BOUNDS,minZoom:4,maxZoom:21,attribution:d.attr};
-  if(!merc&&geo)o.crs=L.CRS.EPSG4326;
-  const layer=L.tileLayer.wms(d.url+'?',o);
-  layer.__idecan={url:d.url,layer:d.layer,title:d.title};
-  layer.on('tileerror',e=>console.warn('GRAFCAN '+d.title+': error de tesela',e));
+  let pick=null;
+  for(const c of d.cands){
+   try{
+    const caps=await readCaps(c.url);
+    const names=caps.layers.map(l=>l.name);
+    const layer=(c.layer&&names.includes(c.layer))?c.layer:(names.find(n=>c.re.test(n))||names.find(n=>c.re.test(caps.layers.find(l=>l.name===n)?.title||''))||'');
+    if(layer&&(caps.merc||caps.geo)){pick={url:c.url,layer,merc:caps.merc,geo:caps.geo,fmts:caps.fmts};break}
+   }catch(e){log(e,'idecan-base-caps')}
+  }
+  if(!pick){const c=d.cands[d.cands.length-1];pick={url:c.url,layer:c.layer||'WMS_OrtoExpress',merc:true,geo:false,fmts:[]}}
+  const fmt=pick.fmts.includes(d.fmt)||!pick.fmts.length?d.fmt:(pick.fmts.includes('image/jpeg')?'image/jpeg':'image/png');
+  const o={layers:pick.layer,format:fmt,transparent:false,version:'1.1.1',uppercase:true,noWrap:true,bounds:BOUNDS,minZoom:4,maxZoom:21,attribution:d.attr};
+  if(!pick.merc&&pick.geo)o.crs=L.CRS.EPSG4326;
+  const layer=L.tileLayer.wms(pick.url+'?',o);
+  layer.__idecan={url:pick.url,layer:pick.layer,title:d.title};
+  const dbg=window.__anambroGrafcanBaseDebug[d.key]={url:pick.url,layer:pick.layer,crs:(o.crs?'4326':'3857'),format:fmt,errs:0};
+  layer.on('tileerror',e=>{dbg.errs++;console.warn('GRAFCAN '+d.title+': error de tesela',e)});
   bases[d.key]=layer;return layer;
  }
  function mountBases(){
