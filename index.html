@@ -23300,37 +23300,127 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
 </script>
 
 <script id="anambro-history-popup-rich-20261012">
-/* Ficha de Cliopatria enriquecida: resumen de Wikipedia con imagen, enlaces a las fuentes y limpieza de datos vacíos.
-   Es aditivo: envuelve enrichHistoryElement y no modifica la lógica original. */
+/* Ficha de Cliopatria enriquecida (aditiva): todo en español, resumen de Wikipedia, enlaces a las fuentes y
+   acontecimientos del año tomados de la página anual de Wikipedia y filtrados por la entidad. */
 (function(){
  'use strict';
  if(typeof enrichHistoryElement!=='function'||typeof historyWikipediaContext!=='function')return;
- const sumCache=new Map();
  const esc=s=>(typeof escHtml==='function'?escHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
- async function summary(title,lang){
-  if(!title)return null;const k=lang+'|'+title;if(sumCache.has(k))return sumCache.get(k);
+ const norm=s=>typeof normalizeHistoryText==='function'?normalizeHistoryText(s):String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').trim();
+ const cache={sum:new Map(),wd:new Map(),art:new Map(),year:new Map()};
+ const GENERIC=new Set(['reino','kingdom','imperio','empire','republica','republic','estado','state','dinastia','dynasty','principado','principality','califato','caliphate','sultanato','sultanate','union','confederacion','confederation','corona','crown','ducado','duchy','condado','county','gran','great','nuevo','nueva','tierra','pais','pueblo','khanate','kanato','horda','horde','federacion','federation','provincias','unidas','estados','estado','sacro','santo','romano','germanico']);
+ const STOP=new Set(['rey','reina','principe','presidente','jefe','soberano','consejo','emperador','emperatriz','duque','conde','senor','papa','segun','desde','hasta','entre','durante','tambien','donde','cuando','aunque','pero','como','otros','otras','esta','este','estos','estas','sobre','tras','ante','bajo','cada','todo','toda','siglo','siglos','historia','epoca','periodo','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre','guerra','batalla','tratado','primer','primera','segundo','segunda','tercer','tercera']);
+
+ async function getJson(url){const r=await fetch(url,{cache:'force-cache'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
+ async function wdInfo(qid){
+  qid=String(qid||'').trim();if(!/^Q\d+$/i.test(qid))return null;
+  if(cache.wd.has(qid))return cache.wd.get(qid);
   const job=(async()=>{try{
-   const r=await fetch('https://'+lang+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title.replace(/ /g,'_'))+'?redirect=true',{cache:'force-cache'});
-   if(!r.ok)return null;const j=await r.json();if(!j||j.type==='disambiguation'||!j.extract)return null;
+   const j=await getJson('https://www.wikidata.org/w/api.php?origin=*&action=wbgetentities&format=json&ids='+qid+'&props=labels|aliases|sitelinks&languages=es|en');
+   const e=j&&j.entities&&j.entities[qid];if(!e)return null;
+   return {esLabel:e.labels&&e.labels.es&&e.labels.es.value||'',enLabel:e.labels&&e.labels.en&&e.labels.en.value||'',
+    aliases:((e.aliases&&e.aliases.es)||[]).map(a=>a.value),esTitle:e.sitelinks&&e.sitelinks.eswiki&&e.sitelinks.eswiki.title||'',enTitle:e.sitelinks&&e.sitelinks.enwiki&&e.sitelinks.enwiki.title||''};
+  }catch(_){return null}})();
+  cache.wd.set(qid,job);return job;
+ }
+ async function summary(title,lang){
+  if(!title)return null;const k=lang+'|'+title;if(cache.sum.has(k))return cache.sum.get(k);
+  const job=(async()=>{try{
+   const j=await getJson('https://'+lang+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title.replace(/ /g,'_'))+'?redirect=true');
+   if(!j||j.type==='disambiguation'||!j.extract)return null;
    return {extract:j.extract,thumb:j.thumbnail&&j.thumbnail.source||'',url:j.content_urls&&j.content_urls.desktop&&j.content_urls.desktop.page||'',lang,title:j.title||title};
   }catch(_){return null}})();
-  sumCache.set(k,job);return job;
+  cache.sum.set(k,job);return job;
  }
  function cut(t,n){t=String(t||'').trim();if(t.length<=n)return t;const c=t.slice(0,n),i=Math.max(c.lastIndexOf('. '),c.lastIndexOf('; '));return (i>n*.55?c.slice(0,i+1):c.replace(/\s+\S*$/,'')+'…')}
  function years(d){const a=Number(d&&d.from),b=Number(d&&d.to);return Number.isFinite(a)&&Number.isFinite(b)&&b>=a?(b-a+1):null}
- function block(d,c,s){
+
+ /* ---------- términos para reconocer la entidad en la página del año ---------- */
+ function stemOf(t){return t.length>=7?t.slice(0,t.length-2):t}
+ function nameTerms(list){
+  const out=new Set();
+  for(const s of list){for(const w of norm(s).split(' ')){if(w.length>=4&&!GENERIC.has(w)&&!STOP.has(w))out.add(w)}}
+  return out;
+ }
+ async function articleTerms(title,lang){
+  if(!title||typeof wikiPageExtract!=='function')return new Set();
+  const k=lang+'|'+title;if(cache.art.has(k))return cache.art.get(k);
+  const job=(async()=>{try{
+   const pg=await wikiPageExtract(title,lang,30000);const txt=pg&&pg.extract||'';
+   const freq=new Map();
+   for(const m of txt.matchAll(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]{3,}\b/g)){const w=norm(m[0]);if(!w||GENERIC.has(w)||STOP.has(w))continue;freq.set(w,(freq.get(w)||0)+1)}
+   return new Set([...freq.entries()].filter(e=>e[1]>=3).sort((a,b)=>b[1]-a[1]).slice(0,40).map(e=>e[0]));
+  }catch(_){return new Set()}})();
+  cache.art.set(k,job);return job;
+ }
+ function domNames(slot){
+  /* nombres de gobernantes y capital que la propia ficha ya ha obtenido de Wikidata */
+  const phrases=new Set(),words=new Set();
+  slot.querySelectorAll('.historyDossierBox').forEach(b=>{
+   const head=(b.querySelector('b')||{}).textContent||'';if(!/gobernante|capital/i.test(head))return;
+   const body=(b.textContent||'').replace(head,'');
+   for(const part of body.split(/[;]|\s·\s/)){
+    const nm=part.replace(/\b(jefe de estado|soberano|rey|reina|emperador|emperatriz|presidente|consejo|castilla)\b/ig,' ').trim();
+    const n=norm(nm);if(n.length>=5&&n.split(' ').length<=4&&!/sin dato/.test(n)){phrases.add(n);for(const w of n.split(' '))if(w.length>=5&&!STOP.has(w))words.add(w)}
+   }
+  });
+  return {phrases,words};
+ }
+ function hasTerm(textNorm,words,t){
+  if(t.includes(' '))return (' '+textNorm+' ').includes(' '+t+' ');
+  if(t.length>=7){const st=stemOf(t);return words.some(w=>w.startsWith(st))}
+  return words.includes(t);
+ }
+ async function yearEvents(d,c,wd,year,names){
+  try{
+   if(typeof wikiParsePage!=='function'||typeof historyEventQuality!=='function')return [];
+   const title=year<0?Math.abs(year)+' a. C.':String(year);
+   let pg=cache.year.get(title);if(!pg){pg=wikiParsePage(title,'es');cache.year.set(title,pg)}
+   const page=await pg;if(!page||!page.text)return [];
+   const html=typeof page.text==='string'?page.text:(page.text['*']||'');
+   const doc=new DOMParser().parseFromString(html,'text/html');
+   const lead=[(wd&&wd.esLabel)||'',(wd&&wd.esTitle)||'',...((wd&&wd.aliases)||[]),(c&&c.entityTitleEs)||'',(c&&c.displayName)||'',(c&&c.entityTitleEn)||'',(d&&d.name)||''];
+   const strong=nameTerms(lead);
+   if(typeof historyContextTerms==='function'){try{historyContextTerms(d,c&&c.entityTitleEs||'',c&&c.entityTitleEn||'',[]).forEach(t=>{if(t.length>=4&&!GENERIC.has(t))strong.add(t)})}catch(_){}}
+   const weak=await articleTerms((wd&&wd.esTitle)||(c&&c.entityTitleEs)||'', 'es');
+   const strongPhr=[...(names?names.phrases:[])],strongW=[...strong,...(names?names.words:[])];
+   const rows=[];let skip=false;
+   for(const n of doc.querySelectorAll('h2,h3,h4,li')){
+    if(/^H[2-4]$/.test(n.tagName)){skip=/nacimientos|fallecimientos|births|deaths/i.test(n.textContent||'');continue}
+    if(skip)continue;
+    const clone=n.cloneNode(true);clone.querySelectorAll('ul,ol,sup,figure,table,style').forEach(x=>x.remove());
+    const parts=typeof splitHistoryEventText==='function'?splitHistoryEventText(clone.textContent||''):[clone.textContent||''];
+    for(const raw of parts){
+     const t=typeof cleanHistoryEventText==='function'?cleanHistoryEventText(raw):String(raw).trim();
+     const q=historyEventQuality(t,year,[]);if(q<5)continue;
+     const tn=norm(t),words=tn.split(' ');
+     let s=0,w=0;
+     for(const p of strongPhr)if(hasTerm(tn,words,p))s++;
+     for(const x of strongW)if(hasTerm(tn,words,x))s++;
+     for(const x of weak)if(hasTerm(tn,words,x))w++;
+     if(s<1&&w<2)continue;
+     rows.push({t,sc:q+6*Math.min(s,3)+2*Math.min(w,4),i:rows.length});
+    }
+   }
+   rows.sort((a,b)=>b.sc-a.sc);
+   const pick=[],seen=new Set();
+   for(const r of rows){const k=r.t.slice(0,60);if(seen.has(k))continue;seen.add(k);pick.push(r);if(pick.length>=5)break}
+   pick.sort((a,b)=>a.i-b.i);
+   return pick.map(r=>r.t.length>330?r.t.slice(0,327)+'…':r.t);
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-year-events');return []}
+ }
+
+ function block(d,c,s,wd){
   let h='<div class="anHistRich">';
   if(s&&s.extract){
    h+='<div class="anHistSum">'+(s.thumb?'<img src="'+esc(s.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'')+
-      '<div><b>📖 '+(s.lang==='es'?'Resumen':'Resumen (en inglés)')+'</b><br>'+esc(cut(s.extract,620))+'</div></div>';
+      '<div><b>📖 '+(s.lang==='es'?'Resumen':'Resumen (artículo solo disponible en inglés)')+'</b><br>'+esc(cut(s.extract,620))+'</div></div>';
   }else{
    h+='<div class="anHistNote">No hay artículo de Wikipedia asociado a esta entidad para este intervalo.</div>';
   }
   const bits=[],n=years(d);
   if(n)bits.push('<b>Duración de esta fase:</b> '+n.toLocaleString('es-ES')+(n===1?' año':' años'));
-  if(d&&d.member)bits.push('<b>Pertenece a:</b> '+esc(d.member));
-  if(d&&d.sub)bits.push('<b>Subentidad de:</b> '+esc(d.sub));
-  if(d&&d.comp)bits.push('<b>Incluye:</b> '+esc(cut(String(d.comp).replace(/[\[\]'"]/g,''),220)));
+  if(d&&d.member&&!/[;\[\]]/.test(String(d.member)))bits.push('<b>Pertenece a:</b> '+esc(d.member));
   if(bits.length)h+='<div class="anHistFacts">'+bits.join('<br>')+'</div>';
   const links=[];
   const wu=(s&&s.url)||(c&&c.url);
@@ -23341,66 +23431,35 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   if(links.length)h+='<div class="anHistLinks"><b>Fuentes:</b> '+links.join(' · ')+'</div>';
   return h+'</div>';
  }
-
- const yearCache=new Map();
- async function yearEvents(d,c,year){
-  try{
-   if(typeof wikiParsePage!=='function'||typeof historyContextTerms!=='function'||typeof historyEventQuality!=='function')return [];
-   const title=year<0?Math.abs(year)+' a. C.':String(year);
-   let pg=yearCache.get(title);
-   if(!pg){pg=wikiParsePage(title,'es');yearCache.set(title,pg)}
-   const page=await pg;if(!page||!page.text)return [];
-   const html=typeof page.text==='string'?page.text:(page.text['*']||'');
-   const doc=new DOMParser().parseFromString(html,'text/html');
-   const terms=historyContextTerms(d,c&&c.entityTitleEs||'',c&&c.entityTitleEn||'',[]);
-   const rows=[];let skip=false;
-   const nodes=doc.querySelectorAll('h2,h3,h4,li');
-   for(const n of nodes){
-    if(/^H[2-4]$/.test(n.tagName)){skip=/nacimientos|fallecimientos|births|deaths/i.test(n.textContent||'');continue}
-    if(skip)continue;
-    const clone=n.cloneNode(true);
-    clone.querySelectorAll('ul,ol,sup,figure,table,style').forEach(x=>x.remove());
-    const parts=typeof splitHistoryEventText==='function'?splitHistoryEventText(clone.textContent||''):[clone.textContent||''];
-    for(const raw of parts){
-     const t=typeof cleanHistoryEventText==='function'?cleanHistoryEventText(raw):String(raw).trim();
-     const q=historyEventQuality(t,year,terms),match=typeof historyEventScoreText==='function'?historyEventScoreText(t,terms):0;
-     if(q<8||match<=0)continue;
-     rows.push({t,q,i:rows.length});
-    }
-   }
-   rows.sort((a,b)=>b.q-a.q);
-   const pick=[],seen=new Set();
-   for(const r of rows){const k=r.t.slice(0,60);if(seen.has(k))continue;seen.add(k);pick.push(r);if(pick.length>=4)break}
-   pick.sort((a,b)=>a.i-b.i);   /* orden en que aparecen en el año (cronológico) */
-   return pick.map(r=>r.t.length>330?r.t.slice(0,327)+'…':r.t);
-  }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-year-events');return []}
- }
  const prev=enrichHistoryElement;
  enrichHistoryElement=async function(el,d,token){
   const y=historyYear;
   const pre=(async()=>{try{
    const c=await historyWikipediaContext(d,y);
-   let s=await summary(c&&c.entityTitleEs,'es');
-   if(!s)s=await summary((c&&c.entityTitleEn)||(typeof cliopatriaWikipediaTitle==='function'?cliopatriaWikipediaTitle(d):''),'en');
-   return {c,s};
-  }catch(_){return {c:null,s:null}}})();
+   const wd=await wdInfo((c&&c.qid)||(d&&d.wikidata));
+   const esT=(wd&&wd.esTitle)||(c&&c.entityTitleEs)||'';
+   let s=await summary(esT,'es');
+   if(!s)s=await summary((wd&&wd.enTitle)||(c&&c.entityTitleEn)||(typeof cliopatriaWikipediaTitle==='function'?cliopatriaWikipediaTitle(d):''),'en');
+   return {c,wd,s};
+  }catch(_){return {c:null,wd:null,s:null}}})();
   try{await prev.call(this,el,d,token)}catch(e){typeof __anLog=='function'&&__anLog(e,'hist-prev')}
   try{
    if(token!==historyWikiSeq||historyYear!==y)return;
-   const {c,s}=await pre;if(token!==historyWikiSeq||historyYear!==y)return;
+   const {c,wd,s}=await pre;if(token!==historyWikiSeq||historyYear!==y)return;
    const slot=el&&el.querySelector&&el.querySelector('.historyWikiSlot');if(!slot)return;
-   /* Se quitan las cajas sin dato («Sin dato temporal fiable») para no mostrar relleno. */
+   /* Todo en español: el título de la ficha usa la etiqueta en español de Wikidata. */
+   const ttl=el.querySelector&&el.querySelector('.historyCardTitle'),esName=(wd&&(wd.esLabel||wd.esTitle))||'';
+   if(ttl&&esName)ttl.textContent='🏛️ '+esName;
    slot.querySelectorAll('.historyDossierBox:not(.historyDossierWide)').forEach(b=>{if(/Sin dato temporal fiable/i.test(b.textContent||''))b.remove()});
    slot.querySelectorAll('.historyDossierBox.historyDossierWide').forEach(b=>{if(/^\s*🏙️/.test(b.textContent||'')&&/Sin dato temporal fiable/i.test(b.textContent||''))b.remove()});
    const grid=slot.querySelector('.historyDossierGrid');
    if(grid&&!grid.querySelector('.historyDossierBox'))grid.remove();
-   if(!slot.querySelector('.anHistRich')){slot.insertAdjacentHTML('afterbegin',block(d,c,s))}
-   /* Acontecimientos: si la ficha no encontró ninguno, se buscan en la página anual de Wikipedia, filtrados por la entidad. */
+   if(!slot.querySelector('.anHistRich'))slot.insertAdjacentHTML('afterbegin',block(d,c,s,wd));
    const evBox=slot.querySelector('.historyDossierEvents');
    if(evBox&&!evBox.querySelector('.historyDossierEvent')){
-    const evs=await yearEvents(d,c,y);
+    const evs=await yearEvents(d,c,wd,y,domNames(slot));
     if(token!==historyWikiSeq||historyYear!==y)return;
-    if(evs.length){evBox.innerHTML=evs.map(t=>'<div class="historyDossierEvent"><div>'+esc(t)+'</div></div>').join('')+'<div class="historyDossierSource">Fuente: Wikipedia, página del año '+esc(historyYearText(y))+', filtrada por la entidad.</div>'}
+    if(evs.length){evBox.innerHTML=evs.map(t=>'<div class="historyDossierEvent"><div>'+esc(t)+'</div></div>').join('')+'<div class="historyDossierSource">Fuente: Wikipedia, artículo del año '+esc(historyYearText(y))+', filtrado por la entidad.</div>'}
     else{const b=evBox.closest('.historyDossierBox');if(b)b.remove()}
    }
   }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-rich')}
