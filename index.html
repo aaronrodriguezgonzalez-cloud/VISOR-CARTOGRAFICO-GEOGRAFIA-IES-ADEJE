@@ -14636,9 +14636,11 @@ async function hdOfficeholders(qid,year){
  } LIMIT 80`;
  const rows=await hdSparql(q,'rulers|'+qid+'|'+year),out=[];
  const pos=/\b(rey|reina|emperador|emperatriz|monarca|sult[aá]n|califa|emir|pr[ií]ncipe|duque|dogo|doge|zar|tsar|shah|kan|khan|regente|lord protector|jefe de estado|head of state|king|queen|emperor|president|presidente)\b/i;
- const neg=/\b(primer ministro|prime minister|jefe de gobierno|head of government|canciller|chancellor|ministro|minister)\b/i;
- for(const b of rows){const office=b.officeLabel?.value||'',name=b.personLabel?.value||'';if(!name||!pos.test(office)||neg.test(office))continue;const row={name,office,start:b.start?.value||'',end:b.end?.value||''};if(!out.some(x=>x.name===name&&x.office===office))out.push(row);if(out.length>=4)break;}
- return out;
+ const neg=/\b(primer ministro|prime minister|jefe de gobierno|head of government|canciller|chancellor|ministro|minister|consejo|council|cortes|audiencia|tribunal|senado|senate|vicepresidente|vice president)\b/i;
+ for(const b of rows){const office=b.officeLabel?.value||'',name=b.personLabel?.value||'';if(!name||!pos.test(office)||neg.test(office))continue;const row={name,office,start:b.start?.value||'',end:b.end?.value||''};if(!out.some(x=>x.name===name&&x.office===office))out.push(row);}
+ const royal=/\b(rey|reina|emperador|emperatriz|monarca|sult[aá]n|califa|emir|zar|tsar|shah|kan|khan|king|queen|emperor)\b/i;
+ out.sort((a,b)=>(royal.test(b.office)?1:0)-(royal.test(a.office)?1:0));
+ return out.slice(0,4);
 }
 async function hdWars(qid,year){
  qid=hdQid(qid);if(!qid||year<=0)return [];
@@ -23339,6 +23341,40 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
   if(links.length)h+='<div class="anHistLinks"><b>Fuentes:</b> '+links.join(' · ')+'</div>';
   return h+'</div>';
  }
+
+ const yearCache=new Map();
+ async function yearEvents(d,c,year){
+  try{
+   if(typeof wikiParsePage!=='function'||typeof historyContextTerms!=='function'||typeof historyEventQuality!=='function')return [];
+   const title=year<0?Math.abs(year)+' a. C.':String(year);
+   let pg=yearCache.get(title);
+   if(!pg){pg=wikiParsePage(title,'es');yearCache.set(title,pg)}
+   const page=await pg;if(!page||!page.text)return [];
+   const html=typeof page.text==='string'?page.text:(page.text['*']||'');
+   const doc=new DOMParser().parseFromString(html,'text/html');
+   const terms=historyContextTerms(d,c&&c.entityTitleEs||'',c&&c.entityTitleEn||'',[]);
+   const rows=[];let skip=false;
+   const nodes=doc.querySelectorAll('h2,h3,h4,li');
+   for(const n of nodes){
+    if(/^H[2-4]$/.test(n.tagName)){skip=/nacimientos|fallecimientos|births|deaths/i.test(n.textContent||'');continue}
+    if(skip)continue;
+    const clone=n.cloneNode(true);
+    clone.querySelectorAll('ul,ol,sup,figure,table,style').forEach(x=>x.remove());
+    const parts=typeof splitHistoryEventText==='function'?splitHistoryEventText(clone.textContent||''):[clone.textContent||''];
+    for(const raw of parts){
+     const t=typeof cleanHistoryEventText==='function'?cleanHistoryEventText(raw):String(raw).trim();
+     const q=historyEventQuality(t,year,terms),match=typeof historyEventScoreText==='function'?historyEventScoreText(t,terms):0;
+     if(q<8||match<=0)continue;
+     rows.push({t,q,i:rows.length});
+    }
+   }
+   rows.sort((a,b)=>b.q-a.q);
+   const pick=[],seen=new Set();
+   for(const r of rows){const k=r.t.slice(0,60);if(seen.has(k))continue;seen.add(k);pick.push(r);if(pick.length>=4)break}
+   pick.sort((a,b)=>a.i-b.i);   /* orden en que aparecen en el año (cronológico) */
+   return pick.map(r=>r.t.length>330?r.t.slice(0,327)+'…':r.t);
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-year-events');return []}
+ }
  const prev=enrichHistoryElement;
  enrichHistoryElement=async function(el,d,token){
   const y=historyYear;
@@ -23359,6 +23395,14 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    const grid=slot.querySelector('.historyDossierGrid');
    if(grid&&!grid.querySelector('.historyDossierBox'))grid.remove();
    if(!slot.querySelector('.anHistRich')){slot.insertAdjacentHTML('afterbegin',block(d,c,s))}
+   /* Acontecimientos: si la ficha no encontró ninguno, se buscan en la página anual de Wikipedia, filtrados por la entidad. */
+   const evBox=slot.querySelector('.historyDossierEvents');
+   if(evBox&&!evBox.querySelector('.historyDossierEvent')){
+    const evs=await yearEvents(d,c,y);
+    if(token!==historyWikiSeq||historyYear!==y)return;
+    if(evs.length){evBox.innerHTML=evs.map(t=>'<div class="historyDossierEvent"><div>'+esc(t)+'</div></div>').join('')+'<div class="historyDossierSource">Fuente: Wikipedia, página del año '+esc(historyYearText(y))+', filtrada por la entidad.</div>'}
+    else{const b=evBox.closest('.historyDossierBox');if(b)b.remove()}
+   }
   }catch(e){typeof __anLog=='function'&&__anLog(e,'hist-rich')}
  };
 })();
