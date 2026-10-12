@@ -23890,6 +23890,248 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
  const st=document.createElement('style');st.textContent='.anGlobeLayerInfo{max-width:420px;max-height:46vh;overflow:auto;-webkit-overflow-scrolling:touch}';document.head.appendChild(st);
 })();
 </script>
+<script id="anambro-idecan-explorer-20261012">
+(function(){
+ 'use strict';
+ if(window.__anambroIdecanExplorer)return;window.__anambroIdecanExplorer=true;
+ if(typeof L==='undefined'||typeof map==='undefined')return;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const SERVICES=[
+  ['MTI · Mapa Topográfico Integrado','https://idecan2.grafcan.es/ServicioWMS/MTI'],
+  ['OrtoExpress · ortofoto regional','https://idecan1.grafcan.es/ServicioWMS/OrtoExpress'],
+  ['OrtoUrb · ortofoto urbana','https://idecan1.grafcan.es/ServicioWMS/OrtoUrb'],
+  ['OrtoExpress (servicio del visor GRAFCAN)','https://idecan3.grafcan.es/ServicioWMS/OrtoExpress_bat'],
+  ['MTI (servicio del visor GRAFCAN)','https://idecan3.grafcan.es/ServicioWMS/MTI'],
+  ['Callejero + textos','https://idecan3.grafcan.es/ServicioWMS/CallejeroTxt'],
+  ['Callejero','https://idecan2.grafcan.es/ServicioWMS/Callejero'],
+  ['Cartografía estadística (CARTO_EST)','https://idecan2.grafcan.es/ServicioWMS/CARTO_EST'],
+  ['Bienes de Interés Cultural (BIC)','https://idecan2.grafcan.es/ServicioWMS/BIC'],
+  ['Ocupación del suelo (MOS)','https://idecan2.grafcan.es/ServicioWMS/MOS'],
+  ['Vegetación','https://idecan2.grafcan.es/ServicioWMS/Vegetacion'],
+  ['Espacios culturales','https://idecan2.grafcan.es/ServicioWMS/EspaciosCulturales'],
+  ['Esculturas','https://idecan2.grafcan.es/ServicioWMS/Esculturas'],
+  ['Hipsométrico','https://idecan1.grafcan.es/ServicioWMS/Hipsometrico'],
+  ['Topobatimétrico','https://idecan1.grafcan.es/ServicioWMS/Topobatimetrico'],
+  ['Modelo de sombras','https://idecan1.grafcan.es/ServicioWMS/MDSombras']
+ ];
+ const BOUNDS=L.latLngBounds([[27.45,-18.25],[29.55,-13.15]]);
+ const ATTR='© Gobierno de Canarias · GRAFCAN / IDECanarias (uso no comercial, citando la fuente)';
+ const active=[];let caps=null,seq=0;
+ function ensurePane(){let p=map.getPane('idecanExplorerPane');if(!p){p=map.createPane('idecanExplorerPane');p.style.zIndex='255'}return p}
+ async function readCaps(url){
+  const sep=url.includes('?')?'&':'?';
+  const r=await fetch(url+sep+'SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.1.1');
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const doc=new DOMParser().parseFromString(await r.text(),'text/xml');
+  if(doc.querySelector('parsererror'))throw new Error('respuesta no válida');
+  const srs=[...doc.querySelectorAll('SRS,CRS')].map(n=>n.textContent.toUpperCase()).join(' ');
+  const fmts=[...doc.querySelectorAll('GetMap > Format')].map(n=>n.textContent.trim());
+  const gfi=[...doc.querySelectorAll('GetFeatureInfo > Format')].map(n=>n.textContent.trim());
+  const layers=[];
+  doc.querySelectorAll('Layer').forEach(n=>{
+   const name=n.querySelector(':scope > Name');if(!name)return;
+   const t=n.querySelector(':scope > Title');
+   layers.push({name:name.textContent.trim(),title:(t&&t.textContent.trim())||name.textContent.trim(),queryable:n.getAttribute('queryable')==='1'});
+  });
+  return {url,layers,merc:/EPSG:3857|EPSG:900913/.test(srs),geo:/EPSG:4326/.test(srs),fmts,gfi};
+ }
+ function addLayer(c,l,opts){
+  opts=opts||{};
+  if(active.some(a=>a.url===c.url&&a.name===l.name))return null;
+  const png=c.fmts.includes('image/png'),fmt=opts.jpeg&&c.fmts.includes('image/jpeg')?'image/jpeg':(png?'image/png':'image/jpeg');
+  const crs=c.merc?undefined:(c.geo?L.CRS.EPSG4326:undefined);
+  const base=c.url+(c.url.includes('?')?'':'?');
+  const o={layers:l.name,format:fmt,transparent:fmt==='image/png',version:'1.1.1',uppercase:true,noWrap:true,pane:(ensurePane(),'idecanExplorerPane'),bounds:BOUNDS,minZoom:4,maxZoom:21,opacity:opts.opacity||1,attribution:ATTR};
+  if(crs)o.crs=crs;
+  const layer=L.tileLayer.wms(base,o);
+  layer.addTo(map);
+  const rec={url:c.url,name:l.name,title:l.title,layer,queryable:l.queryable,gfi:c.gfi,query:l.queryable,merc:c.merc};
+  active.push(rec);renderActive();
+  try{window.anambroActiveLayerOrder?.sync?.()}catch(_){}
+  return rec;
+ }
+ function removeRec(rec){
+  try{map.removeLayer(rec.layer)}catch(_){}
+  const i=active.indexOf(rec);if(i>=0)active.splice(i,1);renderActive();
+ }
+ // ---------- UI ----------
+ const root=document.createElement('details');root.className='layerSubcategory';root.id='idecanExplorer';
+ root.innerHTML='<summary>🧭 Explorador IDECanarias (GRAFCAN)</summary>'+
+  '<div class="layerSubBlock">'+
+  '<small>Servicios oficiales de IDECanarias. Elige uno, lee sus capas y actívalas; también se envían al globo 3D con «Capas del visor».</small>'+
+  '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button type="button" id="idxOrto">🛰️ Ortofoto GRAFCAN</button><button type="button" id="idxMti">🗺️ Mapa Topográfico Integrado</button></div>'+
+  '<select id="idxService" style="width:100%"></select>'+
+  '<input id="idxCustom" type="text" placeholder="…o pega la URL de otro WMS" style="width:100%;margin-top:4px">'+
+  '<button type="button" id="idxRead" style="margin-top:4px">Leer capas</button>'+
+  '<input id="idxFilter" type="search" placeholder="Filtrar capas…" style="width:100%;margin-top:4px;display:none">'+
+  '<div id="idxList" style="max-height:200px;overflow:auto;margin-top:4px"></div>'+
+  '<div id="idxActive" style="margin-top:6px"></div>'+
+  '<div id="idxMsg" style="font:400 11px system-ui;color:#455;margin-top:4px"></div>'+
+  '</div>';
+ function mount(){
+  const host=document.querySelector('#layersPanel .layerScopeInner');if(!host||document.getElementById('idecanExplorer'))return !!document.getElementById('idecanExplorer');
+  host.insertBefore(root,host.children[1]||null);
+  const sel=root.querySelector('#idxService');sel.innerHTML=SERVICES.map((s,i)=>'<option value="'+i+'">'+esc(s[0])+'</option>').join('');
+  root.querySelector('#idxRead').addEventListener('click',()=>load(root.querySelector('#idxCustom').value.trim()||SERVICES[sel.value][1]));
+  root.querySelector('#idxFilter').addEventListener('input',renderList);
+  root.querySelector('#idxOrto').addEventListener('click',()=>preset('https://idecan3.grafcan.es/ServicioWMS/OrtoExpress_bat','WMS_OrtoExpress','Ortofoto GRAFCAN (OrtoExpress)',true));
+  root.querySelector('#idxMti').addEventListener('click',()=>preset('https://idecan3.grafcan.es/ServicioWMS/MTI','WMS_MTI','Mapa Topográfico Integrado',false));
+  return true;
+ }
+ const msg=t=>{const m=root.querySelector('#idxMsg');if(m)m.textContent=t||''};
+ async function load(url){
+  const my=++seq;msg('Leyendo el catálogo del servicio…');
+  try{
+   const c=await readCaps(url);if(my!==seq)return null;caps=c;
+   msg(c.layers.length+' capa(s) · '+(c.merc?'Web Mercator':(c.geo?'geográficas (4326)':'⚠️ sin proyección compatible'))+(c.gfi.length?' · admite consulta al tocar':''));
+   root.querySelector('#idxFilter').style.display=c.layers.length>12?'block':'none';
+   renderList();return c;
+  }catch(e){msg('No se pudo leer el servicio: '+(e&&e.message||e)+'. Puede que el servidor no permita la consulta desde el navegador.');log(e,'idecan-caps');caps=null;renderList();return null}
+ }
+ // Nombres de capa y URLs tomados de la librería pública de GRAFCAN (IDECanarias_wms_ol_v2.js).
+ async function preset(url,layer,title,jpeg){
+  msg('Preparando '+title+'…');
+  let c=null;
+  try{c=await readCaps(url)}catch(e){log(e,'idecan-preset-caps')}
+  if(!c)c={url,layers:[],merc:true,geo:false,fmts:['image/png','image/jpeg'],gfi:[]};
+  if(!c.merc&&!c.geo){msg('⚠️ '+title+': el servicio no ofrece Web Mercator ni geográficas.');return}
+  const l=c.layers.find(x=>x.name===layer)||{name:layer,title,queryable:false};
+  const r=addLayer(c,Object.assign({},l,{title}),{jpeg});
+  msg(r?'Activada: '+title+' ('+layer+')':'Ya estaba activa: '+title);
+ }
+ async function quick(url,re,opts){
+  const c=await load(url);if(!c||!c.layers.length)return;
+  if(!c.merc&&!c.geo){return}
+  const l=c.layers.find(x=>re.test(x.name))||c.layers.find(x=>re.test(x.title))||c.layers[0];
+  const r=addLayer(c,l,opts);msg((r?'Activada: ':'Ya estaba activa: ')+l.title+' ('+l.name+')');
+ }
+ function renderList(){
+  const box=root.querySelector('#idxList');if(!box)return;
+  if(!caps){box.innerHTML='';return}
+  const f=(root.querySelector('#idxFilter').value||'').toLowerCase();
+  const items=caps.layers.filter(l=>!f||(l.title+' '+l.name).toLowerCase().includes(f)).slice(0,300);
+  box.innerHTML=items.map((l,i)=>'<label style="display:block;font-size:12px"><input type="checkbox" data-i="'+caps.layers.indexOf(l)+'"'+(active.some(a=>a.url===caps.url&&a.name===l.name)?' checked':'')+'> '+esc(l.title)+(l.title!==l.name?' <small>('+esc(l.name)+')</small>':'')+(l.queryable?' ℹ️':'')+'</label>').join('')||'<small>Sin coincidencias.</small>';
+  box.querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{
+   const l=caps.layers[+cb.dataset.i];
+   if(cb.checked)addLayer(caps,l,{});else{const r=active.find(a=>a.url===caps.url&&a.name===l.name);if(r)removeRec(r)}
+  }));
+ }
+ function renderActive(){
+  const box=root.querySelector('#idxActive');if(!box)return;
+  box.innerHTML=active.length?('<b style="font-size:12px">Activas del explorador</b>'+active.map((r,i)=>'<div style="border-top:1px solid #dde;padding:3px 0;font-size:12px">'+esc(r.title)+' <button type="button" data-rm="'+i+'" title="Quitar">✕</button>'+(r.queryable?' <label><input type="checkbox" data-q="'+i+'" '+(r.query?'checked':'')+'> ℹ️ consultar al tocar</label>':'')+'<input type="range" data-o="'+i+'" min="0.1" max="1" step="0.05" value="'+(r.layer.options.opacity||1)+'" style="width:100%"></div>').join('')):'';
+  box.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>removeRec(active[+b.dataset.rm])));
+  box.querySelectorAll('[data-o]').forEach(s=>s.addEventListener('input',()=>active[+s.dataset.o].layer.setOpacity(+s.value)));
+  box.querySelectorAll('[data-q]').forEach(c=>c.addEventListener('change',()=>{active[+c.dataset.q].query=c.checked}));
+  renderList();
+ }
+ // ---------- Consulta al tocar (GetFeatureInfo) ----------
+ let panel=null;
+ function showPanel(html){
+  if(!panel){panel=document.createElement('div');panel.id='idecanInfo';panel.style.cssText='position:fixed;right:12px;bottom:70px;z-index:1500;max-width:340px;max-height:42vh;overflow:auto;background:#fff;border:1px solid #263238;border-radius:8px;padding:8px 10px;font:12px system-ui;box-shadow:0 2px 10px rgba(0,0,0,.3)';document.body.appendChild(panel)}
+  panel.innerHTML='<button type="button" style="float:right" onclick="this.parentElement.remove();">×</button>'+html;
+  if(!panel.isConnected)document.body.appendChild(panel);
+ }
+ function clean(html){
+  const d=new DOMParser().parseFromString(html,'text/html');
+  d.querySelectorAll('script,style,iframe,object,embed,link,meta,img,form').forEach(n=>n.remove());
+  d.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>n.removeAttribute(a.name)));
+  return d.body.innerHTML.trim();
+ }
+ async function gfi(rec,e){
+  const sz=map.getSize(),b=map.getBounds(),crs=map.options.crs;
+  const p1=crs.project(b.getSouthWest()),p2=crs.project(b.getNorthEast());
+  const bbox=[p1.x,p1.y,p2.x,p2.y].join(',');
+  const pt=map.latLngToContainerPoint(e.latlng);
+  const fmt=rec.gfi.includes('text/html')?'text/html':(rec.gfi.includes('text/plain')?'text/plain':rec.gfi[0]);
+  const u=rec.url+(rec.url.includes('?')?'&':'?')+new URLSearchParams({SERVICE:'WMS',VERSION:'1.1.1',REQUEST:'GetFeatureInfo',LAYERS:rec.name,QUERY_LAYERS:rec.name,STYLES:'',SRS:'EPSG:3857',BBOX:bbox,WIDTH:sz.x,HEIGHT:sz.y,X:Math.round(pt.x),Y:Math.round(pt.y),INFO_FORMAT:fmt,FEATURE_COUNT:5,FORMAT:'image/png'}).toString();
+  const txt=await (await fetch(u)).text();
+  if(fmt==='text/html')return clean(txt);
+  return txt.trim()?'<pre style="white-space:pre-wrap;margin:0">'+esc(txt.trim())+'</pre>':'';
+ }
+ map.on('click',async e=>{
+  if(document.body.classList.contains('globe-mode'))return;
+  const qs=active.filter(r=>r.query&&r.merc&&r.gfi&&r.gfi.length&&map.hasLayer(r.layer));
+  if(!qs.length)return;
+  let out='';
+  for(const r of qs){
+   try{const h=await gfi(r,e);if(h&&h.replace(/<[^>]*>/g,'').trim())out+='<div style="margin-bottom:6px"><b>'+esc(r.title)+'</b><br>'+h+'</div>'}catch(err){log(err,'idecan-gfi')}
+  }
+  if(out)showPanel(out);
+ });
+ window.__anambroIdecan={services:SERVICES,active,load,addLayer};
+ if(!mount()){const iv=setInterval(()=>{if(mount())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),15000)}
+})();
+</script>
+<script id="anambro-grafcan-toponym-search-20261012">
+(function(){
+ 'use strict';
+ if(window.__anambroGrafcanSearch)return;window.__anambroGrafcanSearch=true;
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ const URL_='https://visor.grafcan.es/ol3/grafcan/searchJSONP.php';
+ const CAN={s:27.4,n:29.6,w:-18.4,e:-13.2};
+ const inCan=(la,lo)=>la>=CAN.s&&la<=CAN.n&&lo>=CAN.w&&lo<=CAN.e;
+ let n=0;
+ function jsonp(q){
+  return new Promise((res,rej)=>{
+   const cb='__anGcSearch'+(++n),s=document.createElement('script');
+   const done=(v,err)=>{try{delete window[cb]}catch(_){window[cb]=undefined}s.remove();clearTimeout(t);err?rej(err):res(v)};
+   const t=setTimeout(()=>done(null,new Error('tiempo agotado')),7000);
+   window[cb]=d=>done(d);
+   s.onerror=()=>done(null,new Error('no disponible'));
+   s.src=URL_+'?callback='+cb+'&cantidad=40&key='+encodeURIComponent(q);
+   document.head.appendChild(s);
+  });
+ }
+ function rows(d){
+  if(typeof d==='string'){try{d=JSON.parse(d)}catch(_){d=[]}}
+  if(!Array.isArray(d))d=d&&Array.isArray(d.resultados)?d.resultados:[];
+  const out=[];
+  for(const r of d){
+   let lo=parseFloat(r.x),la=parseFloat(r.y);if(!isFinite(lo)||!isFinite(la))continue;
+   if(!inCan(la,lo)&&inCan(lo,la)){const t=lo;lo=la;la=t}
+   if(!inCan(la,lo))continue;
+   out.push({nombre:String(r.nombre||r.descripcion||'').trim(),clas:String(r.clasificacion||'').trim(),loc:String(r.localizacion||'').trim(),lat:la,lon:lo,id:r.id});
+  }
+  return out;
+ }
+ function nearCanary(){
+  try{
+   if(document.body.classList.contains('globe-mode')&&typeof globeViewer!=='undefined'&&globeViewer){const c=globeViewer.camera.positionCartographic;return inCan(Cesium.Math.toDegrees(c.latitude),Cesium.Math.toDegrees(c.longitude))}
+   const c=map.getCenter();return inCan(c.lat,c.lng);
+  }catch(_){return false}
+ }
+ function install(){
+  if(typeof searchPlace!=='function'||searchPlace.__gc)return;
+  const orig=searchPlace;
+  const w=async function(){
+   const q=(document.getElementById('searchQ')?.value||'').trim();
+   const pr=q?jsonp(q).then(rows).catch(e=>{log(e,'grafcan-search');return[]}):Promise.resolve([]);
+   const r=await orig.apply(this,arguments);
+   try{
+    const list=await pr;if(!list.length)return r;
+    const box=document.getElementById('searchResults');if(!box)return r;
+    const globeMode=document.body.classList.contains('globe-mode');
+    const wrap=document.createElement('div');wrap.id='grafcanSearchResults';
+    const h=document.createElement('div');h.style.cssText='font:700 12px system-ui;margin:6px 0 2px';h.textContent='📍 Topónimos de Canarias · GRAFCAN (1:5.000)';wrap.appendChild(h);
+    list.slice(0,20).forEach(x=>{
+     const b=document.createElement('button');
+     const extra=[x.clas,x.loc].filter(Boolean).join(' · ');
+     b.textContent=x.nombre+(extra?' — '+extra:'');
+     b.onclick=()=>selectCandidate({lat:x.lat,lon:x.lon},x.nombre+(x.loc?' ('+x.loc+')':''),globeMode,false);
+     wrap.appendChild(b);
+    });
+    const prev=box.querySelector('#grafcanSearchResults');if(prev)prev.remove();
+    if(nearCanary())box.insertBefore(wrap,box.firstChild);else box.appendChild(wrap);
+   }catch(e){log(e,'grafcan-search-render')}
+   return r;
+  };
+  w.__gc=true;searchPlace=w;
+ }
+ install();setTimeout(install,0);setTimeout(install,1500);
+ window.__anambroGrafcanSearchTest={jsonp,rows};
+})();
+</script>
 <script id="anambro-globe-best-imagery-20261012">
 (function(){
  'use strict';
