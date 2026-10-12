@@ -15779,21 +15779,23 @@ html body .leaflet-popup-content{padding-top:5px}
   let txt;
   try{const r=await fetch(u,{mode:'cors'});if(!r.ok)throw Error('HTTP '+r.status);txt=await r.text()}
   catch(e){typeof __anLog=='function'&&__anLog(e,'archGC-info');return {label:'Gran Canaria · '+cfg.label,rows:[['Consulta','el servidor no permitió leer los atributos desde el visor']],__gcErr:true}}
-  const rows=[];
+  const items=[];
   try{window.__anambroGcLastInfo={key,name,url:u,respuesta:txt.slice(0,3000)}}catch(_){}
   try{
    const doc=new DOMParser().parseFromString(txt,'text/xml');
-   const feats=[...doc.getElementsByTagName('*')].filter(n=>/_feature$/i.test(n.localName));
-   feats.slice(0,3).forEach((f,i)=>{
-    if(feats.length>1)rows.push(['Elemento',String(i+1)]);
+   const feats=[...doc.getElementsByTagName('*')].filter(n=>/_feature$/i.test(n.localName)),seen=new Set();
+   for(const f of feats){
+    const rows=[];
     for(const n of f.children){
      const k=n.localName;if(/^(boundedBy|msGeometry|geometry|the_geom|geom|gml_id)$/i.test(k)||n.children.length)continue;
      const v=(n.textContent||'').trim();if(v&&v!=='null')rows.push([k.replace(/_/g,' '),v]);
     }
-   });
+    const sig=JSON.stringify(rows);if(!rows.length||seen.has(sig))continue;seen.add(sig);items.push(rows.slice(0,24));
+   }
+   if(!items.length&&feats.length)items.push([['Elemento','identificado, pero el servidor no devolvió atributos legibles']]);
   }catch(e){typeof __anLog=='function'&&__anLog(e,'archGC-info-parse')}
-  if(!rows.length&&/_feature\b/i.test(txt))rows.push(['Elemento','identificado, pero el servidor no devolvió atributos legibles']);
-  return rows.length?{label:'Gran Canaria · '+cfg.label,rows:rows.slice(0,24)}:null;
+  const n=Math.min(items.length,3);
+  return n?items.slice(0,n).map((rows,i)=>({label:'Gran Canaria · '+cfg.label+(n>1?' ('+(i+1)+' de '+n+' elementos próximos)':''),rows})):null;
  }
  {
   const __hActive=window.canaryHeritageActive,__hAt=window.canaryHeritageAt;
@@ -15804,7 +15806,7 @@ html body .leaflet-popup-content{padding-top:5px}
    try{const a=await __hAt(lat,lon);if(a)out.push(...a)}catch(e){typeof __anLog=='function'&&__anLog(e,'archGC-hAt')}
    if(isCanaryPoint(lat,lon)){
     const got=await Promise.all([...archGcLayers.keys()].map(k=>gcFeatureInfo(k,lat,lon).catch(()=>null)));
-    got.filter(Boolean).forEach(x=>out.push(x));
+    got.filter(Boolean).forEach(x=>Array.isArray(x)?out.push(...x):out.push(x));
    }
    return out.length?out:null;
   };
