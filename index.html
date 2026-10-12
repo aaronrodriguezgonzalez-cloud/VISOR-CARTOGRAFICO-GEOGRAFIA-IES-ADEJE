@@ -24976,5 +24976,33 @@ async function applyLeg(){
 })();
 </script>
 
+<script id="anambro-globe-box-toggle-20261012">
+/* Botón para plegar/desplegar la caja de controles del globo (Relieve 3D, inclinación, rotación, capas…) y que no tape el mapa. */
+(function(){
+ 'use strict';
+ if(window.__anambroGlobeBoxToggle)return;window.__anambroGlobeBoxToggle=true;
+ const KEY='anambro.globeBoxCollapsed';
+ const get=()=>{try{return localStorage.getItem(KEY)==='1'}catch(_){return false}};
+ const set=v=>{try{localStorage.setItem(KEY,v?'1':'0')}catch(_){}};
+ const st=document.createElement('style');
+ st.textContent='#globeBoxToggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin:0 0 4px;padding:2px 4px;border:0;border-bottom:1px solid #cfd8dc;background:none;font:700 11px system-ui,sans-serif;color:#37474f;cursor:pointer}'+
+ '#globeReliefBox.boxCollapsed{padding:3px 7px}#globeReliefBox.boxCollapsed>*:not(#globeBoxToggle){display:none!important}#globeReliefBox.boxCollapsed #globeBoxToggle{margin:0;border:0;padding:2px 0}'+
+ '#globeReliefBox{max-height:calc(100vh - 90px);overflow:auto}';
+ document.head.appendChild(st);
+ function paint(box,btn){const c=box.classList.contains('boxCollapsed');btn.innerHTML=c?'<span>⛰️ Controles del globo</span><span>▴</span>':'<span>Ocultar controles</span><span>▾</span>';btn.setAttribute('aria-expanded',c?'false':'true');btn.title=c?'Mostrar los controles del globo':'Ocultar los controles del globo'}
+ function mount(){
+  const box=document.getElementById('globeReliefBox');if(!box)return false;
+  if(document.getElementById('globeBoxToggle'))return true;
+  const btn=document.createElement('button');btn.id='globeBoxToggle';btn.type='button';
+  box.insertBefore(btn,box.firstChild);
+  if(get())box.classList.add('boxCollapsed');
+  paint(box,btn);
+  btn.addEventListener('click',()=>{box.classList.toggle('boxCollapsed');set(box.classList.contains('boxCollapsed'));paint(box,btn)});
+  return true;
+ }
+ if(!mount()){const iv=setInterval(()=>{if(mount())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),20000)}
+})();
+</script>
+
 </body>
 </html>
