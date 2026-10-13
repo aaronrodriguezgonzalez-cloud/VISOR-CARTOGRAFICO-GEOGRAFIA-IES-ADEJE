@@ -2956,7 +2956,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <section class="hubCard"><b>🧭 Explorar el mapa</b><button data-hub="layers">Capas, fondos y cartografía temática</button><button data-hub="active-layers">👁️ Capas visibles · orden y prioridad</button><button data-hub="legend">Leyenda activa</button><button data-hub="globe">Globo 3D</button><button data-hub="search">Buscar topónimo</button><button data-hub="coords">Localizar coordenadas</button><button data-hub="places">Lugares buscados</button><button data-hub="graticule">Paralelos, meridianos y trópicos</button></section>
     <section class="hubCard"><b>🌋 Geografía física</b><button data-hub="phys-canary">🏝️ Canarias · relieve, geología, clima y vegetación</button><button data-hub="phys-spain">🇪🇸 España · relieve, ríos, geología, clima y vegetación</button><button data-hub="phys-world">🌍 Mundo · relieve, ríos, geología, clima y biomas</button><button data-hub="volcanism">🌋 Volcanes, terremotos y placas tectónicas</button></section>
     <section class="hubCard"><b>📊 Atlas estadístico y análisis</b><button data-hub="atlas-world">🌍 Mundo · Banco Mundial / PNUD</button><button data-hub="atlas-spain">🇪🇸 España · INE</button><button data-hub="atlas-canary">🏝️ Canarias · ISTAC</button><button data-hub="analysis">🧮 Análisis geográfico · indicadores, mapa derivado y CSV</button></section>
-    <section class="hubCard"><b>🏛️ Historia y patrimonio</b><button data-hub="history">Fronteras históricas y acontecimientos · línea de tiempo</button><button data-hub="heritage">Patrimonio cultural de Canarias · BIC y arqueología insular</button><button data-hub="indigenous">🏺 Mundo indígena · editor SIG de particiones</button></section>
+    <section class="hubCard"><b>🏛️ Historia y patrimonio</b><button data-hub="history">Fronteras históricas y acontecimientos · línea de tiempo</button><button data-hub="heritage">Patrimonio cultural de Canarias · BIC y arqueología insular</button><button data-hub="indigenous">🏺 Mundo indígena · particiones territoriales</button></section>
     <section class="hubCard"><b>🥾 Senderismo y campo</b><button data-hub="gps">Mi ubicación GPS</button><button data-hub="tracks">Crear, importar y exportar tracks GPX/KML</button><button data-hub="profile">Perfil territorial</button><button data-hub="measure">Medir distancias y superficies</button></section>
     <section class="hubCard"><b>🎓 Aula y creación</b><button data-hub="political">Mapas políticos / mudos · actuales e históricos</button><button data-hub="game">🎮 Juego territorial</button><button data-hub="relief-spain">🏔️ Mapa de relieve de España</button><button data-hub="animations">🎬 Explicaciones y animaciones</button><button data-hub="print">🖨️ Compositor cartográfico / PDF</button></section>
     <section class="hubCard hubWide"><b>ℹ️ Acerca de ANAMBRO</b><div class="hubRow"><button data-hub="welcome">👋 Bienvenido</button><button data-hub="sources">ⓘ Fuentes, licencias y créditos</button><button data-hub="radio">📻 Radio Garden · emisoras del mundo</button></div></section>
@@ -3073,9 +3073,10 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 </div></details>
 <details class="layerCategory"><summary>🏛️ Historia</summary>
 <details class="layerSubcategory" id="indigenousTerritoryBlock"><summary>🏺 Mundo indígena</summary>
-<label><input id="canaryIndigenousTerritoriesCheck" type="checkbox"/> <b>Particiones territoriales indígenas · editor SIG</b></label>
+<label><input id="canaryIndigenousTerritoriesCheck" type="checkbox"/> <b>Particiones territoriales indígenas</b><b class="anambroAuthorOnly"> · editor SIG</b></label>
 <div class="layerSubBlock indigenousTerritoryControls">
-<small>Cada isla parte de <b>un único polígono ajustado a la costa</b>. Las divisiones internas no se presuponen: se crean manualmente mediante líneas de corte y se identifican en una tabla de atributos.</small>
+<small class="indigenousPublicNote">Reconstrucción aproximada de las demarcaciones territoriales indígenas. Los límites interiores son interpretaciones historiográficas; la costa procede de cartografía geográfica.</small>
+<small class="anambroAuthorOnly">Cada isla parte de <b>un único polígono ajustado a la costa</b>. Las divisiones internas no se presuponen: se crean manualmente mediante líneas de corte y se identifican en una tabla de atributos.</small>
 <label><input data-indigenous-labels type="checkbox" checked/> Mostrar nombres de las unidades</label>
 <label><small><b>Opacidad</b> <span id="canaryIndigenousOpacityValue">52 %</span></small><input id="canaryIndigenousOpacity" max="0.85" min="0.15" step="0.05" style="width:100%" type="range" value="0.52"/></label>
 <div class="indigenousEditorLaunch"><button class="action" id="indigenousEditBtn" type="button">✏️ Abrir editor SIG</button><small id="indigenousMasterStatus">Base inicial: 7 islas · un polígono por isla.</small></div>
@@ -3104,7 +3105,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
   <small id="indigenousEditorStatus" class="indigenousEditorStatus">Editor listo.</small>
 </div>
 <div class="indigenousMenuLegend"><div><b>Base geométrica</b> · 7 islas, 7 polígonos</div><div><b>Divisiones internas</b> · las crea el editor</div><div><b>Atributos</b> · nombre, tipo y observaciones</div><div><b>Publicación</b> · GeoJSON maestro compartido</div></div>
-<small><b>Costa:</b> cartografía de Canarias. Las interpretaciones históricas y sus nombres se incorporan mediante edición del usuario.</small>
+<small class="anambroAuthorOnly"><b>Costa:</b> cartografía de Canarias. Las interpretaciones históricas y sus nombres se incorporan mediante edición del usuario.</small>
 </div></details></details>
 </div>
 </details>
@@ -23249,7 +23250,7 @@ let outlinePane=map.getPane('indigenousTerritoryOutlinePane');if(!outlinePane){o
 let labelPane=map.getPane('indigenousTerritoryLabelPane');if(!labelPane){labelPane=map.createPane('indigenousTerritoryLabelPane');labelPane.style.zIndex='648';labelPane.style.pointerEvents='none'}
 let editorPane=map.getPane('indigenousTerritoryEditorPane');if(!editorPane){editorPane=map.createPane('indigenousTerritoryEditorPane');editorPane.style.zIndex='760'}
 let editorActive=false,selectedId=null,cutMode=null,cutPoints=[],history=[],future=[],editorBadge=null,vertexDragBefore=null;
-const indigenousCoastStyle={color:'#3f3932',weight:2.15,fill:false,opacity:.96};
+const indigenousCoastStyle={color:'#3f3932',weight:0,fill:false,opacity:0}; // v0.5: contorno simplificado oculto; la costa la dibujan las propias particiones
 let polygons=null,coast=L.geoJSON(INITIAL,{pane:'indigenousTerritoryOutlinePane',interactive:false,style:indigenousCoastStyle}),group=L.layerGroup([coast]),labels=L.layerGroup(),cutGroup=L.layerGroup(),vertexGroup=L.layerGroup();
 function rebuildIndigenousCoast(){const next=L.geoJSON(INITIAL,{pane:'indigenousTerritoryOutlinePane',interactive:false,style:indigenousCoastStyle});try{group.removeLayer(coast)}catch(_){typeof __anLog=='function'&&__anLog(_,'L23024');}coast=next;group.addLayer(coast)}
 function featureById(id){return DATA.features.find(f=>f.properties?.id===id)||null}
@@ -23264,7 +23265,7 @@ function makePolygons(){return L.geoJSON(DATA,{pane:'indigenousTerritoryPane',st
 function rebuildLabels(){labels.clearLayers();if(!labelsCheck?.checked)return;for(const f of DATA.features){refreshCentroid(f);const p=f.properties,n=(p.name||'').trim();if(!n)continue;const icon=L.divIcon({className:'',html:'<div class="indigenousTerritoryLabel">'+esc(n)+'</div>',iconSize:null});L.marker([p.label_lat,p.label_lon],{pane:'indigenousTerritoryLabelPane',interactive:false,icon}).addTo(labels)}}
 function renderAll(sync3d=true){const shown=check.checked&&!document.body.classList.contains('globe-mode');if(polygons)try{group.removeLayer(polygons)}catch(_){typeof __anLog=='function'&&__anLog(_,'L23035');}polygons=makePolygons();group.addLayer(polygons);rebuildLabels();if(shown&&!map.hasLayer(group))group.addTo(map);if(shown&&labelsCheck?.checked&&!editorActive&&!map.hasLayer(labels))labels.addTo(map);if((editorActive||!labelsCheck?.checked)&&map.hasLayer(labels))map.removeLayer(labels);renderVertexEditor();if(sync3d)syncGlobe(true)}
 renderAll(false);
-let legend=null;function ensureLegend(){if(legend)return;legend=L.control({position:'bottomright'});legend.onAdd=function(){const d=L.DomUtil.create('div','indigenousTerritoryLegend');d.innerHTML='<div class="indigTitle">🏺 Particiones territoriales indígenas</div><div><span class="indigSolid"></span>costa geográfica</div><div><span class="indigDash"></span>límites creados en el editor</div><small>Geometría editable · tabla de atributos · GeoJSON maestro compartido.</small>';L.DomEvent.disableClickPropagation(d);return d}}
+let legend=null;function ensureLegend(){if(legend)return;legend=L.control({position:'bottomright'});legend.onAdd=function(){const d=L.DomUtil.create('div','indigenousTerritoryLegend');d.innerHTML='<div class="indigTitle">🏺 Particiones territoriales indígenas</div><div><span class="indigDash"></span>límites entre demarcaciones</div><small>Reconstrucción aproximada · interpretación historiográfica.</small>';L.DomEvent.disableClickPropagation(d);return d}}
 function showLegend(on){ensureLegend();try{if(on)legend.addTo(map);else map.removeControl(legend)}catch(_){typeof __anLog=='function'&&__anLog(_,'L23038');}}
 function set2D(on){if(on){if(!map.hasLayer(group))group.addTo(map);showLegend(true);if(labelsCheck?.checked&&!editorActive&&!map.hasLayer(labels))labels.addTo(map);if(!B.contains(map.getCenter()))map.fitBounds(B,{padding:[18,18]})}else{for(const l of [group,labels,cutGroup,vertexGroup])if(map.hasLayer(l))map.removeLayer(l);showLegend(false)}}
 function set(on){set2D(on);if(on)loadPublicMaster(false).catch(function(e){typeof __anLog=='function'&&__anLog(e,'L23040')});if(typeof isGlobe==='function'&&isGlobe())syncGlobe(true);else if(!on)clearGlobe();setTimeout(()=>{try{window.anambroActiveLayerOrder?.sync?.()}catch(_){typeof __anLog=='function'&&__anLog(_,'L23040');}try{updateLegend()}catch(_){typeof __anLog=='function'&&__anLog(_,'L23040');}},0)}
@@ -23347,7 +23348,7 @@ function b64Unicode(str){const bytes=new TextEncoder().encode(str);let bin='';fo
 async function publishMaster(){const repo=(q('indigenousPublishRepo')?.value||inferRepo()).trim(),branch=(q('indigenousPublishBranch')?.value||'main').trim(),path=(q('indigenousPublishPath')?.value||MASTER_URL).trim().replace(/^\/+/,''),token=(q('indigenousPublishToken')?.value||'').trim();if(!/^[-\w.]+\/[-\w.]+$/.test(repo))return editorStatus('Repositorio no válido. Usa propietario/repositorio.',true);if(!token)return editorStatus('Introduce un token GitHub con permiso Contents: Read and write.',true);const [owner,name]=repo.split('/'),api='https://api.github.com/repos/'+encodeURIComponent(owner)+'/'+encodeURIComponent(name)+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),headers={'Accept':'application/vnd.github+json','Authorization':'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28'};let sha=null;editorStatus('Comprobando la versión publicada…');try{const g=await fetch(api+'?ref='+encodeURIComponent(branch),{headers,cache:'no-store'});if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw Error('GitHub GET '+g.status)}catch(e){return editorStatus('No se pudo consultar GitHub: '+e.message,true)}const payload=clone(DATA);payload.metadata={...(payload.metadata||{}),editor_schema:SCHEMA,title:'Particiones territoriales indígenas de Canarias',updated_at:new Date().toISOString(),coast_source:COAST_SOURCE};const body={message:'ANAMBRO: actualizar particiones territoriales indígenas',content:b64Unicode(JSON.stringify(payload,null,2)),branch};if(sha)body.sha=sha;editorStatus('Publicando GeoJSON maestro…');try{const r=await fetch(api,{method:'PUT',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw Error('GitHub PUT '+r.status+' · '+await r.text());MASTER_DATA=clone(payload);masterLoaded=true;q('indigenousPublishToken').value='';masterStatus('Versión pública actualizada · '+payload.features.length+' polígonos.');editorStatus('✓ Publicada para todos los usuarios. Las nuevas aperturas de ANAMBRO cargarán esta versión pública.')}catch(e){editorStatus('No se pudo publicar: '+e.message,true)}}q('indigenousPublishBtn')?.addEventListener('click',publishMaster);const repoInput=q('indigenousPublishRepo');if(repoInput)repoInput.value=inferRepo();
 
 renderTable();syncSelectedInfo();syncButtons();ensureMunicipalIslandBase();setTimeout(()=>loadPublicMaster(false),120);
-try{if(typeof activeLegendHTML==='function'){const prev=activeLegendHTML;activeLegendHTML=function(){let h=prev.apply(this,arguments)||'';if(check.checked)h+='<div style="margin-top:8px"><b>Particiones territoriales indígenas · Canarias</b><br><small>Geometría editable por el usuario sobre costa de Canarias.</small></div>';return h}}}catch(_){typeof __anLog=='function'&&__anLog(_,'L23120');}
+try{if(typeof activeLegendHTML==='function'){const prev=activeLegendHTML;activeLegendHTML=function(){let h=prev.apply(this,arguments)||'';if(check.checked)h+='<div style="margin-top:8px"><b>Particiones territoriales indígenas · Canarias</b><br><small>Reconstrucción aproximada de las demarcaciones · interpretación historiográfica.</small></div>';return h}}}catch(_){typeof __anLog=='function'&&__anLog(_,'L23120');}
 try{if(typeof activeSourcesText==='function'){const prev=activeSourcesText;activeSourcesText=function(){const x=prev.apply(this,arguments)||'';return[x,check.checked?COAST_SOURCE:''].filter(Boolean).join(' · ')}}}catch(_){typeof __anLog=='function'&&__anLog(_,'L23121');}
 try{if(typeof defaultLayoutTitle==='function'){const prev=defaultLayoutTitle;defaultLayoutTitle=function(){if(check.checked)return 'Particiones territoriales indígenas de Canarias';return prev.apply(this,arguments)}}}catch(_){typeof __anLog=='function'&&__anLog(_,'L23122');}
 window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlobe,editor:{start:startEditor,stop:stopEditor,select:selectFeature,vertices:()=>editableRing(featureById(selectedId)),cut:(mode='straight')=>beginCut(mode),applyCut,export:exportGeoJSON,publish:publishMaster,reset:()=>{const before=snapshot();DATA=clone(INITIAL);commit(before);selectedId=null;renderAll();renderTable();syncSelectedInfo()}}};
@@ -25334,7 +25335,10 @@ async function applyLeg(){
 .hubDesc{font-size:11px;line-height:1.38;color:#2f3f4c}
 .hubFeatureGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:3px}
 .hubFeatureGrid button:last-child{grid-column:1/-1}
-.hubGrid .hubCard{align-content:start}.hubWide{grid-column:1/-1}.hubRow{display:flex;flex-wrap:wrap;gap:5px}.hubRow button{flex:1 1 150px}
+.hubGrid .hubCard{align-content:start}
+/* Editor de particiones indígenas: solo visible en modo autor. */
+body:not(.anambro-author) .indigenousEditorLaunch,body:not(.anambro-author) #indigenousEditorPanel,body:not(.anambro-author) .indigenousPublishBox,body:not(.anambro-author) .anambroAuthorOnly,body:not(.anambro-author) .indigenousMenuLegend,body:not(.anambro-author) .indigenousEditingBadge{display:none!important}
+body.anambro-author .indigenousPublicNote{display:none!important}.hubWide{grid-column:1/-1}.hubRow{display:flex;flex-wrap:wrap;gap:5px}.hubRow button{flex:1 1 150px}
 @media(max-width:760px){.hubFeatureGrid{grid-template-columns:1fr}}
 </style>
 <script id="anambro-v05-menu-js">
@@ -25397,6 +25401,25 @@ async function applyLeg(){
  function syncVersion(){document.querySelectorAll('.brandVersion').forEach(el=>{if(/^\s*Versi[oó]n\s+0\.\d+/.test(el.textContent)&&!el.textContent.includes('Versión '+VERSION+' '))el.textContent='Versión '+VERSION+' · perfiles del paisaje'})}
  syncVersion();window.addEventListener('load',()=>{syncVersion();setTimeout(syncVersion,1500)});
  window.ANAMBRO_VERSION=VERSION;
+ // Modo autor: el editor SIG de particiones indígenas solo aparece en el navegador del autor.
+ // Se activa abriendo anambro.es/?autor=1 una vez (queda recordado) y se desactiva con ?autor=0.
+ // La publicación para todos sigue exigiendo el token de GitHub, que nunca se guarda.
+ const AUTHOR_KEY='anambroAuthorMode';
+ let author=false;
+ try{
+  const u=new URL(location.href),v=u.searchParams.get('autor');
+  if(v==='1')localStorage.setItem(AUTHOR_KEY,'1');
+  if(v==='0')localStorage.removeItem(AUTHOR_KEY);
+  if(v!==null){u.searchParams.delete('autor');history.replaceState(null,'',u.pathname+(u.search||'')+u.hash)}
+  author=localStorage.getItem(AUTHOR_KEY)==='1';
+ }catch(_){}
+ document.body.classList.toggle('anambro-author',author);
+ if(!author){
+  const api=window.__anambroIndigenousTerritories;
+  if(api?.editor){try{api.editor.stop?.()}catch(_){};api.editor.start=function(){console.info('Editor SIG disponible solo en modo autor.')}}
+  const btn=document.getElementById('indigenousEditBtn');
+  btn?.addEventListener('click',e=>{e.stopImmediatePropagation();e.preventDefault()},true);
+ }
 })();
 </script>
 </body>
