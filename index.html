@@ -23576,30 +23576,44 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    }
   };
  }
+ let lastPivot=null;
+ // Punto sobre el que se pivota: el centro de la pantalla si apunta al terreno; si apunta al cielo (muy inclinado) se prueba más abajo,
+ // después el último punto válido y, en último caso, el punto justo bajo la cámara. Así la inclinación y la rotación nunca se quedan sin respuesta.
+ function pivot(){
+  const C=Cesium,cam=globeViewer.camera,sc=globeViewer.scene,cv=sc.canvas,w=cv.clientWidth,h=cv.clientHeight;
+  for(const fy of [.5,.62,.75,.9]){
+   const p=new C.Cartesian2(w*.5,h*fy);let t=null;
+   try{t=sc.globe.pick(cam.getPickRay(p),sc)}catch(_){}
+   if(!t){try{t=cam.pickEllipsoid(p)}catch(_){}}
+   if(t){if(fy===.5)lastPivot=t;return t}
+  }
+  if(lastPivot)return lastPivot;
+  try{const c=C.Cartographic.fromCartesian(cam.positionWC);return C.Cartesian3.fromRadians(c.longitude,c.latitude,0)}catch(_){return null}
+ }
  function tilt(deg){
   try{
-   const C=Cesium,cam=globeViewer.camera,sc=globeViewer.scene,cv=sc.canvas,ctr=new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2);
-   let target=null;
-   try{target=sc.globe.pick(cam.getPickRay(ctr),sc)}catch(_){}
-   if(!target)target=cam.pickEllipsoid(ctr);
-   if(!target)return;
+   const C=Cesium,cam=globeViewer.camera,sc=globeViewer.scene;
+   const d=Math.min(75,Math.max(0,deg));
+   if(d<=0.5){ // vista cenital: siempre posible, sin depender de lo que haya en el centro de la pantalla
+    cam.setView({orientation:{heading:cam.heading,pitch:-C.Math.PI_OVER_TWO,roll:0}});
+    sc.requestRender();return;
+   }
+   const target=pivot();if(!target)return;
    const range=C.Cartesian3.distance(cam.positionWC,target);
-   cam.lookAt(target,new C.HeadingPitchRange(cam.heading,C.Math.toRadians(Math.min(75,Math.max(0,deg))-90),range));
+   cam.lookAt(target,new C.HeadingPitchRange(cam.heading,C.Math.toRadians(d-90),range));
    cam.lookAtTransform(C.Matrix4.IDENTITY);
    sc.requestRender();
-  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-tilt')}
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-tilt');try{globeViewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY)}catch(_){}}
  }
  function rotate(deg){
   try{
-   const C=Cesium,cam=globeViewer.camera,sc=globeViewer.scene,cv=sc.canvas,ctr=new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2);
-   let target=null;try{target=sc.globe.pick(cam.getPickRay(ctr),sc)}catch(_){}
-   if(!target)target=cam.pickEllipsoid(ctr);
-   if(!target)return;
+   const C=Cesium,cam=globeViewer.camera,sc=globeViewer.scene;
+   const target=pivot();if(!target)return;
    const range=C.Cartesian3.distance(cam.positionWC,target);
    cam.lookAt(target,new C.HeadingPitchRange(C.Math.toRadians(((deg%360)+360)%360),cam.pitch,range));
    cam.lookAtTransform(C.Matrix4.IDENTITY);
    sc.requestRender();
-  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-rotate')}
+  }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-rotate');try{globeViewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY)}catch(_){}}
  }
  let wired=false;
  function wire(){
@@ -23609,6 +23623,7 @@ window.__anambroIndigenousTerritories={layer:()=>group,set,data:()=>DATA,syncGlo
    ctl.enableTilt=true;
    ctl.tiltEventTypes=[C.CameraEventType.MIDDLE_DRAG,C.CameraEventType.PINCH,{eventType:C.CameraEventType.LEFT_DRAG,modifier:C.KeyboardEventModifier.CTRL},{eventType:C.CameraEventType.RIGHT_DRAG,modifier:C.KeyboardEventModifier.CTRL},{eventType:C.CameraEventType.LEFT_DRAG,modifier:C.KeyboardEventModifier.SHIFT}];
    globeViewer.camera.moveEnd.addEventListener(()=>{
+    try{pivot()}catch(_){}
     try{const v=Math.round(90+C.Math.toDegrees(globeViewer.camera.pitch));const tr=document.getElementById('globeTiltRange');if(tr&&document.activeElement!==tr){tr.value=Math.max(0,Math.min(75,v));document.getElementById('globeTiltVal').textContent=Math.max(0,v)+'°'}const rr=document.getElementById('globeRotRange');if(rr&&document.activeElement!==rr){const h=Math.round((C.Math.toDegrees(globeViewer.camera.heading)+360)%360);rr.value=h;document.getElementById('globeRotVal').textContent=h+'°'}}catch(_){}
    });
   }catch(e){typeof __anLog=='function'&&__anLog(e,'globe-tilt-wire')}
@@ -25216,8 +25231,9 @@ async function applyLeg(){
  const CREDIT='PNOA OV 3D · © Instituto Geográfico Nacional de España (IGN/CNIG) · CC BY 4.0';
  const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
  const gv=()=>(typeof globeViewer!=='undefined'&&globeViewer&&window.Cesium)?globeViewer:null;
- let ts=null,busy=false,seq=0;
- const setInfo=t=>{const el=document.getElementById('globePnoa3dInfo');if(el)el.textContent=t||''};
+ let ts=null,busy=false,seq=0,stTimer=null,fails=0,lastErr='',rootTxt='';
+ const setInfo=(t,btn)=>{const el=document.getElementById('globePnoa3dInfo');if(!el)return;el.textContent=t||'';
+  if(btn){const b=document.createElement('button');b.type='button';b.textContent='🎯 Ir al modelo';b.style.cssText='display:block;margin-top:3px;font:600 11px system-ui;cursor:pointer';b.addEventListener('click',goTo);el.appendChild(b)}};
  const mobile=()=>{try{return matchMedia('(pointer:coarse)').matches}catch(_){return false}};
  async function enable(){
   const v=gv();if(!v){setInfo('Abre el globo para cargar los modelos 3D.');return false}
@@ -25228,9 +25244,11 @@ async function applyLeg(){
    if(my!==seq){try{t.destroy()}catch(_){}busy=false;return false}
    v.scene.primitives.add(t);ts=t;
    try{t.allTilesLoaded.addEventListener(()=>{try{v.scene.requestRender()}catch(_){}})}catch(_){}
-   try{t.tileFailed.addEventListener(e=>{window.__anambroPnoa3dErr=String(e&&e.message||e).slice(0,160)})}catch(_){}
+   fails=0;lastErr='';rootTxt='';
+   try{t.tileFailed.addEventListener(e=>{fails++;lastErr=String(e&&e.message||e).slice(0,100);window.__anambroPnoa3dErr=lastErr})}catch(_){}
+   try{const bs=t.boundingSphere,c=Cesium.Cartographic.fromCartesian(bs.center);rootTxt='zona del servicio: '+Cesium.Math.toDegrees(c.latitude).toFixed(2)+'°, '+Cesium.Math.toDegrees(c.longitude).toFixed(2)+'° · radio '+Math.round(bs.radius/1000)+' km'}catch(_){}
    v.scene.requestRender();
-   setInfo('Modelos 3D de núcleos urbanos de más de 50.000 hab. · acércate a una ciudad grande');
+   startStats(t);
    busy=false;return true;
   }catch(e){
    busy=false;log(e,'globe-pnoa3d');
@@ -25239,8 +25257,19 @@ async function applyLeg(){
    return false;
   }
  }
+ function startStats(t){
+  clearInterval(stTimer);
+  const upd=()=>{
+   if(!ts){clearInterval(stTimer);return}
+   let line='';
+   try{const q=t.statistics;line='Modelos 3D IGN · en vista: '+q.selected+' · listos: '+q.numberOfTilesWithContentReady+'/'+q.numberOfTilesTotal+' · pendientes: '+q.numberOfPendingRequests+(fails?' · fallos: '+fails+(lastErr?' ('+lastErr+')':''):'')}catch(_){line='Modelos 3D IGN cargados'}
+   setInfo(line+(rootTxt?' · '+rootTxt:''),true);
+  };
+  upd();stTimer=setInterval(upd,1500);
+ }
+ function goTo(){const v=gv();if(!v||!ts)return;try{v.camera.flyToBoundingSphere(ts.boundingSphere,{duration:2.2})}catch(e){log(e,'globe-pnoa3d-goto')}}
  function disable(){
-  seq++;const v=gv();
+  seq++;clearInterval(stTimer);const v=gv();
   if(ts){try{v&&v.scene.primitives.remove(ts)}catch(_){}try{!ts.isDestroyed()&&ts.destroy()}catch(_){}ts=null}
   setInfo('');try{v&&v.scene.requestRender()}catch(_){}
  }
