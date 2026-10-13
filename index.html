@@ -25205,5 +25205,82 @@ async function applyLeg(){
 })();
 </script>
 
+<script id="anambro-globe-pnoa3d-20261012">
+/* Globo 3D · «Ciudades 3D · PNOA OV 3D» (IGN/CNIG): modelos 3D de núcleos urbanos de más de 50.000 habitantes, en formato OGC 3D Tiles,
+   generados con la ortoimagen verdadera y un MDS por supercorrelación de los fotogramas del PNOA 2025.
+   Servicio: https://servicios3d.idee.es/pnoa-ma/json/tileset.json · A demanda (casilla), siempre desactivado al abrir. */
+(function(){
+ 'use strict';
+ if(window.__anambroPnoa3d)return;window.__anambroPnoa3d=true;
+ const URL_='https://servicios3d.idee.es/pnoa-ma/json/tileset.json';
+ const CREDIT='PNOA OV 3D · © Instituto Geográfico Nacional de España (IGN/CNIG) · CC BY 4.0';
+ const log=(e,w)=>{try{typeof __anLog=='function'&&__anLog(e,w)}catch(_){}};
+ const gv=()=>(typeof globeViewer!=='undefined'&&globeViewer&&window.Cesium)?globeViewer:null;
+ let ts=null,busy=false,seq=0;
+ const setInfo=t=>{const el=document.getElementById('globePnoa3dInfo');if(el)el.textContent=t||''};
+ const mobile=()=>{try{return matchMedia('(pointer:coarse)').matches}catch(_){return false}};
+ async function enable(){
+  const v=gv();if(!v){setInfo('Abre el globo para cargar los modelos 3D.');return false}
+  if(ts||busy)return true;
+  busy=true;const my=++seq;setInfo('Cargando modelos 3D del IGN…');
+  try{
+   const t=await Cesium.Cesium3DTileset.fromUrl(URL_,{maximumScreenSpaceError:mobile()?24:16,credit:CREDIT});
+   if(my!==seq){try{t.destroy()}catch(_){}busy=false;return false}
+   v.scene.primitives.add(t);ts=t;
+   try{t.allTilesLoaded.addEventListener(()=>{try{v.scene.requestRender()}catch(_){}})}catch(_){}
+   try{t.tileFailed.addEventListener(e=>{window.__anambroPnoa3dErr=String(e&&e.message||e).slice(0,160)})}catch(_){}
+   v.scene.requestRender();
+   setInfo('Modelos 3D de núcleos urbanos de más de 50.000 hab. · acércate a una ciudad grande');
+   busy=false;return true;
+  }catch(e){
+   busy=false;log(e,'globe-pnoa3d');
+   const cb=document.getElementById('globePnoa3dOn');if(cb)cb.checked=false;
+   setInfo('No se pudo cargar el servicio 3D del IGN'+(e&&e.message?' ('+String(e.message).slice(0,90)+')':'')+'.');
+   return false;
+  }
+ }
+ function disable(){
+  seq++;const v=gv();
+  if(ts){try{v&&v.scene.primitives.remove(ts)}catch(_){}try{!ts.isDestroyed()&&ts.destroy()}catch(_){}ts=null}
+  setInfo('');try{v&&v.scene.requestRender()}catch(_){}
+ }
+ function addControl(){
+  const box=document.getElementById('globeReliefBox');if(!box)return false;
+  if(document.getElementById('globePnoa3dOn'))return true;
+  const lab=document.createElement('label');lab.style.marginTop='3px';
+  lab.innerHTML='<input type="checkbox" id="globePnoa3dOn"> 🏙️ Ciudades 3D · PNOA OV 3D (IGN)';
+  const prev=document.getElementById('globeGrafcanOn')?.parentElement;
+  if(prev&&prev.parentNode)prev.parentNode.insertBefore(lab,prev.nextSibling);else box.appendChild(lab);
+  const inf=document.createElement('div');inf.id='globePnoa3dInfo';inf.style.cssText='font:400 11px system-ui;color:#455;max-width:300px';
+  lab.parentNode.insertBefore(inf,lab.nextSibling);
+  lab.querySelector('input').addEventListener('change',function(){if(this.checked)enable();else disable()});
+  return true;
+ }
+ if(!addControl()){const iv=setInterval(()=>{if(addControl())clearInterval(iv)},400);setTimeout(()=>clearInterval(iv),20000)}
+ // Al tocar sobre un modelo 3D, la ficha del punto indica la fuente.
+ try{
+  if(typeof showGlobePoint==='function'&&!showGlobePoint.__anPnoa3d){
+   const old=showGlobePoint;
+   const w=async function(ll,pos){
+    const r=await old.apply(this,arguments);
+    try{
+     const v=gv();
+     if(ts&&v&&pos){
+      const p=v.scene.pick(pos);
+      if(p&&p instanceof Cesium.Cesium3DTileFeature){
+       const box=document.getElementById('globeInfo');
+       if(box&&!box.classList.contains('empty')&&!box.querySelector('.anPnoa3dSrc'))box.insertAdjacentHTML('beforeend','<div class="anPnoa3dSrc" style="margin-top:6px;font-size:10.5px;color:#556">🏙️ Modelo 3D · '+CREDIT.replace(/&/g,'&amp;')+'</div>');
+      }
+     }
+    }catch(e){log(e,'globe-pnoa3d-pick')}
+    return r;
+   };
+   w.__anPnoa3d=true;showGlobePoint=w;
+  }
+ }catch(e){log(e,'globe-pnoa3d-wrap')}
+ window.__anambroPnoa3dTest={enable,disable};
+})();
+</script>
+
 </body>
 </html>
