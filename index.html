@@ -15744,6 +15744,7 @@ html body .leaflet-popup-content{padding-top:5px}
  /* ----- Patrimonio arqueológico insular · La Palma + Gran Canaria ----- */
  const ARCH_LP_GEOJSON='https://lapalmasmart-open.lapalma.es/datosabiertos/catalogo/dataset/8e0f3928-0a73-4dbe-ad4b-3d0609043b4b/resource/f18eb39e-c8b3-414f-8e01-a1802db31dc8/download/lugares-interes-historico-la-palma-20260514.geojson';
  let archLaPalmaLayer=null,archLaPalmaData=null;
+ window.__anambroArchLaPalmaLayer=()=>archLaPalmaLayer; /* v0.5 · acceso para la detección de toques (ver anambro-2d-volcano-hit) */
  function archStatus(t){const e=document.getElementById('archaeologyStatus');if(e)e.textContent=t}
  function archColor(p){const t=norm([p.tipo,p.subtipo,p.categoria,p.tipologia,p.TIPO,p.SUBTIPO,p._capa,p.YACIM_MAG].filter(Boolean).join(' '));if(t.includes('grabado'))return '#8e44ad';if(t.includes('funer'))return '#2c3e50';if(t.includes('cueva'))return '#d35400';if(t.includes('cabana')||t.includes('cabaña'))return '#16a085';if(t.includes('pastor'))return '#27ae60';if(t.includes('canal')||t.includes('cazoleta'))return '#2980b9';return '#b03a2e'}
  function archPropsHtml(p){const wanted=[['Nombre',p.nombre||p.NOMBRE||p.ETIQUETA],['Tipo',p.tipo||p.TIPO||p._capa],['Categoría',p.YACIM_MAG],['Naturaleza',p.NATURALEZA],['Subtipo',p.subtipo||p.SUBTIPO],['Municipio',p.municipio||p.MUNICIPIO],['Descripción',p.descripcion||p.DESCRIPCION||p.descripcio],['Superficie',p.superficie_m2||p.superficie||p.SUPERFICIE]];return wanted.filter(x=>x[1]!=null&&String(x[1]).trim()).map(x=>'<b>'+esc(x[0])+':</b> '+esc(String(x[1]))).join('<br>')}
@@ -25080,6 +25081,8 @@ async function applyLeg(){
   const out=[];
   try{if(typeof worldVolcanoesLayer!=='undefined'&&worldVolcanoesLayer&&map.hasLayer(worldVolcanoesLayer))out.push(worldVolcanoesLayer)}catch(_){}
   try{if(typeof worldRecentVolcanoesLayer!=='undefined'&&worldRecentVolcanoesLayer&&map.hasLayer(worldRecentVolcanoesLayer))out.push(worldRecentVolcanoesLayer)}catch(_){}
+  /* v0.5 · yacimientos de La Palma: mismo problema (otra capa de lienzo se queda encima y se lleva el toque) y misma solución */
+  try{const a=window.__anambroArchLaPalmaLayer?.();if(a&&map.hasLayer(a))out.push(a)}catch(_){}
   return out;
  }
  function nearest(latlng){
