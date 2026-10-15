@@ -3378,7 +3378,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r21: recuadro de Canarias movible con el fondo del mapa)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r22: Canarias a la misma escala que el mapa y con marco)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -3866,8 +3866,8 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
           <div id="layoutScaleTicks" class="layoutScaleTicks"><span>0</span><span></span><span></span><span></span><span></span></div>
         </div>
 
-        <div id="layoutInsetBox" class="layoutItem layoutInsetBox" data-layout="inset" style="display:none;left:4%;top:60%;width:26%;height:24%;background:#d9eef6;border:1.5px solid #2b3338;overflow:hidden;z-index:13">
-          <img id="layoutInsetImage" alt="Recuadro de Canarias" style="width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block;pointer-events:none">
+        <div id="layoutInsetBox" class="layoutItem layoutInsetBox" data-layout="inset" style="display:none;left:4%;top:60%;width:26%;height:24%;background:#d9eef6;overflow:hidden;z-index:13">
+          <img id="layoutInsetImage" alt="Recuadro de Canarias" style="width:100%;height:100%;object-fit:fill;display:block;pointer-events:none">
         </div>
         <div id="layoutChartBox" class="layoutItem layoutChartBox" data-layout="chart" style="display:none;left:62%;top:47%;width:36%;height:40%;background:#fff;z-index:14">
           <img id="layoutChartImage" alt="Gráfico del análisis geográfico" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none">
@@ -24077,42 +24077,63 @@ if(typeof window.syncLayoutLegendTitle==='function'){const prev=window.syncLayou
 if(typeof window.layoutExportLegendHTML==='function'){const prev=window.layoutExportLegendHTML;window.layoutExportLegendHTML=function(){try{if(window.anambroGeoAnalysisActive()&&(typeof layoutContentMode==='undefined'||layoutContentMode!=='profile')){const h=legendInner();if(h)return h.replace(/^<b>[\s\S]*?<\/b>(<br>)?/,'')}}catch(_){}return prev.apply(this,arguments)}}
 /* Al exportar un mapa de España, Canarias va en un recuadro propio, movible y redimensionable en el compositor,
    con el mismo fondo que el resto del mapa (captura real del visor sobre Canarias). En el visor sigue en su posición real. */
-const CAN_VIEW=[[27.35,-18.45],[29.55,-13.15]],PEN_VIEW=[[35.2,-9.9],[44.0,4.6]];
-let insetData=null;
+const CAN_VIEW=[[27.35,-18.45],[29.55,-13.15]],CAN_WIDE=[[26.2,-20.4],[30.6,-11.2]],PEN_VIEW=[[35.2,-9.9],[44.0,4.6]];
+/* insetData: {src, w, h (px CSS de la captura), kmPerPx (km por px CSS en la latitud media de Canarias), cx, cy (centro del archipiélago en px)} */
+let insetData=null,insetImg=null,insetSized=false;
 const $=id=>document.getElementById(id);
-function refreshInset(){const box=$('layoutInsetBox'),img=$('layoutInsetImage'),wrap=$('layoutVisInsetWrap'),chk=$('layoutVisInset');if(!box||!img)return;
+/* km por píxel del compositor en el mapa principal: la misma referencia que usa la escala gráfica */
+function mainKmPerLayoutPx(){try{const m=typeof layoutMapDisplayMetrics==='function'?layoutMapDisplayMetrics():null;const k=layoutSnapshotMeta?.kmPerImagePxAtCenter;return m&&k?k/m.ratio:null}catch(_){return null}}
+/* Dibuja el recuadro: Canarias a la MISMA escala que el mapa principal, centrada en la caja, con su marco */
+function renderInset(sc){const box=$('layoutInsetBox'),img=$('layoutInsetImage');if(!box||!img||!insetData||!insetImg?.complete)return;
+ const bw=box.clientWidth,bh=box.clientHeight;if(!bw||!bh)return;const km=mainKmPerLayoutPx();const f=km?insetData.kmPerPx/km:Math.min(bw/insetData.w,bh/insetData.h);
+ sc=sc||Math.max(2,window.devicePixelRatio||1);const cv=document.createElement('canvas');cv.width=Math.round(bw*sc);cv.height=Math.round(bh*sc);const cx=cv.getContext('2d');
+ cx.fillStyle='#d9eef6';cx.fillRect(0,0,cv.width,cv.height);const dw=insetData.w*f*sc,dh=insetData.h*f*sc,ox=cv.width/2-insetData.cx*f*sc,oy=cv.height/2-insetData.cy*f*sc;
+ cx.imageSmoothingQuality='high';cx.drawImage(insetImg,ox,oy,dw,dh);const lw=Math.max(2,1.6*sc);cx.strokeStyle='#2b3338';cx.lineWidth=lw;cx.strokeRect(lw/2,lw/2,cv.width-lw,cv.height-lw);
+ img.style.objectFit='fill';img.src=cv.toDataURL('image/jpeg',.94);box.dataset.insetScale=String(f)}
+/* Tamaño inicial de la caja: lo justo para que quepa el archipiélago a esa escala */
+function sizeInsetBox(){const box=$('layoutInsetBox'),page=$('layoutPage');const km=mainKmPerLayoutPx();if(!box||!page||!insetData||!km)return;const f=insetData.kmPerPx/km;
+ const w=(insetData.aw*f+24)/page.clientWidth*100,h=(insetData.ah*f+18)/page.clientHeight*100;if(!(w>0&&h>0))return;box.style.width=Math.min(60,w).toFixed(2)+'%';box.style.height=Math.min(60,h).toFixed(2)+'%';insetSized=true}
+function refreshInset(){const box=$('layoutInsetBox'),wrap=$('layoutVisInsetWrap'),chk=$('layoutVisInset');if(!box)return;
  const ok=!!insetData&&(typeof layoutContentMode==='undefined'||layoutContentMode==='map');if(wrap)wrap.style.display=ok?'':'none';
- if(!ok){box.style.display='none';return}if(img.src!==insetData)img.src=insetData;box.style.display=chk?.checked!==false?'':'none'}
+ if(!ok){box.style.display='none';return}box.style.display=chk?.checked!==false?'':'none';if(!insetSized)sizeInsetBox();renderInset()}
 $('layoutVisInset')?.addEventListener('change',()=>{refreshInset();if($('layoutVisInset').checked&&typeof selectLayoutItem==='function')selectLayoutItem('inset')});
+/* se redibuja al cambiar el tamaño de la caja o la escala del mapa principal (zoom, papel, encuadre) */
+try{let t=0;const ro=new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(()=>renderInset(),60)});const bx=$('layoutInsetBox');if(bx)ro.observe(bx);const mb=$('layoutMapBox');if(mb)ro.observe(mb)}catch(_){}
+if(typeof updateLayoutScaleBox==='function'){const prevScale=updateLayoutScaleBox;updateLayoutScaleBox=function(){const r=prevScale.apply(this,arguments);try{renderInset()}catch(_){}return r};window.updateLayoutScaleBox=updateLayoutScaleBox}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function captureCanarias(){
  const gridWanted=$('layoutShowGrid')?.checked!==false,gridOn=typeof geoGrid!=='undefined'&&map.hasLayer(geoGrid);if(!gridWanted&&gridOn)map.removeLayer(geoGrid);
  try{try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}
-  map.fitBounds(CAN_VIEW,{padding:[8,8],animate:false});await wait(1500);
+  map.fitBounds(CAN_WIDE,{padding:[0,0],animate:false});await wait(1500);
   await __anLib('html2canvas');const cv=await html2canvas(map.getContainer(),{useCORS:true,allowTaint:false,logging:false,backgroundColor:'#d9eef6',ignoreElements:el=>el.classList?.contains('leaflet-control')||el.id==='status'});
-  const sz=map.getSize(),k=cv.width/sz.x,p1=map.latLngToContainerPoint(CAN_VIEW[1]),p0=map.latLngToContainerPoint(CAN_VIEW[0]);
-  const x=Math.max(0,Math.min(p0.x,p1.x)*k),y=Math.max(0,Math.min(p0.y,p1.y)*k),w=Math.min(cv.width-x,Math.abs(p1.x-p0.x)*k),h=Math.min(cv.height-y,Math.abs(p1.y-p0.y)*k);
-  const out=document.createElement('canvas');out.width=Math.round(w);out.height=Math.round(h);out.getContext('2d').drawImage(cv,x,y,w,h,0,0,out.width,out.height);return out.toDataURL('image/jpeg',.93)}
+  const sz=map.getSize(),k=cv.width/sz.x,P=ll=>map.latLngToContainerPoint(ll);
+  const w0=P(CAN_WIDE[0]),w1=P(CAN_WIDE[1]);let x0=Math.max(0,Math.min(w0.x,w1.x)),y0=Math.max(0,Math.min(w0.y,w1.y)),x1=Math.min(sz.x,Math.max(w0.x,w1.x)),y1=Math.min(sz.y,Math.max(w0.y,w1.y));
+  const out=document.createElement('canvas');out.width=Math.round((x1-x0)*k);out.height=Math.round((y1-y0)*k);out.getContext('2d').drawImage(cv,x0*k,y0*k,(x1-x0)*k,(y1-y0)*k,0,0,out.width,out.height);
+  const c0=P(CAN_VIEW[0]),c1=P(CAN_VIEW[1]);
+  /* km por px a la latitud media de Canarias, medido igual que la escala del mapa principal */
+  const lat=(CAN_VIEW[0][0]+CAN_VIEW[1][0])/2,pa=P([lat,-17.5]),pb=P([lat,-13.5]),kmPerPx=map.distance([lat,-17.5],[lat,-13.5])/1000/Math.max(1,Math.abs(pb.x-pa.x));
+  return {src:out.toDataURL('image/jpeg',.93),w:x1-x0,h:y1-y0,kmPerPx,cx:(c0.x+c1.x)/2-x0,cy:(c0.y+c1.y)/2-y0,aw:Math.abs(c1.x-c0.x),ah:Math.abs(c1.y-c0.y)}}
  finally{if(!gridWanted&&gridOn&&!map.hasLayer(geoGrid))geoGrid.addTo(map)}
 }
+function setInset(d){insetData=d;insetSized=false;insetImg=null;if(!d)return;insetImg=new Image();insetImg.onload=()=>refreshInset();insetImg.src=d.src}
 if(typeof refreshLayoutSnapshot==='function'){const prevSnap=refreshLayoutSnapshot;refreshLayoutSnapshot=async function(){
  const g=G();let want=false;try{want=(typeof layoutContentMode==='undefined'||layoutContentMode!=='profile')&&window.anambroGeoAnalysisActive()&&current()===g&&!!g?.insetWanted?.()}catch(_){}
- if(!want){insetData=null;try{return await prevSnap.apply(this,arguments)}finally{refreshInset()}}
+ if(!want){setInset(null);try{return await prevSnap.apply(this,arguments)}finally{refreshInset()}}
  const c=map.getCenter(),z=map.getZoom();
  try{
-  try{insetData=await captureCanarias()}catch(e){console.warn('Recuadro de Canarias',e);insetData=null}
-  /* el mapa principal: la vista que tenía el usuario, salvo que incluyera Canarias (entonces, Península y Baleares) */
+  let d=null;try{d=await captureCanarias()}catch(e){console.warn('Recuadro de Canarias',e)}
   map.setView(c,z,{animate:false});if(map.getBounds().contains([28.3,-15.6]))map.fitBounds(PEN_VIEW,{padding:[10,10],animate:false});await wait(1200);
-  return await prevSnap.apply(this,arguments)}
+  const r=await prevSnap.apply(this,arguments);setInset(d);return r}
  finally{try{map.setView(c,z,{animate:false})}catch(_){}refreshInset()}
 }}
-/* En la exportación, el recuadro se aplana al tamaño exacto de su caja (html2canvas no respeta object-fit) */
+/* En la exportación el recuadro se redibuja a alta resolución */
 if(typeof exportLayoutPDF==='function'){const prevExp=exportLayoutPDF;exportLayoutPDF=async function(){
- const box=$('layoutInsetBox'),img=$('layoutInsetImage');let old=null;
- try{if(box&&img&&insetData&&box.style.display!=='none'&&img.naturalWidth){const bw=box.clientWidth,bh=box.clientHeight,sc=3,cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(bw*sc));cv.height=Math.max(1,Math.round(bh*sc));const iw=img.naturalWidth,ih=img.naturalHeight,r=Math.max(cv.width/iw,cv.height/ih),dw=iw*r,dh=ih*r;const cx=cv.getContext('2d');cx.fillStyle='#d9eef6';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(img,(cv.width-dw)/2,(cv.height-dh)/2,dw,dh);old=img.src;img.src=cv.toDataURL('image/jpeg',.95);img.style.objectFit='fill';await new Promise(r=>{if(img.complete)r();else{img.onload=()=>r();img.onerror=()=>r()}})}}catch(e){console.warn('Recuadro de Canarias · exportación',e)}
- try{return await prevExp.apply(this,arguments)}finally{if(old!==null){img.src=old;img.style.objectFit='cover'}}
+ try{const box=$('layoutInsetBox');if(box&&insetData&&box.style.display!=='none'){const dpi=+($('layoutDpi')?.value||300);renderInset(Math.min(6,Math.max(2,dpi/96)));const img=$('layoutInsetImage');await new Promise(r=>{if(img.complete)r();else{img.onload=()=>r();img.onerror=()=>r()}})}}catch(e){console.warn('Recuadro de Canarias · exportación',e)}
+ try{return await prevExp.apply(this,arguments)}finally{try{renderInset()}catch(_){}}
 };window.exportLayoutPDF=exportLayoutPDF}
 window.anambroRefreshLayoutInset=refreshInset;
+/* Mapas temáticos (análisis geográfico y atlas estadísticos): al exportar, sin red geográfica por defecto (se puede activar) */
+if(typeof openLayoutEditor==='function'){const prevOpen=openLayoutEditor;openLayoutEditor=function(mode){const r=prevOpen.apply(this,arguments);try{const thematic=mode!=='profile'&&(window.anambroGeoAnalysisActive()||!!window.anambroIstacActive?.()||!!window.anambroIneActive?.());const g=document.getElementById('layoutShowGrid');if(thematic&&g)g.checked=false}catch(_){}return r};window.openLayoutEditor=openLayoutEditor}
 /* Botones «Imprimir mapa» */
 function printFrom(x){const l=x?.layer?.();if(!l)return;if(!map.hasLayer(l))l.addTo(map);last=x===A()?'A':'G';applyBackground();setTimeout(()=>{try{if(typeof openLayoutEditor==='function')openLayoutEditor('map');else document.querySelector('[onclick*="openLayoutEditor"]')?.click()}catch(e){console.warn('Imprimir mapa',e)}},950)}
 document.getElementById('geoAnalysisPrint')?.addEventListener('click',()=>printFrom(A()));
