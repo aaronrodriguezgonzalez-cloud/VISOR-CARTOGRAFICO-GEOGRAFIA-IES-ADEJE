@@ -3378,7 +3378,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r22: Canarias a la misma escala que el mapa y con marco)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r23: encuadre horizontal y red geográfica en la exportación)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -8124,7 +8124,7 @@ function layoutPresetFallback(type){
 }
 function captureCurrentLayoutPreset(){
  const page=document.getElementById('layoutPage'),pr=page?.getBoundingClientRect();
- const out={paper:document.getElementById('layoutPaper')?.value||'a3',orientation:document.getElementById('layoutOrientation')?.value||'landscape',dpi:+document.getElementById('layoutDpi')?.value||300,visibility:(typeof getLayoutVisibilityState==='function'?getLayoutVisibilityState():null),items:{},cropZoom:+document.getElementById('layoutCropZoom')?.value||100,panX:+document.getElementById('layoutPanX')?.value||50,panY:+document.getElementById('layoutPanY')?.value||50};
+ const out={paper:document.getElementById('layoutPaper')?.value||'a3',orientation:document.getElementById('layoutOrientation')?.value||'landscape',dpi:+document.getElementById('layoutDpi')?.value||300,visibility:(typeof getLayoutVisibilityState==='function'?getLayoutVisibilityState():null),items:{},cropZoom:+document.getElementById('layoutCropZoom')?.value||100,panX:(v=>Number.isFinite(v)?v:50)(+(document.getElementById('layoutPanX')?.value??50)),panY:(v=>Number.isFinite(v)?v:50)(+(document.getElementById('layoutPanY')?.value??50))};
  if(!pr)return out;
  for(const key of LAYOUT_PRESET_KEYS){const el=layoutEl(key);if(!el)continue;const r=el.getBoundingClientRect();out.items[key]={left:(r.left-pr.left)/pr.width*100,top:(r.top-pr.top)/pr.height*100,width:r.width/pr.width*100,height:r.height/pr.height*100,fontScale:parseFloat(el.dataset.layoutFontScale)||1,fontFamily:el.dataset.layoutFontFamilyKey||'montserrat',z:Number(el.style.zIndex)||12};}
  return out;
@@ -8727,8 +8727,8 @@ function applyLayoutControls(){
  if(key==='map'){
   const img=document.getElementById('layoutMapImage');
   const cropZoom=Math.max(.5,(+document.getElementById('layoutCropZoom').value||100)/100);
-  const panX=+document.getElementById('layoutPanX').value||50;
-  const panY=+document.getElementById('layoutPanY').value||50;
+  const panX=(v=>Number.isFinite(v)?v:50)(+(document.getElementById('layoutPanX')?.value??50));
+  const panY=(v=>Number.isFinite(v)?v:50)(+(document.getElementById('layoutPanY')?.value??50));
   const effectiveZoom=cropZoom*s;
   img.style.width='100%';
   img.style.height='100%';
@@ -8778,8 +8778,8 @@ function initLayoutDrag(){
    layoutResize=null;
    if(el.dataset.layout==='map'&&layoutMapHandMode){
     const box=el.getBoundingClientRect();
-    const startPanX=+document.getElementById('layoutPanX').value||50;
-    const startPanY=+document.getElementById('layoutPanY').value||50;
+    const startPanX=(v=>Number.isFinite(v)?v:50)(+(document.getElementById('layoutPanX')?.value??50));
+    const startPanY=(v=>Number.isFinite(v)?v:50)(+(document.getElementById('layoutPanY')?.value??50));
     layoutDrag=null;
     layoutMapPanDrag={el,box,startX:e.clientX,startY:e.clientY,startPanX,startPanY};
     el.classList.add('dragging');
@@ -24132,8 +24132,15 @@ if(typeof exportLayoutPDF==='function'){const prevExp=exportLayoutPDF;exportLayo
  try{return await prevExp.apply(this,arguments)}finally{try{renderInset()}catch(_){}}
 };window.exportLayoutPDF=exportLayoutPDF}
 window.anambroRefreshLayoutInset=refreshInset;
-/* Mapas temáticos (análisis geográfico y atlas estadísticos): al exportar, sin red geográfica por defecto (se puede activar) */
-if(typeof openLayoutEditor==='function'){const prevOpen=openLayoutEditor;openLayoutEditor=function(mode){const r=prevOpen.apply(this,arguments);try{const thematic=mode!=='profile'&&(window.anambroGeoAnalysisActive()||!!window.anambroIstacActive?.()||!!window.anambroIneActive?.());const g=document.getElementById('layoutShowGrid');if(thematic&&g)g.checked=false}catch(_){}return r};window.openLayoutEditor=openLayoutEditor}
+/* Mapas temáticos (análisis geográfico y atlas estadísticos): al exportar, sin red geográfica salvo que el usuario
+   la active expresamente en el compositor. */
+let gridUserChoice=null;
+const thematicNow=()=>{try{return !!window.anambroGeoAnalysisActive()||!!window.anambroIstacActive?.()||!!window.anambroIneActive?.()}catch(_){return false}};
+function enforceThematicGrid(){if(gridUserChoice!==null||(typeof layoutContentMode!=='undefined'&&layoutContentMode==='profile')||!thematicNow())return;const g=document.getElementById('layoutShowGrid');if(g)g.checked=false}
+document.getElementById('layoutShowGrid')?.addEventListener('change',e=>{if(e.isTrusted)gridUserChoice=!!e.target.checked},true);
+if(typeof applyLayoutVisibilityState==='function'){const prevVis=applyLayoutVisibilityState;applyLayoutVisibilityState=function(){const r=prevVis.apply(this,arguments);try{enforceThematicGrid()}catch(_){}return r};window.applyLayoutVisibilityState=applyLayoutVisibilityState}
+if(typeof openLayoutEditor==='function'){const prevOpen=openLayoutEditor;openLayoutEditor=function(){gridUserChoice=null;const r=prevOpen.apply(this,arguments);try{enforceThematicGrid()}catch(_){}return r};window.openLayoutEditor=openLayoutEditor}
+if(typeof refreshLayoutSnapshot==='function'){const prevSnap2=refreshLayoutSnapshot;refreshLayoutSnapshot=function(){try{enforceThematicGrid()}catch(_){}return prevSnap2.apply(this,arguments)};window.refreshLayoutSnapshot=refreshLayoutSnapshot}
 /* Botones «Imprimir mapa» */
 function printFrom(x){const l=x?.layer?.();if(!l)return;if(!map.hasLayer(l))l.addTo(map);last=x===A()?'A':'G';applyBackground();setTimeout(()=>{try{if(typeof openLayoutEditor==='function')openLayoutEditor('map');else document.querySelector('[onclick*="openLayoutEditor"]')?.click()}catch(e){console.warn('Imprimir mapa',e)}},950)}
 document.getElementById('geoAnalysisPrint')?.addEventListener('click',()=>printFrom(A()));
