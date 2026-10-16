@@ -3379,7 +3379,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r32: regiones y divisiones de cualquier país)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r33: encuadre del compositor estable · nombres propios de las divisiones)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -23783,6 +23783,22 @@ const DEFS={
  'world-adm1':{label:'Divisiones de 1.er nivel',plural:'divisiones',singular:'División',scope:'el país',area:'world-adm',level:1,source:SRC_WBADM},
  'world-adm2':{label:'Divisiones de 2.º nivel',plural:'divisiones',singular:'División',scope:'el país',area:'world-adm',level:2,source:SRC_WBADM}
 };
+/* Nombre propio de las divisiones de cada país (1.er y 2.º nivel); si no figura, se usa el genérico */
+const ADM_NAMES={ESP:['Comunidades autónomas','Provincias'],FRA:['Regiones','Departamentos'],DEU:['Länder','Distritos (Kreise)'],ITA:['Regiones','Provincias'],PRT:['Distritos','Municipios'],
+ USA:['Estados','Condados'],CAN:['Provincias y territorios','Divisiones censales'],MEX:['Estados','Municipios'],BRA:['Estados','Municipios'],ARG:['Provincias','Departamentos'],CHL:['Regiones','Provincias'],
+ COL:['Departamentos','Municipios'],PER:['Departamentos','Provincias'],JPN:['Prefecturas','Municipios'],IND:['Estados y territorios','Distritos'],AUS:['Estados y territorios','Áreas de gobierno local'],
+ GBR:['Naciones y regiones','Condados y autoridades unitarias'],IRL:['Provincias','Condados'],CHE:['Cantones','Distritos'],AUT:['Estados federados','Distritos'],BEL:['Regiones','Provincias'],
+ CHN:['Provincias, regiones autónomas y municipios','Prefecturas'],RUS:['Sujetos federales','Distritos (raiones)'],UKR:['Óblasts','Raiones'],POL:['Voivodatos','Distritos (powiats)'],NLD:['Provincias','Municipios'],
+ SWE:['Condados (län)','Municipios'],NOR:['Condados (fylker)','Municipios'],FIN:['Regiones','Municipios'],DNK:['Regiones','Municipios'],GRC:['Regiones','Unidades regionales'],TUR:['Provincias','Distritos'],
+ ROU:['Distritos (județe)','Municipios'],HUN:['Condados','Distritos'],CZE:['Regiones','Distritos'],SVK:['Regiones','Distritos'],BGR:['Provincias','Municipios'],HRV:['Condados','Municipios'],SRB:['Distritos','Municipios'],
+ MAR:['Regiones','Provincias y prefecturas'],DZA:['Provincias (wilayas)','Distritos (dairas)'],TUN:['Gobernaciones','Delegaciones'],EGY:['Gobernaciones','Distritos'],NGA:['Estados','Áreas de gobierno local'],
+ ZAF:['Provincias','Distritos'],KEN:['Condados','Subcondados'],ETH:['Regiones','Zonas'],COD:['Provincias','Territorios'],IDN:['Provincias','Regencias y ciudades'],PHL:['Regiones','Provincias'],
+ VNM:['Provincias','Distritos'],THA:['Provincias','Distritos'],KOR:['Provincias y ciudades metropolitanas','Municipios'],PAK:['Provincias y territorios','Distritos'],BGD:['Divisiones','Distritos'],
+ IRN:['Provincias','Condados'],IRQ:['Gobernaciones','Distritos'],SAU:['Regiones','Gobernaciones'],AFG:['Provincias','Distritos'],KAZ:['Regiones (óblasts)','Distritos'],NZL:['Regiones','Distritos'],
+ VEN:['Estados','Municipios'],ECU:['Provincias','Cantones'],BOL:['Departamentos','Provincias'],PRY:['Departamentos','Distritos'],URY:['Departamentos','Municipios'],CUB:['Provincias','Municipios'],
+ GTM:['Departamentos','Municipios'],HND:['Departamentos','Municipios'],SLV:['Departamentos','Municipios'],NIC:['Departamentos','Municipios'],CRI:['Provincias','Cantones'],PAN:['Provincias','Distritos'],
+ DOM:['Provincias','Municipios'],NPL:['Provincias','Distritos'],MMR:['Regiones y estados','Distritos']};
+function admName(level,iso){const n=ADM_NAMES[String(iso||'').toUpperCase()];return n?n[level-1]:(level===1?'Divisiones de 1.er nivel':'Divisiones de 2.º nivel')}
 /* País elegido para las divisiones infraestatales (mismas fuentes que el juego territorial y los mapas políticos) */
 const isoOf=f=>{const p=f?.properties||{};for(const k of ['ISO_A3_EH','ADM0_A3','ISO_A3','SOV_A3','GU_A3']){const v=String(p[k]||'').trim().toUpperCase();if(v&&v!=='-99')return v}return ''};
 const countrySel=()=>document.getElementById('geoGeneralCountry');
@@ -23832,12 +23848,12 @@ const code5=v=>{const d=String(v??'').replace(/\D/g,'');return d.length>=5?d.sli
 async function build(key,progress,needPop){
  const D=DEFS[key];
  if(D.area==='world-adm'){const iso=countryIso();if(!iso)throw Error('elige un país');if(needPop)throw Error('el Banco Mundial no publica población para las divisiones infraestatales: con estas unidades se pueden calcular la superficie y el relieve');
-  const ck2=key+'|'+iso;if(cache.has(ck2))return cache.get(ck2);progress?.('Cargando las divisiones de '+(D.level===1?'1.er':'2.º')+' nivel de '+countryName()+' (World Bank)…');
+  const ck2=key+'|'+iso;if(cache.has(ck2))return cache.get(ck2);progress?.('Cargando '+admName(D.level,iso).toLowerCase()+' de '+countryName()+' (World Bank)…');
   const url='https://services.arcgis.com/iQ1dY19aHwbSDYIF/arcgis/rest/services/World_Bank_Global_Administrative_Divisions/FeatureServer/'+(D.level===1?2:3)+'/query',fs=[];
   for(let offset=0;offset<30000;offset+=2000){const q=new URLSearchParams({where:"ISO_A3='"+iso.replace(/'/g,"''")+"'",outFields:'*',returnGeometry:'true',outSR:'4326',f:'geojson',resultOffset:String(offset),resultRecordCount:'2000',geometryPrecision:'5',maxAllowableOffset:D.level===1?'0.005':'0.002'});const r=await fetch(url+'?'+q,{cache:'force-cache'});if(!r.ok)throw Error('ADM'+D.level+' HTTP '+r.status);const g=await r.json();if(g?.error)throw Error(g.error.message||'consulta rechazada');const b=g?.features||[];fs.push(...b);if(b.length<2000)break}
   if(!fs.length)throw Error('no hay divisiones de '+(D.level===1?'1.er':'2.º')+' nivel disponibles para '+countryName());
   const feats=fs.filter(f=>f.geometry).map((f,i)=>{const p=f.properties||{};const nm=String((D.level===1?p.NAM_1:p.NAM_2)||p.NAM_2||p.NAM_1||('División '+(i+1))).trim();return {type:'Feature',geometry:f.geometry,properties:{__anambroName:nm,__anambroCode:String(p.ADM2CD_c||p.ADM1CD_c||p.FID||i),__pop:null,__demHint:iso==='ESP'?null:'world'}}});
-  const out={key,def:{...D,label:D.label+' · '+countryName(),scope:countryName()},features:feats,pop:null};cache.set(ck2,out);return out}
+  const nm=admName(D.level,iso);const out={key,def:{...D,label:nm+' · '+countryName(),plural:nm.toLowerCase(),singular:nm,scope:countryName()},features:feats,pop:null};cache.set(ck2,out);return out}
  const ck=key+(needPop?'|pop':'');if(cache.has(key+'|pop'))return cache.get(key+'|pop');if(cache.has(ck))return cache.get(ck);
  let feats=[],popInfo=null;
  /* Sin variable de población, las provincias y comunidades se leen directamente de sus límites oficiales:
@@ -24017,8 +24033,8 @@ async function reliefCompute(f,progress,o){
  try{const U=(window.__gaDemUsed=window.__gaDemUsed||new Set());for(const x of out.demParts)U.add(x)}catch(_){}
  return out;
 }
-const admSuffix=k=>DEFS[k]?.area==='world-adm'&&countryName()?' · '+countryName():'';
-window.anambroGaUnits={DEFS,load,country:countryIso,label:k=>(DEFS[k]?.label||'Unidades')+admSuffix(k),plural:k=>DEFS[k]?.plural||'unidades',singular:k=>DEFS[k]?.singular||'Unidad',scope:k=>DEFS[k]?.area==='world-adm'?(countryName()||'el país'):(DEFS[k]?.scope||'el ámbito'),area:k=>DEFS[k]?.area||'canarias',source:k=>{const r=cache.get(k+'|pop')||cache.get(k);if(r&&r.features?.[0]?.properties?.__official)return 'límites oficiales EGRN de '+(k==='es-ccaa'?'comunidades autónomas':'provincias')+' (IGN · Ministerio de Transportes); población por agregación de los municipios';return DEFS[k]?.source||''},POP_SRC};
+const isAdm=k=>DEFS[k]?.area==='world-adm';
+window.anambroGaUnits={DEFS,load,country:countryIso,label:k=>isAdm(k)?admName(DEFS[k].level,countryIso())+(countryName()?' · '+countryName():''):(DEFS[k]?.label||'Unidades'),plural:k=>isAdm(k)?admName(DEFS[k].level,countryIso()).toLowerCase():(DEFS[k]?.plural||'unidades'),singular:k=>isAdm(k)?admName(DEFS[k].level,countryIso()):(DEFS[k]?.singular||'Unidad'),scope:k=>DEFS[k]?.area==='world-adm'?(countryName()||'el país'):(DEFS[k]?.scope||'el ámbito'),area:k=>DEFS[k]?.area||'canarias',source:k=>{const r=cache.get(k+'|pop')||cache.get(k);if(r&&r.features?.[0]?.properties?.__official)return 'límites oficiales EGRN de '+(k==='es-ccaa'?'comunidades autónomas':'provincias')+' (IGN · Ministerio de Transportes); población por agregación de los municipios';return DEFS[k]?.source||''},POP_SRC};
 window.__anambroGaUnitsTest={relief,tilePart,demZone,islandOf,PROV,PROV_CCAA};
 /* varias unidades a la vez (3), compartiendo el límite de descargas */
 function prefetch(features,opts){let i=0;const work=async()=>{while(i<features.length){const f=features[i++];try{await relief(f,null,opts)}catch(_){}}};for(let k=0;k<3;k++)work()}
@@ -24284,45 +24300,60 @@ document.getElementById('geoGeneralPrint')?.addEventListener('click',()=>printFr
 })();
 </script>
 <script id="anambro-layout-navigation-js">
-/* ANAMBRO · navegación real dentro del compositor: arrastrar el mapa desplaza el mapa de verdad (sin límite al este ni
-   al oeste), la rueda o los botones ＋/− hacen zoom sobre el punto señalado, y la captura se rehace al soltar.
-   Al cerrar el compositor el visor vuelve a la vista que tenía. */
+/* ANAMBRO · navegación real dentro del compositor. Lo que se ve en el recuadro del mapa manda: antes de cada
+   nueva captura, el encuadre visible (desplazamiento, zoom de la rueda, botones o deslizadores) se traslada al mapa
+   real con su mismo centro y su misma escala, y la captura nueva rellena el recuadro exactamente así. Nada
+   «rebota» ni se aleja. Sin límite al este ni al oeste. Al cerrar, el visor vuelve a la vista que tenía. */
 (function(){
 'use strict';
 if(typeof map==='undefined'||typeof refreshLayoutSnapshot!=='function')return;
 const $=id=>document.getElementById(id);
 let saved=null,busy=false,pending=false,drag=null,wheel=null,wheelTimer=0;
-if(typeof openLayoutEditor==='function'){const prev=openLayoutEditor;openLayoutEditor=function(){try{saved={c:map.getCenter(),z:map.getZoom()}}catch(_){saved=null}window.__layoutSessionFirst=true;return prev.apply(this,arguments)};window.openLayoutEditor=openLayoutEditor}
-if(typeof closeLayoutEditor==='function'){const prev=closeLayoutEditor;closeLayoutEditor=function(){const r=prev.apply(this,arguments);try{if(saved)map.setView(saved.c,saved.z,{animate:false})}catch(_){}saved=null;return r};window.closeLayoutEditor=closeLayoutEditor}
+if(typeof openLayoutEditor==='function'){const prev=openLayoutEditor;openLayoutEditor=function(){try{saved={c:map.getCenter(),z:map.getZoom(),snap:map.options.zoomSnap};map.options.zoomSnap=0}catch(_){saved=null}window.__layoutSessionFirst=true;return prev.apply(this,arguments)};window.openLayoutEditor=openLayoutEditor}
+if(typeof closeLayoutEditor==='function'){const prev=closeLayoutEditor;closeLayoutEditor=function(){const r=prev.apply(this,arguments);try{if(saved){map.options.zoomSnap=saved.snap??map.options.zoomSnap;map.setView(saved.c,saved.z,{animate:false})}}catch(_){}saved=null;return r};window.closeLayoutEditor=closeLayoutEditor}
 const mapMode=()=>typeof layoutContentMode==='undefined'||layoutContentMode==='map';
 const handOn=()=>{try{return !!layoutMapHandMode}catch(_){return true}};
-function metrics(){const box=$('layoutMapBox');if(!box)return null;const m=typeof layoutMapDisplayMetrics==='function'?layoutMapDisplayMetrics():null;if(!m)return null;const rc=box.getBoundingClientRect();return {box,rc,k:(rc.width/Math.max(1,box.clientWidth))*m.ratio,f:rc.width/Math.max(1,box.clientWidth)}}
-function note(t){const box=$('layoutMapBox');if(!box)return;let n=$('layoutNavNote');if(!n){n=document.createElement('div');n.id='layoutNavNote';n.setAttribute('data-html2canvas-ignore','true');n.style.cssText='position:absolute;left:50%;top:10px;transform:translateX(-50%);background:rgba(20,30,36,.82);color:#fff;font:600 12px Montserrat,Arial,sans-serif;padding:5px 10px;border-radius:14px;z-index:30;pointer-events:none';box.appendChild(n)}n.textContent=t;n.style.display=t?'':'none'}
+const boxEl=()=>$('layoutMapBox');
+/* Correspondencia entre el recuadro del compositor (px de maquetación) y la captura (px del mapa real) */
+function display(){const box=boxEl(),img=$('layoutMapImage');if(!box||!img)return null;const sz=map.getSize();
+ const W=(typeof layoutSnapshotMeta!=='undefined'&&layoutSnapshotMeta?.imgWidth)||sz.x,H=(typeof layoutSnapshotMeta!=='undefined'&&layoutSnapshotMeta?.imgHeight)||sz.y,bw=box.clientWidth||1,bh=box.clientHeight||1;
+ const mode=img.style.objectFit||'cover',fit=mode==='contain'?Math.min(bw/W,bh/H):Math.max(bw/W,bh/H);
+ const pc=t=>{const a=String(t||'50% 50%').trim().split(/\s+/).map(parseFloat);return [Number.isFinite(a[0])?a[0]:50,Number.isFinite(a[1])?a[1]:50]};
+ const pos=pc(img.style.objectPosition),org=pc(img.style.transformOrigin),sc=+((img.style.transform||'').match(/scale\(([^)]+)\)/)||[0,1])[1]||1;
+ const offX=(bw-W*fit)*pos[0]/100,offY=(bh-H*fit)*pos[1]/100,ox=bw*org[0]/100,oy=bh*org[1]/100;
+ const f=box.getBoundingClientRect().width/bw;
+ return {box,bw,bh,W,H,k:fit*sc,f,toImg:(x,y)=>[((x-ox)/sc+ox-offX)/fit,((y-oy)/sc+oy-offY)/fit]}}
+/* lleva al mapa real exactamente lo que se ve en el recuadro (centro y escala) */
+function bake(){const D=display();if(!D)return null;const [u,v]=D.toImg(D.bw/2,D.bh/2);let c;try{c=map.containerPointToLatLng([u,v])}catch(_){return null}
+ const r2=Math.max(D.bw/D.W,D.bh/D.H),z=Math.max(map.getMinZoom(),Math.min(map.getMaxZoom()||19,map.getZoom()+Math.log2(D.k/r2)));
+ try{map.setView(c,z,{animate:false})}catch(_){}return {r2,D}}
+function present(){const img=$('layoutMapImage');if(!img)return;for(const [id,v] of [['layoutCropZoom',100],['layoutPanX',50],['layoutPanY',50],['layoutSize',100]]){const e=$(id);if(e)e.value=v}
+ Object.assign(img.style,{width:'100%',height:'100%',maxWidth:'none',maxHeight:'none',position:'absolute',left:'0',top:'0',objectFit:'cover',objectPosition:'50% 50%',transform:'scale(1)',transformOrigin:'50% 50%'});try{updateLayoutScaleBox()}catch(_){}}
+function note(t){const box=boxEl();if(!box)return;let n=$('layoutNavNote');if(!n){n=document.createElement('div');n.id='layoutNavNote';n.setAttribute('data-html2canvas-ignore','true');n.style.cssText='position:absolute;left:50%;top:10px;transform:translateX(-50%);background:rgba(20,30,36,.82);color:#fff;font:600 12px Montserrat,Arial,sans-serif;padding:5px 10px;border-radius:14px;z-index:30;pointer-events:none';box.appendChild(n)}n.textContent=t;n.style.display=t?'':'none'}
 function wrapCenter(){try{const c=map.getCenter();if(Math.abs(c.lng)>180){const l=((c.lng+180)%360+360)%360-180;map.setView([c.lat,l],map.getZoom(),{animate:false})}}catch(_){}}
 async function recapture(){if(busy){pending=true;return}busy=true;note('Actualizando el encuadre…');
- try{wrapCenter();await new Promise(r=>setTimeout(r,700));await refreshLayoutSnapshot();
-  const img=$('layoutMapImage');if(img){img.style.transform='scale(1)';img.style.transformOrigin='50% 50%'}
-  try{if(typeof politicalActive!=='undefined'&&politicalActive&&typeof fitLayoutMapImage==='function')fitLayoutMapImage();else if(typeof containLayoutMapImage==='function')containLayoutMapImage()}catch(_){}
- }catch(e){console.warn('Navegación en el compositor',e)}
+ try{wrapCenter();await new Promise(r=>setTimeout(r,700));await refreshLayoutSnapshot();present()}catch(e){console.warn('Navegación en el compositor',e)}
  finally{busy=false;note('');if(pending){pending=false;recapture()}}}
-/* arrastre: el desplazamiento en el papel se traduce a píxeles del mapa real */
-function boxEl(){return $('layoutMapBox')}
-boxEl()?.addEventListener('pointerdown',e=>{if(e.button!==0||!mapMode()||!handOn()||e.target.closest?.('.layoutResizeHandle,#layoutNavButtons'))return;const M=metrics();if(!M)return;
+/* arrastre */
+boxEl()?.addEventListener('pointerdown',e=>{if(e.button!==0||!mapMode()||!handOn()||busy||e.target.closest?.('.layoutResizeHandle,#layoutNavButtons'))return;const D=display();if(!D)return;
  e.stopImmediatePropagation();e.preventDefault();try{typeof selectLayoutItem==='function'&&selectLayoutItem('map')}catch(_){}
- drag={x:e.clientX,y:e.clientY,M,img:$('layoutMapImage'),t0:$('layoutMapImage')?.style.transform||'scale(1)'};try{boxEl().setPointerCapture(e.pointerId)}catch(_){}},true);
-window.addEventListener('pointermove',e=>{if(!drag)return;const dx=(e.clientX-drag.x)/drag.M.f,dy=(e.clientY-drag.y)/drag.M.f;if(drag.img)drag.img.style.transform='translate('+dx+'px,'+dy+'px) '+drag.t0;e.preventDefault()},true);
-window.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;const dx=(e.clientX-d.x)/d.M.k,dy=(e.clientY-d.y)/d.M.k;if(Math.abs(dx)<1&&Math.abs(dy)<1){if(d.img)d.img.style.transform=d.t0;return}
- try{map.panBy([-dx,-dy],{animate:false})}catch(_){}recapture()},true);
-/* zoom: rueda del ratón sobre el mapa del compositor, centrado en el cursor */
-function zoomAt(clientX,clientY,dz){const M=metrics();if(!M)return;const sz=map.getSize(),cx=M.rc.left+M.rc.width/2,cy=M.rc.top+M.rc.height/2;const pt=L.point(sz.x/2+(clientX-cx)/M.k,sz.y/2+(clientY-cy)/M.k);
+ const img=$('layoutMapImage');drag={x:e.clientX,y:e.clientY,f:D.f,img,t0:img?.style.transform||'scale(1)'};try{boxEl().setPointerCapture(e.pointerId)}catch(_){}},true);
+window.addEventListener('pointermove',e=>{if(!drag)return;const dx=(e.clientX-drag.x)/drag.f,dy=(e.clientY-drag.y)/drag.f;if(drag.img)drag.img.style.transform='translate('+dx+'px,'+dy+'px) '+drag.t0;e.preventDefault()},true);
+window.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;if(d.img)d.img.style.transform=d.t0;const dx=(e.clientX-d.x)/d.f,dy=(e.clientY-d.y)/d.f;if(Math.abs(dx)<1&&Math.abs(dy)<1)return;
+ const B=bake();if(!B)return;try{map.panBy([-dx/B.r2,-dy/B.r2],{animate:false})}catch(_){}recapture()},true);
+/* zoom sobre un punto del recuadro (coordenadas de pantalla) */
+function zoomAt(clientX,clientY,dz){const B=bake();if(!B)return;const rc=B.D.box.getBoundingClientRect(),sz=map.getSize();
+ const lx=(clientX-rc.left)/B.D.f,ly=(clientY-rc.top)/B.D.f,pt=L.point(sz.x/2+(lx-B.D.bw/2)/B.r2,sz.y/2+(ly-B.D.bh/2)/B.r2);
  const z=Math.max(map.getMinZoom(),Math.min(map.getMaxZoom()||19,map.getZoom()+dz));try{map.setZoomAround(pt,z,{animate:false})}catch(_){}recapture()}
-boxEl()?.addEventListener('wheel',e=>{if(!mapMode()||!handOn())return;e.preventDefault();e.stopPropagation();const M=metrics();if(!M)return;
- if(!wheel)wheel={dz:0,x:e.clientX,y:e.clientY};wheel.dz+=-e.deltaY/360;wheel.x=e.clientX;wheel.y=e.clientY;
- const img=$('layoutMapImage');if(img){const r=img.getBoundingClientRect();img.style.transformOrigin=((e.clientX-r.left)/r.width*100)+'% '+((e.clientY-r.top)/r.height*100)+'%';img.style.transform='scale('+Math.pow(2,wheel.dz).toFixed(3)+')'}
- clearTimeout(wheelTimer);wheelTimer=setTimeout(()=>{const w=wheel;wheel=null;const dz=Math.round(w.dz*4)/4;if(dz)zoomAt(w.x,w.y,dz);else if(img)img.style.transform='scale(1)'},420)},{passive:false});
-/* botones ＋ / − / ⟲ sobre el mapa del compositor (no salen en la exportación) */
+boxEl()?.addEventListener('wheel',e=>{if(!mapMode()||!handOn()||busy)return;e.preventDefault();e.stopPropagation();const img=$('layoutMapImage');
+ if(!wheel)wheel={dz:0,x:e.clientX,y:e.clientY,t0:img?.style.transform||'scale(1)',o0:img?.style.transformOrigin||'50% 50%'};wheel.dz+=-e.deltaY/360;wheel.x=e.clientX;wheel.y=e.clientY;
+ if(img){const box=boxEl(),r=box.getBoundingClientRect();img.style.transformOrigin=((e.clientX-r.left)/r.width*100)+'% '+((e.clientY-r.top)/r.height*100)+'%';img.style.transform='scale('+Math.pow(2,wheel.dz).toFixed(3)+') '+(wheel.t0==='scale(1)'?'':wheel.t0)}
+ clearTimeout(wheelTimer);wheelTimer=setTimeout(()=>{const w=wheel;wheel=null;if(img){img.style.transform=w.t0;img.style.transformOrigin=w.o0}const dz=Math.round(w.dz*8)/8;if(dz)zoomAt(w.x,w.y,dz)},420)},{passive:false});
+/* deslizadores de encuadre y zoom de la captura: al soltarlos se rehace la captura con ese encuadre */
+['layoutCropZoom','layoutPanX','layoutPanY','layoutSize'].forEach(id=>$(id)?.addEventListener('change',()=>{if(!mapMode()||$('layoutSelected')?.value!=='map'||busy)return;if(bake())recapture()}));
+/* botones ＋ / − / ⟲ (no salen en la exportación) */
 (function(){const box=boxEl();if(!box||$('layoutNavButtons'))return;const d=document.createElement('div');d.id='layoutNavButtons';d.setAttribute('data-html2canvas-ignore','true');d.style.cssText='position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px;z-index:31';
- const b=(t,title,fn)=>{const x=document.createElement('button');x.type='button';x.textContent=t;x.title=title;x.style.cssText='width:30px;height:30px;border-radius:6px;border:1px solid #2b3338;background:#fff;font:700 16px Arial;cursor:pointer;padding:0';x.addEventListener('pointerdown',e=>e.stopImmediatePropagation(),true);x.addEventListener('click',e=>{e.stopPropagation();fn()});d.appendChild(x)};
+ const b=(t,title,fn)=>{const x=document.createElement('button');x.type='button';x.textContent=t;x.title=title;x.style.cssText='width:30px;height:30px;border-radius:6px;border:1px solid #2b3338;background:#fff;font:700 16px Arial;cursor:pointer;padding:0';x.addEventListener('pointerdown',e=>e.stopImmediatePropagation(),true);x.addEventListener('click',e=>{e.stopPropagation();if(!busy)fn()});d.appendChild(x)};
  b('＋','Acercar',()=>{const r=box.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1)});
  b('−','Alejar',()=>{const r=box.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,-1)});
  b('⟲','Volver a la vista del visor',()=>{if(saved){try{map.setView(saved.c,saved.z,{animate:false})}catch(_){}recapture()}});
