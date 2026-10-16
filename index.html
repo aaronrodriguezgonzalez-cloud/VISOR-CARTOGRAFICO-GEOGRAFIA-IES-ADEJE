@@ -3378,7 +3378,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r25: altitudes máximas y mínimas a resolución completa)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r28: población de provincias y CC. AA. directa del INE)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -23791,6 +23791,22 @@ async function worldPop(){if(typeof loadHumanWB!=='function')return null;const y
 /* Geometría oficial de provincias y comunidades autónomas (EGRN · IGN): el mapa y el cálculo usan el territorio
    completo de cada unidad, con su contorno real. Si el servicio no responde, se usan los municipios agregados. */
 const CCAA_INE={'Andalucía':'01','Aragón':'02','Principado de Asturias':'03','Illes Balears':'04','Canarias':'05','Cantabria':'06','Castilla y León':'07','Castilla-La Mancha':'08','Cataluña':'09','Comunitat Valenciana':'10','Extremadura':'11','Galicia':'12','Comunidad de Madrid':'13','Región de Murcia':'14','Comunidad Foral de Navarra':'15','País Vasco':'16','La Rioja':'17','Ceuta':'18','Melilla':'19'};
+async function officialDirect(key,progress){
+ try{if(typeof window.anambroAdminOutlineGeo!=='function')return null;progress?.('Cargando los límites oficiales de '+(key==='es-ccaa'?'las comunidades autónomas':'las provincias')+' (EGRN)…');
+  const gj=await window.anambroAdminOutlineGeo(key==='es-ccaa'?'ccaa':'prov');const inv={};for(const [n,c] of Object.entries(CCAA_INE))inv[c]=n;const by=new Map();
+  for(const f of gj?.features||[]){if(!f.geometry)continue;const c=String(f.properties?.CodINE??'').replace(/\D/g,'').padStart(2,'0');const name=key==='es-ccaa'?inv[c]:PROV[c];if(!name)continue;if(!by.has(c))by.set(c,{name,list:[]});by.get(c).list.push(f)}
+  const out=[...by].map(([c,{name,list}])=>merge(list,{__anambroName:name,__anambroCode:key==='es-ccaa'?name:c,__pop:null,__official:true}));
+  return out.length>=(key==='es-ccaa'?17:48)?out:null}catch(e){console.warn('Límites oficiales EGRN no disponibles; se usan los municipios agregados',e);return null}
+}
+const normName=t=>{let x=String(t||'').split('/')[0].trim();const m=x.match(/^(.*?),\s*(.*)$/);if(m)x=m[2]+' '+m[1];return x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z]/g,'')};
+let inePopRegionsP=null;
+function inePopRegions(progress){if(!inePopRegionsP)inePopRegionsP=(async()=>{progress?.('Cargando la población de provincias y comunidades autónomas (INE)…');
+ const r=await fetch('https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/67988?nult=1',{mode:'cors',cache:'force-cache'});if(!r.ok)throw Error('INE 67988 HTTP '+r.status);const j=await r.json();const m=new Map();let year=null;
+ for(const s of j||[]){const n=String(s.Nombre||'');if(/Hombres|Mujeres/i.test(n)||!/Total/.test(n))continue;const d=(s.Data||[]).filter(x=>Number.isFinite(+x.Valor)).sort((a,b)=>(+b.Anyo||0)-(+a.Anyo||0))[0];if(!d)continue;const place=n.split('.')[0];const k=normName(place);if(!m.has(k))m.set(k,+d.Valor);year=year||String(d.Anyo||'')}
+ /* nombres oficiales distintos de los del INE */
+ const alias={[normName('Principado de Asturias')]:normName('Asturias, Principado de'),[normName('Comunidad de Madrid')]:normName('Madrid, Comunidad de'),[normName('Región de Murcia')]:normName('Murcia, Región de'),[normName('Comunidad Foral de Navarra')]:normName('Navarra, Comunidad Foral de'),[normName('Illes Balears')]:normName('Balears, Illes'),[normName('A Coruña')]:normName('Coruña, A'),[normName('Castilla-La Mancha')]:normName('Castilla - La Mancha'),[normName('Navarra')]:normName('Navarra')};
+ for(const [a,b] of Object.entries(alias))if(!m.has(a)&&m.has(b))m.set(a,m.get(b));
+ if(m.size<50)throw Error('INE 67988: respuesta incompleta');m.year=year;return m})().catch(e=>{inePopRegionsP=null;throw e});return inePopRegionsP}
 async function officialGeometry(key,feats,progress){
  try{if(typeof window.anambroAdminOutlineGeo!=='function')return feats;progress?.('Cargando los límites oficiales de '+(key==='es-ccaa'?'las comunidades autónomas':'las provincias')+' (EGRN)…');
   const gj=await window.anambroAdminOutlineGeo(key==='es-ccaa'?'ccaa':'prov');const by=new Map();
@@ -23800,11 +23816,20 @@ async function officialGeometry(key,feats,progress){
   return out}catch(e){console.warn('Límites oficiales EGRN no disponibles; se usan los municipios agregados',e);return feats}
 }
 const code5=v=>{const d=String(v??'').replace(/\D/g,'');return d.length>=5?d.slice(-5):d.padStart(5,'0')};
-async function build(key,progress){
- if(cache.has(key))return cache.get(key);
+async function build(key,progress,needPop){
+ const ck=key+(needPop?'|pop':'');if(cache.has(key+'|pop'))return cache.get(key+'|pop');if(cache.has(ck))return cache.get(ck);
  const D=DEFS[key];let feats=[],popInfo=null;
+ /* Sin variable de población, las provincias y comunidades se leen directamente de sus límites oficiales:
+    no hace falta descargar los 8.000 municipios ni el censo */
+ if(!needPop&&(key==='es-provinces'||key==='es-ccaa')){const direct=await officialDirect(key,progress);if(direct){const out={key,def:D,features:direct,pop:null};cache.set(ck,out);return out}}
+ /* Con población: el INE publica directamente la población de provincias y comunidades (tabla 67988 del Censo anual),
+    así que tampoco hace falta descargar los municipios */
+ if(needPop&&(key==='es-provinces'||key==='es-ccaa')){try{const [direct,rp]=await Promise.all([officialDirect(key,progress),inePopRegions(progress)]);
+  if(direct&&rp){let ok=true;for(const f of direct){const v=rp.get(normName(f.properties.__anambroName));if(Number.isFinite(v))f.properties.__pop=v;else ok=false}
+   if(ok){const out={key,def:D,features:direct,pop:{source:'INE · Censo anual de población (tabla 67988, población por comunidad autónoma y provincia)',year:rp.year}};cache.set(ck,out);return out}
+   console.warn('Población INE por provincias: alguna unidad sin enlazar; se usa la agregación municipal')}}catch(e){console.warn('Población INE por provincias / CC. AA.',e)}}
  if(D.area==='canarias'){
-  progress?.('Cargando límites municipales de Canarias…');const ms=await canaryMunicipalities(),pop=await canaryPop();popInfo=pop?{source:POP_SRC.canarias,year:'2025'}:null;
+  progress?.('Cargando límites municipales de Canarias…');const ms=await canaryMunicipalities(),pop=needPop?await canaryPop():null;popInfo=pop?{source:POP_SRC.canarias,year:'2025'}:null;
   const codeOf=f=>window.anambroUnitNames?.codeOf(f)||'';
   for(const f of ms){f.properties=f.properties||{};const c=codeOf(f);f.properties.__anambroCode=c;f.properties.__pop=pop&&pop.has(c)?pop.get(c):null;f.properties.__island=islandOf(f)}
   const sumPop=list=>{const v=list.map(f=>f.properties.__pop);return v.every(Number.isFinite)?v.reduce((a,b)=>a+b,0):null};
@@ -23813,7 +23838,7 @@ async function build(key,progress){
   else if(key==='can-provinces'){const g=new Map();for(const f of ms){const p=String(f.properties.__anambroCode||'').slice(0,2);if(!g.has(p))g.set(p,[]);g.get(p).push(f)}feats=[...g].filter(([p])=>PROV[p]).map(([p,l])=>merge(l,{__anambroName:PROV[p],__anambroCode:p,__pop:sumPop(l)}))}
   else feats=[merge(ms,{__anambroName:'Canarias',__anambroCode:'05',__pop:sumPop(ms)})];
  }else if(D.area==='spain'){
-  progress?.('Cargando los límites municipales oficiales de España (más de 8.000 municipios)…');const ms=await spainMunicipalities();progress?.('Cargando la población municipal del INE…');const pop=await spainPop();popInfo=pop?{source:POP_SRC.spain,year:pop.year}:null;
+  progress?.('Cargando los límites municipales oficiales de España (más de 8.000 municipios)…');const ms=await spainMunicipalities();if(needPop)progress?.('Cargando la población municipal del INE…');const pop=needPop?await spainPop():null;popInfo=pop?{source:POP_SRC.spain,year:pop.year}:null;
   for(const f of ms){const p=f.properties=f.properties||{};const c=code5(p.CodINE??p.CODINE??p.codine);p.__anambroCode=c;p.__anambroName=p.__anambroName||String(p.NAMEUNIT||'').trim();p.__pop=pop&&pop.map.has(c)?pop.map.get(c):null}
   /* Los territorios compartidos (parzonerías, comunidades de montes: códigos 53xxx/54xxx) no tienen población
      propia, pero forman parte del territorio: se asignan a la provincia que los rodea para que no queden huecos. */
@@ -23829,13 +23854,13 @@ async function build(key,progress){
   if(key!=='es-municipalities')feats=await officialGeometry(key,feats,progress);
  }else{
   progress?.('Cargando las fronteras de los países…');if(typeof loadCountries==='function')await loadCountries();const cs=(typeof countriesData!=='undefined'&&countriesData?.features)||[];if(!cs.length)throw Error('no se pudieron cargar las fronteras de los países');
-  progress?.('Cargando la población del Banco Mundial…');const pop=await worldPop();popInfo=pop?{source:POP_SRC.world,year:pop.year}:null;
+  if(needPop)progress?.('Cargando la población del Banco Mundial…');const pop=needPop?await worldPop():null;popInfo=pop?{source:POP_SRC.world,year:pop.year}:null;
   for(const f of cs){const p=f.properties||{};if(String(p.CONTINENT||'')==='Antarctica')continue;const c=typeof humanCountryCode==='function'?humanCountryCode(p):String(p.ISO_A3||'');const nm=typeof humanCountryLabel==='function'?humanCountryLabel(p):(p.NAME||c);feats.push({type:'Feature',geometry:f.geometry,properties:{__anambroName:nm,__anambroCode:c,__pop:pop&&pop.map.has(c)?pop.map.get(c):null}})}
  }
- const out={key,def:D,features:feats,pop:popInfo};cache.set(key,out);return out;
+ const out={key,def:D,features:feats,pop:popInfo};cache.set(ck,out);return out;
 }
 function inView(f){try{if(typeof map==='undefined')return true;const b=map.getBounds(),bb=bbox(rings(f.geometry));return bb[0]<=b.getEast()&&bb[2]>=b.getWest()&&bb[1]<=b.getNorth()&&bb[3]>=b.getSouth()}catch(_){return true}}
-async function load(key,opts={}){const D=DEFS[key];if(!D)throw Error('unidad desconocida');const r=await build(key,opts.progress);let fs=r.features;if(opts.visibleOnly)fs=fs.filter(inView);return {fc:{type:'FeatureCollection',features:fs},def:D,pop:r.pop,visibleOnly:!!opts.visibleOnly,total:r.features.length}}
+async function load(key,opts={}){const D=DEFS[key];if(!D)throw Error('unidad desconocida');const r=await build(key,opts.progress,opts.needPop!==false);let fs=r.features;if(opts.visibleOnly)fs=fs.filter(inView);return {fc:{type:'FeatureCollection',features:fs},def:D,pop:r.pop,visibleOnly:!!opts.visibleOnly,total:r.features.length}}
 /* ---------- Relieve con el MDE adecuado a cada lugar ---------- */
 const ASPECTS=['Norte','Noreste','Este','Sureste','Sur','Suroeste','Oeste','Noroeste'],FLAT='Llano (pendiente < 5 %)';
 function newAcc(){return {n:0,w:0,sum:0,min:Infinity,max:-Infinity,ns:0,ssum:0,steep:0,asp:new Map(),res:0,dems:new Set()}}
@@ -23858,14 +23883,22 @@ async function mdtPart(polys,key,A){
 const TILE={idee:{url:(z,x,y)=>'https://xyz-mdt.idee.es/1.0.0/raster-dem/'+z+'/'+x+'/'+y+'.png',dec:(r,g,b)=>-10000+((r*65536+g*256+b)*0.1),maxZ:13,label:'MDE nacional · IDEE / IGN-CNIG (Terrain-RGB, MDT05)'},
  terrarium:{url:(z,x,y)=>'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+z+'/'+x+'/'+y+'.png',dec:(r,g,b)=>r*256+g+b/256-32768,maxZ:12,label:'MDE mundial Terrarium · Mapzen / AWS (SRTM, GMTED2010, ETOPO1…)'}};
 const tileCache=new Map();
-async function tileData(prov,z,x,y){const n=2**z;x=((x%n)+n)%n;const u=TILE[prov].url(z,x,y);if(!tileCache.has(u)){tileCache.set(u,(async()=>{const r=await fetch(u,{mode:'cors'});if(!r.ok)throw Error('MDE '+r.status);const bmp=await createImageBitmap(await r.blob()),cv=document.createElement('canvas');cv.width=256;cv.height=256;const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0);return cx.getImageData(0,0,256,256).data})().catch(e=>{tileCache.delete(u);throw e}));if(tileCache.size>1500)tileCache.delete(tileCache.keys().next().value)}return tileCache.get(u)}
+/* Descarga de teselas del MDE con límite de peticiones simultáneas y reintentos: una tesela perdida no puede
+   dejar fuera una sierra entera (antes se ignoraba en silencio y rebajaba máximos y medias) */
+let tileActive=0;const tileQueue=[];
+async function tileSlot(fn){if(tileActive>=8)await new Promise(r=>tileQueue.push(r));tileActive++;try{return await fn()}finally{tileActive--;const n=tileQueue.shift();if(n)n()}}
+async function fetchTileBlob(u){let last=null;for(let a=0;a<3;a++){try{return await tileSlot(async()=>{const r=await fetch(u,{mode:'cors'});if(r.status===404||r.status===204){const e=Error('MDE sin tesela '+r.status);e.fatal=true;throw e}if(!r.ok)throw Error('MDE '+r.status);return await r.blob()})}catch(e){last=e;if(e.fatal)break;await new Promise(r=>setTimeout(r,400*(a+1)))}}throw last}
+async function tileData(prov,z,x,y){const n=2**z;x=((x%n)+n)%n;const u=TILE[prov].url(z,x,y);if(!tileCache.has(u)){tileCache.set(u,(async()=>{const blob=await fetchTileBlob(u);const bmp=await createImageBitmap(blob,{colorSpaceConversion:'none',premultiplyAlpha:'none'}),cv=document.createElement('canvas');cv.width=256;cv.height=256;const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0);return cx.getImageData(0,0,256,256).data})().catch(e=>{tileCache.delete(u);throw e}));if(tileCache.size>1500)tileCache.delete(tileCache.keys().next().value)}return tileCache.get(u)}
 const mercX=(lon,z)=>(lon+180)/360*2**z*256,mercY=(lat,z)=>{const l=Math.max(-85.05,Math.min(85.05,lat))*Math.PI/180;return (1-Math.asinh(Math.tan(l))/Math.PI)/2*2**z*256};
 async function tilePart(polys,prov,A,progress){
  const b=bbox(polys),T=TILE[prov];let z=T.maxZ;const count=z=>{const x0=Math.floor(mercX(b[0],z)/256),x1=Math.floor(mercX(b[2],z)/256),y0=Math.floor(mercY(b[3],z)/256),y1=Math.floor(mercY(b[1],z)/256);return (x1-x0+1)*(y1-y0+1)};
  while(z>1&&count(z)>64)z--;
  const x0=Math.floor(mercX(b[0],z)/256),x1=Math.floor(mercX(b[2],z)/256),y0=Math.floor(mercY(b[3],z)/256),y1=Math.floor(mercY(b[1],z)/256),W=(x1-x0+1)*256,H=(y1-y0+1)*256;
  const dem=new Float32Array(W*H).fill(NaN);const jobs=[];for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++)jobs.push([tx,ty]);let done=0;
- await Promise.all(jobs.map(async([tx,ty])=>{try{const d=await tileData(prov,z,tx,ty);const ox=(tx-x0)*256,oy=(ty-y0)*256;for(let py=0;py<256;py++)for(let px=0;px<256;px++){const i=(py*256+px)*4;if(d[i+3]<128)continue;const v=T.dec(d[i],d[i+1],d[i+2]);if(Number.isFinite(v)&&v>-500&&v<9000)dem[(oy+py)*W+ox+px]=v}}catch(e){console.warn('Tesela MDE',e)}done++;if(done%8===0)progress?.('MDE · teselas '+done+'/'+jobs.length)}));
+ const put=(d,dec,tx,ty)=>{const ox=(tx-x0)*256,oy=(ty-y0)*256;for(let py=0;py<256;py++)for(let px=0;px<256;px++){const i=(py*256+px)*4;if(d[i+3]<128)continue;const v=dec(d[i],d[i+1],d[i+2]);if(Number.isFinite(v)&&v>-500&&v<9000)dem[(oy+py)*W+ox+px]=v}};
+ const lost=[];await Promise.all(jobs.map(async([tx,ty])=>{try{put(await tileData(prov,z,tx,ty),T.dec,tx,ty)}catch(e){lost.push([tx,ty]);console.warn('Tesela MDE',e)}done++;if(done%8===0)progress?.('MDE · teselas '+done+'/'+jobs.length)}));
+ /* teselas del MDE nacional que no llegaron: se cubren con el MDE mundial en la misma malla */
+ if(lost.length&&prov!=='terrarium'&&z<=TILE.terrarium.maxZ){let ok=0;for(const [tx,ty] of lost){try{put(await tileData('terrarium',z,tx,ty),TILE.terrarium.dec,tx,ty);ok++}catch(e){console.warn('Tesela MDE de respaldo',e)}}if(ok)A.dems.add(TILE.terrarium.label+'|'+Math.round(2*Math.PI*6378137/(256*2**z)*Math.cos((b[1]+b[3])/2*Math.PI/180)))}
  const mc=document.createElement('canvas');mc.width=W;mc.height=H;const mx=mc.getContext('2d',{willReadFrequently:true});mx.fillStyle='#000';mx.beginPath();for(const poly of polys)for(const r of poly){r.forEach((p,i)=>{const px=mercX(+p[0],z)-x0*256,py=mercY(+p[1],z)-y0*256;if(i)mx.lineTo(px,py);else mx.moveTo(px,py)});mx.closePath()}mx.fill('evenodd');const m=mx.getImageData(0,0,W,H).data;
  const C=2*Math.PI*6378137/(256*2**z);let resLat=(b[1]+b[3])/2;
  for(let rr=1;rr<H-1;rr++){const gy=(y0*256+rr+.5)/(256*2**z),lat=Math.atan(Math.sinh(Math.PI*(1-2*gy)))*180/Math.PI,cl=Math.cos(lat*Math.PI/180),cs=C*cl,w=cl*cl;
@@ -23878,13 +23911,13 @@ async function tilePart(polys,prov,A,progress){
    cumbres (y suben los fondos). Se localizan en la malla general los picos y fondos candidatos y se releen con las
    teselas de máxima resolución (IDEE ≈ 15–20 m; Terrarium ≈ 30 m) solo alrededor de ellos. */
 async function refineExtremes(dem,m,W,H,z,x0,y0,prov,A,progress){
- const T=TILE[prov],zf=T.maxZ,f=2**(zf-z),K=8,R=6;const idx=[];
+ const T=TILE[prov],zf=T.maxZ,f=2**(zf-z),K=16,R=4;const idx=[];
  for(let j=0;j<W*H;j++){if(m[j*4+3]>=128&&Number.isFinite(dem[j]))idx.push(j)}if(!idx.length)return;
  const pick=(cmp)=>{const sorted=idx.slice().sort((p,q)=>cmp(dem[p],dem[q])).slice(0,4000),out=[];for(const j of sorted){const x=j%W,y=(j-x)/W;if(out.some(o=>Math.abs(o[0]-x)<=R&&Math.abs(o[1]-y)<=R))continue;out.push([x,y]);if(out.length>=K)break}return out};
  const cands=[...pick((p,q)=>q-p).map(c=>[...c,1]),...pick((p,q)=>p-q).map(c=>[...c,-1])];
  const fine=new Map();let n=0;
  for(const [cx,cy,sgn] of cands){
-  const fx0=(x0*256+cx-1)*f,fy0=(y0*256+cy-1)*f,fx1=(x0*256+cx+2)*f-1,fy1=(y0*256+cy+2)*f-1;
+  const fx0=(x0*256+cx-2)*f,fy0=(y0*256+cy-2)*f,fx1=(x0*256+cx+3)*f-1,fy1=(y0*256+cy+3)*f-1;
   for(let ty=Math.floor(fy0/256);ty<=Math.floor(fy1/256);ty++)for(let tx=Math.floor(fx0/256);tx<=Math.floor(fx1/256);tx++){
    const key=tx+'/'+ty;let d=fine.get(key);if(d===undefined){try{d=await tileData(prov,zf,tx,ty)}catch(_){d=null}fine.set(key,d);n++;if(n%6===0)progress?.('MDE · cumbres y fondos a máxima resolución '+n)}if(!d)continue;
    for(let py=0;py<256;py++){const gy=ty*256+py;if(gy<fy0||gy>fy1)continue;const cyy=Math.floor(gy/f)-y0*256;if(cyy<0||cyy>=H)continue;
@@ -23907,7 +23940,7 @@ async function relief(f,progress){
  try{const U=(window.__gaDemUsed=window.__gaDemUsed||new Set());for(const x of out.demParts)U.add(x)}catch(_){}
  reliefMemo.set(mk,out);if(reliefMemo.size>400)reliefMemo.delete(reliefMemo.keys().next().value);return out;
 }
-window.anambroGaUnits={DEFS,load,label:k=>DEFS[k]?.label||'Unidades',plural:k=>DEFS[k]?.plural||'unidades',singular:k=>DEFS[k]?.singular||'Unidad',scope:k=>DEFS[k]?.scope||'el ámbito',area:k=>DEFS[k]?.area||'canarias',source:k=>{const r=cache.get(k);if(r&&r.features?.[0]?.properties?.__official)return 'límites oficiales EGRN de '+(k==='es-ccaa'?'comunidades autónomas':'provincias')+' (IGN · Ministerio de Transportes); población por agregación de los municipios';return DEFS[k]?.source||''},POP_SRC};
+window.anambroGaUnits={DEFS,load,label:k=>DEFS[k]?.label||'Unidades',plural:k=>DEFS[k]?.plural||'unidades',singular:k=>DEFS[k]?.singular||'Unidad',scope:k=>DEFS[k]?.scope||'el ámbito',area:k=>DEFS[k]?.area||'canarias',source:k=>{const r=cache.get(k+'|pop')||cache.get(k);if(r&&r.features?.[0]?.properties?.__official)return 'límites oficiales EGRN de '+(k==='es-ccaa'?'comunidades autónomas':'provincias')+' (IGN · Ministerio de Transportes); población por agregación de los municipios';return DEFS[k]?.source||''},POP_SRC};
 window.__anambroGaUnitsTest={relief,tilePart,demZone,islandOf,PROV,PROV_CCAA};
 if(window.anambroGaRaster)window.anambroGaRaster.relief=relief;else window.anambroGaRaster={relief};
 })();
@@ -23959,7 +23992,7 @@ function humanName(f,i=0){const __U=window.anambroUnitNames;if(__U){const __n=__
 function center(b){return[(b[0]+b[2])/2,(b[1]+b[3])/2]}
 function isTF(f){const b=geomBBox(f.geometry),c=center(b);return c[0]>=TF_BBOX[0]&&c[0]<=TF_BBOX[2]&&c[1]>=TF_BBOX[1]&&c[1]<=TF_BBOX[3]&&bboxHit(b,TF_BBOX)}
 let lastUnits=null;
-async function units(){const U=window.anambroGaUnits;if(U){const r=await U.load(q('geoGeneralUnits').value,{visibleOnly:!!q('geoGeneralVisible')?.checked,progress:stat});lastUnits=r;return r.fc}let fc=null;if(typeof politicalData==='function')fc=await politicalData('canary-municipalities');else if(typeof getCanaryMunicipalDataCanonical==='function')fc=await getCanaryMunicipalDataCanonical();if(!fc?.features?.length)throw Error('No se pudo obtener la geometría municipal');const fs=q('geoGeneralUnits').value==='tf'?fc.features.filter(isTF):fc.features;return {type:'FeatureCollection',features:fs}}
+async function units(){const U=window.anambroGaUnits;if(U){const r=await U.load(q('geoGeneralUnits').value,{visibleOnly:!!q('geoGeneralVisible')?.checked,progress:stat,needPop:/^pop-/.test(q('geoGeneralMetric')?.value||'')});lastUnits=r;return r.fc}let fc=null;if(typeof politicalData==='function')fc=await politicalData('canary-municipalities');else if(typeof getCanaryMunicipalDataCanonical==='function')fc=await getCanaryMunicipalDataCanonical();if(!fc?.features?.length)throw Error('No se pudo obtener la geometría municipal');const fs=q('geoGeneralUnits').value==='tf'?fc.features.filter(isTF):fc.features;return {type:'FeatureCollection',features:fs}}
 async function enpFeatures(){if(typeof ensureEnp!=='function'||typeof ENP_CONFIG==='undefined')throw Error('Motor ENP no disponible');const ls=await Promise.all(Object.keys(ENP_CONFIG).map(c=>ensureEnp(c)));const fs=[];for(const l of ls){const fc=l?.toGeoJSON?.();if(fc?.features)fs.push(...fc.features)}if(!fs.length)throw Error('No se pudieron cargar los Espacios Naturales Protegidos');return fs}
 function gridPoints(f,n){const b=geomBBox(f.geometry),w=b[2]-b[0],h=b[3]-b[1],nx=Math.max(3,n),ny=Math.max(3,Math.round(n*h/Math.max(w,1e-9))),pts=[];for(let iy=0;iy<ny;iy++){const y=b[1]+(iy+.5)*h/ny;for(let ix=0;ix<nx;ix++){const x=b[0]+(ix+.5)*w/nx;if(pointGeom(x,y,f.geometry))pts.push([x,y])}}return pts}
 async function protectedStats(f,enp,n){try{const R=window.anambroGaRaster;if(R){const z=R.overlapShare(f,enp,10);const a=geomAreaKm2(f.geometry);return{valuePct:z.frac*100,valueKm2:a*z.frac,method:'raster',resM:z.resM}}}catch(e){console.warn('ENP ráster',e)}return protectedStatsPoints(f,enp,n)}
