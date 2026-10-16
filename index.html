@@ -3357,7 +3357,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <details id="geoGeneralBlock" open>
 <summary><b>Indicadores por unidad territorial</b></summary>
 <p style="margin:7px 0 5px">Cruza unas <b>unidades territoriales</b> (municipios, islas, provincias, comunidades autónomas o países) con una <b>variable</b> (superficie, espacios protegidos, relieve o población) y genera <b>mapa temático, gráfico, tabla, CSV y Excel</b>. Al terminar se indica qué datos se han cruzado.</p>
-<label><b>Unidades</b><select id="geoGeneralUnits"><optgroup label="Canarias"><option value="tf">Municipios de Tenerife · 31</option><option value="canarias">Municipios de Canarias · 88</option><option value="can-islands">Islas · 7</option><option value="can-provinces">Provincias · 2</option><option value="can-ccaa">Canarias (comunidad autónoma)</option></optgroup><optgroup label="España"><option value="es-municipalities">Municipios de España · 8.000+</option><option value="es-provinces">Provincias · 52</option><option value="es-ccaa">Comunidades autónomas · 19</option></optgroup><optgroup label="Mundo"><option value="world-countries">Países del mundo</option><option value="world-adm1">Divisiones de 1.er nivel de un país (regiones, estados, provincias…)</option><option value="world-adm2">Divisiones de 2.º nivel de un país (departamentos, distritos, condados…)</option></optgroup></select></label>
+<label><b>Unidades</b><select id="geoGeneralUnits"><optgroup label="Canarias"><option value="tf">Municipios de Tenerife · 31</option><option value="canarias">Municipios de Canarias · 88</option><option value="can-islands">Islas · 7</option><option value="can-provinces">Provincias · 2</option><option value="can-ccaa">Canarias (comunidad autónoma)</option></optgroup><optgroup label="España"><option value="es-municipalities">Municipios de España · 8.000+</option><option value="es-provinces">Provincias · 52</option><option value="es-ccaa">Comunidades autónomas · 19</option></optgroup><optgroup label="Mundo"><option value="world-countries">Países del mundo</option><option value="world-adm1">Divisiones de 1.er nivel de un país (regiones, estados, provincias…)</option><option value="world-adm2">Divisiones de 2.º nivel de un país (departamentos, distritos, condados…)</option></optgroup><optgroup label="Historia"><option value="history-polities">Entidades políticas del mapa histórico (año elegido)</option></optgroup></select></label>
 <label id="geoGeneralCountryWrap" hidden><b>País</b><select id="geoGeneralCountry"><option value="">Cargando países…</option></select></label>
 <label style="display:flex;align-items:center;gap:6px"><input id="geoGeneralVisible" type="checkbox"> Solo las unidades visibles en el mapa <small>(acerca el mapa a la zona que quieras estudiar)</small></label>
 <label style="display:flex;align-items:center;gap:6px"><input id="geoGeneralInset" type="checkbox" checked> Al exportar mapas de España, Canarias en recuadro junto a la Península <small>(en el visor se ve en su posición real)</small></label>
@@ -3379,7 +3379,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r33: encuadre del compositor estable · nombres propios de las divisiones)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r34: relieve de los reinos · sombreado gris en el mapa histórico)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -14535,6 +14535,7 @@ html body.istac-export-clean #map{background:#d9eef6!important;}
   ctx.lineJoin='round';for(const f of historyCurrentFC.features){const d=historyFeatureData(f);ctx.beginPath();walkGeoCoords(f?.geometry?.coordinates,ring=>{let first=true;for(const q of ring){const [x,y]=px(+q[0],+q[1]);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}if(!first)ctx.closePath();});ctx.globalAlpha=Math.min(.88,Math.max(.58,historyOpacity+.12));ctx.fillStyle=historyColor(d.rawName||d.name);ctx.fill();ctx.globalAlpha=.94;ctx.strokeStyle='#384b59';ctx.lineWidth=1.55;ctx.stroke();ctx.globalAlpha=1;}
   // En exportación histórica no se redibuja la costa moderna por encima de Cliopatria.
   // Así el contorno visible coincide exactamente con la geometría histórica y no aparecen dobles líneas/cuñas.
+  try{await window.__anambroHistoryShadeExport?.(ctx,px,ext,width,height)}catch(e){console.warn('Sombreado histórico · exportación',e)}
   drawHistoryExportLabels(ctx,historyCurrentFC,px,ext,width,height,fullWorld);
   const midLat=(ext.south+ext.north)/2,a=px(ext.west,midLat),b=px(ext.east,midLat),km=map.distance(L.latLng(midLat,ext.west),L.latLng(midLat,ext.east))/1000;layoutSnapshotMeta={type:'history-equal-earth',imgWidth:width,imgHeight:height,kmPerImagePxAtCenter:km/Math.max(1,Math.abs(b[0]-a[0]))};return canvas.toDataURL('image/jpeg',.95);
  };
@@ -23781,8 +23782,11 @@ const DEFS={
  'es-ccaa':{label:'Comunidades autónomas de España',plural:'comunidades autónomas',singular:'Comunidad autónoma',scope:'España',area:'spain',source:SRC_ES+' (agregados por comunidad autónoma)'},
  'world-countries':{label:'Países del mundo',plural:'países',singular:'País',scope:'el mundo',area:'world',source:SRC_WORLD},
  'world-adm1':{label:'Divisiones de 1.er nivel',plural:'divisiones',singular:'División',scope:'el país',area:'world-adm',level:1,source:SRC_WBADM},
- 'world-adm2':{label:'Divisiones de 2.º nivel',plural:'divisiones',singular:'División',scope:'el país',area:'world-adm',level:2,source:SRC_WBADM}
+ 'world-adm2':{label:'Divisiones de 2.º nivel',plural:'divisiones',singular:'División',scope:'el país',area:'world-adm',level:2,source:SRC_WBADM},
+ 'history-polities':{label:'Entidades políticas',plural:'entidades políticas',singular:'Entidad política',scope:'el mapa histórico',area:'history',source:'fronteras históricas Cliopatria · Seshat Global History Databank (CC BY 4.0)'}
 };
+const histYear=()=>{try{return typeof historyYear!=='undefined'?historyYear:null}catch(_){return null}};
+const histYearTxt=()=>{const y=histYear();try{return typeof historyYearText==='function'?historyYearText(y):String(y)}catch(_){return String(y)}};
 /* Nombre propio de las divisiones de cada país (1.er y 2.º nivel); si no figura, se usa el genérico */
 const ADM_NAMES={ESP:['Comunidades autónomas','Provincias'],FRA:['Regiones','Departamentos'],DEU:['Länder','Distritos (Kreise)'],ITA:['Regiones','Provincias'],PRT:['Distritos','Municipios'],
  USA:['Estados','Condados'],CAN:['Provincias y territorios','Divisiones censales'],MEX:['Estados','Municipios'],BRA:['Estados','Municipios'],ARG:['Provincias','Departamentos'],CHL:['Regiones','Provincias'],
@@ -23847,6 +23851,13 @@ async function officialGeometry(key,feats,progress){
 const code5=v=>{const d=String(v??'').replace(/\D/g,'');return d.length>=5?d.slice(-5):d.padStart(5,'0')};
 async function build(key,progress,needPop){
  const D=DEFS[key];
+ /* Entidades políticas históricas: los polígonos del año cargado en la capa histórica (Cliopatria) */
+ if(D.area==='history'){if(needPop)throw Error('no hay datos de población para las entidades históricas: con ellas se pueden calcular la superficie y el relieve');
+  let fc=null;try{fc=typeof historyCurrentFC!=='undefined'?historyCurrentFC:null}catch(_){}if(!fc?.features?.length)throw Error('activa antes la capa «Fronteras políticas históricas» y elige el año');
+  try{await window.translateHistoryFeatureCollection?.(fc)}catch(_){}
+  const ck3='history|'+histYear()+'|'+fc.features.length;if(cache.has(ck3))return cache.get(ck3);
+  const feats=fc.features.filter(f=>f.geometry).map((f,i)=>{let d={};try{d=historyFeatureData(f)}catch(_){}const nm=String(d.name||f.properties?.__name_es||f.properties?.Name||('Entidad '+(i+1))).trim();return {type:'Feature',geometry:f.geometry,properties:{__anambroName:nm,__anambroCode:String(f.properties?.__name_raw||f.properties?.Name||nm),__pop:null}}});
+  const out={key,def:{...D,label:'Entidades políticas · '+histYearTxt(),scope:'el mundo en '+histYearTxt(),source:D.source+' · año '+histYearTxt()},features:feats,pop:null};cache.set(ck3,out);return out}
  if(D.area==='world-adm'){const iso=countryIso();if(!iso)throw Error('elige un país');if(needPop)throw Error('el Banco Mundial no publica población para las divisiones infraestatales: con estas unidades se pueden calcular la superficie y el relieve');
   const ck2=key+'|'+iso;if(cache.has(ck2))return cache.get(ck2);progress?.('Cargando '+admName(D.level,iso).toLowerCase()+' de '+countryName()+' (World Bank)…');
   const url='https://services.arcgis.com/iQ1dY19aHwbSDYIF/arcgis/rest/services/World_Bank_Global_Administrative_Divisions/FeatureServer/'+(D.level===1?2:3)+'/query',fs=[];
@@ -23949,8 +23960,14 @@ async function tilePart(polys,prov,A,progress,o){
  const mc=document.createElement('canvas');mc.width=W;mc.height=H;const mx=mc.getContext('2d',{willReadFrequently:true});mx.fillStyle='#000';mx.beginPath();for(const poly of polys)for(const r of poly){r.forEach((p,i)=>{const px=mercX(+p[0],z)-x0*256,py=mercY(+p[1],z)-y0*256;if(i)mx.lineTo(px,py);else mx.moveTo(px,py)});mx.closePath()}mx.fill('evenodd');const m=mx.getImageData(0,0,W,H).data;
  /* El MDE mundial incluye la batimetría: las celdas bajo cero conectadas con el mar abierto son mar (las costas
     de Natural Earth están generalizadas y meten mar dentro del país). Las depresiones interiores se conservan. */
+ /* El MDE nacional solo cubre España: lo que caiga fuera dentro del territorio (Portugal, Francia, reinos
+    históricos que cruzan la frontera…) se completa con el MDE mundial en la misma malla */
+ let filled=false;
+ if(prov!=='terrarium'&&z<=TILE.terrarium.maxZ){const need=[];for(const [tx,ty] of jobs){const ox=(tx-x0)*256,oy=(ty-y0)*256;let inm=0,nan=0;for(let py=0;py<256;py+=4)for(let px=0;px<256;px+=4){const j=(oy+py)*W+ox+px;if(m[j*4+3]>=128){inm++;if(!Number.isFinite(dem[j]))nan++}}if(inm&&nan/inm>.02)need.push([tx,ty])}
+  if(need.length){progress?.('MDE mundial para completar fuera de España ('+need.length+' teselas)');await Promise.all(need.map(async([tx,ty])=>{try{const d=await tileData('terrarium',z,tx,ty),ox=(tx-x0)*256,oy=(ty-y0)*256;for(let py=0;py<256;py++)for(let px=0;px<256;px++){const j=(oy+py)*W+ox+px;if(Number.isFinite(dem[j]))continue;const i=(py*256+px)*4;if(d[i+3]<128)continue;const v=TILE.terrarium.dec(d[i],d[i+1],d[i+2]);if(Number.isFinite(v)&&v>-500&&v<9000){dem[j]=v;filled=true}}}catch(e){console.warn('Tesela MDE mundial de relleno',e)}}));
+   if(filled)A.dems.add(TILE.terrarium.label+'|'+Math.round(2*Math.PI*6378137/(256*2**z)*Math.cos((b[1]+b[3])/2*Math.PI/180)))}}
  let sea=null;
- if(prov==='terrarium'){sea=new Uint8Array(W*H);const st=[];for(let j=0;j<W*H;j++){const x=j%W,y=(j-x)/W;if(dem[j]<0&&(m[j*4+3]<128||x===0||y===0||x===W-1||y===H-1)){sea[j]=1;st.push(j)}}
+ if(prov==='terrarium'||filled){sea=new Uint8Array(W*H);const st=[];for(let j=0;j<W*H;j++){const x=j%W,y=(j-x)/W;if(dem[j]<0&&(m[j*4+3]<128||x===0||y===0||x===W-1||y===H-1)){sea[j]=1;st.push(j)}}
   while(st.length){const j=st.pop(),x=j%W,y=(j-x)/W;if(x>0&&!sea[j-1]&&dem[j-1]<0){sea[j-1]=1;st.push(j-1)}if(x<W-1&&!sea[j+1]&&dem[j+1]<0){sea[j+1]=1;st.push(j+1)}if(y>0&&!sea[j-W]&&dem[j-W]<0){sea[j-W]=1;st.push(j-W)}if(y<H-1&&!sea[j+W]&&dem[j+W]<0){sea[j+W]=1;st.push(j+W)}}
   for(let j=0;j<W*H;j++)if(sea[j])dem[j]=NaN}
  const C=2*Math.PI*6378137/(256*2**z);let resLat=(b[1]+b[3])/2;
@@ -24034,7 +24051,7 @@ async function reliefCompute(f,progress,o){
  return out;
 }
 const isAdm=k=>DEFS[k]?.area==='world-adm';
-window.anambroGaUnits={DEFS,load,country:countryIso,label:k=>isAdm(k)?admName(DEFS[k].level,countryIso())+(countryName()?' · '+countryName():''):(DEFS[k]?.label||'Unidades'),plural:k=>isAdm(k)?admName(DEFS[k].level,countryIso()).toLowerCase():(DEFS[k]?.plural||'unidades'),singular:k=>isAdm(k)?admName(DEFS[k].level,countryIso()):(DEFS[k]?.singular||'Unidad'),scope:k=>DEFS[k]?.area==='world-adm'?(countryName()||'el país'):(DEFS[k]?.scope||'el ámbito'),area:k=>DEFS[k]?.area||'canarias',source:k=>{const r=cache.get(k+'|pop')||cache.get(k);if(r&&r.features?.[0]?.properties?.__official)return 'límites oficiales EGRN de '+(k==='es-ccaa'?'comunidades autónomas':'provincias')+' (IGN · Ministerio de Transportes); población por agregación de los municipios';return DEFS[k]?.source||''},POP_SRC};
+window.anambroGaUnits={DEFS,load,country:countryIso,label:k=>isAdm(k)?admName(DEFS[k].level,countryIso())+(countryName()?' · '+countryName():''):DEFS[k]?.area==='history'?'Entidades políticas · '+histYearTxt():(DEFS[k]?.label||'Unidades'),plural:k=>isAdm(k)?admName(DEFS[k].level,countryIso()).toLowerCase():(DEFS[k]?.plural||'unidades'),singular:k=>isAdm(k)?admName(DEFS[k].level,countryIso()):(DEFS[k]?.singular||'Unidad'),scope:k=>DEFS[k]?.area==='world-adm'?(countryName()||'el país'):(DEFS[k]?.scope||'el ámbito'),area:k=>DEFS[k]?.area||'canarias',source:k=>{const r=cache.get(k+'|pop')||cache.get(k);if(r&&r.features?.[0]?.properties?.__official)return 'límites oficiales EGRN de '+(k==='es-ccaa'?'comunidades autónomas':'provincias')+' (IGN · Ministerio de Transportes); población por agregación de los municipios';return DEFS[k]?.area==='history'?DEFS[k].source+' · año '+histYearTxt():(DEFS[k]?.source||'')},POP_SRC};
 window.__anambroGaUnitsTest={relief,tilePart,demZone,islandOf,PROV,PROV_CCAA};
 /* varias unidades a la vez (3), compartiendo el límite de descargas */
 function prefetch(features,opts){let i=0;const work=async()=>{while(i<features.length){const f=features[i++];try{await relief(f,null,opts)}catch(_){}}};for(let k=0;k<3;k++)work()}
@@ -26686,5 +26703,69 @@ body.anambro-author .indigenousPublicNote{display:none!important}.hubWide{grid-c
  }
 })();
 </script>
+<script id="anambro-history-hillshade-js">
+/* ANAMBRO · relieve sombreado en grises bajo los reinos del mapa histórico (solución clásica de los atlas
+   históricos: colores planos de cada entidad y el relieve como sombra, sin tintas hipsométricas que los ensucien).
+   MDE mundial Terrarium (Mapzen / AWS). En el visor se dibuja como sombras sobre el relleno; en la exportación
+   histórica (Equal Earth) se multiplica sobre los colores. */
+(function(){
+'use strict';
+if(typeof map==='undefined'||!window.L)return;
+const q=id=>document.getElementById(id);
+const AZ=(360-315+90)*Math.PI/180/* luz del noroeste (convención de Horn/ESRI) */,ALT=45*Math.PI/180,SA=Math.sin(ALT),CA=Math.cos(ALT);
+const cache=new Map();
+function terr(z,x,y){const n=2**z;x=((x%n)+n)%n;if(y<0||y>=n)return Promise.resolve(null);const k=z+'/'+x+'/'+y;if(!cache.has(k)){const p=(async()=>{const r=await fetch('https://s3.amazonaws.com/elevation-tiles-prod/terrarium/'+k+'.png',{mode:'cors'});if(!r.ok)throw Error('Terrarium '+r.status);const bmp=await createImageBitmap(await r.blob(),{colorSpaceConversion:'none',premultiplyAlpha:'none'});const cv=document.createElement('canvas');cv.width=256;cv.height=256;const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0);const d=cx.getImageData(0,0,256,256).data,o=new Float32Array(65536);for(let i=0;i<65536;i++)o[i]=d[i*4]*256+d[i*4+1]+d[i*4+2]/256-32768;return o})().catch(e=>{cache.delete(k);throw e});cache.set(k,p);if(cache.size>260)cache.delete(cache.keys().next().value)}return cache.get(k)}
+/* exageración vertical creciente al alejarse: a escala mundial el relieve real casi no se vería */
+const exag=z=>Math.max(1,Math.pow(2,(11-z)*.55));
+/* sombra 0 (sin sombra) … 1 (máxima) para cada celda de un bloque de alturas; mar sin sombra */
+function shadeGrid(Z,W,H,mpp,ex){const o=new Float32Array(W*H);for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,z=Z[i];if(!(z>0)){o[i]=0;continue}const xl=Math.max(0,x-1),xr=Math.min(W-1,x+1),yu=Math.max(0,y-1),yd=Math.min(H-1,y+1);
+ const dzdx=(Z[y*W+xr]-Z[y*W+xl])*ex/((xr-xl)*mpp),dzdy=(Z[yd*W+x]-Z[yu*W+x])*ex/((yd-yu)*mpp),sl=Math.atan(Math.hypot(dzdx,dzdy)),asp=Math.atan2(dzdy,-dzdx);
+ const sh=SA*Math.cos(sl)+CA*Math.sin(sl)*Math.cos(AZ-asp);o[i]=Math.max(0,Math.min(1,1-sh/SA))}return o}
+/* ---------- visor ---------- */
+if(!map.getPane('historyShadePane')){const p=map.createPane('historyShadePane');p.style.zIndex='420';p.style.pointerEvents='none'}
+let amount=.65;
+const ShadeLayer=L.GridLayer.extend({options:{pane:'historyShadePane',tileSize:256,maxNativeZoom:12,updateWhenIdle:true,keepBuffer:2},
+ createTile(c,done){const cv=document.createElement('canvas');cv.width=256;cv.height=256;(async()=>{try{
+  /* bloque 3×3 para que los bordes de la tesela tengan vecinos */
+  const ts=await Promise.all([-1,0,1].flatMap(dy=>[-1,0,1].map(dx=>terr(c.z,c.x+dx,c.y+dy).catch(()=>null))));const Z=new Float32Array(768*768).fill(NaN);
+  ts.forEach((t,k)=>{if(!t)return;const ox=(k%3)*256,oy=Math.floor(k/3)*256;for(let y=0;y<256;y++)Z.set(t.subarray(y*256,y*256+256),(oy+y)*768+ox)});
+  const n=2**c.z,lat=Math.atan(Math.sinh(Math.PI*(1-2*(c.y+.5)/n)))*180/Math.PI,mpp=156543.03392804097*Math.cos(lat*Math.PI/180)/n;
+  const sub=new Float32Array(258*258);for(let y=0;y<258;y++)for(let x=0;x<258;x++){const v=Z[(255+y)*768+255+x];sub[y*258+x]=Number.isFinite(v)?v:0}
+  const S=shadeGrid(sub,258,258,mpp,exag(c.z)),cx=cv.getContext('2d'),img=cx.createImageData(256,256),o=img.data;
+  for(let y=0;y<256;y++)for(let x=0;x<256;x++){const a=S[(y+1)*258+x+1],i=(y*256+x)*4;o[i]=24;o[i+1]=30;o[i+2]=38;o[i+3]=Math.round(255*Math.min(.9,a*amount))}
+  cx.putImageData(img,0,0);done(null,cv)}catch(e){console.warn('Sombreado histórico',e);done(null,cv)}})();return cv}});
+let layer=null;
+const historyOn=()=>!!q('worldHistoryCheck')?.checked;
+const shadeOn=()=>!!q('worldHistoryShadeCheck')?.checked;
+function sync(){const want=historyOn()&&shadeOn()&&!document.body.classList.contains('globe-mode');if(want){if(!layer)layer=new ShadeLayer();if(!map.hasLayer(layer))layer.addTo(map)}else if(layer&&map.hasLayer(layer))map.removeLayer(layer)}
+function install(){if(q('worldHistoryShadeCheck'))return true;const row=q('worldHistoryFillCheck')?.closest('.historyToggleRow');if(!row)return false;
+ const box=document.createElement('div');box.style.margin='4px 0';box.innerHTML='<label style="display:block"><input id="worldHistoryShadeCheck" type="checkbox"> <b>Relieve sombreado (gris) bajo los reinos</b></label><label style="display:block"><small>Intensidad de la sombra <span id="worldHistoryShadeValue">65 %</span></small><input id="worldHistoryShadeAmount" type="range" min="0.2" max="1" step="0.05" value="0.65" style="width:100%"></label><small>MDE mundial Terrarium · Mapzen / AWS. Consejo: baja la opacidad de los reinos y usa el fondo «Histórico limpio».</small>';
+ row.insertAdjacentElement('afterend',box);
+ q('worldHistoryShadeCheck').addEventListener('change',()=>{sync();try{updateLegend()}catch(_){}});
+ q('worldHistoryShadeAmount').addEventListener('input',e=>{amount=+e.target.value||.65;q('worldHistoryShadeValue').textContent=Math.round(amount*100)+' %';if(layer)layer.redraw()});
+ q('worldHistoryCheck')?.addEventListener('change',()=>setTimeout(sync,0));return true}
+if(!install()){const t=setInterval(()=>{if(install())clearInterval(t)},700);setTimeout(()=>clearInterval(t),60000)}
+document.addEventListener('change',e=>{if(e.target?.id==='worldHistoryCheck')setTimeout(sync,0)},true);
+/* ---------- exportación histórica (Equal Earth): sombra multiplicada sobre los colores ---------- */
+const mx=(lon,z)=>(lon+180)/360*2**z*256,my=(lat,z)=>{const l=Math.max(-85,Math.min(85,lat))*Math.PI/180;return (1-Math.asinh(Math.tan(l))/Math.PI)/2*2**z*256};
+window.__anambroHistoryShadeExport=async function(ctx,px,ext,width,height){
+ if(!(historyOn()&&shadeOn()))return;
+ const south=Math.max(-84,ext.south),north=Math.min(84,ext.north);let z=11;const cnt=z=>(Math.floor(mx(ext.east,z)/256)-Math.floor(mx(ext.west,z)/256)+1)*(Math.floor(my(south,z)/256)-Math.floor(my(north,z)/256)+1);while(z>1&&cnt(z)>48)z--;
+ const tx0=Math.floor(mx(ext.west,z)/256),tx1=Math.floor(mx(ext.east,z)/256),ty0=Math.floor(my(north,z)/256),ty1=Math.floor(my(south,z)/256),W=(tx1-tx0+1)*256,H=(ty1-ty0+1)*256,Z=new Float32Array(W*H);
+ await Promise.all([...Array((tx1-tx0+1)*(ty1-ty0+1)).keys()].map(async k=>{const tx=tx0+k%(tx1-tx0+1),ty=ty0+Math.floor(k/(tx1-tx0+1));let t=null;try{t=await terr(z,tx,ty)}catch(_){}if(!t)return;const ox=(tx-tx0)*256,oy=(ty-ty0)*256;for(let y=0;y<256;y++)Z.set(t.subarray(y*256,y*256+256),(oy+y)*W+ox)}));
+ const latC=(south+north)/2,mpp=156543.03392804097*Math.cos(latC*Math.PI/180)/2**z,S=shadeGrid(Z,W,H,mpp,exag(z));
+ /* malla equirrectangular de la extensión, y se dibuja por franjas de latitud igual que el fondo GEBCO */
+ const EW=1800,EH=Math.max(200,Math.round(EW*(north-south)/Math.max(1,ext.east-ext.west))),eq=document.createElement('canvas');eq.width=EW;eq.height=EH;const ec=eq.getContext('2d'),im=ec.createImageData(EW,EH),o=im.data;
+ for(let j=0;j<EH;j++){const lat=north-(j+.5)/EH*(north-south),yy=Math.floor(my(lat,z))-ty0*256;for(let i=0;i<EW;i++){const lon=ext.west+(i+.5)/EW*(ext.east-ext.west),xx=Math.floor(mx(lon,z))-tx0*256,a=(xx>=0&&yy>=0&&xx<W&&yy<H)?S[yy*W+xx]:0,g=Math.round(255*(1-Math.min(.9,a*amount))),p=(j*EW+i)*4;o[p]=g;o[p+1]=g;o[p+2]=Math.min(255,g+6);o[p+3]=255}}
+ ec.putImageData(im,0,0);
+ ctx.save();ctx.globalCompositeOperation='multiply';const latStep=Math.max(.35,Math.min(1,(north-south)/120));
+ for(let top=north;top>south;top-=latStep){const bot=Math.max(south,top-latStep),a=px(ext.west,top),b=px(ext.east,top),c=px(ext.west,bot),d=px(ext.east,bot),dx=Math.min(a[0],c[0]),dr=Math.max(b[0],d[0]),dy=Math.min(a[1],c[1]),db=Math.max(a[1],c[1]);const sy=(north-top)/(north-south)*EH,sh=(top-bot)/(north-south)*EH;if(dr>dx&&db>dy)ctx.drawImage(eq,0,sy,EW,sh,dx,dy,dr-dx,Math.max(1,db-dy+1))}
+ ctx.restore();
+};
+/* leyenda y fuentes */
+if(typeof activeSourcesText==='function'){const prev=activeSourcesText;activeSourcesText=function(){const b=prev.apply(this,arguments);return historyOn()&&shadeOn()?[b,'Relieve sombreado: MDE mundial Terrarium (Mapzen / AWS)'].filter(Boolean).join(' · '):b}}
+})();
+</script>
+
 </body>
 </html>
