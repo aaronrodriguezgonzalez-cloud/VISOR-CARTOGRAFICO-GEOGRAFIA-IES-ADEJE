@@ -3381,7 +3381,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-15 (r38: Atlas Eurostat con todo el catálogo regional)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-16 (r39: mapamundis y continentes exportados en Equal Earth)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -8560,6 +8560,10 @@ async function refreshLayoutSnapshot(){
    if(statisticalExport){try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){typeof __anLog=='function'&&__anLog(_,'L8490');}await new Promise(r=>setTimeout(r,220));}
    // En los atlas estadísticos se exporta exactamente el fondo batimétrico GEBCO
    // visible en el visor: Portugal, África y el entorno no se sustituyen por azul plano.
+   if(window.anambroAnalysisEqualEarth?.wanted?.()){
+    // Mapamundis y mapas continentales del Análisis geográfico / Atlas Eurostat: proyección Equal Earth.
+    layoutSnapshotData=await window.anambroAnalysisEqualEarth.render();
+   }else{
    const exportGridWanted=document.getElementById('layoutShowGrid')?.checked!==false;
    const gridWasVisible=typeof geoGrid!=='undefined'&&map.hasLayer(geoGrid);
    if(!exportGridWanted&&gridWasVisible)map.removeLayer(geoGrid);
@@ -8573,6 +8577,8 @@ async function refreshLayoutSnapshot(){
    layoutSnapshotData=canvas.toDataURL('image/jpeg',.92);
    const size=map.getSize(),centerY=Math.round(size.y/2),a=map.containerPointToLatLng([Math.round(size.x*.25),centerY]),b=map.containerPointToLatLng([Math.round(size.x*.55),centerY]);
    layoutSnapshotMeta={type:'live-map',imgWidth:size.x,imgHeight:size.y,kmPerImagePxAtCenter:(map.distance(a,b)/1000)/Math.max(1,Math.round(size.x*.30))};
+
+   }
   }
   img.src=layoutSnapshotData;
   updateLayoutScaleBox();
@@ -24536,7 +24542,9 @@ function display(){const box=boxEl(),img=$('layoutMapImage');if(!box||!img)retur
  const f=box.getBoundingClientRect().width/bw;
  return {box,bw,bh,W,H,k:fit*sc,f,toImg:(x,y)=>[((x-ox)/sc+ox-offX)/fit,((y-oy)/sc+oy-offY)/fit]}}
 /* lleva al mapa real exactamente lo que se ve en el recuadro (centro y escala) */
-function bake(){const D=display();if(!D)return null;const [u,v]=D.toImg(D.bw/2,D.bh/2);let c;try{c=map.containerPointToLatLng([u,v])}catch(_){return null}
+const eeMeta=()=>(typeof layoutSnapshotMeta!=='undefined'&&layoutSnapshotMeta?.type==='analysis-equal-earth'&&window.anambroAnalysisEqualEarth)?layoutSnapshotMeta:null;
+const toLL=(u,v)=>{const m=eeMeta();return m?window.anambroAnalysisEqualEarth.unproject(m,u,v):map.containerPointToLatLng([u,v])};
+function bake(){const D=display();if(!D)return null;const [u,v]=D.toImg(D.bw/2,D.bh/2);let c;try{c=toLL(u,v)}catch(_){return null}
  const r2=Math.max(D.bw/D.W,D.bh/D.H),z=Math.max(map.getMinZoom(),Math.min(map.getMaxZoom()||19,map.getZoom()+Math.log2(D.k/r2)));
  try{map.setView(c,z,{animate:false})}catch(_){}return {r2,D}}
 function present(){const img=$('layoutMapImage');if(!img)return;for(const [id,v] of [['layoutCropZoom',100],['layoutPanX',50],['layoutPanY',50],['layoutSize',100]]){const e=$(id);if(e)e.value=v}
@@ -24552,9 +24560,11 @@ boxEl()?.addEventListener('pointerdown',e=>{if(e.button!==0||!mapMode()||!handOn
  const img=$('layoutMapImage');drag={x:e.clientX,y:e.clientY,f:D.f,img,t0:img?.style.transform||'scale(1)'};try{boxEl().setPointerCapture(e.pointerId)}catch(_){}},true);
 window.addEventListener('pointermove',e=>{if(!drag)return;const dx=(e.clientX-drag.x)/drag.f,dy=(e.clientY-drag.y)/drag.f;if(drag.img)drag.img.style.transform='translate('+dx+'px,'+dy+'px) '+drag.t0;e.preventDefault()},true);
 window.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;if(d.img)d.img.style.transform=d.t0;const dx=(e.clientX-d.x)/d.f,dy=(e.clientY-d.y)/d.f;if(Math.abs(dx)<1&&Math.abs(dy)<1)return;
+ if(eeMeta()){const D=display();if(!D)return;const [u,v]=D.toImg(D.bw/2-dx,D.bh/2-dy),c=toLL(u,v);const B=bake();if(!B||!c)return;try{map.setView(c,map.getZoom(),{animate:false})}catch(_){}recapture();return}
  const B=bake();if(!B)return;try{map.panBy([-dx/B.r2,-dy/B.r2],{animate:false})}catch(_){}recapture()},true);
 /* zoom sobre un punto del recuadro (coordenadas de pantalla) */
-function zoomAt(clientX,clientY,dz){const B=bake();if(!B)return;const rc=B.D.box.getBoundingClientRect(),sz=map.getSize();
+function zoomAt(clientX,clientY,dz){if(eeMeta()){const D=display();if(!D)return;const rc=D.box.getBoundingClientRect(),lx=(clientX-rc.left)/D.f,ly=(clientY-rc.top)/D.f,[pu,pv]=D.toImg(lx,ly),[cu,cv]=D.toImg(D.bw/2,D.bh/2),k=Math.pow(2,dz),c=toLL(pu+(cu-pu)/k,pv+(cv-pv)/k);const B=bake();if(!B||!c)return;const z=Math.max(map.getMinZoom(),Math.min(map.getMaxZoom()||19,map.getZoom()+dz));try{map.setView(c,z,{animate:false})}catch(_){}recapture();return}
+ const B=bake();if(!B)return;const rc=B.D.box.getBoundingClientRect(),sz=map.getSize();
  const lx=(clientX-rc.left)/B.D.f,ly=(clientY-rc.top)/B.D.f,pt=L.point(sz.x/2+(lx-B.D.bw/2)/B.r2,sz.y/2+(ly-B.D.bh/2)/B.r2);
  const z=Math.max(map.getMinZoom(),Math.min(map.getMaxZoom()||19,map.getZoom()+dz));try{map.setZoomAround(pt,z,{animate:false})}catch(_){}recapture()}
 boxEl()?.addEventListener('wheel',e=>{if(!mapMode()||!handOn()||busy)return;e.preventDefault();e.stopPropagation();const img=$('layoutMapImage');
@@ -26970,6 +26980,85 @@ if(typeof history2DStyle==='function'){const prevStyle=history2DStyle;history2DS
 window.anambroHistoryAnalysisMode=function(on){on=!!on;if(on===histAnalysis)return;histAnalysis=on;applyHistMode()};
 /* leyenda y fuentes */
 if(typeof activeSourcesText==='function'){const prev=activeSourcesText;activeSourcesText=function(){const b=prev.apply(this,arguments);return historyOn()&&shadeOn()?[b,'Relieve sombreado: MDE mundial Terrarium (Mapzen / AWS)'].filter(Boolean).join(' · '):b}}
+})();
+</script>
+
+<script id="anambro-analysis-equal-earth-js">
+/* ANAMBRO · exportación en Equal Earth de los mapas de Análisis geográfico y del Atlas Eurostat cuando son
+   mapamundis o mapas continentales. Los mapas de España, Canarias y los regionales siguen exportándose tal como
+   se ven en el visor. El encuadre del compositor manda: el centro y la escala de la vista se trasladan a la
+   proyección (meridiano central = centro de la vista) y la navegación del compositor sigue funcionando. */
+(function(){
+'use strict';
+if(typeof map==='undefined'||typeof equalEarthProject!=='function')return;
+const $=id=>document.getElementById(id);
+const SPAIN=/^(tf|canarias|can-|es-)/;
+const A1=1.340264,A2=-0.081106,A3=0.000893,A4=0.003796,M=Math.sqrt(3)/2,RAD=Math.PI/180;
+const wrap=l=>((l+180)%360+360)%360-180;
+const ex=phi=>equalEarthProject(.5,phi)[0]-equalEarthProject(-.5,phi)[0];
+function inverse(x,y){let t=y;for(let i=0;i<14;i++){const t2=t*t,t6=t2*t2*t2,f=t*(A1+A2*t2+t6*(A3+A4*t2))-y,d=A1+3*A2*t2+t6*(7*A3+9*A4*t2);t-=f/d;if(Math.abs(f)<1e-12)break}
+ t=Math.max(-Math.asin(M)+1e-9,Math.min(Math.asin(M)-1e-9,t));const t2=t*t,t6=t2*t2*t2,d=A1+3*A2*t2+t6*(7*A3+9*A4*t2);
+ const lam=3*x*d/(2*Math.sqrt(3)*Math.cos(t));return [Math.max(-180,Math.min(180,lam/RAD)),Math.asin(Math.max(-1,Math.min(1,Math.sin(t)/M)))/RAD]}
+function liveLayer(){try{const g=window.__anambroGeographicAnalysisGeneral,l=g?.layer?.();if(!l||!map.hasLayer(l))return null;const a=window.__anambroGeographicAnalysis?.layer?.();if(a&&map.hasLayer(a))return null;return l}catch(_){return null}}
+function lonSpan(){const z=map.getZoom();return map.getSize().x*360/(256*Math.pow(2,z))}
+function wanted(){
+ try{
+  if(typeof layoutContentMode!=='undefined'&&layoutContentMode!=='map')return false;
+  if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)return false;
+  if(!liveLayer())return false;
+  const u=$('geoGeneralUnits')?.value||'';if(!u||SPAIN.test(u))return false;
+  const b=map.getBounds(),latSpan=Math.min(85,b.getNorth())-Math.max(-85,b.getSouth());
+  return lonSpan()>=35||latSpan>=28;
+ }catch(_){return false}
+}
+/* marco: centro de la vista en el centro de la imagen y la misma escala horizontal en el centro; en vistas
+   de todo el mundo la escala y el centro pasan gradualmente al ecuador para que el mapamundi quepa entero */
+function frame(){
+ const sz=map.getSize(),W0=sz.x,H0=sz.y,c=map.getCenter(),z=map.getZoom(),span=lonSpan(),w=Math.max(0,Math.min(1,(330-span)/150));
+ const lam0=wrap(c.lng),phi=Math.max(-80,Math.min(80,c.lat*w)),k=256*Math.pow(2,z)/(360*ex(phi)),q=equalEarthProject(0,phi);
+ return {lam0,phi,k,cx:q[0],cy:q[1],W0,H0,span}}
+const P=F=>(lon,lat)=>{const q=equalEarthProject(wrap(lon-F.lam0),lat);return [F.W0/2+(q[0]-F.cx)*F.k,F.H0/2-(q[1]-F.cy)*F.k]};
+const Prel=F=>(rel,lat)=>{const q=equalEarthProject(rel,lat);return [F.W0/2+(q[0]-F.cx)*F.k,F.H0/2-(q[1]-F.cy)*F.k]};
+function unproject(meta,u,v){const F=meta?.ee;if(!F)return null;const r=inverse((u-F.W0/2)/F.k+F.cx,F.cy-(v-F.H0/2)/F.k);return L.latLng(Math.max(-85,Math.min(85,r[1])),F.lam0+r[0])}
+function globePath(ctx,F){const p=Prel(F);ctx.beginPath();let first=true;const add=(a,b)=>{const [x,y]=p(a,b);if(first){ctx.moveTo(x,y);first=false}else ctx.lineTo(x,y)};
+ for(let a=-180;a<=180;a+=2)add(a,89.999);for(let b=89;b>=-89;b-=1)add(180,b);for(let a=180;a>=-180;a-=2)add(a,-89.999);for(let b=-89;b<=89;b+=1)add(-180,b);ctx.closePath()}
+function ringPath(ctx,F,coords){const p=P(F),jump=F.k*2.5;walkGeoCoords(coords,ring=>{let first=true,px0=0;for(const q of ring){const lon=+q[0],lat=+q[1];if(!Number.isFinite(lon)||!Number.isFinite(lat))continue;const [x,y]=p(lon,lat);if(first||Math.abs(x-px0)>jump){ctx.moveTo(x,y);first=false}else ctx.lineTo(x,y);px0=x}if(!first)ctx.closePath()})}
+function drawGebco(ctx,img,F){
+ ctx.fillStyle='#d9eef6';ctx.fillRect(-10,-10,F.W0+20,F.H0+20);if(!img)return;
+ const iw=img.width||img.naturalWidth||2048,ih=img.height||img.naturalHeight||1024,p=Prel(F),st=Math.max(.1,Math.min(1,180/F.k/2));
+ /* trozos de longitud (absoluta) que componen el meridiano relativo −180…180 */
+ const pieces=F.lam0>=0?[[F.lam0-180,180,-180],[-180,F.lam0-180,180-F.lam0]]:[[F.lam0+180,180,-180],[-180,F.lam0+180,-180-F.lam0]];
+ const off=document.createElement('canvas'),sc=ctx.getTransform().a||1;off.width=Math.ceil(F.W0*sc);off.height=Math.ceil(F.H0*sc);const oc=off.getContext('2d');oc.scale(sc,sc);
+ for(let top=90;top>-90;top-=st){const bot=Math.max(-90,top-st),mid=(top+bot)/2,yT=p(0,top)[1],yB=p(0,bot)[1];if(yB<-2||yT>F.H0+2)continue;
+  for(const [s0,s1,r0] of pieces){if(s1-s0<1e-6)continue;
+   const xL=p(r0,mid)[0],xR=p(r0+(s1-s0),mid)[0];if(xR<0||xL>F.W0)continue;
+   oc.drawImage(img,(s0+180)/360*iw,(90-top)/180*ih,(s1-s0)/360*iw,(top-bot)/180*ih,xL,yT,xR-xL,Math.max(1,yB-yT+1.2))}}
+ /* las franjas se componen en opaco y se aplican una sola vez con transparencia: sin rayas */
+ ctx.save();ctx.globalAlpha=.5;try{ctx.filter='saturate(.62) brightness(1.18) contrast(.86) hue-rotate(-4deg)'}catch(_){}ctx.drawImage(off,0,0,F.W0,F.H0);ctx.restore()}
+function graticule(ctx,F){const s=F.span>=150?30:F.span>=60?15:F.span>=25?10:5,p=Prel(F);ctx.save();ctx.strokeStyle='rgba(48,70,86,.38)';ctx.lineWidth=.6;
+ for(let lat=-90+s;lat<90;lat+=s){ctx.beginPath();for(let r=-180;r<=180;r+=1){const [x,y]=p(r,lat);r===-180?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke()}
+ for(let lon=-180;lon<180;lon+=s){const r=wrap(lon-F.lam0);ctx.beginPath();for(let lat=-90;lat<=90;lat+=1){const [x,y]=p(r,lat);lat===-90?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke()}ctx.restore()}
+function leaves(l,out){if(!l)return out;if(typeof l.eachLayer==='function'&&!l.feature){l.eachLayer(x=>leaves(x,out))}else if(l.feature?.geometry&&l.options)out.push(l);return out}
+async function render(){
+ const F=frame(),s=Math.max(1,Math.min(4,3000/F.W0)),canvas=document.createElement('canvas');canvas.width=Math.round(F.W0*s);canvas.height=Math.round(F.H0*s);
+ const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.scale(s,s);ctx.lineJoin='round';ctx.lineCap='round';
+ let gebco=null;try{gebco=await loadLayoutGebcoRaster()}catch(e){console.warn('GEBCO · Equal Earth',e)}
+ ctx.save();globePath(ctx,F);ctx.clip();drawGebco(ctx,gebco,F);
+ let land=null;try{land=typeof loadHistoryLand==='function'?await loadHistoryLand():null}catch(e){console.warn('Tierras · Equal Earth',e)}
+ if(land){ctx.fillStyle='rgba(247,245,239,.78)';for(const f of land.features||[]){ctx.beginPath();ringPath(ctx,F,f?.geometry?.coordinates);ctx.fill('evenodd')}
+  ctx.strokeStyle='rgba(57,119,157,.75)';ctx.lineWidth=.8;for(const f of land.features||[]){ctx.beginPath();ringPath(ctx,F,f?.geometry?.coordinates);ctx.stroke()}}
+ const ls=leaves(liveLayer(),[]);
+ for(const l of ls){const o=l.options||{};ctx.beginPath();ringPath(ctx,F,l.feature.geometry.coordinates);
+  if(o.fill!==false&&(o.fillOpacity??.2)>0){ctx.globalAlpha=Math.max(0,Math.min(1,o.fillOpacity??.2));ctx.fillStyle=o.fillColor||o.color||'#3388ff';ctx.fill('evenodd')}
+  if(o.stroke!==false&&(o.weight??3)>0&&(o.opacity??1)>0){ctx.globalAlpha=Math.max(0,Math.min(1,o.opacity??1));ctx.strokeStyle=o.color||'#3388ff';ctx.lineWidth=Math.max(.3,+(o.weight??3));ctx.stroke()}
+  ctx.globalAlpha=1}
+ const b=map.getBounds(),ext={west:Math.max(-180,b.getWest()),east:Math.min(180,b.getEast()),south:Math.max(-85,b.getSouth()),north:Math.min(85,b.getNorth())};
+ try{if($('worldHistoryCheck')?.checked)await window.__anambroHistoryShadeExport?.(ctx,P(F),ext,F.W0,F.H0)}catch(e){console.warn('Sombreado · Equal Earth',e)}
+ if($('layoutShowGrid')?.checked)graticule(ctx,F);
+ ctx.restore();globePath(ctx,F);ctx.strokeStyle='#6f808b';ctx.lineWidth=1;ctx.stroke();
+ layoutSnapshotMeta={type:'analysis-equal-earth',imgWidth:F.W0,imgHeight:F.H0,kmPerImagePxAtCenter:111.32*Math.cos(F.phi*RAD)/(ex(F.phi)*F.k),ee:F};
+ return canvas.toDataURL('image/jpeg',.94)}
+window.anambroAnalysisEqualEarth={wanted,render,unproject,frame};
 })();
 </script>
 
