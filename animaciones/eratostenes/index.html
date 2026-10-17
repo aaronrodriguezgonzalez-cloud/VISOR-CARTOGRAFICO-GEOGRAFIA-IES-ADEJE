@@ -153,20 +153,20 @@ let curv=0,nearSun=false;
 S.flat={dur:10,interactive:true,draw(x,t){sky(x,1);const kk=S.flat.userSet?curv:ease(cl((t-.25)/.5,0,1));if(!S.flat.userSet){curv=kk;const r=$('curvR');if(r)r.value=Math.round(kk*100)}
  const EX=3,theta=kk*ANG*EX*D2R,L=440;// arco entre ciudades (px)
  const Rr=theta>1e-4?L/theta:1e9,ccx=720,ccy=360+Rr;// centro de curvatura (Siena en la vertical)
- const pos=f=>{const a=-theta+f*theta;return {x:ccx+Rr*Math.sin(a),y:ccy-Rr*Math.cos(a),n:[Math.sin(a),-Math.cos(a)]}};
+ const pos=f=>{if(theta<1e-5)return {x:ccx+(f-1)*L,y:360,n:[0,-1]};const a=-theta+f*theta;return {x:ccx+Rr*Math.sin(a),y:ccy-Rr*Math.cos(a),n:[Math.sin(a),-Math.cos(a)]}}// en el límite plano, posición por longitud de arco;
  x.fillStyle='#c9a46a';x.beginPath();x.moveTo(0,600);for(let f=-2.5;f<=3.5;f+=.02){const p=pos(f);x.lineTo(cl(p.x,-50,1050),p.y)}x.lineTo(1000,600);x.closePath();x.fill();
  const A=pos(0),B=pos(1),gh=110;
- const sunP=nearSun?[640,40]:null;
+ const sunP=nearSun?[720,95]:null;// Sol cercano justo encima de Siena
  for(const [p,n] of [[A,'Alejandría (norte)'],[B,'Siena (sur)']]){const tx=p.x+p.n[0]*gh,ty=p.y+p.n[1]*gh;
   // rayo que pasa por la punta del palo
   let d=nearSun?[tx-sunP[0],ty-sunP[1]]:[0,1];const dl=Math.hypot(d[0],d[1]);d=[d[0]/dl,d[1]/dl];
   // sombra: intersección aproximada con el suelo (busca por el arco)
   let best=null,bd=1e9;for(let f=-.45;f<=1.45;f+=.002){const q=pos(f),cr=(q.x-tx)*d[1]-(q.y-ty)*d[0];const along=(q.x-tx)*d[0]+(q.y-ty)*d[1];if(along>0&&Math.abs(cr)<bd){bd=Math.abs(cr);best=q}}
   if(best&&Math.hypot(best.x-p.x,best.y-p.y)>2){x.strokeStyle='rgba(20,12,4,.85)';x.lineWidth=7;x.lineCap='round';x.beginPath();x.moveTo(p.x,p.y);x.lineTo(best.x,best.y);x.stroke();x.lineCap='butt'}
-  arrowLine(x,tx-d[0]*240,ty-d[1]*240,tx,ty,'rgba(255,214,90,.9)',2.2);if(best){x.strokeStyle='rgba(255,214,90,.5)';x.setLineDash([4,4]);x.beginPath();x.moveTo(tx,ty);x.lineTo(best.x,best.y);x.stroke();x.setLineDash([])}
+  if(nearSun)arrowLine(x,sunP[0],sunP[1],tx,ty,'rgba(255,214,90,.9)',2.2);else arrowLine(x,tx-d[0]*240,ty-d[1]*240,tx,ty,'rgba(255,214,90,.9)',2.2);if(best){x.strokeStyle='rgba(255,214,90,.5)';x.setLineDash([4,4]);x.beginPath();x.moveTo(tx,ty);x.lineTo(best.x,best.y);x.stroke();x.setLineDash([])}
   x.strokeStyle='#5b3b20';x.lineWidth=6;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(tx,ty);x.stroke();txt(x,n,p.x,p.y+34,{s:15,w:800})}
  if(nearSun)sun(x,sunP[0],sunP[1],22);else txt(x,'☀ Sol muy lejano: rayos paralelos',500,30,{s:15,c:'#ffd166',bg:'rgba(6,20,32,.6)'});
- txt(x,kk<.02?'Superficie plana':'Superficie curva'+(kk>.98?'':' ('+Math.round(kk*100)+' %)')+' · curvatura exagerada ×3',500,64,{s:16,w:800,bg:'rgba(6,20,32,.6)'})}};
+ txt(x,nearSun?'Superficie plana con el Sol cerca: ¡también encaja con lo observado!':kk<.02?'Superficie plana':'Superficie curva'+(kk>.98?'':' ('+Math.round(kk*100)+' %)')+' · curvatura exagerada ×3',500,64,{s:16,w:800,bg:'rgba(6,20,32,.6)'})}};
 /* 4 · el ángulo en el centro */
 S.center={dur:9,draw(x,t){x.fillStyle='#061420';x.fillRect(0,0,1000,600);const ex=3,th=ANG*ex*D2R,cx=560,cy=545,R=370;
  x.fillStyle='#1d5f8a';x.beginPath();x.arc(cx,cy,R,Math.PI,2*Math.PI);x.lineTo(cx+R,600);x.lineTo(cx-R,600);x.closePath();x.fill();x.strokeStyle='#c9efff';x.lineWidth=3;x.beginPath();x.arc(cx,cy,R,Math.PI,2*Math.PI);x.stroke();

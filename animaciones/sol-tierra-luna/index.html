@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · Sol, Tierra y Luna</title>
+<style>
+:root{--panel:#0d2231;--line:#2d536a;--ink:#eef5f8;--muted:#a9c0cd;--gold:#ffd166;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#07131d}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314b 0,#07131d 55%,#02080d 100%)}
+.app{max-width:1300px;margin:auto;padding:12px 14px 18px}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
+.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
+.stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;line-height:1.45}
+.stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:10px}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.card{background:#05101a;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card canvas{display:block;width:100%;height:100%}
+.mainCard{aspect-ratio:1/0.82}
+.moonCard{aspect-ratio:1/0.62}.sideCard{aspect-ratio:1/0.5}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.m{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:7px 10px}
+.m small{display:block;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.m b{font-size:16px}.m span{display:block;font-size:12px;color:#cfe0e8;margin-top:2px}
+.alert{background:#2a1d00;border:1px solid #ffd166;border-radius:10px;padding:8px 10px;font-weight:800;color:#ffd166;display:none}
+.alert.on{display:block}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.controls button,.controls select,.controls input{min-height:40px;border:1px solid #5e8094;border-radius:9px;background:#102b3d;color:#fff;padding:7px 11px;font-weight:800;font-size:14px;cursor:pointer}
+.controls input{background:#fff;color:#10202c;font-weight:600}
+.controls button.primary{background:#176c6a}
+.controls button.on{background:#ffd166;color:#2a1d00}
+.when{font-weight:800;font-size:15px}
+.evList{display:grid;grid-template-columns:1fr;gap:6px}
+.evList button{text-align:left;border:1px solid #305369;background:#0e2534;color:#eef5f8;border-radius:9px;padding:7px 10px;cursor:pointer;font:inherit}
+.evList button b{color:#ffd166}.evList button small{display:block;color:#a9c0cd}
+.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+@media(max-width:940px){.grid{grid-template-columns:1fr}}
+@media(max-width:560px){.app{padding:8px}.controls button,.controls select{flex:1}.stage{font-size:14px}.mainCard{aspect-ratio:1/0.95}}
+</style>
+</head>
+<body>
+<main class="app">
+ <div class="top"><div class="brand">ANAMBRO · AULA</div><h1>🌍🌙 Sol, Tierra y Luna: movimientos, fases y eclipses</h1></div>
+ <nav class="steps" id="steps" aria-label="Secciones"></nav>
+ <section class="stage" id="stage" aria-live="polite"></section>
+ <div class="grid">
+  <div class="col">
+   <div class="card mainCard"><h2 id="mainTitle">Vista desde encima del polo norte</h2><canvas id="main" aria-label="Sistema Sol, Tierra y Luna"></canvas></div>
+   <div class="controls">
+    <button id="play" class="primary">▶ Reproducir</button>
+    <select id="speed" aria-label="Velocidad"><option value="0.0417">1 hora por segundo</option><option value="1">1 día por segundo</option><option value="7">1 semana por segundo</option><option value="30">1 mes por segundo</option><option value="12.2">1 año en 30 s</option></select>
+    <button data-step="-29.53">◀◀ 1 mes</button><button data-step="-1">◀ 1 día</button><button data-step="1">1 día ▶</button><button data-step="29.53">1 mes ▶▶</button>
+    <button id="now">Hoy</button>
+   </div>
+   <div class="controls"><span class="when" id="when"></span><button id="tExag" title="Exagera la forma elíptica de la órbita para que se vea">Órbita exagerada</button><button id="tScale" title="Muestra las distancias y los tamaños reales">📏 A escala</button></div>
+  </div>
+  <div class="col">
+   <div class="card moonCard"><h2 id="moonTitle">La Luna vista desde Canarias</h2><canvas id="moon"></canvas></div>
+   <div class="card sideCard"><h2>De perfil: la órbita de la Luna está inclinada</h2><canvas id="side"></canvas></div>
+   <div class="alert" id="alert"></div>
+   <div class="cards" id="cards"></div>
+   <div class="evList" id="evList" style="display:none"></div>
+  </div>
+ </div>
+ <p class="small">Posiciones calculadas para cada fecha: Sol con el algoritmo del Almanaque Náutico y Luna con su fórmula de baja precisión (error ≈ 0,3°). Las vistas «esquema» no están a escala: el botón «A escala» muestra las proporciones reales. Eclipses visibles desde España según timeanddate.com.</p>
+</main>
+<script src="../comun/tierra.js"></script>
+<script>
+(()=>{
+'use strict';
+const T=window.AulaTierra,{V}=T,D2R=Math.PI/180,R2D=180/Math.PI,$=id=>document.getElementById(id),DAY=86400000,EPS=23.4393;
+const fmt=(x,d=1)=>Number(x).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const AU=149597870.7;
+/* ---- Luna: fórmula de baja precisión (Astronomical Almanac) ---- */
+function moon(date){const d=date.getTime()/DAY+2440587.5-2451545,Tc=d/36525,s=a=>Math.sin(a*D2R),c=a=>Math.cos(a*D2R);
+ const lam=218.32+481267.881*Tc+6.29*s(134.9+477198.85*Tc)-1.27*s(259.2-413335.38*Tc)+0.66*s(235.7+890534.23*Tc)+0.21*s(269.9+954397.70*Tc)-0.19*s(357.5+35999.05*Tc)-0.11*s(186.6+966404.05*Tc);
+ const bet=5.13*s(93.3+483202.03*Tc)+0.28*s(228.2+960400.87*Tc)-0.28*s(318.3+6003.18*Tc)-0.17*s(217.6-407332.20*Tc);
+ const par=0.9508+0.0518*c(134.9+477198.85*Tc)+0.0095*c(259.2-413335.38*Tc)+0.0078*c(235.7+890534.23*Tc)+0.0028*c(269.9+954397.70*Tc);
+ return {lam:((lam%360)+360)%360,bet,par,dist:6378.14/Math.sin(par*D2R),node:((125.04-1934.136*Tc)%360+360)%360}}
+const wrap=a=>((a%360)+540)%360-180;
+function state(t){const date=new Date(t),s=T.sun(date),m=moon(date),dl=wrap(m.lam-s.lambda),cosE=Math.cos(m.bet*D2R)*Math.cos(dl*D2R),elong=Math.acos(Math.max(-1,Math.min(1,cosE)))*R2D,k=(1-cosE)/2;
+ const sSun=0.2666/s.R,sMoon=0.2725*m.par,piSun=0.00244;
+ // eclipses: separación Sol–Luna y Luna–antisol
+ const sep=elong,anti=180-elong,umb=1.02*(m.par+piSun-sSun),pen=1.02*(m.par+piSun+sSun);
+ let ecl=null;if(sep<sSun+sMoon+m.par*0.95)ecl={type:'sol',sep,sSun,sMoon,total:sMoon>sSun};if(anti<pen+sMoon)ecl={type:'luna',anti,umb,pen,sMoon,depth:anti<umb-sMoon?'total':anti<umb+sMoon?'parcial':'penumbral'};
+ return {date,s,m,dl,elong,k,waxing:dl>0,sSun,sMoon,ecl}}
+/* edad de la Luna (días desde la última luna nueva) */
+function moonAge(t){let a=0;for(let i=0;i<31*24;i+=2){const st=state(t-i*3600000);if(st.elong<1.2||(i>0&&state(t-(i-2)*3600000).dl>=0&&st.dl<0)){a=i/24;break}}return a}
+const phaseName=st=>{const k=st.k,w=st.waxing;if(k<0.03)return 'Luna nueva';if(k>0.97)return 'Luna llena';if(Math.abs(k-0.5)<0.06)return w?'Cuarto creciente':'Cuarto menguante';if(k<0.5)return w?'Creciente':'Menguante';return w?'Gibosa creciente':'Gibosa menguante'};
+/* ---- estado de la interfaz ---- */
+let t=Date.now(),playing=false,speed=1,raf=0,last=0,step=0,zoom='sistema',exag=false,scale=false;
+const EVENTS=[
+ {d:'2026-08-12T17:46Z',k:'sol',n:'Eclipse total de Sol',v:'Total en el norte peninsular; parcial en Canarias',past:true},
+ {d:'2026-08-28T04:13Z',k:'luna',n:'Eclipse parcial de Luna',v:'Visible en España y Canarias de madrugada',past:true},
+ {d:'2027-02-06T16:00Z',k:'sol',n:'Eclipse anular de Sol',v:'Parcial desde España'},
+ {d:'2027-02-20T23:13Z',k:'luna',n:'Eclipse penumbral de Luna',v:'Visible desde España'},
+ {d:'2027-08-02T10:07Z',k:'sol',n:'Eclipse total de Sol',v:'Total en el sur peninsular; parcial en Canarias'},
+ {d:'2027-08-17T07:14Z',k:'luna',n:'Eclipse penumbral de Luna',v:'Visible desde España'},
+ {d:'2028-01-12T04:13Z',k:'luna',n:'Eclipse parcial de Luna',v:'Visible desde España'},
+ {d:'2028-01-26T15:08Z',k:'sol',n:'Eclipse anular de Sol',v:'Visible desde España'},
+ {d:'2028-07-06T18:19Z',k:'luna',n:'Eclipse parcial de Luna',v:'Visible desde España'},
+ {d:'2028-12-31T16:52Z',k:'luna',n:'Eclipse total de Luna',v:'Visible desde España'},
+ {d:'2029-06-26T03:22Z',k:'luna',n:'Eclipse total de Luna',v:'Visible desde España'},
+ {d:'2029-12-20T22:42Z',k:'luna',n:'Eclipse total de Luna',v:'Visible desde España'},
+ {d:'2030-06-01T06:29Z',k:'sol',n:'Eclipse anular de Sol',v:'Parcial desde España'},
+ {d:'2030-06-15T18:33Z',k:'luna',n:'Eclipse parcial de Luna',v:'Visible desde España'}];
+/* afina el instante de máxima ocultación con las efemérides */
+function refine(t0,kind){let best=t0,bv=1e9;for(let dt=-36*3600000;dt<=36*3600000;dt+=10*60000){const st=state(t0+dt),v=kind==='sol'?st.elong:180-st.elong;if(v<bv){bv=v;best=t0+dt}}return best}
+/* ---- secciones ---- */
+const STEPS=[
+ {k:'Rotación',z:'tierra',sp:0.0417,t:'La rotación: el día y la noche',p:'La Tierra gira sobre su eje de <b>oeste a este</b>. La mitad que mira al Sol tiene día y la otra mitad, noche. Una vuelta respecto al Sol dura <b>24 horas</b> (día solar). Pero respecto a las estrellas lejanas tarda un poco menos, <b>23 h 56 min</b> (día sidéreo): como mientras gira también avanza en su órbita, necesita girar un poquito más para volver a tener el Sol en el mismo sitio.'},
+ {k:'Traslación',z:'sistema',sp:12.2,t:'La traslación: una vuelta al Sol en un año',p:'La Tierra da una vuelta alrededor del Sol en <b>365 días y unas 6 horas</b> (por eso cada cuatro años hay un año bisiesto). Recorre unos 940 millones de km a casi <b>30 km por segundo</b>. Mientras tanto la Luna la acompaña, dando unas 12 vueltas a su alrededor.'},
+ {k:'Órbita elíptica',z:'sistema',sp:12.2,ex:true,t:'Una órbita elíptica: Kepler',p:'La órbita es una <b>elipse</b> con el Sol en uno de sus focos, aunque tan poco achatada que parece un círculo (pulsa «Órbita exagerada» para verla deformada). En el <b>perihelio</b> (principios de enero) la Tierra está más cerca y va <b>más rápida</b>; en el <b>afelio</b> (principios de julio) más lejos y <b>más lenta</b>: en tiempos iguales barre áreas iguales (2.ª ley de Kepler). Por eso el invierno del hemisferio norte es unos días más corto que el verano.'},
+ {k:'La Luna',z:'luna',sp:1,t:'La Luna gira alrededor de la Tierra',p:'La Luna da una vuelta a la Tierra en <b>27,3 días</b> respecto a las estrellas (mes sidéreo), pero de luna nueva a luna nueva pasan <b>29,5 días</b> (mes sinódico): mientras tanto la Tierra ha avanzado en su órbita. Además la Luna gira sobre sí misma en el mismo tiempo que tarda en dar la vuelta: por eso nos enseña <b>siempre la misma cara</b> (el punto rojo).'},
+ {k:'Fases',z:'luna',sp:1,t:'Las fases de la Luna',p:'El Sol ilumina siempre media Luna. Según dónde esté la Luna en su órbita, desde la Tierra vemos una parte mayor o menor de esa mitad iluminada: <b>luna nueva</b> (entre el Sol y la Tierra), <b>cuarto creciente</b>, <b>luna llena</b> (al otro lado) y <b>cuarto menguante</b>. En Canarias, «la Luna es mentirosa»: cuando crece tiene forma de D y cuando decrece, de C.'},
+ {k:'¿Eclipse cada mes?',z:'luna',sp:7,t:'¿Por qué no hay eclipses todos los meses?',p:'La órbita de la Luna está <b>inclinada unos 5°</b> respecto a la de la Tierra. Casi todos los meses la luna nueva pasa por encima o por debajo del Sol y la luna llena por encima o por debajo de la sombra de la Tierra. Solo hay eclipse cuando la luna nueva o la llena coinciden cerca de los <b>nodos</b>, los dos puntos donde la órbita lunar cruza el plano de la Tierra: eso pasa en dos «temporadas de eclipses» al año. Mira la vista de perfil.'},
+ {k:'Eclipse de Sol',z:'luna',sp:0.0417,ev:4,t:'Eclipse de Sol: la Luna tapa el Sol',p:'En luna nueva, si la Luna está cerca de un nodo, su <b>sombra</b> cae sobre la Tierra. Donde llega la sombra completa (umbra) el eclipse es <b>total</b> y se hace de noche unos minutos; alrededor (penumbra) es <b>parcial</b>. Si la Luna está lejos (en su apogeo) se ve más pequeña que el Sol y queda un anillo: eclipse <b>anular</b>. Este es el del <b>2 de agosto de 2027</b>, total en el sur de la Península.'},
+ {k:'Eclipse de Luna',z:'luna',sp:0.0417,ev:9,t:'Eclipse de Luna: la Luna entra en la sombra de la Tierra',p:'En luna llena, si la Luna está cerca de un nodo, atraviesa la <b>sombra de la Tierra</b>. No desaparece: se vuelve <b>rojiza</b>, porque la atmósfera terrestre desvía hacia ella la luz roja de todos los amaneceres y atardeceres del planeta. Se ve desde toda la mitad de la Tierra en que es de noche. Este es el del <b>31 de diciembre de 2028</b>.'},
+ {k:'Próximos eclipses',z:'luna',sp:0.0417,list:true,t:'Próximos eclipses visibles desde España',p:'Pulsa un eclipse para ir a ese momento y verlo en las tres vistas. Recuerda: <b>nunca mires el Sol directamente</b>, ni siquiera durante un eclipse parcial: usa gafas homologadas o un proyector de agujero.'},
+ {k:'Explora',z:'sistema',sp:1,t:'Explora libremente',p:'Mueve la fecha hacia delante o hacia atrás, cambia la velocidad y las vistas. Prueba a buscar la próxima luna llena, o a pasar un año entero a toda velocidad para ver cómo la Luna da unas 12 vueltas y media mientras la Tierra da una al Sol.'}];
+/* ---- utilidades de dibujo ---- */
+function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d',{willReadFrequently:true});x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height,d}}
+function txt(x,s,X,Y,o={}){x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';x.textAlign=o.a||'center';if(o.bg){const m=x.measureText(s).width,l=o.a==='left'?X:o.a==='right'?X-m:X-m/2;x.fillStyle=o.bg;x.fillRect(l-4,Y-(o.s||12),m+8,(o.s||12)+5)}x.fillStyle=o.c||'#eef5f8';x.fillText(s,X,Y);x.restore()}
+function stars(x,w,h){x.fillStyle='rgba(255,255,255,.55)';for(let i=0;i<120;i++)x.fillRect((i*137.31)%w,(i*71.97)%h,1.1,1.1)}
+function sunDisk(x,X,Y,r){const g=x.createRadialGradient(X,Y,r*.2,X,Y,r*2.4);g.addColorStop(0,'rgba(255,214,90,.75)');g.addColorStop(1,'rgba(255,214,90,0)');x.fillStyle=g;x.beginPath();x.arc(X,Y,r*2.4,0,7);x.fill();x.fillStyle='#ffd34d';x.beginPath();x.arc(X,Y,r,0,7);x.fill()}
+function litDisk(x,X,Y,r,toSun,col='#d9d4c7',dark='#2a3036'){// disco con la mitad que mira al Sol iluminada (vista desde arriba)
+ x.fillStyle=dark;x.beginPath();x.arc(X,Y,r,0,7);x.fill();const a=Math.atan2(toSun[1],toSun[0]);x.fillStyle=col;x.beginPath();x.arc(X,Y,r,a-Math.PI/2,a+Math.PI/2);x.closePath();x.fill()}
+/* Tierra vista desde el polo norte de la eclíptica */
+let land=null;T.land().then(r=>{land=r;draw()}).catch(()=>{});
+const NAX=[0,Math.sin(EPS*D2R),Math.cos(EPS*D2R)],XEQ=[1,0,0],YEQ=V.cross(NAX,XEQ);
+function earthGlobe(x,dpr,X,Y,R,st){const g=st.s.gmst*D2R,E0=V.add(V.mul(XEQ,Math.cos(g)),V.mul(YEQ,Math.sin(g))),l=st.s.lambda*D2R,sv=[Math.cos(l),Math.sin(l),0];
+ const o={cx:X,cy:Y,R,dpr,right:[1,0,0],up:[0,1,0],toward:[0,0,1],N:NAX,E0,sun:sv,land,night:.82};T.globe(x,o);return o}
+/* ---- vista principal ---- */
+function keplerPos(t,e){// órbita exagerada con la misma ley de áreas
+ const yr=365.256363*DAY,tp=Date.UTC(2026,0,3,17),M=2*Math.PI*(((t-tp)/yr)%1+1)%(2*Math.PI);let E=M;for(let i=0;i<12;i++)E=E-(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));
+ const r=1-e*Math.cos(E),nu=2*Math.atan2(Math.sqrt(1+e)*Math.sin(E/2),Math.sqrt(1-e)*Math.cos(E/2)),lp=102.94*D2R;return {r,ang:lp+nu}}
+function drawMain(){const {x,w,h,d}=fit($('main'));const st=state(t);x.fillStyle='#05101a';x.fillRect(0,0,w,h);stars(x,w,h);
+ const cx=w/2,cy=h/2,lE=(st.s.lambda+180)*D2R;
+ if(zoom==='sistema'){const S=Math.min(w,h)*.40;
+  // órbita
+  const e=exag?0.45:0.0167,ptOrbit=f=>{const tt=Date.UTC(2026,0,1)+f*365.256*DAY;if(exag){const k=keplerPos(tt,e);return [k.r*Math.cos(k.ang),k.r*Math.sin(k.ang)]}const ss=T.sun(new Date(tt)),a=(ss.lambda+180)*D2R;return [ss.R*Math.cos(a),ss.R*Math.sin(a)]};
+  const sx=exag?cx+S*0:cx,sy=cy;
+  // áreas iguales (exagerada): 12 sectores de 1 mes
+  if(exag){for(let i=0;i<12;i++){x.fillStyle=i%2?'rgba(124,198,255,.10)':'rgba(255,209,102,.10)';x.beginPath();x.moveTo(sx,sy);for(let f=i/12;f<=(i+1)/12+1e-9;f+=1/240){const p=ptOrbit(f);x.lineTo(sx+p[0]*S,sy-p[1]*S)}x.closePath();x.fill()}}
+  x.strokeStyle='rgba(160,190,210,.55)';x.setLineDash([5,6]);x.lineWidth=1.3;x.beginPath();for(let f=0;f<=1.001;f+=1/240){const p=ptOrbit(f);f?x.lineTo(sx+p[0]*S,sy-p[1]*S):x.moveTo(sx+p[0]*S,sy-p[1]*S)}x.stroke();x.setLineDash([]);
+  // perihelio y afelio
+  const pp=ptOrbit(2/365.25),pa=ptOrbit(185/365.25);for(const [p,n] of [[pp,'perihelio · 3 ene'],[pa,'afelio · 6 jul']]){x.fillStyle='#cfe0e8';x.beginPath();x.arc(sx+p[0]*S,sy-p[1]*S,3,0,7);x.fill();txt(x,n,sx+p[0]*S*1.12,sy-p[1]*S*1.12+4,{s:11,c:'#cfe0e8'})}
+  sunDisk(x,sx,sy,exag?18:22);
+  let ep;if(exag){const k=keplerPos(t,e);ep=[sx+k.r*Math.cos(k.ang)*S,sy-k.r*Math.sin(k.ang)*S]}else ep=[sx+st.s.R*Math.cos(lE)*S,sy-st.s.R*Math.sin(lE)*S];
+  // Luna (órbita exagerada en tamaño)
+  const mr=Math.max(26,S*.12),ml=st.m.lam*D2R;x.strokeStyle='rgba(200,200,200,.3)';x.beginPath();x.arc(ep[0],ep[1],mr,0,7);x.stroke();
+  const toSun=[sx-ep[0],-(sy-ep[1])];const mp=[ep[0]+Math.cos(ml)*mr,ep[1]-Math.sin(ml)*mr];
+  x.save();x.setTransform(d,0,0,d,0,0);earthGlobe(x,d,ep[0],ep[1],12,st);x.restore();
+  litDisk(x,mp[0],mp[1],5,[sx-mp[0],sy-mp[1]]);
+  txt(x,'Tierra',ep[0],ep[1]+26,{s:12});txt(x,'Luna',mp[0],mp[1]-9,{s:10,c:'#cfe0e8'});
+  txt(x,'Sol',sx,sy+40,{s:13,c:'#ffd166'});
+  if(exag)txt(x,'Órbita exagerada (excentricidad 0,45 en vez de 0,017) · sectores de 1 mes: misma área',w/2,h-12,{s:11.5,c:'#ffd166',bg:'rgba(5,16,26,.7)'});else txt(x,'Órbita real: casi un círculo · Luna y tamaños no a escala',w/2,h-12,{s:11.5,c:'#a9c0cd'});
+  // sentido de traslación
+  x.strokeStyle='#9fe3b0';x.lineWidth=2;const ar=S*.55;x.beginPath();x.arc(sx,sy,ar,-0.5,-1.2,true);x.stroke();txt(x,'traslación ⟲',sx+ar*Math.cos(-0.85)+30,sy+ar*Math.sin(-0.85),{s:11,c:'#9fe3b0'})}
+ else if(zoom==='tierra'){const R=Math.min(w,h)*.33;// rayos desde el Sol
+  const l=st.s.lambda*D2R,ux=Math.cos(l),uy=-Math.sin(l);// hacia el Sol en pantalla
+  x.save();x.translate(cx,cy);x.rotate(0);x.restore();
+  for(let k=-4;k<=4;k++){const px=-uy,py=ux,ox=cx+ux*R*1.5+px*k*R*.22,oy=cy+uy*R*1.5+py*k*R*.22;if(Math.abs(k)*.22<1){x.strokeStyle='rgba(255,214,90,.5)';x.lineWidth=2;x.beginPath();x.moveTo(ox,oy);x.lineTo(ox-ux*R*.35,oy-uy*R*.35);x.stroke()}}
+  x.save();x.setTransform(d,0,0,d,0,0);const o=earthGlobe(x,d,cx,cy,R,st);x.restore();
+  const c=T.project(o,28.3,-16.5);x.fillStyle='#ff5a4e';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.arc(c.x/d*0+c.x,c.y,6,0,7);x.fill();x.stroke();txt(x,'Canarias',c.x+9,c.y-6,{a:'left',s:12,bg:'rgba(5,16,26,.6)'});
+  txt(x,'☀ hacia el Sol',cx+ux*R*1.62,cy+uy*R*1.62,{s:13,c:'#ffd166',bg:'rgba(5,16,26,.6)'});
+  const loc=new Date(t+(-16.5/15)*3600000);txt(x,'Hora solar en Canarias: '+String(loc.getUTCHours()).padStart(2,'0')+':'+String(loc.getUTCMinutes()).padStart(2,'0'),w/2,h-14,{s:13,c:'#ffd166',bg:'rgba(5,16,26,.7)'});
+  x.strokeStyle='#9fe3b0';x.lineWidth=2.4;x.beginPath();x.arc(cx,cy,R*1.12,-0.4,-1.4,true);x.stroke();txt(x,'rotación ⟲ (de oeste a este)',cx+R*1.15*Math.cos(-0.9),cy+R*1.15*Math.sin(-0.9)-8,{a:'left',s:12,c:'#9fe3b0'})}
+ else{// sistema Tierra–Luna
+  const S=Math.min(w,h)*.38/405000,l=st.s.lambda*D2R,ux=Math.cos(l),uy=-Math.sin(l),RE=Math.max(14,Math.min(w,h)*.045),RM=RE*.27*1.6;
+  // rayos del Sol
+  for(let k=-7;k<=7;k++){const px=-uy,py=ux,ox=cx+ux*Math.min(w,h)*.62+px*k*Math.min(w,h)*.07,oy=cy+uy*Math.min(w,h)*.62+py*k*Math.min(w,h)*.07;x.strokeStyle='rgba(255,214,90,.25)';x.lineWidth=1.5;x.beginPath();x.moveTo(ox,oy);x.lineTo(ox-ux*40,oy-uy*40);x.stroke()}
+  txt(x,'☀ luz del Sol',cx+ux*Math.min(w,h)*.47,cy+uy*Math.min(w,h)*.47,{s:12,c:'#ffd166',bg:'rgba(5,16,26,.6)'});
+  // órbita de la Luna con su inclinación: parte al norte de la eclíptica continua, al sur discontinua
+  const inc=5.145*D2R,Om=st.m.node*D2R,orb=[];for(let u=0;u<=360;u+=3){const U=u*D2R,lam=Om+Math.atan2(Math.cos(inc)*Math.sin(U),Math.cos(U)),b=Math.asin(Math.sin(inc)*Math.sin(U));orb.push([cx+Math.cos(lam)*st.m.dist*S,cy-Math.sin(lam)*st.m.dist*S,b])}
+  for(let i=1;i<orb.length;i++){x.strokeStyle=orb[i][2]>=0?'rgba(220,220,220,.6)':'rgba(220,220,220,.3)';x.setLineDash(orb[i][2]>=0?[]:[4,4]);x.lineWidth=1.4;x.beginPath();x.moveTo(orb[i-1][0],orb[i-1][1]);x.lineTo(orb[i][0],orb[i][1]);x.stroke()}x.setLineDash([]);
+  // línea de los nodos
+  const n1=[cx+Math.cos(Om)*st.m.dist*S,cy-Math.sin(Om)*st.m.dist*S],n2=[cx-Math.cos(Om)*st.m.dist*S,cy+Math.sin(Om)*st.m.dist*S];x.strokeStyle='rgba(255,143,123,.7)';x.setLineDash([3,4]);x.beginPath();x.moveTo(n1[0],n1[1]);x.lineTo(n2[0],n2[1]);x.stroke();x.setLineDash([]);
+  txt(x,'☊ nodo',n1[0],n1[1]-8,{s:11,c:'#ff8f7b'});txt(x,'☋ nodo',n2[0],n2[1]-8,{s:11,c:'#ff8f7b'});
+  // sombras
+  const shadow=(X,Y,r,len,alpha)=>{x.fillStyle='rgba(0,0,0,'+alpha+')';const px=-uy,py=ux;x.beginPath();x.moveTo(X+px*r,Y+py*r);x.lineTo(X-ux*len+px*r*.75,Y-uy*len+py*r*.75);x.lineTo(X-ux*len-px*r*.75,Y-uy*len-py*r*.75);x.lineTo(X-px*r,Y-py*r);x.closePath();x.fill()};
+  shadow(cx,cy,RE,Math.min(w,h)*.7,.55);
+  const ml=st.m.lam*D2R,mp=[cx+Math.cos(ml)*st.m.dist*S,cy-Math.sin(ml)*st.m.dist*S];
+  if(st.elong<25)shadow(mp[0],mp[1],RM,st.m.dist*S*1.05,.45);
+  x.save();x.setTransform(d,0,0,d,0,0);earthGlobe(x,d,cx,cy,RE,st);x.restore();
+  litDisk(x,mp[0],mp[1],RM,[ux,uy]);
+  if(st.ecl&&st.ecl.type==='luna'&&st.ecl.depth!=='penumbral'){x.fillStyle='rgba(170,40,20,.55)';x.beginPath();x.arc(mp[0],mp[1],RM,0,7);x.fill()}
+  // cara visible: siempre mira a la Tierra
+  const fx=mp[0]+(cx-mp[0])/Math.hypot(cx-mp[0],cy-mp[1])*RM*.6,fy=mp[1]+(cy-mp[1])/Math.hypot(cx-mp[0],cy-mp[1])*RM*.6;x.fillStyle='#ff5a4e';x.beginPath();x.arc(fx,fy,2.6,0,7);x.fill();
+  txt(x,'Tierra',cx,cy+RE+16,{s:12});txt(x,'Luna',mp[0],mp[1]-RM-6,{s:12});
+  // fases en 8 posiciones (guía)
+  if(step===4){for(let i=0;i<8;i++){const a=l+i*Math.PI/4,R=st.m.dist*S,p=[cx+Math.cos(a)*R*1.18,cy-Math.sin(a)*R*1.18];const nm=['Nueva','Creciente','C. creciente','Gibosa','Llena','Gibosa','C. menguante','Menguante'][i];txt(x,nm,p[0],p[1]+4,{s:10.5,c:'#a9c0cd'})}}
+  txt(x,'Distancia Tierra–Luna y tamaños aumentados: no a escala (botón «A escala»)',w/2,h-12,{s:11.5,c:'#a9c0cd'})}
+ if(scale)drawScale(x,w,h);
+ $('mainTitle').textContent=zoom==='tierra'?'La Tierra vista desde encima del polo norte':zoom==='luna'?'La Tierra y la Luna vistas desde arriba':'El sistema visto desde arriba';}
+/* proporciones reales */
+function drawScale(x,w,h){x.fillStyle='rgba(3,10,18,.93)';x.fillRect(0,0,w,h);const pad=24,L=w-2*pad;txt(x,'A escala: la Tierra, la Luna y la distancia entre ellas',w/2,30,{s:14,w:800,c:'#ffd166'});
+ const dE=12742,dM=3474,D=384400,k=(L-40)/D,y=h*.32;x.fillStyle='#2a6fa0';x.beginPath();x.arc(pad+dE*k/2+6,y,Math.max(2.5,dE*k/2),0,7);x.fill();x.fillStyle='#d9d4c7';x.beginPath();x.arc(pad+6+D*k,y,Math.max(1.2,dM*k/2),0,7);x.fill();
+ x.strokeStyle='rgba(255,255,255,.35)';x.setLineDash([3,4]);x.beginPath();x.moveTo(pad+6,y+16);x.lineTo(pad+6+D*k,y+16);x.stroke();x.setLineDash([]);txt(x,'384.400 km ≈ 30 Tierras puestas en fila',w/2,y+34,{s:12.5});txt(x,'Tierra',pad+8,y-14,{a:'left',s:12});txt(x,'Luna',pad+D*k,y-14,{a:'right',s:12});
+ const y2=h*.62;txt(x,'El Sol es 109 veces más ancho que la Tierra y está 390 veces más lejos que la Luna:',w/2,y2-46,{s:12.5,c:'#cfe0e8'});txt(x,'si la Tierra fuera una canica de 1 cm, la Luna estaría a 30 cm',w/2,y2-24,{s:13,w:800});txt(x,'y el Sol sería una pelota de 1,09 m… ¡a 117 metros!',w/2,y2-4,{s:13,w:800,c:'#ffd166'});
+ const r2=Math.min(60,h*.16);x.fillStyle='#ffd34d';x.beginPath();x.arc(w/2+r2+60,y2+r2+20,r2,0,7);x.fill();x.fillStyle='#2a6fa0';x.beginPath();x.arc(w/2-60,y2+r2+20,Math.max(1.5,r2/109),0,7);x.fill();txt(x,'Tierra (punto) junto al Sol, a escala de tamaño',w/2-60,y2+2*r2+44,{s:11,c:'#a9c0cd'})}
+/* ---- la Luna vista desde Canarias (y el Sol cuando están juntos) ---- */
+function drawMoon(){const {x,w,h}=fit($('moon')),st=state(t);x.fillStyle='#05101a';x.fillRect(0,0,w,h);stars(x,w,h);const cx=w/2,cy=h*.53,R=Math.min(w,h)*.3;
+ if(st.ecl&&st.ecl.type==='sol'||st.elong<3){// el Sol y la Luna juntos
+  const kk=R/0.6;sunDisk(x,cx,cy,st.sSun*kk);const dx=st.dl*Math.cos(st.m.bet*D2R)*kk,dy=-st.m.bet*kk;x.fillStyle='#0b0f14';x.beginPath();x.arc(cx-dx,cy+dy,st.sMoon*kk,0,7);x.fill();
+  const ov=st.elong<Math.abs(st.sSun-st.sMoon)?(st.sMoon>st.sSun?'¡Eclipse total! (visto desde aquí)':'¡Eclipse anular! (visto desde aquí)'):st.elong<st.sSun+st.sMoon?'Eclipse parcial de Sol':st.ecl?'La sombra de la Luna ya toca la Tierra: eclipse parcial en algunos lugares':'Luna nueva junto al Sol: pasa '+(st.m.bet>0?'por encima':'por debajo')+' y no lo tapa';
+  txt(x,ov,cx,h-12,{s:13,w:800,c:'#ffd166',bg:'rgba(5,16,26,.7)'});$('moonTitle').textContent='El Sol y la Luna vistos desde el centro de la Tierra';return}
+ $('moonTitle').textContent='La Luna vista desde Canarias (hemisferio norte)';
+ // disco
+ x.fillStyle='#22282e';x.beginPath();x.arc(cx,cy,R,0,7);x.fill();
+ const k=st.k,right=st.waxing,ct=1-2*k;// semieje de la línea de sombra
+ x.save();x.beginPath();x.arc(cx,cy,R,0,7);x.clip();x.fillStyle='#e8e2d2';x.beginPath();
+ if(right){x.arc(cx,cy,R,-Math.PI/2,Math.PI/2,false)}else{x.arc(cx,cy,R,Math.PI/2,3*Math.PI/2,false)}
+ x.ellipse(cx,cy,Math.abs(ct)*R,R,0,right?Math.PI/2:-Math.PI/2,right?-Math.PI/2:Math.PI/2,ct>0?!right:right);x.fill();
+ // mares (siempre la misma cara)
+ x.fillStyle='rgba(90,90,96,.35)';for(const [a,b,r] of [[-.25,-.3,.22],[.15,-.35,.18],[.3,-.05,.2],[-.05,.1,.14],[-.35,.15,.16],[.05,.42,.1]]){x.beginPath();x.ellipse(cx+a*R,cy+b*R,r*R,r*R*.8,0,0,7);x.fill()}
+ if(st.ecl&&st.ecl.type==='luna'){x.fillStyle=st.ecl.depth==='total'?'rgba(170,45,20,.75)':st.ecl.depth==='parcial'?'rgba(150,40,20,.5)':'rgba(40,30,30,.25)';x.fillRect(cx-R,cy-R,2*R,2*R)}
+ x.restore();
+ txt(x,phaseName(st)+' · '+fmt(k*100,0)+' % iluminada',cx,h-12,{s:13,w:800,c:'#ffd166',bg:'rgba(5,16,26,.7)'})}
+/* ---- vista de perfil ---- */
+function drawSide(){const {x,w,h}=fit($('side')),st=state(t);x.fillStyle='#05101a';x.fillRect(0,0,w,h);const cx=w*.55,cy=h*.55,S=w*.36/405000,EX=5;
+ sunDisk(x,-30,cy,60);x.strokeStyle='rgba(255,209,102,.5)';x.lineWidth=1.2;x.beginPath();x.moveTo(0,cy);x.lineTo(w,cy);x.stroke();txt(x,'eclíptica (plano de la órbita de la Tierra)',w-8,cy+22,{a:'right',s:10.5,c:'#ffd166'});
+ // sombra de la Tierra
+ x.fillStyle='rgba(0,0,0,.6)';x.fillRect(cx,cy-9,w-cx,18);
+ // órbita lunar proyectada (exagerada ×5 en altura)
+ const inc=5.145*D2R,Om=st.m.node*D2R,ls=st.s.lambda*D2R;let prev=null;for(let u=0;u<=360;u+=4){const U=u*D2R,lam=Om+Math.atan2(Math.cos(inc)*Math.sin(U),Math.cos(U)),b=Math.asin(Math.sin(inc)*Math.sin(U)),dl=lam-ls,X=cx-Math.cos(dl)*st.m.dist*S,Y=cy-Math.sin(b)*st.m.dist*S*EX,front=Math.sin(dl)<0;if(prev){x.strokeStyle=front?'rgba(220,220,220,.7)':'rgba(220,220,220,.25)';x.setLineDash(front?[]:[3,4]);x.beginPath();x.moveTo(prev[0],prev[1]);x.lineTo(X,Y);x.stroke()}prev=[X,Y]}x.setLineDash([]);
+ x.fillStyle='#2a6fa0';x.beginPath();x.arc(cx,cy,9,0,7);x.fill();txt(x,'Tierra',cx,cy+24,{s:11});
+ const mx=cx-Math.cos(st.dl*D2R)*st.m.dist*S,my=cy-Math.sin(st.m.bet*D2R)*st.m.dist*S*EX;litDisk(x,mx,my,5,[-1,0]);
+ txt(x,'Luna '+(st.m.bet>=0?'+':'')+fmt(st.m.bet,1)+'°',mx,my-10,{s:11,c:'#cfe0e8'});
+ txt(x,'inclinación exagerada ×5',8,h-8,{a:'left',s:10.5,c:'#a9c0cd'});
+ const syz=st.elong<15?'luna nueva':st.elong>165?'luna llena':null;if(syz){const ok=Math.abs(st.m.bet)<1.5;txt(x,syz+': '+(ok?'Sol, Tierra y Luna alineados → eclipse posible':'la Luna pasa '+(st.m.bet>0?'por encima':'por debajo')+' → no hay eclipse'),w-8,h-8,{a:'right',s:11,w:800,c:ok?'#ffd166':'#cfe0e8',bg:'rgba(5,16,26,.7)'})}}
+/* ---- datos ---- */
+function card(a,b,c,col){return `<div class="m"><small>${a}</small><b style="color:${col||'#eef5f8'}">${b}</b>${c?`<span>${c}</span>`:''}</div>`}
+function drawData(){const st=state(t),R=st.s.R*AU,v=Math.sqrt(1.32712e11*(2/R-1/(1.00000261*AU)));
+ const off=(()=>{const y=st.date.getUTCFullYear(),ls=d=>{const x2=new Date(Date.UTC(y,d+1,0));x2.setUTCDate(x2.getUTCDate()-x2.getUTCDay());x2.setUTCHours(1);return x2};return st.date>=ls(2)&&st.date<ls(9)?1:0})(),loc=new Date(t+off*3600000);
+ $('when').textContent=loc.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'})+' · '+String(loc.getUTCHours()).padStart(2,'0')+':'+String(loc.getUTCMinutes()).padStart(2,'0')+' hora de Canarias';
+ $('cards').innerHTML=card('Fase de la Luna',phaseName(st),fmt(st.k*100,0)+' % iluminada · '+fmt(moonAge(t),1)+' días desde la luna nueva')+card('Distancia Tierra–Luna',fmt(st.m.dist,0)+' km',st.m.dist<370000?'cerca del perigeo':st.m.dist>400000?'cerca del apogeo':'')+card('Distancia Tierra–Sol',fmt(R/1e6,1)+' M km',st.s.R<0.99?'cerca del perihelio':st.s.R>1.01?'cerca del afelio':'')+card('Velocidad de la Tierra',fmt(v,2)+' km/s',fmt(v*3600,0)+' km/h')+card('Latitud de la Luna',(st.m.bet>=0?'+':'')+fmt(st.m.bet,2)+'°',Math.abs(st.m.bet)<1.5?'cerca de un nodo':'lejos de los nodos')+card('Estación (hemisferio norte)',['primavera','verano','otoño','invierno'][Math.floor(((st.s.lambda+0.3)%360)/90)],'');
+ const a=$('alert');if(st.ecl&&curEv&&Math.abs(t-curEv.t)<6*3600000&&curEv.e.k===st.ecl.type){a.classList.add('on');a.textContent=(st.ecl.type==='sol'?'🌑 ':'🔴 ')+curEv.e.n+' del '+new Date(curEv.t).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'})+' · '+curEv.e.v+(st.ecl.type==='luna'?' · ahora mismo: fase '+st.ecl.depth:'')}else if(st.ecl){a.classList.add('on');a.textContent=st.ecl.type==='sol'?'🌑 Eclipse de Sol en este momento: la sombra de la Luna cae sobre la Tierra'+(st.ecl.total?' (puede ser total donde llega la umbra)':' (la Luna es pequeña: anular donde se alinea)'):'🔴 Eclipse de Luna '+st.ecl.depth+' en este momento'}else a.classList.remove('on')}
+function draw(){drawMain();drawMoon();drawSide();drawData()}
+/* ---- control ---- */
+function tick(now){if(!playing)return;const dt=Math.min(.1,(now-last)/1000);last=now;t+=dt*speed*DAY;draw();raf=requestAnimationFrame(tick)}
+function play(){if(playing)return;playing=true;$('play').textContent='⏸ Pausar';last=performance.now();raf=requestAnimationFrame(tick)}
+function stop(){playing=false;cancelAnimationFrame(raf);$('play').textContent='▶ Reproducir'}
+$('play').onclick=()=>playing?stop():play();$('speed').onchange=()=>{speed=+$('speed').value};
+document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{t+=(+b.dataset.step)*DAY;draw()});
+$('now').onclick=()=>{t=Date.now();draw()};
+$('tExag').onclick=()=>{exag=!exag;$('tExag').classList.toggle('on',exag);draw()};$('tScale').onclick=()=>{scale=!scale;$('tScale').classList.toggle('on',scale);draw()};
+function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
+let curEv=null;function jumpEvent(e){t=refine(Date.parse(e.d),e.k);curEv={e,t};zoom='luna';stop();draw()}
+function go(i){stop();step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();zoom=s.z;exag=!!s.ex;$('tExag').classList.toggle('on',exag);scale=false;$('tScale').classList.remove('on');speed=s.sp;$('speed').value=String(s.sp);
+ $('evList').style.display=s.list?'':'none';if(s.list)$('evList').innerHTML=EVENTS.map((e,j)=>`<button data-e="${j}"><b>${e.k==='sol'?'☀':'🌕'} ${e.n}</b> · ${new Date(e.d).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'})}${e.past?' <small style="display:inline">(reciente)</small>':''}<small>${e.v}</small></button>`).join(''),$('evList').querySelectorAll('button').forEach(b=>b.onclick=()=>jumpEvent(EVENTS[+b.dataset.e]));
+ if(s.ev!=null){jumpEvent(EVENTS[s.ev]);t-=3*3600000;play();return}
+ draw();if(i<6)play()}
+let rq=0;new ResizeObserver(()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(draw)}).observe(document.querySelector('.grid'));
+go(0);
+window.__stl={go,get t(){return t},set t(v){t=v;draw()},state,refine,EVENTS,stop};
+})();
+</script>
+</body>
+</html>
