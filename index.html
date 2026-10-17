@@ -27077,5 +27077,32 @@ window.anambroAnalysisEqualEarth={wanted,render,unproject,frame};
 })();
 </script>
 
+<style id="anambro-mobile-compact-header-v41">
+/* Móvil en vertical: cabecera compacta de una sola franja; el resto de la información está en «Bienvenido». */
+#anambroHeader .mBar{display:none}
+@media (max-width:760px) and (orientation:portrait){
+  html body #anambroHeader.mCompact.mCompact{display:block!important;height:auto!important;min-height:0!important;max-height:none!important;padding:4px 7px!important;grid-template-columns:none!important;grid-template-areas:none!important;overflow:hidden!important}
+  html body #anambroHeader.mCompact.mCompact>*:not(.mBar){display:none!important}
+  html body #anambroHeader.mCompact.mCompact>.mBar{display:flex!important;align-items:center;gap:7px;width:100%}
+  #anambroHeader .mBar .mIes{width:30px;height:30px;object-fit:contain;flex:none}
+  #anambroHeader .mBar .mTxt{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+  #anambroHeader .mBar .mLogo{height:24px;width:auto;max-width:100%;object-fit:contain;object-position:left center}
+  #anambroHeader .mBar .mSub{font:800 9.5px/1.15 system-ui,sans-serif;color:#0f756b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  #anambroHeader .mBar .mAuth{font:700 9px/1.15 system-ui,sans-serif;color:#3f5d70;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  html body #anambroHeader.mCompact .mBar img.mLogo{width:auto!important;height:24px!important;max-width:175px!important;min-width:0!important;background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:0!important;margin:0!important;object-fit:contain!important}
+  html body #anambroHeader.mCompact .mBar img.mIes{width:32px!important;height:32px!important;min-width:32px!important;padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;background:none!important}
+  #anambroHeader .mBar button{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:#17324d;color:#fff;font-size:15px;line-height:1;cursor:pointer;padding:0}
+}
+</style>
+<script id="anambro-mobile-compact-header-js-v41">
+(function(){'use strict';
+const h=document.getElementById('anambroHeader');if(!h||h.querySelector('.mBar'))return;
+const ies=h.querySelector('.brandSideLeft img')?.getAttribute('src')||'',logo=h.querySelector('.brandTitleTop img')?.getAttribute('src')||'assets/anambro-logo.png';
+const bar=document.createElement('div');bar.className='mBar';
+bar.innerHTML=(ies?'<img class="mIes" alt="IES Adeje" src="'+ies+'">':'')+'<div class="mTxt"><img class="mLogo" alt="ANAMBRO" src="'+logo+'"><span class="mSub">Visor geográfico e histórico para el aula</span><span class="mAuth">Aarón Rodríguez González · IES Adeje</span></div><button type="button" title="¡Bienvenido!" aria-label="Bienvenido">👋</button><button type="button" title="Licencias, fuentes y créditos" aria-label="Licencias, fuentes y créditos">ⓘ</button>';
+const b=bar.querySelectorAll('button');b[0].onclick=()=>{try{toggleWelcome(true)}catch(_){}};b[1].onclick=()=>{try{openSourcesPanel()}catch(_){}};
+h.appendChild(bar);h.classList.add('mCompact');
+})();
+</script>
 </body>
 </html>

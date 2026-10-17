@@ -90,7 +90,7 @@ function state(t){const date=new Date(t),s=T.sun(date),m=moon(date),dl=wrap(m.la
  return {date,s,m,dl,elong,k,waxing:dl>0,sSun,sMoon,ecl}}
 /* edad de la Luna (días desde la última luna nueva) */
 function moonAge(t){let a=0;for(let i=0;i<31*24;i+=2){const st=state(t-i*3600000);if(st.elong<1.2||(i>0&&state(t-(i-2)*3600000).dl>=0&&st.dl<0)){a=i/24;break}}return a}
-const phaseName=st=>{const k=st.k,w=st.waxing;if(k<0.03)return 'Luna nueva';if(k>0.97)return 'Luna llena';if(Math.abs(k-0.5)<0.06)return w?'Cuarto creciente':'Cuarto menguante';if(k<0.5)return w?'Creciente':'Menguante';return w?'Gibosa creciente':'Gibosa menguante'};
+const phaseName=st=>{const k=st.k,w=st.waxing,e=st.elong;if(e<9)return 'Luna nueva';if(e>171)return 'Luna llena';if(Math.abs(e-90)<7)return w?'Cuarto creciente':'Cuarto menguante';if(k<0.5)return w?'Creciente':'Menguante';return w?'Gibosa creciente':'Gibosa menguante'};
 /* ---- estado de la interfaz ---- */
 let t=Date.now(),playing=false,speed=1,raf=0,last=0,step=0,zoom='sistema',exag=false,scale=false;
 const EVENTS=[
