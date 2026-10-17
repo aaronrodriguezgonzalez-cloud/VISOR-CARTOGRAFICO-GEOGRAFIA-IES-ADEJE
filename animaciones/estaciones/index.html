@@ -1,12 +1,199 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ANAMBRO · Las estaciones</title><style>
-:root{font-family:system-ui,-apple-system,sans-serif;color:#eef5f8;background:#07131d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 20%,#17314b 0,#07131d 55%,#02080d 100%);min-height:100vh}.app{max-width:1100px;margin:auto;padding:14px}.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.top h1{font-size:clamp(18px,3vw,30px);margin:0}.badge{padding:5px 9px;border-radius:999px;background:#15354c;border:1px solid #41657a;font-weight:800;font-size:12px}.stage{margin:10px 0;padding:10px 12px;background:#0d2231;border:1px solid #2d536a;border-radius:12px;min-height:70px}.stage b{color:#ffdc76}.stage p{margin:5px 0 0;line-height:1.35}.viz{width:100%;aspect-ratio:16/8.6;display:block;background:linear-gradient(#07131d,#091925);border:1px solid #294b61;border-radius:14px}.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.controls button,.controls select{min-height:42px;border:1px solid #5e8094;border-radius:9px;background:#102b3d;color:#fff;padding:8px 12px;font-weight:800}.controls button.primary{background:#176c6a}.controls button:disabled{opacity:.4}.dots{display:flex;gap:5px;align-items:center}.dot{width:9px;height:9px;border-radius:50%;background:#486575}.dot.on{background:#ffce5c}.compare{margin-top:10px;padding:9px 11px;background:#0e2534;border-radius:10px;border:1px solid #305369;font-size:13px;line-height:1.35}.small{font-size:11px;color:#a9c0cd}@media(max-width:600px){.app{padding:8px}.stage{font-size:13px}.controls button,.controls select{flex:1}.viz{aspect-ratio:4/3}}</style></head><body><main class="app"><div class="top"><h1>🌍 Las estaciones del año</h1><span class="badge" id="stepBadge">1 / 7</span></div><section class="stage" id="stageText"></section><svg class="viz" id="svg" viewBox="0 0 1000 540" role="img" aria-label="Animación esquemática de las estaciones"></svg><div class="controls"><button id="prev">◀ Anterior</button><button id="play" class="primary">▶ Explicación</button><button id="next">Siguiente ▶</button><select id="place"><option value="28">Comparar: Canarias · 28° N</option><option value="0">Ecuador · 0°</option><option value="50">50° N</option><option value="-35">35° S</option></select></div><div class="dots" id="dots" aria-hidden="true"></div><div class="compare" id="compare"></div><p class="small">Esquema didáctico, no a escala. La inclinación del eje terrestre es aproximadamente 23,5° y mantiene casi constante su orientación durante la traslación.</p></main><script>
-(()=>{const svg=document.getElementById('svg'),text=document.getElementById('stageText'),badge=document.getElementById('stepBadge'),compare=document.getElementById('compare'),place=document.getElementById('place');let i=0,timer=0;const NS='http://www.w3.org/2000/svg';const stages=[
- {t:'No es la distancia',p:'La Tierra no tiene verano porque esté “más cerca” del Sol. Las estaciones se explican por la <b>inclinación del eje</b> y la traslación.'},
- {t:'El eje está inclinado 23,5°',p:'El eje de rotación conserva casi la misma orientación mientras la Tierra recorre su órbita.'},
- {t:'Equinoccio de marzo',p:'Ningún hemisferio está inclinado hacia el Sol. Día y noche duran aproximadamente lo mismo: comienza la primavera en el norte y el otoño en el sur.'},
- {t:'Solsticio de junio',p:'El hemisferio norte queda inclinado hacia el Sol: mayor altura solar y días más largos. En el sur sucede lo contrario.'},
- {t:'Equinoccio de septiembre',p:'De nuevo ninguno de los hemisferios domina la iluminación: otoño en el norte y primavera en el sur.'},
- {t:'Solsticio de diciembre',p:'El hemisferio sur queda inclinado hacia el Sol. En el norte los días son más cortos y el Sol alcanza menor altura.'},
- {t:'Una misma Tierra, estaciones opuestas',p:'Cuando un hemisferio recibe rayos más directos y tiene días más largos, el otro recibe rayos más oblicuos y días más cortos. La estación depende de la <b>geometría de la iluminación</b>.'}
-];function el(n,a={}){const x=document.createElementNS(NS,n);for(const[k,v]of Object.entries(a))x.setAttribute(k,v);svg.appendChild(x);return x}function tx(x,y,s,size=18,anchor='middle'){const e=el('text',{x,y,fill:'#eef5f8','font-size':size,'font-weight':'800','text-anchor':anchor});e.textContent=s;return e}function clear(){svg.replaceChildren()}function sun(x=500,y=270,r=58){el('circle',{cx:x,cy:y,r,fill:'#ffd34d'});el('circle',{cx:x,cy:y,r:r+16,fill:'none',stroke:'#ffd34d','stroke-opacity':.22,'stroke-width':12})}function earth(x,y,season=0){el('circle',{cx:x,cy:y,r:61,fill:'#2b7ab2',stroke:'#b7d5e6','stroke-width':2});el('path',{d:`M${x-44},${y-12}q28-28 56-8t34 34q-34 11-58 0t-32-36`,fill:'#4f9d57','fill-opacity':.9});const ang=-23.5*Math.PI/180,dx=Math.sin(ang)*92,dy=Math.cos(ang)*92;el('line',{x1:x-dx,y1:y+dy,x2:x+dx,y2:y-dy,stroke:'#f7f7f7','stroke-width':3});tx(x+dx+8,y-dy-4,'N',14,'start');return{x,y}}function rays(x1,x2,y0=185,y1=355){for(let y=y0;y<=y1;y+=34){el('line',{x1,y1:y,x2,y2:y,stroke:'#ffd45f','stroke-width':3,'stroke-opacity':.78})}}function orbit(){el('ellipse',{cx:500,cy:270,rx:365,ry:165,fill:'none',stroke:'#6b8797','stroke-width':2,'stroke-dasharray':'7 8'})}function draw(){clear();const st=stages[i];text.innerHTML='<b>'+st.t+'</b><p>'+st.p+'</p>';badge.textContent=(i+1)+' / '+stages.length;document.getElementById('dots').innerHTML=stages.map((_,j)=>'<span class="dot '+(j===i?'on':'')+'"></span>').join('');if(i===0){sun(235,270,64);earth(725,270);tx(500,80,'Idea clave: las estaciones NO dependen de estar más cerca o más lejos del Sol',19);el('line',{x1:305,y1:270,x2:650,y2:270,stroke:'#768f9e','stroke-width':2,'stroke-dasharray':'8 8'});tx(500,300,'distancia Tierra–Sol',14)}else if(i===1){sun(220,270,60);orbit();earth(500,105);earth(850,270);earth(500,435);earth(150,270);tx(500,38,'El eje mantiene su orientación durante toda la órbita',20)}else{orbit();sun(500,270,54);const pos={2:[150,270,'MARZO'],3:[500,105,'JUNIO'],4:[850,270,'SEPTIEMBRE'],5:[500,435,'DICIEMBRE'],6:[500,105,'NORTE: verano']}[i];if(i<6){earth(pos[0],pos[1]);const sx=pos[0],sy=pos[1],vx=500-sx,vy=270-sy,L=Math.hypot(vx,vy),ux=vx/L,uy=vy/L,px=-uy,py=ux;for(let a=-90;a<=90;a+=36){el('line',{x1:500+px*a+ux*58,y1:270+py*a+uy*58,x2:sx+px*a-ux*62,y2:sy+py*a-uy*62,stroke:'#ffd45f','stroke-width':3,'stroke-opacity':.78})}tx(sx,sy+92,pos[2],17)}else{earth(500,270);rays(120,420,190,350);tx(500,470,'Norte y sur viven estaciones opuestas',21)}}updateCompare()}function updateCompare(){const lat=+place.value,n=Math.abs(lat),hem=lat<0?'sur':lat>0?'norte':'ecuador';let s='';if(i===3)s=lat===0?'En el ecuador la duración del día cambia poco a lo largo del año.':hem==='norte'?`A ${n}° N, como referencia, el Sol alcanza mayor altura y el día es más largo que en diciembre.`:`A ${n}° S ocurre el invierno austral: menor altura solar y días más cortos.`;else if(i===5)s=lat===0?'En el ecuador continúa habiendo poca variación estacional de la duración del día.':hem==='sur'?`A ${n}° S es verano austral: mayor altura solar y días más largos.`:`A ${n}° N es invierno: menor altura solar y días más cortos.`;else if(i===2||i===4)s='En los equinoccios la duración del día y de la noche es aproximadamente igual en todo el planeta.';else s='Selecciona una latitud y avanza hasta un equinoccio o solsticio para comparar su efecto.';compare.innerHTML='<b>📍 Comparación por latitud:</b> '+s}function set(n){i=(n+stages.length)%stages.length;draw()}document.getElementById('prev').onclick=()=>{stop();set(i-1)};document.getElementById('next').onclick=()=>{stop();set(i+1)};place.onchange=updateCompare;function stop(){clearInterval(timer);timer=0;document.getElementById('play').textContent='▶ Explicación'}document.getElementById('play').onclick=()=>{if(timer){stop();return}document.getElementById('play').textContent='⏸ Pausar';timer=setInterval(()=>{if(i===stages.length-1){stop();return}set(i+1)},2600)};draw();})();
-</script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · Las estaciones del año</title>
+<style>
+:root{--bg:#07131d;--panel:#0d2231;--line:#2d536a;--ink:#eef5f8;--muted:#a9c0cd;--gold:#ffd166;--warm:#ff9f43;--cold:#7cc6ff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314b 0,#07131d 55%,#02080d 100%)}
+.app{max-width:1240px;margin:auto;padding:12px 14px 18px}
+.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
+.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
+.stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:76px;line-height:1.42}
+.stage b.t{color:var(--gold);font-size:17px}
+.stage p{margin:4px 0 0}
+.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:10px}
+.card{background:#081a27;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card canvas{display:block;width:100%;height:100%}
+.orbitCard{aspect-ratio:16/10.4}.sideCard{aspect-ratio:1/1.04}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.controls button,.controls select{min-height:40px;border:1px solid #5e8094;border-radius:9px;background:#102b3d;color:#fff;padding:7px 12px;font-weight:800;font-size:14px;cursor:pointer}
+.controls button.primary{background:#176c6a}
+.dateBox{flex:1;min-width:240px;display:flex;align-items:center;gap:10px}
+.dateBox input{flex:1;accent-color:#ffd166}
+.dateBox output{font-weight:800;min-width:118px;text-align:right}
+.data{display:grid;grid-template-columns:1.35fr 1fr;gap:10px;margin-top:10px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.m{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
+.m small{display:block;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.m b{font-size:18px}
+.m span{display:block;font-size:12px;color:#cfe0e8;margin-top:2px}
+.chartCard{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
+.chartCard small{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
+.chartCard canvas{width:100%;height:150px;display:block}
+.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+@media(max-width:860px){.grid,.data{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.sideCard{aspect-ratio:1/0.9}}
+@media(max-width:520px){.app{padding:8px}.controls button,.controls select{flex:1}.dateBox{min-width:100%}.m b{font-size:16px}.stage{font-size:14px}}
+</style>
+</head>
+<body>
+<main class="app">
+ <div class="top"><div><div class="brand">ANAMBRO · AULA</div><h1>🌍 Las estaciones del año</h1></div><nav class="steps" id="steps" aria-label="Pasos de la explicación"></nav></div>
+ <section class="stage" id="stage" aria-live="polite"></section>
+ <div class="grid">
+  <div class="card orbitCard"><h2>La órbita · vista oblicua (no a escala)</h2><canvas id="orbit" aria-label="Órbita de la Tierra alrededor del Sol"></canvas></div>
+  <div class="card sideCard"><h2>La Tierra vista de perfil · el Sol a la izquierda</h2><canvas id="side" aria-label="La Tierra iluminada por el Sol"></canvas></div>
+ </div>
+ <div class="controls">
+  <button id="prev" title="Paso anterior">◀</button><button id="play" class="primary">▶ Recorrer el año</button><button id="next" title="Paso siguiente">▶</button>
+  <div class="dateBox"><input id="day" type="range" min="0" max="364" step="1" value="0" aria-label="Fecha"><output id="dateOut"></output></div>
+  <select id="lat" aria-label="Latitud de comparación">
+   <option value="28.3">Canarias · 28° N</option><option value="40.4">Madrid · 40° N</option><option value="0">Ecuador · 0°</option><option value="23.44">Trópico de Cáncer</option><option value="60">Oslo · 60° N</option><option value="70">Norte de Noruega · 70° N</option><option value="-34.6">Buenos Aires · 35° S</option><option value="-66.56">Círculo polar antártico</option>
+  </select>
+ </div>
+ <div class="data">
+  <div class="cards" id="cards"></div>
+  <div class="chartCard"><small id="chartTitle">Horas de luz a lo largo del año</small><canvas id="chart"></canvas></div>
+ </div>
+ <p class="small">Posición del Sol calculada para 2026 con el algoritmo del Almanaque Náutico (error inferior a 0,01°). Duración del día con refracción atmosférica. Los tamaños y distancias del dibujo no están a escala; la órbita sí conserva su forma real, casi circular (excentricidad 0,017).</p>
+</main>
+<script src="../comun/tierra.js"></script>
+<script>
+(()=>{
+'use strict';
+const T=window.AulaTierra,{V,D2R,R2D}=T,$=id=>document.getElementById(id);
+const YEAR=2026,Y0=Date.UTC(YEAR,0,1),DAY=86400000,EPS=23.44;
+const fmtDate=t=>new Date(t).toLocaleDateString('es-ES',{day:'numeric',month:'long',timeZone:'UTC'});
+const fmtH=h=>{if(h>=23.99)return '24 h (Sol de medianoche)';if(h<=0.01)return '0 h (noche polar)';const H=Math.floor(h),M=Math.round((h-H)*60);return (M===60?(H+1)+' h 00 min':H+' h '+String(M).padStart(2,'0')+' min')};
+const fmtN=(x,d=1)=>x.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+/* eventos astronómicos de 2026 calculados con el mismo modelo */
+function findEvents(){const out={};let prev=T.sun(new Date(Y0));let minR={R:9},maxR={R:0};
+ for(let t=Y0;t<Y0+366*DAY;t+=3600000){const s=T.sun(new Date(t));if(s.R<minR.R)minR={R:s.R,t};if(s.R>maxR.R)maxR={R:s.R,t};
+  for(const [k,a] of [['mar',0],['jun',90],['sep',180],['dic',270]]){const d0=((prev.lambda-a+540)%360)-180,d1=((s.lambda-a+540)%360)-180;if(d0<0&&d1>=0&&!out[k])out[k]=t-3600000*d1/(d1-d0)}prev=s}
+ out.peri=minR.t;out.afe=maxR.t;out.periR=minR.R;out.afeR=maxR.R;return out}
+const EV=findEvents();
+const AU=149.598;// millones de km
+const STEPS=[
+ {k:'Distancia',t:'La distancia NO explica las estaciones',at:EV.peri,p:()=>`A primeros de enero (${fmtDate(EV.peri)}) la Tierra pasa por el <b>perihelio</b>, su punto más cercano al Sol: ${fmtN(EV.periR*AU)} millones de km. Y, sin embargo, en Canarias y en todo el hemisferio norte es <b>invierno</b>. En el <b>afelio</b> (${fmtDate(EV.afe)}) está a ${fmtN(EV.afeR*AU)} millones de km… y es verano. La diferencia es de apenas un 3 %: la órbita es casi un círculo.`},
+ {k:'Eje',t:'El eje está inclinado 23,44° y siempre apunta al mismo lugar',at:null,year:true,p:()=>'Mientras la Tierra da la vuelta al Sol, su eje <b>no cambia de orientación</b>: apunta siempre hacia la estrella Polar. Fíjate en la órbita: el eje se mantiene paralelo a sí mismo. Por eso, durante media órbita el hemisferio norte se inclina hacia el Sol, y durante la otra media se inclina en sentido contrario.'},
+ {k:'Marzo',t:'Equinoccio de marzo',at:EV.mar,p:()=>`${fmtDate(EV.mar)}. El eje no se inclina ni hacia el Sol ni en sentido contrario: la línea que separa el día de la noche pasa por los dos polos. El Sol está en el cenit sobre el <b>ecuador</b> y el día dura unas 12 horas en todo el planeta. Empieza la <b>primavera</b> en el norte y el <b>otoño</b> en el sur.`},
+ {k:'Junio',t:'Solsticio de junio',at:EV.jun,p:()=>`${fmtDate(EV.jun)}. El polo norte se inclina hacia el Sol. El Sol está en el cenit sobre el <b>trópico de Cáncer</b> (23,44° N). En el hemisferio norte los días son los más largos del año y el Sol sube más alto: empieza el <b>verano</b>. Dentro del círculo polar ártico no se pone el Sol. En el sur empieza el <b>invierno</b>.`},
+ {k:'Septiembre',t:'Equinoccio de septiembre',at:EV.sep,p:()=>`${fmtDate(EV.sep)}. De nuevo ningún hemisferio se inclina hacia el Sol: el Sol vuelve a estar en el cenit sobre el ecuador y el día y la noche duran casi lo mismo en todas partes. <b>Otoño</b> en el norte y <b>primavera</b> en el sur.`},
+ {k:'Diciembre',t:'Solsticio de diciembre',at:EV.dic,p:()=>`${fmtDate(EV.dic)}. Ahora es el polo sur el que se inclina hacia el Sol, que está en el cenit sobre el <b>trópico de Capricornio</b> (23,44° S). En el norte, días más cortos y Sol más bajo: empieza el <b>invierno</b>, y dentro del círculo polar ártico el Sol no llega a salir. En el sur empieza el <b>verano</b>.`},
+ {k:'Opuestas',t:'Una misma Tierra, estaciones opuestas',at:EV.dic,cmp:true,p:()=>'El mismo día, un hemisferio recibe los rayos más directos y tiene días más largos, mientras el otro los recibe más oblicuos y tiene días más cortos. Compara abajo tu latitud con la del otro hemisferio: la estación depende de la <b>inclinación del eje</b>, que cambia el <b>ángulo de los rayos</b> y la <b>duración del día</b>.'},
+ {k:'Explora',t:'Explora tú',at:null,free:true,p:()=>'Mueve la fecha, elige una latitud y observa: la altura del Sol a mediodía, las horas de luz y la parte iluminada de cada paralelo en la Tierra de perfil. Pulsa <b>Recorrer el año</b> para verlo en movimiento.'}
+];
+let step=0,t=EV.peri,lat=+$('lat').value,anim=null,playing=false,lastFrame=0;
+/* ---- canvas con alta densidad ---- */
+function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d',{willReadFrequently:true});x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height,d}}
+/* ---- geometría ---- */
+const N=[0,Math.sin(EPS*D2R),Math.cos(EPS*D2R)],X=[1,0,0],Y2=V.cross(N,X);
+function state(tt){const s=T.sun(new Date(tt)),l=s.lambda*D2R,sv=[Math.cos(l),Math.sin(l),0];// hacia el Sol, desde la Tierra
+ const a=Math.atan2(V.dot(sv,Y2),V.dot(sv,X)),phi=a-(-16.5*D2R),E0=V.add(V.mul(X,Math.cos(phi)),V.mul(Y2,Math.sin(phi)));return {s,sv,E0,earth:V.mul(sv,-s.R)}}
+function season(lambda,south){const n=['primavera','verano','otoño','invierno'],i=Math.floor(((lambda+0.3)%360+360)%360/90);return n[south?(i+2)%4:i]}
+/* ---- vista de la órbita ---- */
+let landR=null;
+function drawOrbit(){const {x,w,h,d}=fit($('orbit')),st=state(t);x.clearRect(0,0,w,h);
+ const e=22*D2R,toward=[-Math.cos(e),0,Math.sin(e)],up=[Math.sin(e),0,Math.cos(e)],right=V.cross(up,toward);
+ const cx=w*.5,cy=h*.53,S=Math.min(w*.36,h*.74/(2*Math.sin(e)+.35));const P=p=>[cx+S*V.dot(p,right),cy-S*V.dot(p,up)];
+ // estrellas
+ x.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<70;i++){const a=(i*97.13)%1,b=(i*57.71)%1;x.fillRect(a*w,b*h,1,1)}
+ // órbita real (excentricidad 0,017)
+ x.beginPath();for(let k=0;k<=360;k+=2){const s=T.sun(new Date(Y0+k/360*365.25*DAY)),l=s.lambda*D2R,q=P([-Math.cos(l)*s.R,-Math.sin(l)*s.R,0]);k?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])}x.closePath();x.strokeStyle='rgba(150,180,200,.55)';x.setLineDash([6,7]);x.lineWidth=1.4;x.stroke();x.setLineDash([]);
+ const earthPos=st.earth,ep=P(earthPos),farSide=V.dot(earthPos,toward)<0;
+ // marcas de solsticios, equinoccios, perihelio y afelio
+ const narrow=w<560;const label=(txt,X0,Y0,al)=>{x.textAlign='left';const tw=x.measureText(txt).width;let lx=al==='right'?X0-tw:al==='center'?X0-tw/2:X0;lx=Math.max(4,Math.min(w-4-tw,lx));x.fillText(txt,lx,Y0)};
+ const mark=(tt,lab,short,col)=>{const s=T.sun(new Date(tt)),l=s.lambda*D2R,p=[-Math.cos(l)*s.R,-Math.sin(l)*s.R,0],q=P(p);x.fillStyle=col;x.beginPath();x.arc(q[0],q[1],3.2,0,7);x.fill();x.font=(narrow?'700 10px':'700 11px')+' system-ui';const t2=narrow?short:lab;if(Math.abs(q[0]-cx)>S*.5)label(t2,q[0],q[1]-Math.max(15,Math.min(34,w*.04))*2.1-6,'center');else label(t2,q[0]+Math.max(15,Math.min(34,w*.04))+10,q[1]+4,'left')};
+ mark(EV.mar,'Equinoccio de marzo','Equinoccio mar.','#9fe3b0');mark(EV.jun,'Solsticio de junio','Solst. jun.','#ffd166');mark(EV.sep,'Equinoccio de septiembre','Equinoccio sept.','#ffb37a');mark(EV.dic,'Solsticio de diciembre','Solst. dic.','#9cc9ff');
+ const pp=P(V.mul((()=>{const s=T.sun(new Date(EV.peri)),l=s.lambda*D2R;return [-Math.cos(l)*s.R,-Math.sin(l)*s.R,0]})(),1));
+ // Tierra detrás del Sol: se dibuja antes
+ const drawEarth=()=>{const R=Math.max(15,Math.min(34,w*.04));
+  // eje
+  const a1=V.add(earthPos,V.mul(N,.0)),top=[ep[0]+R*1.75*V.dot(N,right),ep[1]-R*1.75*V.dot(N,up)],bot=[ep[0]-R*1.75*V.dot(N,right),ep[1]+R*1.75*V.dot(N,up)];
+  x.strokeStyle='rgba(255,255,255,.85)';x.lineWidth=2;x.beginPath();x.moveTo(bot[0],bot[1]);x.lineTo(top[0],top[1]);x.stroke();
+  T.globe(x,{cx:ep[0],cy:ep[1],R,dpr:d,right,up,toward,N,E0:st.E0,sun:st.sv,land:landR,night:.8});
+  x.beginPath();x.moveTo(ep[0]+R*V.dot(N,right)*.98,ep[1]-R*V.dot(N,up)*.98);x.lineTo(top[0],top[1]);x.stroke();
+  x.fillStyle='#fff';x.font='800 11px system-ui';x.textAlign='center';x.fillText('N',top[0]+(top[0]-ep[0])*.18,top[1]-4)};
+ // eje fantasma en las cuatro posiciones (paso «Eje»)
+ if(STEPS[step].year){for(const tt of [EV.mar,EV.jun,EV.sep,EV.dic]){const s=T.sun(new Date(tt)),l=s.lambda*D2R,q=P([-Math.cos(l)*s.R,-Math.sin(l)*s.R,0]),L2=34;x.strokeStyle='rgba(255,209,102,.55)';x.lineWidth=2;x.beginPath();x.moveTo(q[0]-L2*V.dot(N,right),q[1]+L2*V.dot(N,up));x.lineTo(q[0]+L2*V.dot(N,right),q[1]-L2*V.dot(N,up));x.stroke()}}
+ if(farSide)drawEarth();
+ // Sol
+ const sp=P([0,0,0]),sr=Math.max(26,Math.min(48,w*.055));const gr=x.createRadialGradient(sp[0],sp[1],sr*.3,sp[0],sp[1],sr*2.3);gr.addColorStop(0,'rgba(255,214,90,.55)');gr.addColorStop(1,'rgba(255,214,90,0)');x.fillStyle=gr;x.beginPath();x.arc(sp[0],sp[1],sr*2.3,0,7);x.fill();x.fillStyle='#ffd34d';x.beginPath();x.arc(sp[0],sp[1],sr,0,7);x.fill();x.fillStyle='#6b4a00';x.font='900 12px system-ui';x.textAlign='center';x.fillText('SOL',sp[0],sp[1]+4);
+ // línea Sol–Tierra
+ x.strokeStyle='rgba(255,209,102,.35)';x.lineWidth=1.2;x.setLineDash([3,5]);x.beginPath();x.moveTo(sp[0],sp[1]);x.lineTo(ep[0],ep[1]);x.stroke();x.setLineDash([]);
+ if(!farSide)drawEarth();
+ // perihelio / afelio
+ x.font='700 10.5px system-ui';x.fillStyle='#cfe0e8';x.textAlign='left';
+ const pa=(tt,txt)=>{const s=T.sun(new Date(tt)),l=s.lambda*D2R,q=P([-Math.cos(l)*s.R,-Math.sin(l)*s.R,0]);x.fillStyle='#cfe0e8';x.beginPath();x.arc(q[0],q[1],2.4,0,7);x.fill();x.font=(narrow?'600 9.5px':'700 10.5px')+' system-ui';label(txt,q[0]+(q[0]>cx?-8:8),q[1]+20,q[0]>cx?'right':'left')};
+ pa(EV.peri,'perihelio · '+fmtN(EV.periR*AU)+(narrow?' M':' M km'));pa(EV.afe,'afelio · '+fmtN(EV.afeR*AU)+(narrow?' M':' M km'));
+ // distancia actual
+ x.textAlign='right';x.fillStyle='#ffd166';x.font=(narrow?'800 11px':'800 12px')+' system-ui';x.fillText('Distancia al Sol: '+fmtN(st.s.R*AU)+' millones de km',w-10,h-10);
+ if(!narrow){x.textAlign='left';x.fillStyle='#a9c0cd';x.font='600 11px system-ui';x.fillText('Traslación en sentido antihorario (vista desde el norte)',12,h-10)}
+}
+/* ---- vista de perfil ---- */
+function drawSide(){const {x,w,h,d}=fit($('side')),st=state(t);x.clearRect(0,0,w,h);
+ const sv=st.sv,right=V.mul(sv,-1),up=[0,0,1],toward=V.cross(right,up);const narrow=w<520,cx=w*(narrow?.5:.52),cy=h*.53,R=Math.min(w*(narrow?.3:.31),h*.36);
+ // rayos
+ for(let k=-5;k<=5;k++){const y=cy+k*R*.19;x.strokeStyle='rgba(255,209,102,.55)';x.lineWidth=2;x.beginPath();x.moveTo(8,y);const hit=Math.abs(y-cy)<R?cx-Math.sqrt(R*R-(y-cy)**2):cx;x.lineTo(Math.min(hit-4,cx-R*0.2),y);x.stroke();x.beginPath();x.moveTo(Math.min(hit-4,cx-R*.2),y);x.lineTo(Math.min(hit-4,cx-R*.2)-7,y-4);x.lineTo(Math.min(hit-4,cx-R*.2)-7,y+4);x.fillStyle='rgba(255,209,102,.7)';x.fill()}
+ x.fillStyle='#ffd166';x.font='800 11px system-ui';x.textAlign='left';x.fillText('rayos del Sol',10,cy-R*1.05);
+ const o={cx,cy,R,dpr:d,right,up,toward,N,E0:st.E0,sun:sv,land:landR,night:.82};T.globe(x,o);
+ // eje
+ const np=[cx+R*1.28*V.dot(N,right),cy-R*1.28*V.dot(N,up)],spp=[cx-R*1.28*V.dot(N,right),cy+R*1.28*V.dot(N,up)];
+ x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=2;x.beginPath();x.moveTo(np[0],np[1]);x.lineTo(cx+R*V.dot(N,right),cy-R*V.dot(N,up));x.moveTo(spp[0],spp[1]);x.lineTo(cx-R*V.dot(N,right),cy+R*V.dot(N,up));x.stroke();
+ x.fillStyle='#fff';x.font='800 12px system-ui';x.textAlign='center';x.fillText('N',np[0],np[1]-6);x.fillText('S',spp[0],spp[1]+15);
+ // vertical de referencia (perpendicular a los rayos)
+ x.strokeStyle='rgba(255,255,255,.25)';x.setLineDash([4,5]);x.beginPath();x.moveTo(cx,cy-R*1.3);x.lineTo(cx,cy+R*1.3);x.stroke();x.setLineDash([]);
+ const dec=st.s.dec;if(Math.abs(dec)>.6){x.strokeStyle='rgba(255,255,255,.6)';x.lineWidth=1.3;x.beginPath();const a0=-Math.PI/2,a1=Math.atan2(-V.dot(N,up),V.dot(N,right));x.arc(cx,cy,R*1.18,Math.min(a0,a1),Math.max(a0,a1));x.stroke();x.fillStyle='#fff';x.font='700 11px system-ui';x.fillText(fmtN(Math.abs(dec))+'°',cx+(dec>0?-18:18),cy-R*1.22)}
+ // paralelos
+ const par=(la,col,wd,label,dash)=>{let prev=null;x.lineWidth=wd;for(let lo=-180;lo<=180;lo+=3){const q=T.project(o,la,lo);if(prev&&prev.front===q.front){x.strokeStyle=q.front?col:col.replace(/[\d.]+\)$/,'0.18)');x.setLineDash(q.front?(dash||[]):[3,4]);x.beginPath();x.moveTo(prev.x,prev.y);x.lineTo(q.x,q.y);x.stroke()}prev=q}x.setLineDash([]);if(label){const q=T.project(o,la,0);let best=null;for(let lo=-180;lo<=180;lo+=2){const p=T.project(o,la,lo);if(p.front&&(!best||p.x>best.x))best=p}if(best){x.fillStyle=col;x.font=(narrow?'700 9.5px':'700 10.5px')+' system-ui';x.textAlign='left';const tw=x.measureText(label).width;let lx=best.x+6,ly=best.y+4;if(lx+tw>w-4){lx=w-4-tw;ly=best.y-6}x.fillText(label,lx,ly)}}};
+ par(0,'rgba(255,255,255,.75)',1.2,'Ecuador');par(23.44,'rgba(255,209,102,.8)',1,narrow?'T. Cáncer':'Trópico de Cáncer',[5,4]);par(-23.44,'rgba(255,209,102,.8)',1,narrow?'T. Capricornio':'Trópico de Capricornio',[5,4]);par(66.56,'rgba(124,198,255,.85)',1,narrow?'C. polar ártico':'Círculo polar ártico',[5,4]);par(-66.56,'rgba(124,198,255,.85)',1,narrow?'C. polar antártico':'Círculo polar antártico',[5,4]);
+ // latitud elegida: parte de día y parte de noche
+ const selLat=lat;let prev=null;x.lineWidth=4;for(let lo=-180;lo<=181;lo+=2){const q=T.project(o,selLat,lo),lit=V.dot(q.p,sv)>0;if(prev&&prev.front&&q.front){x.strokeStyle=lit?'#ff7a45':'#3b2a6b';x.beginPath();x.moveTo(prev.x,prev.y);x.lineTo(q.x,q.y);x.stroke()}prev=q}
+ // punto subsolar
+ const ss=T.project(o,dec,(()=>{let b=0,bv=-2;for(let lo=-180;lo<180;lo+=1){const q=T.project(o,dec,lo),v=V.dot(q.p,sv);if(v>bv){bv=v;b=lo}}return b})());x.fillStyle='#ffd166';x.beginPath();x.arc(ss.x,ss.y,5,0,7);x.fill();x.strokeStyle='#2a1d00';x.lineWidth=1.5;x.stroke();
+ x.fillStyle='#ffd166';x.font='800 11px system-ui';x.textAlign='left';{const tx2=(narrow?'Cenit · ':'Sol en el cenit · ')+fmtN(Math.abs(dec))+'° '+(dec>=0?'N':'S'),tw=x.measureText(tx2).width;x.fillText(tx2,Math.max(4,ss.x-10-tw),ss.y+(dec>=0?-10:18))}
+ x.textAlign='left';x.fillStyle='#ff9f6e';x.font='800 11.5px system-ui';x.fillText('━ parte de día del paralelo elegido',12,h-28);x.fillStyle='#9b8bd8';x.fillText('━ parte de noche',12,h-12);
+}
+/* ---- datos y gráfico ---- */
+function card(t1,v,sub,col){return `<div class="m"><small>${t1}</small><b style="color:${col||'#eef5f8'}">${v}</b>${sub?`<span>${sub}</span>`:''}</div>`}
+function latName(l){return l===0?'0° (ecuador)':fmtN(Math.abs(l))+'° '+(l>0?'N':'S')}
+function drawData(){const st=state(t),dec=st.s.dec,south=lat<0,sN=season(st.s.lambda,false),sS=season(st.s.lambda,true);
+ const L=T.dayLength(lat,dec),A=T.noonAltitude(lat,dec),cmp=STEPS[step].cmp,l2=lat===0?-28.3:-lat;
+ let html=card('Fecha',fmtDate(t),'Sol en el cenit sobre '+latName(Math.round(dec*100)/100))+card('Estación astronómica','Norte: '+sN,'Sur: '+sS,'#ffd166')+card('Distancia al Sol',fmtN(st.s.R*AU)+' M km',(st.s.R<1?'más cerca':'más lejos')+' que la media');
+ html+=card('Horas de luz · '+latName(lat),fmtH(L),'','#ff9f6e')+card('Sol a mediodía · '+latName(lat),A>0?fmtN(A)+'°':'bajo el horizonte',A>0?'sobre el horizonte':'',A>0?'#ffd166':'#9cc9ff');
+ html+=cmp?card('Mismo día en '+latName(l2),fmtH(T.dayLength(l2,dec)),'Sol a mediodía: '+(T.noonAltitude(l2,dec)>0?fmtN(T.noonAltitude(l2,dec))+'°':'bajo el horizonte'),'#7cc6ff'):card('Energía al mediodía',A>0?fmtN(Math.sin(A*D2R)*100,0)+' %':'0 %','de la que llega con el Sol en el cenit');
+ $('cards').innerHTML=html;$('dateOut').textContent=fmtDate(t);$('day').value=Math.round((t-Y0)/DAY);drawChart()}
+function drawChart(){const {x,w,h}=fit($('chart'));x.clearRect(0,0,w,h);const pad={l:34,r:8,t:8,b:20},W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+ const X=d=>pad.l+d/365*W,Y=v=>pad.t+H-(v/24)*H;x.strokeStyle='rgba(255,255,255,.12)';x.fillStyle='#a9c0cd';x.font='10px system-ui';x.textAlign='right';
+ for(const v of [0,6,12,18,24]){x.beginPath();x.moveTo(pad.l,Y(v));x.lineTo(w-pad.r,Y(v));x.stroke();x.fillText(v+' h',pad.l-4,Y(v)+3)}
+ x.textAlign='center';['E','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>x.fillText(m,X(i*30.4+15),h-5));
+ const curve=(l,col,wd,dash)=>{x.strokeStyle=col;x.lineWidth=wd;x.setLineDash(dash||[]);x.beginPath();for(let dd=0;dd<=365;dd+=2){const v=T.dayLength(l,T.sun(new Date(Y0+dd*DAY+12*3600000)).dec);dd?x.lineTo(X(dd),Y(v)):x.moveTo(X(dd),Y(v))}x.stroke();x.setLineDash([])};
+ curve(0,'rgba(255,255,255,.35)',1.2,[4,4]);if(STEPS[step].cmp)curve(lat===0?-28.3:-lat,'#7cc6ff',1.8);curve(lat,'#ff9f6e',2.4);
+ const dd=(t-Y0)/DAY;x.strokeStyle='#ffd166';x.lineWidth=1.5;x.beginPath();x.moveTo(X(dd),pad.t);x.lineTo(X(dd),pad.t+H);x.stroke();
+ const v=T.dayLength(lat,T.sun(new Date(t)).dec);x.fillStyle='#ff9f6e';x.beginPath();x.arc(X(dd),Y(v),4,0,7);x.fill();
+ $('chartTitle').textContent='Horas de luz a lo largo del año · '+latName(lat)+(STEPS[step].cmp?' (naranja) y '+latName(lat===0?-28.3:-lat)+' (azul)':'')+' · ecuador (discontinua)'}
+function draw(){drawOrbit();drawSide();drawData()}
+/* ---- pasos y animación ---- */
+function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
+function tweenTo(target,ms=1600){stopPlay();const t0=t;let dt=target-t0;const yr=365.2422*DAY;if(dt<0)dt+=yr;if(dt>yr*.6)dt-=yr;const s0=performance.now();cancelAnimationFrame(anim);const f=now=>{const k=Math.min(1,(now-s0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;t=t0+dt*e;if(t<Y0)t+=yr;if(t>=Y0+yr)t-=yr;draw();if(k<1)anim=requestAnimationFrame(f)};anim=requestAnimationFrame(f)}
+function go(i){step=(i+STEPS.length)%STEPS.length;const s=STEPS[step];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p()}</p>`;renderSteps();if(s.cmp&&+$('lat').value<0){}if(s.year){t=EV.mar;startPlay(14000,true)}else if(s.at)tweenTo(s.at);else draw()}
+function startPlay(msPerYear=24000,once=false){stopPlay();playing=true;$('play').textContent='⏸ Pausar';const yr=365.2422*DAY,start=t;lastFrame=performance.now();let run=0;const f=now=>{if(!playing)return;const dt=now-lastFrame;lastFrame=now;t+=dt/msPerYear*yr;run+=dt/msPerYear*yr;if(t>=Y0+yr)t-=yr;draw();if(once&&run>=yr){stopPlay();return}anim=requestAnimationFrame(f)};anim=requestAnimationFrame(f)}
+function stopPlay(){playing=false;cancelAnimationFrame(anim);$('play').textContent='▶ Recorrer el año'}
+$('play').onclick=()=>{if(playing)stopPlay();else startPlay()};
+$('prev').onclick=()=>go(step-1);$('next').onclick=()=>go(step+1);
+$('day').oninput=()=>{stopPlay();t=Y0+(+$('day').value)*DAY+12*3600000;draw()};
+$('lat').onchange=()=>{lat=+$('lat').value;draw()};
+let rq=0;new ResizeObserver(()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(draw)}).observe(document.querySelector('.grid'));
+T.land().then(r=>{landR=r;draw()}).catch(()=>draw());
+go(0);
+window.__estaciones={EV,go,get t(){return t},set t(v){t=v;draw()}};
+})();
+</script>
+</body>
+</html>

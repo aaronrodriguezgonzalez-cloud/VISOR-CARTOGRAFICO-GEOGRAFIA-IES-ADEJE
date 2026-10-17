@@ -45,6 +45,7 @@ button{font:inherit}.app{height:100%;display:grid;grid-template-rows:auto minmax
     <g id="sun" class="sunGlow"><circle cx="88" cy="310" r="65" fill="#ffd447"/><circle cx="88" cy="310" r="48" fill="#ffe681"/><text x="88" y="315" text-anchor="middle" font-size="18" font-weight="950" fill="#704d00">SOL</text></g>
     <g id="baseRays"></g>
     <circle class="earthEdge" cx="650" cy="310" r="205"/>
+    <image id="realEarth" class="land realLand" x="445" y="105" width="410" height="410" clip-path="url(#earthClip)" style="display:none" preserveAspectRatio="none"/>
     <g id="earthRotator" clip-path="url(#earthClip)">
       <path class="land" d="M530 260c45-70 88-72 117-49 25 20 21 43 64 56 41 13 72 50 41 80-28 27-55 7-74 34-25 36-77 38-95 2-18-37-67-38-70-82-1-17 5-29 17-41z"/>
       <path class="land" d="M703 151c33 8 73 30 73 59 0 22-30 30-46 16-18-16-26-47-27-75z" opacity=".75"/>
@@ -86,6 +87,7 @@ button{font:inherit}.app{height:100%;display:grid;grid-template-rows:auto minmax
  </main>
  <footer class="bottom"><button class="phaseBtn active" data-phase="march">🌱 Equinoccio de marzo</button><button class="phaseBtn" data-phase="june">☀️ Solsticio de junio</button><button class="phaseBtn" data-phase="september">🍂 Equinoccio de septiembre</button><button class="phaseBtn" data-phase="december">☀️ Solsticio de diciembre</button><span class="hint">Pulsa una persona para comparar latitudes.</span></footer>
 </div>
+<script src="../comun/tierra.js"></script>
 <script>
 (()=>{
  const C={cx:650,cy:310,r:205};
@@ -130,8 +132,12 @@ button{font:inherit}.app{height:100%;display:grid;grid-template-rows:auto minmax
   g.addEventListener('click',ev=>{ev.stopPropagation();selected=p.id;focusMode=true;stop();render();});
   return {g,head:{x:hx,y:hy},normal:{nx,ny},tangent:{tx,ty},surface:{x,y}};
  }
+ /* continentes reales (Natural Earth) dibujados en un globo ortográfico con la misma inclinación del eje */
+ const realCache={};let realLandR=null;
+ function updateRealEarth(tilt){const im=$('realEarth');if(!im||!realLandR||!window.AulaTierra)return;const T=window.AulaTierra,k=String(tilt);if(!realCache[k]){const c=document.createElement('canvas');c.width=c.height=820;const x=c.getContext('2d',{willReadFrequently:true});const a=tilt*Math.PI/180,N=[Math.sin(a),Math.cos(a),0];T.globe(x,{cx:410,cy:410,R:410,dpr:1,right:[1,0,0],up:[0,1,0],toward:[0,0,1],N,E0:[0,0,1],sun:[0,0,1],land:realLandR,night:0,grid:0});realCache[k]=c.toDataURL('image/png')}im.setAttribute('href',realCache[k]);im.style.display='';document.querySelectorAll('#earthRotator path.land').forEach(p=>p.style.display='none')}
+ window.addEventListener('load',()=>{if(window.AulaTierra)window.AulaTierra.land().then(r=>{realLandR=r;updateRealEarth(phases[phase].tilt)}).catch(()=>{})});
  function render(){
-  const tilt=phases[phase].tilt;$('earthRotator').setAttribute('transform',`rotate(${tilt} ${C.cx} ${C.cy})`);$('scene').classList.toggle('focusMode',focusMode);renderBaseRays();
+  const tilt=phases[phase].tilt;$('earthRotator').setAttribute('transform',`rotate(${tilt} ${C.cx} ${C.cy})`);updateRealEarth(tilt);$('scene').classList.toggle('focusMode',focusMode);renderBaseRays();
   $('people').innerHTML='';$('dynamicRays').innerHTML='';$('annotations').innerHTML='';$('labels').innerHTML='';
   const peopleRoot=$('people'),labelsRoot=$('labels');
   latitudes.forEach(p=>{const obj=personGroup(p);peopleRoot.appendChild(obj.g);const alt=solarAltitude(p.lat),visible=alt>0.05,rayRoot=$('dynamicRays');

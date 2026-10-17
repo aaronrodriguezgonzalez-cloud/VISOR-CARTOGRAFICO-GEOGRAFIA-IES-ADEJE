@@ -1,4 +1,212 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ANAMBRO · Husos horarios</title><style>
-:root{font-family:system-ui,-apple-system,sans-serif;color:#eef5f8;background:#07131d}*{box-sizing:border-box}body{margin:0;background:linear-gradient(#07131d,#0b2030);min-height:100vh}.app{max-width:1100px;margin:auto;padding:14px}.head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}.head h1{margin:0;font-size:clamp(18px,3vw,30px)}.badge{background:#14354a;border:1px solid #40667d;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800}.stage{margin:10px 0;padding:10px 12px;border-radius:11px;background:#0d2433;border:1px solid #31536a;min-height:68px;line-height:1.35}.stage b{color:#ffd56d}.viz{display:block;width:100%;aspect-ratio:16/8;background:#06111a;border:1px solid #294b61;border-radius:13px}.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.controls button{min-height:42px;padding:8px 12px;border:1px solid #55788e;border-radius:8px;background:#102b3d;color:#fff;font-weight:800}.controls .primary{background:#176c6a}.practice{margin-top:11px;padding:10px 12px;background:#0e2635;border:1px solid #31536a;border-radius:10px}.practice h2{font-size:16px;margin:0 0 7px}.practice .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.practice input,.practice select,.practice button{min-height:42px;border:1px solid #638299;border-radius:7px;background:#fff;color:#10202c;padding:7px;font-size:16px}.practice button{background:#176c6a;color:#fff;font-weight:800}.result{margin-top:7px;min-height:24px}.small{font-size:11px;color:#a8bfcb}@media(max-width:620px){.app{padding:8px}.viz{aspect-ratio:4/3}.practice .row{grid-template-columns:1fr 1fr}.controls button{flex:1}}</style></head><body><main class="app"><div class="head"><h1>🕒 Husos horarios</h1><span class="badge" id="badge"></span></div><section class="stage" id="stage"></section><svg id="svg" class="viz" viewBox="0 0 1000 520" role="img" aria-label="Animación esquemática sobre husos horarios"></svg><div class="controls"><button id="prev">◀ Anterior</button><button id="play" class="primary">▶ Explicación</button><button id="next">Siguiente ▶</button></div><section class="practice"><h2>✏️ Practica</h2><div class="row"><label>Hora de partida<input id="hour" type="time" value="12:00"></label><label>UTC origen<select id="from"><option>-5</option><option>-4</option><option>-3</option><option>-2</option><option>-1</option><option selected>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label><label>UTC destino<select id="to"><option>-5</option><option>-4</option><option>-3</option><option>-2</option><option>-1</option><option>0</option><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label><button id="check" type="button">Calcular</button></div><div class="result" id="result"></div></section><p class="small">Primero se muestran husos teóricos de 15°. Los husos oficiales reales se adaptan a fronteras y decisiones administrativas y no siguen siempre los meridianos.</p></main><script>
-(()=>{const svg=document.getElementById('svg'),stage=document.getElementById('stage'),badge=document.getElementById('badge'),NS='http://www.w3.org/2000/svg';let i=0,timer=0;const S=[['La Tierra gira','La Tierra rota de <b>oeste a este</b>. Por eso, los lugares situados más al este ven amanecer antes.'],['Greenwich: 0°','Tomamos el meridiano de <b>Greenwich</b> como referencia: longitud 0° y base del tiempo UTC.'],['360° ÷ 24 h = 15°','Una vuelta completa son 360°. Como el día se divide en 24 horas, un huso teórico ocupa <b>15° de longitud por hora</b>.'],['Este suma; oeste resta','Al desplazarnos hacia el <b>este</b> sumamos horas respecto a Greenwich; hacia el <b>oeste</b> las restamos.'],['Los husos reales se deforman','Los Estados adaptan la hora oficial a sus fronteras, economía y relaciones. El mapa real no son 24 franjas perfectas.'],['180° y cambio de fecha','Cerca del antimeridiano de Greenwich se sitúa la <b>Línea Internacional de Cambio de Fecha</b>: al cruzarla cambia el día del calendario.']];function el(n,a={}){const x=document.createElementNS(NS,n);for(const[k,v]of Object.entries(a))x.setAttribute(k,v);svg.appendChild(x);return x}function tx(x,y,t,sz=17,fill='#eef5f8',anchor='middle'){const e=el('text',{x,y,fill,'font-size':sz,'font-weight':'800','text-anchor':anchor});e.textContent=t;return e}function base(){svg.replaceChildren();el('rect',{x:60,y:70,width:880,height:350,rx:14,fill:'#17384d',stroke:'#658699','stroke-width':2});el('ellipse',{cx:500,cy:245,rx:370,ry:145,fill:'#2a729e','fill-opacity':.55,stroke:'#9ac4d8'});el('path',{d:'M225 205q85-80 175-15t135-10q80-45 160 15t85 95q-75 58-170 12t-145 15q-90 50-165-5t-75-107z',fill:'#4a9656','fill-opacity':.82})}function meridian(x,strong=false,c='#c9e1eb'){el('line',{x1:x,y1:93,x2:x,y2:397,stroke:c,'stroke-width':strong?4:1.4,'stroke-opacity':strong?1:.58})}function arrow(){el('path',{d:'M260 125 Q500 55 740 125',fill:'none',stroke:'#ffd45f','stroke-width':5});el('path',{d:'M734 116l20 10-19 12',fill:'#ffd45f'});tx(500,65,'rotación: oeste → este',17,'#ffd45f')}function draw(){base();const [t,p]=S[i];stage.innerHTML='<b>'+t+'</b><br>'+p;badge.textContent=(i+1)+' / '+S.length;if(i===0){arrow();tx(160,450,'OESTE',18);tx(840,450,'ESTE',18)}if(i===1){meridian(500,true,'#ffd45f');tx(500,445,'Greenwich · 0° · UTC',18,'#ffd45f')}if(i===2){for(let k=-4;k<=4;k++)meridian(500+k*92,k===0,k===0?'#ffd45f':'#b9d3df');tx(500,448,'Cada franja representa 15° ≈ 1 hora',18,'#ffd45f');for(let k=-4;k<=4;k++)tx(500+k*92,112,(k*15)+'°',11)}if(i===3){for(let k=-4;k<=4;k++){meridian(500+k*92,k===0,k===0?'#ffd45f':'#b9d3df');tx(500+k*92,112,(k>0?'+':'')+k+' h',12,k===0?'#ffd45f':'#eef5f8')}tx(755,450,'→ ESTE: sumar',16,'#ffd45f');tx(245,450,'OESTE: restar ←',16,'#ffd45f')}if(i===4){for(let k=-4;k<=4;k++)meridian(500+k*92,k===0,k===0?'#ffd45f':'#b9d3df');el('path',{d:'M250 95 C235 150 270 195 245 240 S270 335 255 395 M690 95 C720 145 680 200 710 245 S680 340 705 395',fill:'none',stroke:'#ff9d5a','stroke-width':7,'stroke-linecap':'round'});tx(500,450,'Las fronteras horarias reales no son meridianos perfectos',17,'#ffb179')}if(i===5){meridian(500,true,'#ffd45f');meridian(885,true,'#ff765d');tx(500,445,'0°',15,'#ffd45f');tx(885,445,'≈180° · cambio de fecha',15,'#ff8f7b');tx(845,105,'± 1 día',17,'#ff8f7b')} }function set(n){i=(n+S.length)%S.length;draw()}function stop(){clearInterval(timer);timer=0;document.getElementById('play').textContent='▶ Explicación'}document.getElementById('prev').onclick=()=>{stop();set(i-1)};document.getElementById('next').onclick=()=>{stop();set(i+1)};document.getElementById('play').onclick=()=>{if(timer){stop();return}document.getElementById('play').textContent='⏸ Pausar';timer=setInterval(()=>{if(i===S.length-1){stop();return}set(i+1)},2500)};document.getElementById('check').onclick=()=>{const h=document.getElementById('hour').value||'12:00',[hh,mm]=h.split(':').map(Number),a=+document.getElementById('from').value,b=+document.getElementById('to').value,delta=b-a,total=hh*60+mm+delta*60,day=total<0?-1:total>=1440?1:0,t=((total%1440)+1440)%1440,H=String(Math.floor(t/60)).padStart(2,'0'),M=String(t%60).padStart(2,'0');document.getElementById('result').innerHTML='<b>Resultado:</b> '+H+':'+M+(day===1?' · día siguiente':day===-1?' · día anterior':'')+' <span class="small">('+ (delta>=0?'+':'')+delta+' h respecto al origen)</span>'};draw()})();
-</script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · Husos horarios</title>
+<style>
+:root{--panel:#0d2231;--line:#2d536a;--ink:#eef5f8;--muted:#a9c0cd;--gold:#ffd166;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#07131d}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(#07131d,#0b2030)}
+.app{max-width:1280px;margin:auto;padding:12px 14px 18px}
+.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
+.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
+.stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:76px;line-height:1.42}
+.stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,.62fr) minmax(0,1.38fr);gap:10px}
+.card{background:#081a27;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card canvas{display:block;width:100%;height:100%}
+.globeCard{aspect-ratio:1/1.08}.mapCard{aspect-ratio:2/1.08;cursor:crosshair}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.controls button,.controls select,.controls input[type=date]{min-height:40px;border:1px solid #5e8094;border-radius:9px;background:#102b3d;color:#fff;padding:7px 12px;font-weight:800;font-size:14px;cursor:pointer}
+.controls button.primary{background:#176c6a}
+.seg{display:inline-flex;border:1px solid #5e8094;border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-height:40px}
+.seg button.on{background:#ffd166;color:#2a1d00}
+.timeBox{flex:1;min-width:250px;display:flex;align-items:center;gap:10px}
+.timeBox input{flex:1;accent-color:#ffd166}
+.timeBox output{font-weight:800;min-width:150px;text-align:right}
+.below{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.box{background:#0e2534;border:1px solid #305369;border-radius:12px;padding:10px 12px}
+.box h3{margin:0 0 8px;font-size:15px}
+.info{line-height:1.45;font-size:14px;min-height:96px}
+.info b{color:var(--gold)}
+.row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;align-items:end}
+.row label{font-size:12px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:3px}
+.row input,.row select,.row button{min-height:40px;border:1px solid #638299;border-radius:7px;background:#fff;color:#10202c;padding:6px;font-size:15px;width:100%}
+.row button{background:#176c6a;color:#fff;font-weight:800;cursor:pointer}
+.result{margin-top:8px;min-height:24px;line-height:1.4}
+.result.ok{color:#9fe3b0}.result.ko{color:#ffb4a1}
+.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+@media(max-width:900px){.grid,.below{grid-template-columns:1fr}.globeCard{aspect-ratio:1/0.92}}
+@media(max-width:560px){.app{padding:8px}.row{grid-template-columns:1fr 1fr}.timeBox{min-width:100%}.controls button{flex:1}.seg{flex:1 1 100%}.seg button{flex:1;padding:7px 4px;font-size:13px}.controls input[type=date]{flex:1}.stage{font-size:14px}}
+</style>
+</head>
+<body>
+<main class="app">
+ <div class="top"><div><div class="brand">ANAMBRO · AULA</div><h1>🕒 Husos horarios</h1></div><nav class="steps" id="steps" aria-label="Pasos de la explicación"></nav></div>
+ <section class="stage" id="stage" aria-live="polite"></section>
+ <div class="grid">
+  <div class="card globeCard"><h2>La Tierra vista desde encima del polo norte</h2><canvas id="globe" aria-label="Globo girando visto desde el polo norte"></canvas></div>
+  <div class="card mapCard"><h2 style="top:6px">Planisferio · pulsa en cualquier lugar</h2><canvas id="map" aria-label="Mapa del mundo con el día, la noche y los husos horarios"></canvas></div>
+ </div>
+ <div class="controls">
+  <button id="prev" title="Paso anterior">◀</button><button id="play" class="primary">▶ Hacer girar</button><button id="next" title="Paso siguiente">▶</button>
+  <div class="seg" role="group" aria-label="Husos"><button data-mode="">Sin husos</button><button data-mode="teoricos">Husos teóricos</button><button data-mode="reales">Husos reales</button></div>
+  <div class="timeBox"><input id="hour" type="range" min="0" max="1439" step="5" aria-label="Hora UTC"><output id="utcOut"></output></div>
+  <input id="date" type="date" aria-label="Fecha (UTC)">
+ </div>
+ <div class="below">
+  <div class="box"><h3>📍 ¿Qué hora es allí?</h3><div class="info" id="info">Pulsa en el planisferio o en una ciudad para ver su hora oficial, su huso y la fecha.</div></div>
+  <div class="box"><h3>✏️ Practica</h3>
+   <div class="row">
+    <label>Hora de partida<input id="pHour" type="time" value="10:00"></label>
+    <label>Desde<select id="pFrom"></select></label>
+    <label>Hasta<select id="pTo"></select></label>
+    <button id="pCalc" type="button">Calcular</button>
+   </div>
+   <div class="result" id="pResult"></div>
+   <div class="row" style="margin-top:8px;grid-template-columns:2fr 1fr 1fr">
+    <div id="qText" style="color:#eef5f8;font-size:14px;line-height:1.4;align-self:center"></div>
+    <label>Tu respuesta<input id="qAns" type="time"></label>
+    <button id="qCheck" type="button">Comprobar</button>
+   </div>
+   <div class="result" id="qResult"></div>
+   <button id="qNew" type="button" style="margin-top:6px;min-height:36px;border:1px solid #5e8094;border-radius:8px;background:#102b3d;color:#fff;font-weight:800;padding:6px 10px;cursor:pointer">🎲 Otro reto</button>
+  </div>
+ </div>
+ <p class="small">Husos oficiales de Natural Earth (2012) actualizados con los cambios posteriores (Rusia 2014–2016, Turquía, Marruecos, Corea del Norte, Kazajistán, Groenlandia, Paraguay, Sudán…). Se muestra la <b>hora estándar</b>, sin horario de verano: en verano Canarias pasa a UTC+1 y la Península a UTC+2. Día y noche calculados con la posición real del Sol.</p>
+</main>
+<script src="../comun/tierra.js"></script>
+<script>
+(()=>{
+'use strict';
+const T=window.AulaTierra,{V,D2R,R2D}=T,$=id=>document.getElementById(id);
+const CITIES=[['Santa Cruz de Tenerife',28.47,-16.25],['Madrid',40.42,-3.70],['Londres',51.51,-0.13],['Lisboa',38.72,-9.14],['Nueva York',40.71,-74.01],['Los Ángeles',34.05,-118.24],['Ciudad de México',19.43,-99.13],['Bogotá',4.71,-74.07],['Buenos Aires',-34.60,-58.38],['Río de Janeiro',-22.91,-43.17],['El Cairo',30.04,31.24],['Moscú',55.76,37.62],['Nueva Delhi',28.61,77.21],['Katmandú',27.72,85.32],['Pekín',39.90,116.40],['Tokio',35.68,139.69],['Sídney',-33.87,151.21],['Auckland',-36.85,174.76],['Honolulu',21.31,-157.86],['Kiritimati (Kiribati)',1.87,-157.43],['Anchorage',61.22,-149.90],['Vladivostok',43.12,131.89]];
+const LABELED=new Set(['Santa Cruz de Tenerife','Madrid','Nueva York','Los Ángeles','Ciudad de México','Bogotá','Buenos Aires','Moscú','Nueva Delhi','Pekín','Tokio','Sídney','Honolulu','Kiritimati (Kiribati)','El Cairo','Anchorage']);
+let tz=null,land=null,mode='',step=0,t=Date.now(),playing=false,anim=0,last=0,picked=null;
+const fmtOff=z=>{if(z===0)return 'UTC±0';const s=z>0?'+':'−',a=Math.abs(z),h=Math.floor(a),m=Math.round((a-h)*60);return 'UTC'+s+h+(m?':'+String(m).padStart(2,'0'):'')};
+const pad=n=>String(n).padStart(2,'0');
+const local=(tt,z)=>new Date(tt+z*3600000);
+const hm=d=>pad(d.getUTCHours())+':'+pad(d.getUTCMinutes());
+const dname=d=>d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'});
+const zoneOf=(la,lo)=>tz?T.zoneAt(tz,la,lo):Math.round(lo/15);
+const theo=lo=>Math.max(-12,Math.min(12,Math.round(lo/15)));
+const STEPS=[
+ {k:'Rotación',t:'La Tierra gira de oeste a este',mode:'',play:true,p:'La Tierra da una vuelta sobre sí misma cada 24 horas, de <b>oeste a este</b> (en sentido antihorario si la miramos desde encima del polo norte). Por eso el Sol parece moverse de este a oeste y <b>los lugares situados más al este ven amanecer antes</b>: en la Península amanece unos 50 minutos antes que en Canarias.'},
+ {k:'Greenwich',t:'Greenwich, 0°: la referencia del tiempo universal',mode:'',utc:12,p:'Para ponernos de acuerdo se eligió como referencia el meridiano de <b>Greenwich</b> (Londres), longitud 0°. Su hora es la base del <b>tiempo universal coordinado (UTC)</b>. Mira el mapa: cuando el Sol está sobre Greenwich, allí es mediodía y en las antípodas es medianoche.'},
+ {k:'15°',t:'360° ÷ 24 h = 15° por hora',mode:'teoricos',p:'En 24 horas la Tierra gira 360°: <b>15° cada hora</b>. Por eso el mundo se divide en <b>24 husos teóricos</b> de 15° de anchura, centrados en los meridianos múltiplos de 15°. El huso 0 va de 7,5° O a 7,5° E.'},
+ {k:'Este / oeste',t:'Hacia el este se suman horas; hacia el oeste se restan',mode:'teoricos',utc:12,p:'Cada huso que avanzamos hacia el <b>este</b> es una hora <b>más</b>; cada huso hacia el <b>oeste</b>, una hora <b>menos</b>. Si en Greenwich son las 12:00, en el huso +3 son las 15:00 y en el −5, las 7:00.'},
+ {k:'Husos reales',t:'Los husos reales siguen fronteras y decisiones políticas',mode:'reales',utc:12,p:'Los Estados eligen su hora oficial y los husos reales se adaptan a las fronteras. <b>Canarias</b> usa UTC±0, pero la <b>Península</b>, aunque está casi entera al oeste de Greenwich, usa UTC+1 desde 1940. <b>China</b> usa un solo huso (UTC+8) en todo su territorio; <b>Rusia</b> tiene 11; <b>la India</b> va media hora desplazada (UTC+5:30) y <b>Nepal</b>, tres cuartos (UTC+5:45). En rosa, los husos de media hora o tres cuartos.'},
+ {k:'Cambio de fecha',t:'La línea internacional de cambio de fecha',mode:'reales',utc:11,date:true,p:'Si sumamos horas hacia el este y las restamos hacia el oeste, en el lado opuesto a Greenwich (180°) se encuentran un lugar con +12 y otro con −12: <b>un día de diferencia</b>. Ahí está la <b>línea internacional de cambio de fecha</b> (en rojo), que se desvía para no partir países. Al cruzarla hacia el oeste se suma un día; hacia el este, se resta. Kiribati (UTC+14) es el primer lugar del mundo que recibe el Año Nuevo.'},
+ {k:'Practica',t:'Ahora tú',mode:'reales',p:'Mueve la hora, pulsa en el mapa para consultar cualquier lugar y resuelve los retos de abajo. Recuerda: busca la diferencia entre los dos husos y súmala o réstala; si pasas de las 24:00 o bajas de las 0:00, cambia el día.'}
+];
+/* ---- canvas ---- */
+function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d',{willReadFrequently:true});x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height,d}}
+/* ---- globo polar ---- */
+function drawGlobe(){const {x,w,h,d}=fit($('globe')),s=T.sun(new Date(t));x.clearRect(0,0,w,h);
+ const cx=w/2,cy=h*.55,R=Math.min(w*.36,h*.36),N=[0,0,1],toward=[0,0,1],right=[1,0,0],up=[0,1,0];
+ const sv=[-Math.cos(s.dec*D2R),0,Math.sin(s.dec*D2R)],phi=Math.PI-s.subLon*D2R,E0=[Math.cos(phi),Math.sin(phi),0];
+ // rayos del Sol desde la izquierda
+ for(let k=-3;k<=3;k++){const y=cy+k*R*.28;x.strokeStyle='rgba(255,209,102,.45)';x.lineWidth=2;x.beginPath();x.moveTo(4,y);x.lineTo(cx-Math.sqrt(Math.max(0,R*R*1.5-(y-cy)**2))-6,y);x.stroke()}
+ x.fillStyle='#ffd166';x.font='800 11px system-ui';x.textAlign='left';x.fillText('☀ Sol',6,cy-R*.95);
+ // anillo de horas solares (fijo respecto al Sol)
+ const RR=R*1.17;x.strokeStyle='rgba(255,255,255,.25)';x.lineWidth=1;x.beginPath();x.arc(cx,cy,RR,0,7);x.stroke();
+ x.font='700 10px system-ui';x.textAlign='center';for(let hh=0;hh<24;hh++){const a=Math.PI+(hh-12)*15*D2R,px=cx+Math.cos(a)*RR,py=cy-Math.sin(a)*RR;x.fillStyle=hh===12?'#ffd166':hh===0?'#9cc9ff':'rgba(220,235,245,.75)';x.beginPath();x.arc(px,py,hh%6?1.6:3,0,7);x.fill();if(hh%3===0){const lx=cx+Math.cos(a)*(RR+14),ly=cy-Math.sin(a)*(RR+14)+4;x.fillText(hh+' h',lx,ly)}}
+ const o={cx,cy,R,dpr:d,right,up,toward,N,E0,sun:sv,land,night:.8,tz,tzMode:mode,tzAlpha:.6};T.globe(x,o);
+ // meridianos de referencia
+ const mer=(lo,col,wd,dash)=>{x.strokeStyle=col;x.lineWidth=wd;x.setLineDash(dash||[]);x.beginPath();let f=true;for(let la=0;la<=90;la+=3){const q=T.project(o,la,lo);f?x.moveTo(q.x,q.y):x.lineTo(q.x,q.y);f=false}x.stroke();x.setLineDash([])};
+ if(mode==='teoricos')for(let lo=-172.5;lo<180;lo+=15)mer(lo,'rgba(255,255,255,.35)',.8);
+ mer(0,'#ffd166',2.4);mer(180,'#ff6b5a',2,[6,4]);
+ const g=T.project(o,0,0),a=T.project(o,0,180);x.font='800 11px system-ui';x.fillStyle='#ffd166';x.fillText('Greenwich',g.x+(g.x-cx)*.12,g.y+(g.y-cy)*.12+4);x.fillStyle='#ff8f7b';x.fillText('180°',a.x+(a.x-cx)*.1,a.y+(a.y-cy)*.1+4);
+ // Canarias
+ const c=T.project(o,28.3,-16.3);x.fillStyle='#fff';x.strokeStyle='#d7263d';x.lineWidth=2;x.beginPath();x.arc(c.x,c.y,4.5,0,7);x.fill();x.stroke();x.fillStyle='#fff';x.textAlign='left';x.fillText('Canarias',c.x+7,c.y-6);
+ // flecha de rotación
+ x.strokeStyle='#9fe3b0';x.lineWidth=2.4;x.beginPath();x.arc(cx,cy,R*.22,-.2,-2.6,true);x.stroke();const ae=-2.6,ax=cx+Math.cos(ae)*R*.22,ay=cy+Math.sin(ae)*R*.22;x.fillStyle='#9fe3b0';x.beginPath();x.moveTo(ax,ay);x.lineTo(ax+8,ay-2);x.lineTo(ax+3,ay+7);x.fill();
+ x.textAlign='center';x.fillStyle='#9fe3b0';x.font='800 10.5px system-ui';x.fillText('rotación',cx,cy+R*.36);
+ x.font='700 10.5px system-ui'; x.textAlign='right';x.fillStyle='#a9c0cd';x.fillText('12 h: mediodía · 0 h: medianoche',w-8,h-8);
+}
+/* ---- planisferio ---- */
+const VIEW={west:-180,east:180,north:84,south:-60};
+let baseKey='',baseCanvas=null,idl=null;
+function mapGeom(w,h){const top=w<640?52:46,left=0,W=w,H=h-top-18;return {top,left,W,H,X:lo=>left+(lo-VIEW.west)/(VIEW.east-VIEW.west)*W,Y:la=>top+(VIEW.north-la)/(VIEW.north-VIEW.south)*H,LO:px=>VIEW.west+(px-left)/W*(VIEW.east-VIEW.west),LA:py=>VIEW.north-(py-top)/H*(VIEW.north-VIEW.south)}}
+function baseMap(w,h,d){const key=[w,h,d,mode,!!land,!!tz].join('|');if(key===baseKey&&baseCanvas)return baseCanvas;baseKey=key;const g=mapGeom(w,h),c=document.createElement('canvas');c.width=Math.round(w*d);c.height=Math.round(h*d);const x=c.getContext('2d');
+ T.flatMap(x,{x:g.left,y:g.top,w:g.W,h:g.H,dpr:d,...VIEW,land,tz,tzMode:mode,tzAlpha:.45});
+ // fronteras de husos (raster) y línea de cambio de fecha
+ x.setTransform(d,0,0,d,0,0);idl=[];
+ if(mode==='reales'&&tz){const step=Math.max(1,Math.round(tz.w/g.W/1)),cw=g.W/((VIEW.east-VIEW.west)/360*tz.w);x.fillStyle='rgba(20,30,40,.55)';
+  for(let j=Math.floor((90-VIEW.north)/180*tz.h);j<Math.ceil((90-VIEW.south)/180*tz.h);j++){for(let i=0;i<tz.w;i++){const a=tz.a[j*tz.w+i],b=tz.a[j*tz.w+(i+1)%tz.w],c2=j+1<tz.h?tz.a[(j+1)*tz.w+i]:a;const za=a===255?null:a/4-12,zb=b===255?null:b/4-12,zc=c2===255?null:c2/4-12;const lo=i/tz.w*360-180,la=90-j/tz.h*180;
+   if(za!==null&&zb!==null&&za!==zb){const X0=g.X(lo+360/tz.w),Y0=g.Y(la),Y1=g.Y(la-180/tz.h);if(Math.abs(za-zb)>=12)idl.push([X0,Y0,X0,Y1]);else x.fillRect(X0-.4,Y0,.8,Y1-Y0)}
+   if(za!==null&&zc!==null&&za!==zc){const X0=g.X(lo),X1=g.X(lo+360/tz.w),Y0=g.Y(la-180/tz.h);if(Math.abs(za-zc)>=12)idl.push([X0,Y0,X1,Y0]);else x.fillRect(X0,Y0-.4,X1-X0,.8)}}}}
+ baseCanvas=c;return c}
+function terminator(x,g,s,hdeg,fill){const dec=Math.abs(s.dec)<.05?.05*(s.dec<0?-1:1):s.dec,sd=dec*D2R,sh=Math.sin(hdeg*D2R);x.beginPath();let first=true;
+ for(let lo=VIEW.west;lo<=VIEW.east+.01;lo+=2){const H=(lo-s.subLon)*D2R,A=Math.sin(sd),B=Math.cos(sd)*Math.cos(H),rho=Math.hypot(A,B);let la=(Math.asin(Math.max(-1,Math.min(1,sh/rho)))-Math.atan2(B,A))*R2D;if(la<-90)la+=180;if(la>90)la-=180;la=Math.max(-90,Math.min(90,la));const X=g.X(lo),Y=g.Y(la);first?x.moveTo(X,Y):x.lineTo(X,Y);first=false}
+ // la noche queda del lado del polo que no ve el Sol
+ const yEdge=dec>0?g.Y(-91):g.Y(91);x.lineTo(g.X(VIEW.east),yEdge);x.lineTo(g.X(VIEW.west),yEdge);x.closePath();x.fillStyle=fill;x.fill()}
+let nightC=null;function nightLayer(s){const W=360,H=Math.round((VIEW.north-VIEW.south)*1);if(!nightC){nightC=document.createElement('canvas');nightC.width=W;nightC.height=H}const c=nightC.getContext('2d'),im=c.createImageData(W,H),p=im.data,sd=Math.sin(s.dec*D2R),cd=Math.cos(s.dec*D2R);
+ for(let j=0;j<H;j++){const la=(VIEW.north-(j+.5)/H*(VIEW.north-VIEW.south))*D2R,sl=Math.sin(la),cl=Math.cos(la);for(let i=0;i<W;i++){const lo=VIEW.west+(i+.5)/W*(VIEW.east-VIEW.west),alt=Math.asin(sl*sd+cl*cd*Math.cos((lo-s.subLon)*D2R))*R2D;const a=alt>0.5?0:alt>-0.833?.28:alt>-18?.36+(-alt-0.833)/17.2*.22:.58,k=(j*W+i)*4;p[k]=4;p[k+1]=10;p[k+2]=34;p[k+3]=a*255}}c.putImageData(im,0,0);return nightC}
+function drawMap(){{const r=$('map').getBoundingClientRect(),top=r.width<640?52:46,want=Math.round(r.width*(VIEW.north-VIEW.south)/360+top+18);if(Math.abs(r.height-want)>1.5){$('map').parentElement.style.aspectRatio=r.width+' / '+want}}const {x,w,h,d}=fit($('map')),s=T.sun(new Date(t)),g=mapGeom(w,h);x.clearRect(0,0,w,h);x.drawImage(baseMap(w,h,d),0,0,w,h);
+ x.save();x.beginPath();x.rect(g.left,g.top,g.W,g.H);x.clip();
+ x.imageSmoothingEnabled=true;x.drawImage(nightLayer(s),g.left,g.top,g.W,g.H);
+ // meridianos de los husos teóricos
+ if(mode==='teoricos'){x.strokeStyle='rgba(255,255,255,.4)';x.lineWidth=.8;for(let lo=-172.5;lo<180;lo+=15){x.beginPath();x.moveTo(g.X(lo),g.top);x.lineTo(g.X(lo),g.top+g.H);x.stroke()}}
+ // Greenwich y 180°
+ x.strokeStyle='#ffd166';x.lineWidth=2;x.beginPath();x.moveTo(g.X(0),g.top);x.lineTo(g.X(0),g.top+g.H);x.stroke();
+ if(mode==='reales'&&idl?.length){x.strokeStyle='#ff4d3d';x.lineWidth=2.6;x.beginPath();for(const [a,b,c,e] of idl){x.moveTo(a,b);x.lineTo(c,e)}x.stroke()}else{x.strokeStyle='#ff6b5a';x.lineWidth=2;x.setLineDash([6,4]);x.beginPath();x.moveTo(g.X(179.6),g.top);x.lineTo(g.X(179.6),g.top+g.H);x.stroke();x.setLineDash([])}
+ // Sol (punto subsolar)
+ const sx=g.X(s.subLon),sy=g.Y(s.dec);x.fillStyle='#ffd166';x.beginPath();x.arc(sx,sy,7,0,7);x.fill();x.strokeStyle='#6b4a00';x.lineWidth=1.5;x.stroke();
+ // ciudades
+ x.font='700 10px system-ui';for(const [n,la,lo] of CITIES){const X=g.X(lo),Y=g.Y(la),sel=picked&&picked.name===n;x.fillStyle=sel?'#ffd166':'#fff';x.strokeStyle='#10202c';x.lineWidth=1.5;x.beginPath();x.arc(X,Y,sel?5:3.4,0,7);x.fill();x.stroke();if((w>700&&LABELED.has(n))||sel||n==='Santa Cruz de Tenerife'){const z=zoneOf(la,lo),lt=local(t,z);x.fillStyle='rgba(8,20,30,.72)';const txt=(n==='Santa Cruz de Tenerife'?'Canarias':n.replace(' (Kiribati)',''))+' '+hm(lt);const tw=x.measureText(txt).width;let lx=(X>w-tw-14||n==='Pekín'||n==='Nueva Delhi')?X-tw-6:X+6,ly=Y-5;x.fillRect(lx-2,ly-9,tw+4,12);x.fillStyle=sel?'#ffd166':'#fff';x.textAlign='left';x.fillText(txt,lx,ly)}}
+ if(picked&&!picked.name){const X=g.X(picked.lo),Y=g.Y(picked.la);x.strokeStyle='#ffd166';x.lineWidth=2.4;x.beginPath();x.arc(X,Y,7,0,7);x.stroke();x.beginPath();x.moveTo(X-11,Y);x.lineTo(X+11,Y);x.moveTo(X,Y-11);x.lineTo(X,Y+11);x.stroke()}
+ x.restore();
+ // etiquetas de husos en la parte superior
+ x.font='700 9.5px system-ui';x.textAlign='center';
+ if(mode){for(let z=-12;z<=12;z++){const X=g.X(z*15);if(X<8||X>w-8)continue;if(w<640&&z%3)continue;const lt=local(t,z);x.fillStyle=z===0?'#ffd166':'#cfe0e8';x.fillText((z>0?'+':z<0?'−':'±')+Math.abs(z),X,g.top-15);x.fillStyle=z===0?'#ffd166':'rgba(207,224,232,.7)';x.fillText(hm(lt),X,g.top-3)}}
+ else{x.fillStyle='#a9c0cd';for(let lo=-180;lo<=180;lo+=30){const X=g.X(lo);x.fillText((lo===0?'0°':Math.abs(lo)+'°'+(lo<0?'O':'E')),Math.max(10,Math.min(w-10,X)),g.top-4)}}
+ // pie
+ x.textAlign='left';x.font='700 10.5px system-ui';x.fillStyle='#ffd166';x.fillText('━ Greenwich (0°)',8,h-5);x.fillStyle='#ff6b5a';x.fillText('━ cambio de fecha',112,h-5);x.fillStyle='#a9c0cd';if(w>560)x.fillText('☀ punto donde el Sol está en el cenit · zona oscura: noche',232,h-5);
+}
+/* ---- información ---- */
+function showInfo(){if(!picked){$('info').innerHTML='Pulsa en el planisferio o en una ciudad para ver su hora oficial, su huso y la fecha.';return}
+ const {la,lo}=picked,z=zoneOf(la,lo),zt=theo(lo),lt=local(t,z),ltt=local(t,zt),utc=new Date(t),solar=new Date(t+(lo/15)*3600000),dd=Math.round((Date.UTC(lt.getUTCFullYear(),lt.getUTCMonth(),lt.getUTCDate())-Date.UTC(utc.getUTCFullYear(),utc.getUTCMonth(),utc.getUTCDate()))/86400000);
+ $('info').innerHTML=`<div style="font-size:16px;font-weight:800;margin-bottom:3px">${picked.name||(Math.abs(la).toFixed(1)+'° '+(la>=0?'N':'S')+' · '+Math.abs(lo).toFixed(1)+'° '+(lo>=0?'E':'O'))}</div>`+
+ `Hora oficial: <b style="font-size:20px">${hm(lt)}</b> · ${fmtOff(z)}<br>${dname(lt)}${dd?` <b>(${dd>0?'un día más':'un día menos'} que en Greenwich)</b>`:''}<br>`+
+ `<span style="color:#a9c0cd">Huso teórico por su longitud: ${fmtOff(zt)} → ${hm(ltt)}${zt!==z?` · su hora oficial difiere ${Math.abs(z-zt)===1?'1 hora':Math.abs(z-zt)>=23?Math.abs(z-zt)+' h (¡un día entero!)':(Math.abs(z-zt)+' h').replace('.',',')} de la teórica`:''}. Hora solar: ${hm(solar)}.</span>`}
+/* ---- práctica ---- */
+const OFFS=[-12,-11,-10,-9.5,-9,-8,-7,-6,-5,-4,-3.5,-3,-2,-1,0,1,2,3,3.5,4,4.5,5,5.5,5.75,6,6.5,7,8,8.75,9,9.5,10,10.5,11,12,12.75,13,14];
+function fillSelects(){const opts=CITIES.map((c,i)=>`<option value="c${i}">${c[0]} (${fmtOff(zoneOf(c[1],c[2]))})</option>`).join('')+'<optgroup label="Husos">'+OFFS.map(z=>`<option value="${z}">${fmtOff(z)}</option>`).join('')+'</optgroup>';for(const id of ['pFrom','pTo']){const v=$(id).value;$(id).innerHTML=opts;$(id).value=v||(id==='pFrom'?'c0':'c15')}}
+const offOf=v=>String(v).startsWith('c')?zoneOf(CITIES[+v.slice(1)][1],CITIES[+v.slice(1)][2]):+v;
+const nameOf=v=>String(v).startsWith('c')?CITIES[+v.slice(1)][0]:fmtOff(+v);
+function convert(hhmm,a,b){const [H,M]=hhmm.split(':').map(Number),tot=H*60+M+Math.round((b-a)*60),day=Math.floor(tot/1440),r=((tot%1440)+1440)%1440;return {txt:pad(Math.floor(r/60))+':'+pad(r%60),day}}
+$('pCalc').onclick=()=>{const a=offOf($('pFrom').value),b=offOf($('pTo').value),r=convert($('pHour').value||'10:00',a,b),diff=b-a;$('pResult').className='result';$('pResult').innerHTML=`Diferencia: <b>${diff>=0?'+':'−'}${String(Math.abs(diff)).replace('.',',')} h</b> (${diff>=0?'hacia el este, se suma':'hacia el oeste, se resta'}). En ${nameOf($('pTo').value)} son las <b>${r.txt}</b>${r.day>0?' del <b>día siguiente</b>':r.day<0?' del <b>día anterior</b>':' del mismo día'}.`};
+let Q=null;function newQ(){const i=Math.floor(Math.random()*CITIES.length);let j=Math.floor(Math.random()*CITIES.length);if(j===i)j=(j+5)%CITIES.length;const H=Math.floor(Math.random()*24),M=[0,0,15,30,45][Math.floor(Math.random()*5)],hh=pad(H)+':'+pad(M);Q={i,j,hh};$('qText').innerHTML=`Si en <b style="color:#ffd166">${CITIES[i][0]}</b> son las <b style="color:#ffd166">${hh}</b>, ¿qué hora es en <b style="color:#ffd166">${CITIES[j][0]}</b>?`;$('qResult').textContent='';$('qAns').value=''}
+$('qNew').onclick=newQ;$('qCheck').onclick=()=>{if(!Q)return;const a=zoneOf(CITIES[Q.i][1],CITIES[Q.i][2]),b=zoneOf(CITIES[Q.j][1],CITIES[Q.j][2]),r=convert(Q.hh,a,b),ok=$('qAns').value===r.txt;$('qResult').className='result '+(ok?'ok':'ko');$('qResult').innerHTML=(ok?'✔ ¡Correcto! ':'✘ No exactamente. ')+`${CITIES[Q.i][0]} está en ${fmtOff(a)} y ${CITIES[Q.j][0]} en ${fmtOff(b)}: diferencia de ${(b-a>=0?'+':'−')+String(Math.abs(b-a)).replace('.',',')} h → <b>${r.txt}</b>${r.day>0?' del día siguiente':r.day<0?' del día anterior':''}.`};
+/* ---- interacción ---- */
+$('map').addEventListener('click',e=>{const r=$('map').getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top,g=mapGeom(r.width,r.height);if(py<g.top||py>g.top+g.H)return;const lo=g.LO(px),la=g.LA(py);let best=null,bd=1e9;for(const [n,cla,clo] of CITIES){const dd=Math.hypot(g.X(clo)-px,g.Y(cla)-py);if(dd<bd){bd=dd;best={name:n,la:cla,lo:clo}}}picked=bd<12?best:{la,lo};showInfo();drawMap()});
+function setMode(m){mode=m;document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));draw()}
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+function syncControls(){const d=new Date(t);$('hour').value=d.getUTCHours()*60+d.getUTCMinutes();$('utcOut').textContent=hm(d)+' UTC (Greenwich)';$('date').value=d.toISOString().slice(0,10)}
+$('hour').oninput=()=>{stop();const d=new Date(t);t=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())+(+$('hour').value)*60000;draw()};
+$('date').onchange=()=>{const v=$('date').value;if(!v)return;const d=new Date(t),[Y,M,D]=v.split('-').map(Number);t=Date.UTC(Y,M-1,D,d.getUTCHours(),d.getUTCMinutes());draw()};
+function draw(){drawGlobe();drawMap();syncControls();showInfo()}
+function play(){stop();playing=true;$('play').textContent='⏸ Pausar';last=performance.now();const f=now=>{if(!playing)return;t+=(now-last)/20000*86400000;last=now;drawGlobe();drawMap();syncControls();showInfo();anim=requestAnimationFrame(f)};anim=requestAnimationFrame(f)}
+function stop(){playing=false;cancelAnimationFrame(anim);$('play').textContent='▶ Hacer girar'}
+$('play').onclick=()=>playing?stop():play();
+function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
+function go(i){step=(i+STEPS.length)%STEPS.length;const s=STEPS[step];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();stop();
+ if(s.utc!=null){const d=new Date(t);t=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),s.utc,0)}
+ if(s.date){picked={name:'Kiritimati (Kiribati)',la:1.87,lo:-157.43}}else if(step===4)picked={name:'Santa Cruz de Tenerife',la:28.47,lo:-16.25};
+ setMode(s.mode);if(s.play)play()}
+$('prev').onclick=()=>go(step-1);$('next').onclick=()=>go(step+1);
+let rq=0;new ResizeObserver(()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{baseKey='';draw()})}).observe(document.querySelector('.grid'));
+Promise.all([T.land().catch(()=>null),T.zones().catch(()=>null)]).then(([l,z])=>{land=l;tz=z;baseKey='';fillSelects();newQ();draw()});
+fillSelects();newQ();go(0);
+window.__husos={go,setMode,get t(){return t},set t(v){t=v;draw()},pick:(la,lo)=>{picked={la,lo};showInfo();drawMap()}};
+})();
+</script>
+</body>
+</html>
