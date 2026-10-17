@@ -3381,7 +3381,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-16 (r39: mapamundis y continentes exportados en Equal Earth)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-17 (r40: animación del movimiento aparente del Sol)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -3468,10 +3468,13 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
   </div>
 
   <div class="explainCard" style="margin-top:9px">
-    <div class="explainCardIcon">🌍</div><div class="explainCardBody"><b>Las estaciones del año</b><small>Traslación, inclinación del eje, estaciones opuestas en ambos hemisferios y duración del día. Cada etapa sustituye a la anterior.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/estaciones/index.html','Las estaciones del año')">▶ Abrir animación interactiva</button></div>
+    <div class="explainCardIcon">🌍</div><div class="explainCardBody"><b>Las estaciones del año</b><small>La Tierra recorre su órbita real con el eje fijo: solsticios, equinoccios, perihelio y afelio, el día y la noche, y las horas de luz en cualquier latitud.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/estaciones/index.html','Las estaciones del año')">▶ Abrir animación interactiva</button></div>
   </div>
   <div class="explainCard" style="margin-top:9px">
-    <div class="explainCardIcon">🕒</div><div class="explainCardBody"><b>Husos horarios</b><small>Rotación terrestre, Greenwich, 15° por hora, este/oeste, línea de cambio de fecha y ejercicios para practicar.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/husos-horarios/index.html','Husos horarios')">▶ Abrir animación interactiva</button></div>
+    <div class="explainCardIcon">🌅</div><div class="explainCardBody"><b>El movimiento aparente del Sol</b><small>El camino del Sol en el cielo desde el Polo Norte hasta el Polo Sur, pasando por Adeje, los trópicos y el ecuador. Cómo el Sol «se detiene» en los solsticios y vuelve en sentido contrario.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/movimiento-sol/index.html','El movimiento aparente del Sol')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard" style="margin-top:9px">
+    <div class="explainCardIcon">🕒</div><div class="explainCardBody"><b>Husos horarios</b><small>La Tierra girando vista desde el polo, el día y la noche en tiempo real, husos teóricos y oficiales, línea de cambio de fecha y retos para practicar.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/husos-horarios/index.html','Husos horarios')">▶ Abrir animación interactiva</button></div>
   </div>
   <div class="explainSoon"><b>Biblioteca didáctica ANAMBRO.</b> Animaciones, simulaciones y explicaciones audiovisuales creadas para el aula y cargadas solo cuando se necesitan.</div>
 </div>
