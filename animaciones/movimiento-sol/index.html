@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · Movimiento aparente del Sol</title>
+<style>
+:root{--panel:#0d2231;--line:#2d536a;--ink:#eef5f8;--muted:#a9c0cd;--gold:#ffd166;--jun:#ff9f43;--equ:#7fe0a0;--dic:#7cc6ff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#07131d}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314b 0,#07131d 55%,#02080d 100%)}
+.app{max-width:1280px;margin:auto;padding:12px 14px 18px}
+.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
+.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
+.stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:76px;line-height:1.42}
+.stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:10px}
+.card{background:#081a27;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.skyCard{aspect-ratio:16/10.6;touch-action:none;cursor:grab}
+.stripCard{height:96px}.stripCard canvas{display:block;width:100%;height:100%}
+.skyCard canvas{display:block;width:100%;height:100%}
+.multi{display:none;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:30px 6px 6px}
+.multi.on{display:grid}
+.skyCard.multiOn{aspect-ratio:auto;cursor:default}
+.multi .mini{position:relative;background:#06141f;border:1px solid #23445a;border-radius:10px;aspect-ratio:1/1.02}
+.multi .mini canvas{width:100%;height:100%;display:block}
+.multi .mini b{position:absolute;left:7px;top:5px;font-size:11px;color:#eef5f8;z-index:2}
+.side{display:flex;flex-direction:column;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.m{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
+.m small{display:block;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.m b{font-size:17px}.m span{display:block;font-size:12px;color:#cfe0e8;margin-top:2px}
+.stop{background:#2a1d00;border:1px solid #ffd166;border-radius:10px;padding:8px 10px;font-weight:800;color:#ffd166;display:none}
+.stop.on{display:block}
+.chartCard{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
+.chartCard small{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
+.chartCard canvas{width:100%;height:118px;display:block}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.controls button,.controls select{min-height:40px;border:1px solid #5e8094;border-radius:9px;background:#102b3d;color:#fff;padding:7px 12px;font-weight:800;font-size:14px;cursor:pointer}
+.controls button.primary{background:#176c6a}
+.seg{display:inline-flex;border:1px solid #5e8094;border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-height:40px}
+.seg button.on{background:#ffd166;color:#2a1d00}
+.slider{flex:1;min-width:220px;display:flex;align-items:center;gap:8px}
+.slider input{flex:1;accent-color:#ffd166}
+.slider output{font-weight:800;min-width:96px;text-align:right}
+.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;font-weight:700;margin-top:8px}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+@media(max-width:940px){.grid{grid-template-columns:1fr}.multi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.app{padding:8px}.controls button,.controls select{flex:1}.seg{flex:1 1 100%}.seg button{flex:1}.slider{min-width:100%}.stage{font-size:14px}.skyCard{aspect-ratio:1/0.95}}
+</style>
+</head>
+<body>
+<main class="app">
+ <div class="top"><div><div class="brand">ANAMBRO · AULA</div><h1>☀️ El movimiento aparente del Sol</h1></div><nav class="steps" id="steps" aria-label="Pasos de la explicación"></nav></div>
+ <section class="stage" id="stage" aria-live="polite"></section>
+ <div class="grid">
+  <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+  <div class="card skyCard" id="skyCard"><h2 id="skyTitle">El cielo visto desde…</h2><canvas id="sky" aria-label="Bóveda celeste con la trayectoria del Sol"></canvas><div class="multi" id="multi"></div></div>
+  <div class="card stripCard"><canvas id="strip" aria-label="Por dónde sale el Sol cada día"></canvas></div>
+  </div>
+  <div class="side">
+   <div class="cards" id="cards"></div>
+   <div class="stop" id="stop">⏸ Solsticio: el Sol «se detiene» y empieza a volver</div>
+   <div class="chartCard"><small id="c1t">Altura del Sol a mediodía a lo largo del año</small><canvas id="c1"></canvas></div>
+   <div class="chartCard" id="c2box"><small id="c2t">Por dónde sale el Sol en el horizonte (acimut)</small><canvas id="c2"></canvas></div>
+  </div>
+ </div>
+ <div class="controls">
+  <button id="prev" title="Paso anterior">◀</button><button id="play" class="primary">▶ Reproducir</button><button id="next" title="Paso siguiente">▶</button>
+  <div class="seg" role="group" aria-label="Modo"><button data-mode="dia">Un día</button><button data-mode="ano">El año</button></div>
+  <select id="place" aria-label="Lugar"></select>
+  <select id="speed" aria-label="Velocidad"><option value="0.5">Lento</option><option value="1" selected>Normal</option><option value="2">Rápido</option></select>
+ </div>
+ <div class="controls">
+  <div class="slider"><span>📅</span><input id="day" type="range" min="0" max="364" step="1" aria-label="Fecha"><output id="dayOut"></output></div>
+  <div class="slider"><span>🕒</span><input id="hour" type="range" min="0" max="1439" step="5" aria-label="Hora solar"><output id="hourOut"></output></div>
+ </div>
+ <div class="legend"><span><i style="background:var(--gold)"></i>Camino del Sol hoy</span><span><i style="background:var(--jun)"></i>Solsticio de junio</span><span><i style="background:var(--equ)"></i>Equinoccios</span><span><i style="background:var(--dic)"></i>Solsticio de diciembre</span><span>● salidas del Sol de cada día · ◆ posición a mediodía</span></div>
+ <p class="small">Arrastra el cielo para girarlo. Posición del Sol calculada para 2026 (algoritmo del Almanaque Náutico, error &lt; 0,01°); hora solar local; horizonte con refracción atmosférica media. La bóveda es un esquema: no conserva distancias ni tamaños reales.</p>
+</main>
+<script src="../comun/tierra.js"></script>
+<script>
+(()=>{
+'use strict';
+const T=window.AulaTierra,D2R=Math.PI/180,R2D=180/Math.PI,$=id=>document.getElementById(id);
+const YEAR=2026,Y0=Date.UTC(YEAR,0,1),DAY=86400000,H0=-0.833;
+const PLACES=[{k:'pn',n:'Polo Norte geográfico',line:'Polo Norte',short:'Polo Norte',lat:90},{k:'cpa',n:'Rovaniemi (Finlandia)',line:'círculo polar ártico',short:'Rovaniemi',lat:66.50},{k:'45n',n:'Turín (Italia)',line:'45° N, zona templada',short:'Turín',lat:45.07},{k:'can',n:'Adeje (Tenerife)',line:'Canarias',short:'Adeje',lat:28.12},{k:'tc',n:'Chiayi (Taiwán)',line:'trópico de Cáncer',short:'Chiayi',lat:23.46},{k:'ec',n:'Mitad del Mundo (Quito, Ecuador)',line:'ecuador',short:'Quito',lat:0.0},{k:'tcp',n:'São Paulo (Brasil)',line:'trópico de Capricornio',short:'São Paulo',lat:-23.55},{k:'45s',n:'Queenstown (Nueva Zelanda)',line:'45° S, zona templada',short:'Queenstown',lat:-45.03},{k:'cpaa',n:'Base Mirni (Antártida)',line:'círculo polar antártico',short:'Base Mirni',lat:-66.55},{k:'ps',n:'Base Amundsen-Scott',line:'Polo Sur',short:'Polo Sur',lat:-90}];
+const latTxt=l=>Math.abs(l)<0.005?'0°':(Math.abs(l)).toLocaleString('es-ES',{maximumFractionDigits:2})+'° '+(l>0?'N':'S');
+const fullName=p=>p.n+' · '+p.line+' · '+latTxt(p.lat);
+const fmtN=(x,d=1)=>x.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtDate=t=>new Date(t).toLocaleDateString('es-ES',{day:'numeric',month:'long',timeZone:'UTC'});
+const decAt=d=>T.sun(new Date(Y0+d*DAY+12*3600000)).dec;// d: día del año (con decimales)
+const DEC=[];for(let d=0;d<=366;d++)DEC.push(decAt(d));
+const decOf=d=>{const i=Math.max(0,Math.min(365,Math.floor(d))),f=d-i;return DEC[i]*(1-f)+DEC[i+1]*f};
+/* solsticios y equinoccios de 2026 (día del año, con decimales) */
+const EV=(()=>{const o={};for(let d=0;d<365;d+=.05){const a=decOf(d),b=decOf(d+.05),c=decOf(d+.1);if(b>a&&b>c&&!o.jun)o.jun=d+.05;if(b<a&&b<c&&!o.dic)o.dic=d+.05;if(a<0&&b>=0&&!o.mar)o.mar=d;if(a>0&&b<=0&&!o.sep)o.sep=d}return o})();
+const decJun=decOf(EV.jun),decDic=decOf(EV.dic);
+/* ---- astronomía local ---- */
+function sunENU(lat,dec,H){const f=lat*D2R,d=dec*D2R,h=H*D2R;return [-Math.cos(d)*Math.sin(h),Math.cos(f)*Math.sin(d)-Math.sin(f)*Math.cos(d)*Math.cos(h),Math.sin(f)*Math.sin(d)+Math.cos(f)*Math.cos(d)*Math.cos(h)]}
+const altOf=v=>Math.asin(Math.max(-1,Math.min(1,v[2])))*R2D;
+function riseH(lat,dec){const c=(Math.sin(H0*D2R)-Math.sin(lat*D2R)*Math.sin(dec*D2R))/(Math.cos(lat*D2R)*Math.cos(dec*D2R));if(!Number.isFinite(c))return null;if(c<=-1)return 180;if(c>=1)return 0;return Math.acos(c)*R2D}// semiarco diurno
+function riseAz(lat,dec){if(Math.abs(lat)>89.9)return null;const c=(Math.sin(dec*D2R)-Math.sin(lat*D2R)*Math.sin(H0*D2R))/(Math.cos(lat*D2R)*Math.cos(H0*D2R));if(c>1||c<-1)return null;const H=riseH(lat,dec);if(H===0||H===180)return null;return Math.acos(c)*R2D}
+const noonAlt=(lat,dec)=>90-Math.abs(lat-dec);
+const fmtDur=H=>{const h=2*H/15;if(h>=23.99)return '24 h';if(h<=.01)return '0 h';const a=Math.floor(h),m=Math.round((h-a)*60);return m===60?(a+1)+' h':a+' h '+String(m).padStart(2,'0')+' min'};
+/* ---- estado ---- */
+let place=PLACES[3],mode='dia',playing=false,step=0,day=EV.mar,hour=12,speed=1,camAz=null,camEl=30,anim=0,last=0,trail=[],trailFrom=null,multiOn=false;
+function defaultAz(lat){return lat>=0?152:28}// mirando hacia el Sol de mediodía
+/* ---- proyección ---- */
+function camera(w,h,lat,az,el,scale=1){const A=(az??defaultAz(lat))*D2R,e=el*D2R,f=[Math.sin(A)*Math.cos(e),Math.cos(A)*Math.cos(e),-Math.sin(e)],r=[Math.cos(A),-Math.sin(A),0],u=[Math.sin(A)*Math.sin(e),Math.cos(A)*Math.sin(e),Math.cos(e)],Dd=7,S=Math.min(w*.36,h*.52)*scale,cx=w/2,cy=h*.62;
+ return {f,r,u,P:p=>{const v=[p[0]+f[0]*Dd,p[1]+f[1]*Dd,p[2]+f[2]*Dd],z=v[0]*f[0]+v[1]*f[1]+v[2]*f[2],x=v[0]*r[0]+v[1]*r[1]+v[2]*r[2],y=v[0]*u[0]+v[1]*u[1]+v[2]*u[2];return [cx+S*x/z*Dd*.82,cy-S*y/z*Dd*.82,z]}}}
+function pathPoly(lat,dec){const pts=[];for(let H=-180;H<=180;H+=2)pts.push(sunENU(lat,dec,H));return pts}
+function strokePath(x,C,pts,above,col,wd,dash){x.strokeStyle=col;x.lineWidth=wd;x.setLineDash(dash||[]);x.beginPath();let pen=false;for(let i=0;i<pts.length;i++){const p=pts[i],ok=above?p[2]>=-0.002:p[2]<0.002;if(!ok){pen=false;continue}const q=C.P(p);if(!pen){x.moveTo(q[0],q[1]);pen=true}else x.lineTo(q[0],q[1])}x.stroke();x.setLineDash([])}
+/* ---- dibujo de una bóveda ---- */
+function drawSky(x,w,h,pl,opt){const lat=pl.lat,dec=decOf(day),C=camera(w,h,lat,opt.az,opt.el,opt.scale||1),small=!!opt.small;
+ const sv=sunENU(lat,dec,(hour-12)*15),salt=altOf(sv);
+ // cielo según la altura del Sol
+ const k=Math.max(0,Math.min(1,(salt+8)/20));const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,`rgb(${8+30*k},${20+70*k},${38+110*k})`);g.addColorStop(1,`rgb(${12+60*k},${28+100*k},${48+120*k})`);x.fillStyle=g;x.fillRect(0,0,w,h);
+ // trayectorias bajo el horizonte (tenues)
+ const refs=[[decJun,'#ff9f43','jun'],[0,'#7fe0a0','equ'],[decDic,'#7cc6ff','dic']];
+ for(const [d,c] of refs)strokePath(x,C,pathPoly(lat,d),false,c+'55',1.2,[4,5]);
+ strokePath(x,C,pathPoly(lat,dec),false,'rgba(255,209,102,.45)',1.6,[5,5]);
+ // suelo
+ x.beginPath();for(let a=0;a<=360;a+=4){const q=C.P([Math.sin(a*D2R),Math.cos(a*D2R),0]);a?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])}x.closePath();const gg=x.createRadialGradient(...C.P([0,0,0]).slice(0,2),2,...C.P([0,0,0]).slice(0,2),w*.5);gg.addColorStop(0,'rgba(92,128,78,.95)');gg.addColorStop(1,'rgba(52,84,52,.92)');x.fillStyle=gg;x.fill();x.strokeStyle='rgba(220,240,220,.7)';x.lineWidth=1.4;x.stroke();
+ // líneas N-S y E-O
+ x.strokeStyle='rgba(255,255,255,.25)';x.lineWidth=1;for(const [a,b] of [[[0,1,0],[0,-1,0]],[[1,0,0],[-1,0,0]]]){const p=C.P(a),q=C.P(b);x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(q[0],q[1]);x.stroke()}
+ // bóveda: meridiano local y círculos de altura
+ x.strokeStyle='rgba(255,255,255,.18)';x.lineWidth=1;x.setLineDash([3,4]);x.beginPath();for(let a=0;a<=180;a+=3){const q=C.P([0,Math.cos(a*D2R),Math.sin(a*D2R)]);a?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])}x.stroke();
+ for(const al of [30,60]){x.beginPath();for(let a=0;a<=360;a+=4){const c=Math.cos(al*D2R),q=C.P([Math.sin(a*D2R)*c,Math.cos(a*D2R)*c,Math.sin(al*D2R)]);a?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])}x.stroke()}x.setLineDash([]);
+ // cenit
+ const z=C.P([0,0,1]),o=C.P([0,0,0]);x.strokeStyle='rgba(255,255,255,.35)';x.setLineDash([2,4]);x.beginPath();x.moveTo(o[0],o[1]);x.lineTo(z[0],z[1]);x.stroke();x.setLineDash([]);x.fillStyle='rgba(255,255,255,.75)';x.font=(small?'700 9px':'700 11px')+' system-ui';x.textAlign='center';x.fillText('cenit',z[0],z[1]-6);
+ // puntos cardinales
+ x.font=(small?'800 10px':'800 14px')+' system-ui';for(const [n,v] of [['N',[0,1.13,0]],['S',[0,-1.13,0]],['E',[1.13,0,0]],['O',[-1.13,0,0]]]){const q=C.P(v);x.fillStyle=n==='N'?'#ff8f7b':'#fff';x.fillText(n,q[0],q[1]+5)}
+ // dónde sale el Sol en cada solsticio: los dos extremos del horizonte
+ if(!small&&opt.labels&&w>=560){for(const [d,c,t] of [[decJun,'#ff9f43','orto del solsticio de junio'],[decDic,'#7cc6ff','orto del solsticio de diciembre']]){const Hr=riseH(lat,d);if(!Hr||Hr>=180)continue;const p=sunENU(lat,d,-Hr),q=C.P(p),top=C.P([p[0],p[1],0.16]);x.strokeStyle=c;x.lineWidth=2;x.beginPath();x.moveTo(q[0],q[1]);x.lineTo(top[0],top[1]);x.stroke();x.fillStyle=c;x.beginPath();x.moveTo(top[0],top[1]);x.lineTo(top[0]+11,top[1]+4);x.lineTo(top[0],top[1]+8);x.fill();x.font='700 10.5px system-ui';x.textAlign='right';x.fillText(t,top[0]-4,top[1]+2)}}
+ // trayectorias sobre el horizonte
+ for(const [d,c,id] of refs){strokePath(x,C,pathPoly(lat,d),true,c,small?1.2:1.8);if(!small&&opt.labels&&w>=560){const sa=riseH(lat,d),pn=sunENU(lat,d,sa&&sa<180?sa*.62:70);let best=pn[2]>0.02?C.P(pn):null;if(!best){for(const p of pathPoly(lat,d)){if(p[2]<0.02)continue;const q=C.P(p);if(!best||q[1]<best[1])best=q}}if(best){x.fillStyle=c;x.font='800 11px system-ui';x.textAlign='left';const txt={jun:'solsticio de junio',equ:'equinoccios',dic:'solsticio de diciembre'}[id],tw=x.measureText(txt).width;x.fillText(txt,Math.min(w-tw-6,best[0]+6),best[1]+4)}}}
+ strokePath(x,C,pathPoly(lat,dec),true,'#ffd166',small?2:3.2);
+ // flechas de sentido del movimiento diario
+ if(!small){const pts=pathPoly(lat,dec);for(const H of [-60,60]){const a=sunENU(lat,dec,H),b=sunENU(lat,dec,H+4);if(a[2]<0.03)continue;const p=C.P(a),q=C.P(b),ang=Math.atan2(q[1]-p[1],q[0]-p[0]);x.fillStyle='#ffd166';x.save();x.translate(q[0],q[1]);x.rotate(ang);x.beginPath();x.moveTo(6,0);x.lineTo(-5,-5);x.lineTo(-5,5);x.fill();x.restore()}}
+ // estela anual: salidas del Sol y posición a mediodía
+ if(opt.trail&&trail.length){for(const tp of trail){const col=tp.dec>0.3?'#ff9f43':tp.dec<-0.3?'#7cc6ff':'#7fe0a0';if(tp.rise){const q=C.P(tp.rise);x.fillStyle=col;x.strokeStyle='#10202c';x.lineWidth=1;x.beginPath();x.arc(q[0],q[1],small?2:3.4,0,7);x.fill();x.stroke()}const q2=C.P(tp.noon);if(tp.noon[2]>-0.01){x.fillStyle=col;x.save();x.translate(q2[0],q2[1]);x.rotate(Math.PI/4);const z2=small?1.8:3.2;x.fillRect(-z2,-z2,2*z2,2*z2);x.strokeStyle='rgba(16,32,44,.35)';x.lineWidth=1;x.strokeRect(-z2,-z2,2*z2,2*z2);x.restore()}}}
+ // observador
+ x.strokeStyle='#fff';x.lineWidth=small?1.4:2;const s=small?.6:1;x.beginPath();x.moveTo(o[0],o[1]);x.lineTo(o[0],o[1]-16*s);x.moveTo(o[0]-6*s,o[1]-10*s);x.lineTo(o[0]+6*s,o[1]-10*s);x.moveTo(o[0],o[1]);x.lineTo(o[0]-4*s,o[1]+6*s);x.moveTo(o[0],o[1]);x.lineTo(o[0]+4*s,o[1]+6*s);x.stroke();x.fillStyle='#fff';x.beginPath();x.arc(o[0],o[1]-20*s,4*s,0,7);x.fill();
+ // Sol
+ const q=C.P(sv),vis=salt>H0;const R0=small?6:11;const gl=x.createRadialGradient(q[0],q[1],1,q[0],q[1],R0*3);gl.addColorStop(0,vis?'rgba(255,214,90,.8)':'rgba(255,214,90,.25)');gl.addColorStop(1,'rgba(255,214,90,0)');x.fillStyle=gl;x.beginPath();x.arc(q[0],q[1],R0*3,0,7);x.fill();x.fillStyle=vis?'#ffd34d':'rgba(255,211,77,.45)';x.beginPath();x.arc(q[0],q[1],R0,0,7);x.fill();
+ if(!small){x.strokeStyle='rgba(255,209,102,.4)';x.setLineDash([2,3]);const g2=C.P([sv[0],sv[1],0]);x.beginPath();x.moveTo(q[0],q[1]);x.lineTo(g2[0],g2[1]);x.stroke();x.setLineDash([]);x.fillStyle='#fff';x.font='800 12px system-ui';x.textAlign='left';x.fillText((vis?'':'bajo el horizonte · ')+fmtN(salt)+'°',q[0]+R0+6,q[1]-R0)}
+}
+/* ---- estela anual ---- */
+function addTrail(d){const lat=place.lat,dec=decOf(d),Hr=riseH(lat,dec),rise=(Hr&&Hr<180)?sunENU(lat,dec,-Hr):null;trail.push({d,dec,rise,noon:sunENU(lat,dec,0)});if(trail.length>420)trail.shift()}
+function rebuildTrail(){trail=[];if(mode!=='ano')return;const start=trailFrom??day;for(let d=start;d<=day+1e-6;d+=1)addTrail(d%365)}
+/* ---- gráficas ---- */
+function fit(c){const r=c.getBoundingClientRect(),dp=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*dp)),h=Math.max(10,Math.round(r.height*dp));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d');x.setTransform(dp,0,0,dp,0,0);return {x,w:r.width,h:r.height}}
+function chart(id,fn,yMin,yMax,unit,label){const {x,w,h}=fit($(id));x.clearRect(0,0,w,h);const pl={l:36,r:8,t:8,b:18},W=w-pl.l-pl.r,H=h-pl.t-pl.b,X=d=>pl.l+d/365*W,Y=v=>pl.t+H-(v-yMin)/(yMax-yMin)*H;
+ x.font='10px system-ui';x.fillStyle='#a9c0cd';x.strokeStyle='rgba(255,255,255,.1)';x.textAlign='right';const stp=(yMax-yMin)>120?45:(yMax-yMin)>60?30:15;for(let v=Math.ceil(yMin/stp)*stp;v<=yMax;v+=stp){x.beginPath();x.moveTo(pl.l,Y(v));x.lineTo(w-pl.r,Y(v));x.stroke();x.fillText(v+unit,pl.l-4,Y(v)+3)}
+ x.textAlign='center';['E','F','M','A','M','J','J','A','S','O','N','D'].forEach((m,i)=>x.fillText(m,X(i*30.4+15),h-4));
+ for(const [d,c] of [[EV.jun,'#ff9f43'],[EV.dic,'#7cc6ff']]){x.strokeStyle=c;x.setLineDash([3,3]);x.beginPath();x.moveTo(X(d),pl.t);x.lineTo(X(d),pl.t+H);x.stroke();x.setLineDash([])}
+ x.strokeStyle='#ffd166';x.lineWidth=2;x.beginPath();let pen=false;for(let d=0;d<=365;d+=1){const v=fn(d);if(v==null||!Number.isFinite(v)){pen=false;continue}pen?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v));pen=true}x.stroke();
+ const v=fn(day);if(v!=null&&Number.isFinite(v)){x.fillStyle='#fff';x.beginPath();x.arc(X(day),Y(v),4,0,7);x.fill()}
+ x.strokeStyle='rgba(255,255,255,.6)';x.lineWidth=1;x.beginPath();x.moveTo(X(day),pl.t);x.lineTo(X(day),pl.t+H);x.stroke();
+ for(const [d,c] of [[EV.jun,'#ff9f43'],[EV.dic,'#7cc6ff']]){const vv=fn(d);if(vv==null)continue;x.fillStyle=c;x.font='700 9.5px system-ui';x.textAlign=d>300?'right':'center';x.fillText('se detiene',X(d)+(d>300?-4:0),Math.max(pl.t+10,Math.min(pl.t+H-3,Y(vv)+(vv>(yMin+yMax)/2?12:-6))))}}
+/* ---- panel ---- */
+function card(t,v,s,c){return `<div class="m"><small>${t}</small><b style="color:${c||'#eef5f8'}">${v}</b>${s?`<span>${s}</span>`:''}</div>`}
+function azTxt(a){if(a==null)return '—';const pts=['N','NNE','NE','ENE','E','ESE','SE','SSE','S'];return fmtN(a,1)+'° ('+pts[Math.round(a/22.5)]+')'}
+function updatePanel(){if(multiOn){const dec=decOf(day);$('cards').innerHTML='<div class="m" style="grid-column:1/-1"><small>'+fmtDate(Y0+day*DAY)+' · Sol en el cenit sobre '+fmtN(Math.abs(dec),2)+'° '+(dec>=0?'N':'S')+'</small><table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:4px"><tr style="color:#a9c0cd;text-align:left"><th>Lugar</th><th>Altura a mediodía</th><th>Duración del día</th></tr>'+PLACES.map(p=>{const na=noonAlt(p.lat,dec),H=riseH(p.lat,dec);return '<tr style="border-top:1px solid #23445a"><td style="padding:3px 0">'+p.short+' <span style="color:#a9c0cd">'+latTxt(p.lat)+'</span></td><td>'+(na>0?fmtN(na)+'°':'—')+'</td><td>'+fmtDur(H??0)+'</td></tr>'}).join('')+'</table></div>';$('stop').classList.toggle('on',Math.min(Math.abs(day-EV.jun),Math.abs(day-EV.dic))<4);$('stop').textContent=Math.abs(day-EV.jun)<4?'⏸ Solsticio de junio: el Sol se detiene en todos los lugares a la vez':'⏸ Solsticio de diciembre: el Sol se detiene en todos los lugares a la vez';document.querySelectorAll('.chartCard').forEach(e=>e.style.display='none');$('dayOut').textContent=fmtDate(Y0+day*DAY);$('day').value=Math.round(day);$('skyTitle').textContent='Todos los lugares a la vez · '+fmtDate(Y0+day*DAY);{const hh=Math.floor(hour),mm=Math.round((hour-hh)*60)%60;$('hourOut').textContent=String(hh%24).padStart(2,'0')+':'+String(mm).padStart(2,'0')+' solar';$('hour').value=Math.round(hour*60)}return}document.querySelectorAll('.chartCard').forEach(e=>e.style.display='');const lat=place.lat,dec=decOf(day),Hr=riseH(lat,dec),az=riseAz(lat,dec),na=noonAlt(lat,dec),dNa=noonAlt(lat,decOf(day+1))-na,az1=riseAz(lat,decOf(day+1)),dAz=(az!=null&&az1!=null)?az1-az:null;
+ const situ=Hr===180?'Sol de medianoche: no se pone':Hr===0?'Noche polar: no sale':'Sale y se pone';
+ const mov=Math.abs(lat)>89.9?dNa:(dAz!=null?-dAz:dNa);
+ $('cards').innerHTML=card('Fecha',fmtDate(Y0+day*DAY),'El Sol está en el cenit sobre '+fmtN(Math.abs(dec),2)+'° '+(dec>=0?'N':'S'))+card('Altura a mediodía',na>0?fmtN(na)+'°':'bajo el horizonte',na>=89.5?'¡en el cenit!':na>0?(dec>lat?'el Sol culmina hacia el norte':'el Sol culmina hacia el sur'):'',na>=89.5?'#ffd166':'#eef5f8')+card('Duración del día',fmtDur(Hr??0),situ)+card('Por dónde sale',azTxt(az),az==null?'no hay salida diaria del Sol':'medido desde el norte')+card('Cambio diario a mediodía',(dNa>=0?'+':'−')+fmtN(Math.abs(dNa),2)+'° / día',Math.abs(dNa)<0.02?'casi nulo':'',Math.abs(dNa)<0.02?'#ffd166':'#eef5f8')+card('Cambio diario del orto',dAz==null?'—':(dAz>=0?'+':'−')+fmtN(Math.abs(dAz),2)+'° / día',dAz!=null&&Math.abs(dAz)<0.03?'casi nulo':'',dAz!=null&&Math.abs(dAz)<0.03?'#ffd166':'#eef5f8');
+ $('stop').classList.toggle('on',Math.min(Math.abs(day-EV.jun),Math.abs(day-EV.dic))<4);
+ $('stop').textContent=Math.abs(day-EV.jun)<4?'⏸ Solsticio de junio ('+fmtDate(Y0+EV.jun*DAY)+'): el Sol «se detiene» y empieza a volver hacia el sur':'⏸ Solsticio de diciembre ('+fmtDate(Y0+EV.dic*DAY)+'): el Sol «se detiene» y empieza a volver hacia el norte';
+ chart('c1',d=>noonAlt(lat,decOf(d)),Math.min(0,Math.floor((90-Math.abs(lat)-23.5)/15)*15),90,'°');
+ const hasAz=Math.abs(lat)<66;$('c2box').style.display=hasAz?'':'none';if(hasAz){const vals=[];for(let d=0;d<365;d+=3){const a=riseAz(lat,decOf(d));if(a!=null)vals.push(a)}const lo=Math.floor((Math.min(...vals)-3)/15)*15,hi=Math.ceil((Math.max(...vals)+3)/15)*15;chart('c2',d=>riseAz(lat,decOf(d)),lo,hi,'°')}
+ $('c1t').textContent='Altura del Sol a mediodía · '+place.short;$('dayOut').textContent=fmtDate(Y0+day*DAY);const hh=Math.floor(hour),mm=Math.round((hour-hh)*60)%60;$('hourOut').textContent=String(hh%24).padStart(2,'0')+':'+String(mm).padStart(2,'0')+' solar';$('day').value=Math.round(day);$('hour').value=Math.round(hour*60);
+ $('skyTitle').textContent=multiOn?'Todos los lugares a la vez · '+fmtDate(Y0+day*DAY):'El cielo visto desde: '+fullName(place)}
+/* ---- tira: el punto del horizonte por donde sale el Sol (o la altura a mediodía en los polos) ---- */
+function drawStrip(){const {x,w,h}=fit($('strip'));x.clearRect(0,0,w,h);const lat=place.lat,useAz=Math.abs(lat)<66;
+ const val=d=>useAz?riseAz(lat,decOf(d)):noonAlt(lat,decOf(d));let lo=1e9,hi=-1e9;for(let d=0;d<365;d+=2){const v=val(d);if(v==null)continue;lo=Math.min(lo,v);hi=Math.max(hi,v)}if(!(hi>lo)){lo-=1;hi+=1}
+ const pl=w<560?20:150,pr=w<560?20:150,X=v=>useAz?pl+(v-lo)/(hi-lo)*(w-pl-pr):pl+(v-lo)/(hi-lo)*(w-pl-pr),y=h*.56;
+ x.fillStyle='#a9c0cd';x.font='700 11px system-ui';x.textAlign='left';x.fillText(useAz?'Por dónde sale el Sol cada día (horizonte este)':'Altura del Sol a mediodía cada día',10,16);
+ x.strokeStyle='rgba(220,240,220,.6)';x.lineWidth=3;x.beginPath();x.moveTo(pl-10,y);x.lineTo(w-pr+10,y);x.stroke();
+ const endL=useAz?(lat>=0?'solst. de junio':'solst. de junio'):'solst. de diciembre',endR=useAz?'solst. de diciembre':'solst. de junio';
+ // extremos: donde el Sol se detiene
+ for(const [d,c] of [[EV.jun,'#ff9f43'],[EV.dic,'#7cc6ff']]){const v=val(d);if(v==null)continue;const X0=X(v);x.strokeStyle=c;x.lineWidth=2;x.beginPath();x.moveTo(X0,y-14);x.lineTo(X0,y+14);x.stroke();x.fillStyle=c;x.font='800 10.5px system-ui';const nar=w<560,lft=X0<w/2;x.textAlign=nar?(lft?'left':'right'):(lft?'right':'left');const tx=nar?X0+(lft?2:-2):X0+(lft?-8:8);x.fillText((d===EV.jun?'Solsticio de junio':'Solsticio de diciembre'),tx,nar?y-20:y-2);x.fillText('el Sol se detiene',tx,nar?y+28:y+12)}
+ if(useAz){x.fillStyle='#cfe0e8';x.font='700 10px system-ui';x.textAlign='center';const ne=X(Math.max(lo,Math.min(hi,90)));x.fillText('E (90°)',ne,y+26);if(w>=560){x.textAlign='left';x.fillText('← hacia el norte',pl-6,h-6);x.textAlign='right';x.fillText('hacia el sur →',w-pr+6,h-6)}}else if(w>=560){x.fillStyle='#cfe0e8';x.font='700 10px system-ui';x.textAlign='left';x.fillText('← más bajo',pl-6,h-6);x.textAlign='right';x.fillText('más alto →',w-pr+6,h-6)}
+ // estela de los últimos días
+ const tr=trail.slice(-60);tr.forEach((t,i)=>{const v=val(t.d);if(v==null)return;const a=(i+1)/tr.length;x.fillStyle=`rgba(255,209,102,${.15+.6*a})`;x.beginPath();x.arc(X(v),y,2.5+2*a,0,7);x.fill()});
+ const v=val(day);if(v!=null){const X0=X(v);x.fillStyle='#ffd34d';x.beginPath();x.arc(X0,y,8,0,7);x.fill();x.strokeStyle='#6b4a00';x.lineWidth=1.5;x.stroke();const v1=val(day+1),dv=v1!=null?v1-v:0;if(Math.abs(dv)>0.02){x.fillStyle='#ffd166';x.beginPath();const dir=Math.sign(X(v1)-X0);x.moveTo(X0+dir*24,y);x.lineTo(X0+dir*13,y-6);x.lineTo(X0+dir*13,y+6);x.fill()}else{x.fillStyle='#ffd166';x.font='900 11px system-ui';x.textAlign='center';x.fillText('¡quieto!',X0,y-14)}}
+ else{x.fillStyle='#9cc9ff';x.font='700 11px system-ui';x.textAlign='center';x.fillText('Hoy el Sol no sale ni se pone',w/2,y+4)}}
+/* ---- dibujar ---- */
+function draw(){$('strip').parentElement.style.display=multiOn?'none':'';if(!multiOn)drawStrip();if(multiOn){drawMulti()}else{const {x,w,h}=fit($('sky'));drawSky(x,w,h,place,{az:camAz,el:camEl,labels:true,trail:mode==='ano'})}updatePanel()}
+function buildMulti(){const m=$('multi');m.innerHTML=PLACES.map(p=>`<div class="mini"><b>${p.short} <span style="font-weight:600;color:#a9c0cd">· ${latTxt(p.lat)}</span></b><canvas data-k="${p.k}"></canvas></div>`).join('')}
+const mTrails={};
+function drawMulti(){$('multi').querySelectorAll('canvas').forEach(c=>{const p=PLACES.find(q=>q.k===c.dataset.k),{x,w,h}=fit(c);const save=place,st=trail;place=p;trail=mTrails[p.k]||[];drawSky(x,w,h,p,{az:camAz==null?null:camAz,el:30,small:true,scale:1.08,trail:mode==='ano'});place=save;trail=st})}
+function addMultiTrail(d){for(const p of PLACES){const lat=p.lat,dec=decOf(d),Hr=riseH(lat,dec);(mTrails[p.k]=mTrails[p.k]||[]).push({d,dec,rise:(Hr&&Hr<180)?sunENU(lat,dec,-Hr):null,noon:sunENU(lat,dec,0)});if(mTrails[p.k].length>420)mTrails[p.k].shift()}}
+/* ---- animación ---- */
+function tick(now){if(!playing)return;const dt=Math.min(.1,(now-last)/1000);last=now;
+ if(mode==='dia'){hour+=dt*speed*2.2;if(hour>=24){hour-=24}}
+ else{const prev=day;day+=dt*speed*12.5;// ~29 s por año
+  for(let d=Math.floor(prev)+1;d<=Math.floor(day);d++){addTrail(d%365);addMultiTrail(d%365)}if(day>=365){day-=365}hour=12}
+ draw();anim=requestAnimationFrame(tick)}
+function play(){if(playing)return;playing=true;$('play').textContent='⏸ Pausar';last=performance.now();anim=requestAnimationFrame(tick)}
+function stop(){playing=false;cancelAnimationFrame(anim);$('play').textContent='▶ Reproducir'}
+function setMode(m){mode=m;document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));trail=[];for(const k in mTrails)delete mTrails[k];if(m==='ano'){hour=12;trailFrom=day}draw()}
+function setPlace(k){if(k==='todos'){multiOn=true;$('skyCard').classList.add('multiOn');$('multi').classList.add('on');$('sky').style.display='none'}else{multiOn=false;$('skyCard').classList.remove('multiOn');$('multi').classList.remove('on');$('sky').style.display='';place=PLACES.find(p=>p.k===k)||place;trail=[];trailFrom=day}$('place').value=k;draw()}
+/* ---- pasos ---- */
+const STEPS=[
+ {k:'Un día',t:'El movimiento aparente diario',place:'can',mode:'dia',day:()=>EV.mar,hour:6,play:true,p:'La Tierra gira de oeste a este, así que desde el suelo vemos al Sol <b>salir por el este, subir hasta su punto más alto a mediodía y ponerse por el oeste</b>. En <b>Adeje</b>, como en todo Canarias, a mediodía el Sol queda hacia el <b>sur</b>. Este es el camino de un día de equinoccio.'},
+ {k:'Cada día',t:'Cada día, un camino distinto',place:'can',mode:'ano',day:()=>EV.mar,play:true,p:'Ahora dejamos pasar los días. Cada día el Sol sale por un punto del horizonte un poco distinto (●) y a mediodía alcanza una altura distinta (◆). Entre marzo y junio <b>sale cada vez más hacia el noreste y sube más</b>. Fíjate en cómo se van separando las marcas.'},
+ {k:'Se detiene',t:'Solsticio: el Sol «se detiene»',place:'can',mode:'ano',day:()=>EV.jun-26,play:true,slow:true,p:'Al acercarse el 21 de junio, las marcas se <b>amontonan</b>: cada día el Sol sale casi por el mismo sitio y sube casi lo mismo. Por unos días <b>parece quieto</b>… y después empieza a volver hacia el sur. Eso es un <b>solsticio</b>, del latín <i>solstitium</i>, «Sol quieto». En diciembre ocurre lo mismo en el otro extremo.'},
+ {k:'Ecuador',t:'En el Ecuador',place:'ec',mode:'ano',day:()=>EV.mar,play:true,p:'En la <b>Mitad del Mundo</b>, junto a Quito, justo sobre el ecuador, los caminos del Sol son <b>verticales</b> y el día dura unas 12 horas todo el año. En los equinoccios el Sol pasa por el <b>cenit</b>; en junio culmina hacia el norte y en diciembre hacia el sur. Los solsticios son los dos puntos donde el Sol se detiene y da la vuelta.'},
+ {k:'Trópicos',t:'Los trópicos: el Sol en el cenit una vez al año',place:'tc',mode:'ano',day:()=>EV.jun-40,play:true,p:'En <b>Chiayi</b> (Taiwán), sobre el <b>trópico de Cáncer</b>, el Sol solo llega al cenit un día: el solsticio de junio. Justo ahí <b>se detiene y retrocede</b>: nunca pasa más al norte. Por eso el trópico es el límite. Prueba también <b>São Paulo</b>, sobre el trópico de Capricornio, donde ocurre en diciembre.'},
+ {k:'45°',t:'Zona templada: grandes cambios a lo largo del año',place:'45n',mode:'ano',day:()=>EV.mar,play:true,p:'En <b>Turín</b> (45° N) la altura del Sol a mediodía va de unos 21,5° en diciembre a 68,5° en junio, y el punto por donde sale recorre casi 70° de horizonte. Días largos en verano y cortos en invierno: <b>estaciones muy marcadas</b>.'},
+ {k:'Círculos polares',t:'Los círculos polares: un día sin noche',place:'cpa',mode:'dia',day:()=>EV.jun,hour:0,play:true,p:'En <b>Rovaniemi</b> (Finlandia), sobre el círculo polar ártico, el día del solsticio de junio el Sol <b>roza el horizonte a medianoche sin ponerse</b> (Sol de medianoche) y en el de diciembre apenas asoma. En la <b>base Mirni</b>, sobre el círculo polar antártico, sucede al revés.'},
+ {k:'Polos',t:'Los polos: seis meses de día y seis de noche',place:'pn',mode:'ano',day:()=>EV.mar,play:true,p:'En el Polo Norte el Sol da vueltas <b>paralelas al horizonte</b>. Desde el equinoccio de marzo va subiendo en espiral hasta 23,4° en el solsticio de junio, <b>se detiene</b> y vuelve a bajar hasta ponerse en septiembre. Luego llegan seis meses de noche. En el Polo Sur (<b>base Amundsen-Scott</b>), al revés.'},
+ {k:'Comparar',t:'Todos los lugares a la vez',place:'todos',mode:'ano',day:()=>EV.mar,play:true,p:'Diez cielos sincronizados. Compara la <b>inclinación de los caminos del Sol</b>: verticales en el Ecuador, cada vez más tumbados hacia los polos, y horizontales en los polos. En todos, el Sol se detiene en los mismos dos días: los <b>solsticios</b>.'}
+];
+function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
+function go(i){stop();step=(i+STEPS.length)%STEPS.length;const s=STEPS[step];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();day=s.day();if(day<0)day+=365;hour=s.hour??12;camAz=null;speed=s.slow?0.5:+$('speed').value;if(s.slow)$('speed').value='0.5';setPlace(s.place);setMode(s.mode);if(s.mode==='ano'&&s.place!=='todos'){trailFrom=day}if(s.play)play()}
+/* ---- controles ---- */
+$('place').innerHTML=PLACES.map(p=>`<option value="${p.k}">${p.n} · ${p.line}</option>`).join('')+'<option value="todos">▦ Comparar todos</option>';
+$('place').onchange=()=>{setPlace($('place').value)};
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+$('play').onclick=()=>playing?stop():play();$('prev').onclick=()=>go(step-1);$('next').onclick=()=>go(step+1);
+$('speed').onchange=()=>{speed=+$('speed').value};
+$('day').oninput=()=>{stop();day=+$('day').value;trail=[];trailFrom=day;draw()};
+$('hour').oninput=()=>{stop();hour=+$('hour').value/60;if(mode==='ano')setMode('dia');draw()};
+/* girar la bóveda arrastrando */
+let drag=null;$('skyCard').addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,az:camAz??defaultAz(place.lat),el:camEl};$('skyCard').setPointerCapture(e.pointerId);$('skyCard').style.cursor='grabbing'});
+$('skyCard').addEventListener('pointermove',e=>{if(!drag)return;camAz=(drag.az-(e.clientX-drag.x)*.4+360)%360;camEl=Math.max(5,Math.min(75,drag.el+(e.clientY-drag.y)*.25));if(!playing)draw()});
+$('skyCard').addEventListener('pointerup',()=>{drag=null;$('skyCard').style.cursor=''});
+buildMulti();let rq=0;new ResizeObserver(()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(draw)}).observe($('skyCard'));
+go(0);
+window.__sol={get trail(){return trail},get mode(){return mode},go,EV,setPlace,setMode,get day(){return day},set day(v){day=v;draw()},stop,play,addTrail,decOf};
+})();
+</script>
+</body>
+</html>
