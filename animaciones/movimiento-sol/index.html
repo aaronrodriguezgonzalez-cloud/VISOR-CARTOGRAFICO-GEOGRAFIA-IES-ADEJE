@@ -36,6 +36,17 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .m b{font-size:17px}.m span{display:block;font-size:12px;color:#cfe0e8;margin-top:2px}
 .stop{background:#2a1d00;border:1px solid #ffd166;border-radius:10px;padding:8px 10px;font-weight:800;color:#ffd166;display:none}
 .stop.on{display:block}
+.evCard{padding:10px;display:flex;flex-direction:column;gap:8px}
+.evChips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.evChips button{border:1px solid #305369;background:#0e2534;color:#eef5f8;border-radius:9px;padding:6px 8px;text-align:left;cursor:pointer;font:inherit}
+.evChips button b{display:block;font-size:12.5px}.evChips button small{display:block;font-size:11px;color:#a9c0cd}
+.evChips button.near{border-color:#ffd166;background:#2a1d00}
+.evCard .stop{display:block;background:#0e2534;border-color:#305369;color:#dfeaf0;font-weight:600;line-height:1.4}
+.evCard .stop.on{background:#2a1d00;border-color:#ffd166;color:#ffd166;font-weight:800}
+.ctlCard{padding:4px 10px 10px}.ctlCard .controls{margin-top:6px}.ctlCard .controls select#place{flex:1 1 100%;order:5}.ctlCard .clockBox{min-width:0;flex:1 1 100%}
+.mtCard{padding:8px 10px}.mtCard small{color:#a9c0cd;font-size:11px;font-weight:700;text-transform:uppercase}.mt{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:6px}.mt div{display:grid;grid-template-columns:1.3fr .8fr 1fr;font-size:12.5px;border-top:1px solid #23445a;padding:3px 0}.mt div span{color:#a9c0cd}.mt .hd{color:#a9c0cd;font-weight:700;border-top:0}
+@media(max-width:560px){.mt{grid-template-columns:1fr}}
+.chartsRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .chartCard{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
 .chartCard small{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
 .chartCard canvas{width:100%;height:118px;display:block}
@@ -52,7 +63,7 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;font-weight:700;margin-top:8px}
 .legend i{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
-@media(max-width:940px){.grid{grid-template-columns:1fr}.multi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:940px){.grid{display:flex!important;flex-direction:column}.leftCol,.side{display:contents!important}#skyCard{order:1}.ctlCard{order:2}.stripCard{order:3}.globeCard{order:4}#cards{order:5}#mtCard{order:6}.evCard{order:7}.chartsRow{order:8}.evChips{grid-template-columns:repeat(2,minmax(0,1fr))}.chartsRow{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.multi{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.gHint{display:none}.app{padding:8px}.controls button,.controls select{flex:1}.seg{flex:1 1 100%}.seg button{flex:1}.slider{min-width:100%}.stage{font-size:14px}.skyCard{aspect-ratio:1/0.95}}
 </style>
 </head>
@@ -61,27 +72,32 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
  <div class="top"><div><div class="brand">ANAMBRO · AULA</div><h1>☀️ El movimiento aparente del Sol</h1></div><nav class="steps" id="steps" aria-label="Pasos de la explicación"></nav></div>
  <section class="stage" id="stage" aria-live="polite"></section>
  <div class="grid">
-  <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+  <div class="leftCol" style="display:flex;flex-direction:column;gap:8px;min-width:0">
   <div class="card skyCard" id="skyCard"><h2 id="skyTitle">El cielo visto desde…</h2><canvas id="sky" aria-label="Bóveda celeste con la trayectoria del Sol"></canvas><div class="multi" id="multi"></div></div>
   <div class="card stripCard"><canvas id="strip" aria-label="Por dónde sale el Sol cada día"></canvas></div>
+  <div class="card mtCard" id="mtCard" style="display:none"><small id="mtTitle"></small><div class="mt" id="mt"></div></div>
+  <div class="card evCard"><div class="evChips" id="evChips"></div><div class="stop" id="stop"></div></div>
+  <div class="chartsRow">
+   <div class="chartCard"><small id="c1t">Altura del Sol a mediodía a lo largo del año</small><canvas id="c1"></canvas></div>
+   <div class="chartCard" id="c2box"><small id="c2t">Por dónde sale el Sol en el horizonte (acimut)</small><canvas id="c2"></canvas></div>
+  </div>
   </div>
   <div class="side">
    <div class="card globeCard"><h2 id="globeTitle">¿Dónde estamos?<span class="gHint"> · arrastra para girar</span></h2><canvas id="globe" aria-label="La Tierra con el observador y su horizonte"></canvas><div class="gBtns"><button id="gCenter" type="button" title="Girar el globo hasta tener el lugar de frente">📍 De frente</button><button id="gProfile" type="button" title="Volver a ver el lugar de perfil">⟲ De perfil</button></div></div>
    <div class="cards" id="cards"></div>
-   <div class="stop" id="stop">⏸ Solsticio: el Sol «se detiene» y empieza a volver</div>
-   <div class="chartCard"><small id="c1t">Altura del Sol a mediodía a lo largo del año</small><canvas id="c1"></canvas></div>
-   <div class="chartCard" id="c2box"><small id="c2t">Por dónde sale el Sol en el horizonte (acimut)</small><canvas id="c2"></canvas></div>
-  </div>
- </div>
- <div class="controls">
+   <div class="ctlCard card">
+  <div class="controls">
   <button id="prev" title="Paso anterior">◀</button><button id="play" class="primary">▶ Reproducir</button><button id="next" title="Paso siguiente">▶</button>
   <div class="seg" role="group" aria-label="Modo"><button data-mode="dia">Un día</button><button data-mode="ano">El año</button></div>
   <select id="place" aria-label="Lugar"></select>
   <select id="speed" aria-label="Velocidad"><option value="0.5">Lento</option><option value="1" selected>Normal</option><option value="2">Rápido</option></select>
  </div>
- <div class="controls">
+  <div class="controls">
   <div class="clockBox"><canvas id="yearClock" tabindex="0" role="slider" aria-label="Fecha: gira el calendario (← → cambian un día)"></canvas><div><output id="dayOut"></output><small>Gira el calendario: tras el 31 de diciembre sigue el 1 de enero, sin tope</small></div></div>
   <div class="clockBox"><canvas id="clock" tabindex="0" role="slider" aria-label="Hora solar: gira el reloj (← → cambian 10 minutos)"></canvas><div><output id="hourOut"></output><small>Gira el reloj o arrastra el Sol en el cielo: al pasar la medianoche cambia el día</small></div></div>
+ </div>
+   </div>
+  </div>
  </div>
  <div class="legend"><span><i style="background:var(--gold)"></i>Camino del Sol hoy</span><span><i style="background:var(--jun)"></i>Solsticio de junio</span><span><i style="background:var(--equ)"></i>Equinoccios</span><span><i style="background:var(--dic)"></i>Solsticio de diciembre</span><span>● salidas del Sol de cada día · ◆ posición a mediodía</span></div>
  <p class="small">Arrastra el cielo para girarlo. Posición del Sol calculada para 2026 (algoritmo del Almanaque Náutico, error &lt; 0,01°); hora solar local; horizonte con refracción atmosférica media. La bóveda es un esquema: no conserva distancias ni tamaños reales.</p>
@@ -172,12 +188,10 @@ function chart(id,fn,yMin,yMax,unit,label){const {x,w,h}=fit($(id));x.clearRect(
 /* ---- panel ---- */
 function card(t,v,s,c){return `<div class="m"><small>${t}</small><b style="color:${c||'#eef5f8'}">${v}</b>${s?`<span>${s}</span>`:''}</div>`}
 function azTxt(a){if(a==null)return '—';const pts=['N','NNE','NE','ENE','E','ESE','SE','SSE','S'];return fmtN(a,1)+'° ('+pts[Math.round(a/22.5)]+')'}
-function updatePanel(){if(multiOn){const dec=decOf(day);$('cards').innerHTML='<div class="m" style="grid-column:1/-1"><small>'+fmtDate(Y0+day*DAY)+' · Sol en el cenit sobre '+fmtN(Math.abs(dec),2)+'° '+(dec>=0?'N':'S')+'</small><table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:4px"><tr style="color:#a9c0cd;text-align:left"><th>Lugar</th><th>Altura a mediodía</th><th>Duración del día</th></tr>'+PLACES.map(p=>{const na=noonAlt(p.lat,dec),H=riseH(p.lat,dec);return '<tr style="border-top:1px solid #23445a"><td style="padding:3px 0">'+p.short+' <span style="color:#a9c0cd">'+latTxt(p.lat)+'</span></td><td>'+(na>0?fmtN(na)+'°':'—')+'</td><td>'+fmtDur(H??0)+'</td></tr>'}).join('')+'</table></div>';$('stop').classList.toggle('on',Math.min(Math.abs(day-EV.jun),Math.abs(day-EV.dic))<4);$('stop').textContent=Math.abs(day-EV.jun)<4?'⏸ Solsticio de junio: el Sol se detiene en todos los lugares a la vez':'⏸ Solsticio de diciembre: el Sol se detiene en todos los lugares a la vez';document.querySelectorAll('.chartCard').forEach(e=>e.style.display='none');$('dayOut').textContent=fmtDate(Y0+day*DAY);$('skyTitle').textContent='Todos los lugares a la vez · '+fmtDate(Y0+day*DAY);{const hh=Math.floor(hour),mm=Math.round((hour-hh)*60)%60;$('hourOut').textContent=String(hh%24).padStart(2,'0')+':'+String(mm).padStart(2,'0')+' solar'}return}document.querySelectorAll('.chartCard').forEach(e=>e.style.display='');const lat=place.lat,dec=decOf(day),Hr=riseH(lat,dec),az=riseAz(lat,dec),na=noonAlt(lat,dec),dNa=noonAlt(lat,decOf(day+1))-na,az1=riseAz(lat,decOf(day+1)),dAz=(az!=null&&az1!=null)?az1-az:null;
+function updatePanel(){$('mtCard').style.display=multiOn?'':'none';$('cards').style.display=multiOn?'none':'';if(multiOn){const dec=decOf(day);$('mtTitle').textContent=fmtDate(Y0+day*DAY)+' · Sol en el cenit sobre '+fmtN(Math.abs(dec),2)+'° '+(dec>=0?'N':'S');const hd='<div class="hd"><b>Lugar</b><b>Mediodía</b><b>Día</b></div>';$('mt').innerHTML=hd+hd+PLACES.map(p=>{const na=noonAlt(p.lat,dec),H=riseH(p.lat,dec);return '<div><b>'+p.short+' <span>'+latTxt(p.lat)+'</span></b><b>'+(na>0?fmtN(na)+'°':'—')+'</b><b>'+fmtDur(H??0)+'</b></div>'}).join('');document.querySelectorAll('.chartCard').forEach(e=>e.style.display='none');$('dayOut').textContent=fmtDate(Y0+day*DAY);$('skyTitle').textContent='Todos los lugares a la vez · '+fmtDate(Y0+day*DAY);{const hh=Math.floor(hour),mm=Math.round((hour-hh)*60)%60;$('hourOut').textContent=String(hh%24).padStart(2,'0')+':'+String(mm).padStart(2,'0')+' solar'}return}document.querySelectorAll('.chartCard').forEach(e=>e.style.display='');const lat=place.lat,dec=decOf(day),Hr=riseH(lat,dec),az=riseAz(lat,dec),na=noonAlt(lat,dec),dNa=noonAlt(lat,decOf(day+1))-na,az1=riseAz(lat,decOf(day+1)),dAz=(az!=null&&az1!=null)?az1-az:null;
  const situ=Hr===180?'Sol de medianoche: no se pone':Hr===0?'Noche polar: no sale':'Sale y se pone';
  const mov=Math.abs(lat)>89.9?dNa:(dAz!=null?-dAz:dNa);
  $('cards').innerHTML=card('Fecha',fmtDate(Y0+day*DAY),'El Sol está en el cenit sobre '+fmtN(Math.abs(dec),2)+'° '+(dec>=0?'N':'S'))+card('Altura a mediodía',na>0?fmtN(na)+'°':'bajo el horizonte',na>=89.5?'¡en el cenit!':na>0?(dec>lat?'el Sol culmina hacia el norte':'el Sol culmina hacia el sur'):'',na>=89.5?'#ffd166':'#eef5f8')+card('Duración del día',fmtDur(Hr??0),situ)+card('Por dónde sale',azTxt(az),az==null?'no hay salida diaria del Sol':'medido desde el norte')+card('Cambio diario a mediodía',(dNa>=0?'+':'−')+fmtN(Math.abs(dNa),2)+'° / día',Math.abs(dNa)<0.02?'casi nulo':'',Math.abs(dNa)<0.02?'#ffd166':'#eef5f8')+card('Cambio diario del orto',dAz==null?'—':(dAz>=0?'+':'−')+fmtN(Math.abs(dAz),2)+'° / día',dAz!=null&&Math.abs(dAz)<0.03?'casi nulo':'',dAz!=null&&Math.abs(dAz)<0.03?'#ffd166':'#eef5f8');
- $('stop').classList.toggle('on',Math.min(Math.abs(day-EV.jun),Math.abs(day-EV.dic))<4);
- $('stop').textContent=Math.abs(day-EV.jun)<4?'⏸ Solsticio de junio ('+fmtDate(Y0+EV.jun*DAY)+'): el Sol «se detiene» y empieza a volver hacia el sur':'⏸ Solsticio de diciembre ('+fmtDate(Y0+EV.dic*DAY)+'): el Sol «se detiene» y empieza a volver hacia el norte';
  chart('c1',d=>noonAlt(lat,decOf(d)),Math.min(0,Math.floor((90-Math.abs(lat)-23.5)/15)*15),90,'°');
  const hasAz=Math.abs(lat)<66;$('c2box').style.display=hasAz?'':'none';if(hasAz){const vals=[];for(let d=0;d<365;d+=3){const a=riseAz(lat,decOf(d));if(a!=null)vals.push(a)}const lo=Math.floor((Math.min(...vals)-3)/15)*15,hi=Math.ceil((Math.max(...vals)+3)/15)*15;chart('c2',d=>riseAz(lat,decOf(d)),lo,hi,'°')}
  $('c1t').textContent='Altura del Sol a mediodía · '+place.short;$('dayOut').textContent=fmtDate(Y0+day*DAY);const hh=Math.floor(hour),mm=Math.round((hour-hh)*60)%60;$('hourOut').textContent=String(hh%24).padStart(2,'0')+':'+String(mm).padStart(2,'0')+' solar';
@@ -273,8 +287,18 @@ $('yearClock').addEventListener('pointerdown',e=>{stop();yearDrag=yAngle(e);$('y
 $('yearClock').addEventListener('pointermove',e=>{if(yearDrag==null)return;const a=yAngle(e);let d=a-yearDrag;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;yearDrag=a;addDays(d/(2*Math.PI)*365);draw()});
 $('yearClock').addEventListener('pointerup',()=>{yearDrag=null});
 $('yearClock').addEventListener('keydown',e=>{const k={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[e.key];if(!k)return;e.preventDefault();stop();addDays(k);draw()});
+/* ---- calendario de solsticios y equinoccios ---- */
+const EVS=[['mar','Equinoccio de marzo','#7fe0a0'],['jun','Solsticio de junio','#ff9f43'],['sep','Equinoccio de septiembre','#7fe0a0'],['dic','Solsticio de diciembre','#7cc6ff']];
+const cyc=d=>{d=((d%365)+365)%365;return d>182.5?d-365:d};
+function renderEvents(){const lat=multiOn?28.12:place.lat;let near=null;
+ $('evChips').innerHTML=EVS.map(([k,n,c])=>{const dd=cyc(EV[k]-day),r=Math.round(dd),isN=Math.abs(dd)<4;if(isN)near=k;return `<button type="button" data-ev="${k}" class="${isN?'near':''}"><b style="color:${c}">${n}</b><small>${fmtDate(Y0+EV[k]*DAY)} · ${r===0?'¡hoy!':r>0?'dentro de '+r+(r===1?' día':' días'):'hace '+(-r)+(r===-1?' día':' días')}</small></button>`}).join('');
+ $('evChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{stop();day=EV[b.dataset.ev];if(mode==='ano'){trail=[];trailFrom=day;for(const k in mTrails)delete mTrails[k]}draw()});
+ const st=$('stop');st.classList.toggle('on',!!near);
+ if(near==='jun'||near==='dic'){const toS=near==='jun';st.textContent='⏸ '+(toS?'Solsticio de junio':'Solsticio de diciembre')+' ('+fmtDate(Y0+EV[near]*DAY)+'): el Sol «se detiene». Durante unos días sale casi por el mismo punto y sube casi lo mismo; después empieza a volver hacia el '+(toS?'sur':'norte')+'.'}
+ else if(near){st.textContent='⚖️ '+(near==='mar'?'Equinoccio de marzo':'Equinoccio de septiembre')+' ('+fmtDate(Y0+EV[near]*DAY)+'): el Sol sale justo por el este y se pone por el oeste, y el día dura casi lo mismo que la noche en todo el planeta. Aquí el Sol no se detiene: es cuando más deprisa cambia de un día a otro.'}
+ else{let nx=null,nd=1e9;for(const [k,n] of EVS){let dd=((EV[k]-day)%365+365)%365;if(dd<nd){nd=dd;nx=n}}const dec0=decOf(day),dec1=decOf(day+1),goingN=dec1>dec0;st.textContent='Próximo: '+nx+', dentro de '+Math.round(nd)+' días. Ahora el Sol '+(goingN?'avanza cada día hacia el norte':'avanza cada día hacia el sur')+': sale un poco más hacia el '+(goingN?'noreste':'sureste')+' y a mediodía '+((goingN===(lat>=0))?'sube':'baja')+' un poco más.'}}
 /* ---- dibujar ---- */
-function draw(){drawGlobe();drawClock();drawYearClock();$('strip').parentElement.style.display=multiOn?'none':'';if(!multiOn)drawStrip();if(multiOn){drawMulti()}else{const {x,w,h}=fit($('sky'));drawSky(x,w,h,place,{az:camAz,el:camEl,labels:true,trail:mode==='ano'})}updatePanel()}
+function draw(){renderEvents();drawGlobe();drawClock();drawYearClock();$('strip').parentElement.style.display=multiOn?'none':'';if(!multiOn)drawStrip();if(multiOn){drawMulti()}else{const {x,w,h}=fit($('sky'));drawSky(x,w,h,place,{az:camAz,el:camEl,labels:true,trail:mode==='ano'})}updatePanel()}
 function buildMulti(){const m=$('multi');m.innerHTML=PLACES.map(p=>`<div class="mini"><b>${p.short} <span style="font-weight:600;color:#a9c0cd">· ${latTxt(p.lat)}</span></b><canvas data-k="${p.k}"></canvas></div>`).join('')}
 const mTrails={};
 function drawMulti(){$('multi').querySelectorAll('canvas').forEach(c=>{const p=PLACES.find(q=>q.k===c.dataset.k),{x,w,h}=fit(c);const save=place,st=trail;place=p;trail=mTrails[p.k]||[];drawSky(x,w,h,p,{az:camAz==null?null:camAz,el:30,small:true,scale:1.08,trail:mode==='ano'});place=save;trail=st})}
