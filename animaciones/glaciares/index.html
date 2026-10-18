@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · Glaciares y valles glaciares</title>
+<style>
+:root{--gold:#ffd166;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eef5f0;background:#0a1410}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#1d3a2e 0,#0a1410 55%,#030705 100%)}
+.app{max-width:1300px;margin:auto;padding:12px 14px 18px}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}.brand{font-size:12px;color:#a9c4b8;font-weight:700;letter-spacing:.04em}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.steps button{border:1px solid #3e6656;background:#12291f;color:#e0efe8;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
+.stage{margin:10px 0;padding:10px 14px;background:#11241c;border:1px solid #2f5646;border-radius:12px;line-height:1.45}
+.stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:10px}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.card{background:#06100c;border:1px solid #2a4a3c;border-radius:14px;position:relative;overflow:hidden;aspect-ratio:16/10}
+.card canvas{display:block;width:100%;height:100%}
+.box{background:#11241c;border:1px solid #2f5646;border-radius:12px;padding:10px 12px;line-height:1.4}
+.box label{display:block;font-size:12.5px;color:#b8d4c6;font-weight:700}
+.box input[type=range]{width:100%;accent-color:#ffd166}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.seg button{border:1px solid #5a8a76;border-radius:8px;background:#12291f;color:#fff;font-weight:800;padding:6px 9px;cursor:pointer;font-size:12.5px}
+.seg button.on{background:#ffd166;color:#2a1d00}
+.info{min-height:44px}.info b{color:#ffd166}
+#legend{font-size:12.5px;line-height:1.5}
+.small{font-size:11.5px;color:#a9c4b8;margin-top:10px;line-height:1.4}
+@media(max-width:940px){.grid{grid-template-columns:1fr}}
+@media(max-width:560px){.app{padding:8px}.stage{font-size:14px}.card{aspect-ratio:1/1}}
+</style>
+</head>
+<body>
+<main class="app">
+ <div class="top"><div class="brand">ANAMBRO · AULA · MODELADO DEL RELIEVE</div><h1>🏔️ Glaciares y valles glaciares</h1></div>
+ <nav class="steps" id="steps"></nav>
+ <section class="stage" id="stage"></section>
+ <div class="grid">
+  <div class="col">
+   <div class="card" id="mainCard"><canvas id="main"></canvas></div>
+   <div class="box info" id="info"></div>
+  </div>
+  <div class="col">
+   <div class="box" id="optBox"><label id="optLab"></label><div class="seg" id="opt"></div></div>
+   <div class="box" id="timeBox"><label id="timeLab"></label><input id="time" type="range" min="0" max="1" step="0.002" value="0"><div class="seg"><button id="play">▶ Reproducir</button><button id="reset">↺ Inicio</button></div></div>
+
+   <div class="box"><div id="legend"></div></div>
+  </div>
+ </div>
+ <p class="small">Bloques diagrama esquemáticos, sin escala, generados en el navegador. El paso sobre el Pirineo es un esquema del retroceso general de los glaciares desde la Pequeña Edad de Hielo; no representa la forma de un glaciar concreto.</p>
+</main>
+<script src="../comun/relieve.js"></script>
+<script>
+(()=>{
+'use strict';
+const R=window.AulaRelieve,$=id=>document.getElementById(id),clamp=R.clamp;
+const fmt=(x,d=0)=>Number(x).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const hash=i=>{let x=Math.sin(i*127.1+3.7)*43758.5;return x-Math.floor(x)};
+function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height,d}}
+function txt(x,s,X,Y,o={}){x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';x.textAlign=o.a||'center';if(o.bg){const m=x.measureText(s).width,l=o.a==='left'?X:o.a==='right'?X-m:X-m/2;x.fillStyle=o.bg;x.fillRect(l-4,Y-(o.s||12),m+8,(o.s||12)+5)}x.fillStyle=o.c||'#f2f7f4';x.fillText(s,X,Y);x.restore()}
+function arrow(x,x1,y1,x2,y2,col,wd=3,hs=9){x.strokeStyle=col;x.fillStyle=col;x.lineWidth=wd;x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke();const a=Math.atan2(y2-y1,x2-x1);x.beginPath();x.moveTo(x2+Math.cos(a)*2,y2+Math.sin(a)*2);x.lineTo(x2-Math.cos(a-.45)*hs,y2-Math.sin(a-.45)*hs);x.lineTo(x2-Math.cos(a+.45)*hs,y2-Math.sin(a+.45)*hs);x.closePath();x.fill()}
+function sky(x,w,h,c1='#9cc7e6',c2='#e6f0f4'){const g=x.createLinearGradient(0,0,0,h*.6);g.addColorStop(0,c1);g.addColorStop(1,c2);x.fillStyle=g;x.fillRect(0,0,w,h)}
+function tag(x,s,X,Y,n){txt(x,s,X,Y,{s:n?10:12,w:800,c:'#fff',bg:'rgba(0,0,0,.55)'})}
+let step=0,T=0,playing=false,tt=0,opt={},STEPS=[],DRAW={},INFO={},LEG={};
+const NZ=R.noise(21);
+const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*clamp(t,0,1));
+/* fases del ciclo glaciar según T: 0–.2 valle fluvial; .2–.45 avance; .45–.7 máximo y erosión; .7–1 retirada */
+function phase(T){const adv=clamp((T-.15)/.3,0,1),ero=clamp((T-.25)/.45,0,1),ret=clamp((T-.7)/.28,0,1);return {adv,ero,ret}}
+const cxv=v=>.5+.04*Math.sin(v*5);
+function gZ(T){const {ero}=phase(T);return (u,v)=>{let z=.95-.55*v+.12*NZ(u*3.5,v*3.5);if(Math.abs(u-.5)>.3)z+=.1*(Math.abs(u-.5)-.3)*5;
+  // aristas y horn al fondo
+  if(v<.18)z+=.25*(1-v/.18)*(1-Math.abs(u-.5)*1.4);
+  const d=Math.abs(u-cxv(v));const Wv=.16,Wu=.26;const depV=.4*(1-.3*v),Vp=d<Wv?depV*Math.pow(1-d/Wv,1.2):0;const Up=d<Wu?(depV*1.25)*(1-Math.pow(d/Wu,2.4)):0;let cut=Vp*(1-ero)+Up*ero;
+  // circo
+  const cr=Math.hypot((u-.5)/.22,(v-.12)/.12);if(cr<1)cut=Math.max(cut,ero*.45*(1-cr*cr));
+  // valle colgado (afluente por la izquierda)
+  const tv=.5,dl=Math.abs(v-tv-(u-.12)*.4);if(u<.3&&dl<.08)cut=Math.max(cut,.18*(1-dl/.08)*(.6+.4*ero)*(u<.28?1:0));
+  // sobreexcavación: cubeta del lago
+  const lk=Math.hypot((u-cxv(.62))/.07,(v-.62)/.06);if(lk<1)cut+=ero*.06*(1-lk*lk);
+  let zz=z-cut;
+  // morrenas tras la retirada
+  return zz}}
+function morr(T,u,v){const {ret}=phase(T);if(ret<=0)return 0;let m=0;const fv=.92;const df=Math.abs(v-fv-.03*Math.sin(u*20)),dd=Math.abs(u-cxv(fv));if(dd<.24)m+=.05*Math.max(0,1-df/.025)*Math.min(1,ret*3);for(const s of [-1,1]){const lu=Math.abs(u-(cxv(v)+s*.22));if(v>.25&&v<fv)m+=.035*Math.max(0,1-lu/.02)*Math.min(1,ret*3)}return m}
+function iceLevel(T,u,v,zf){const {adv,ret}=phase(T);const front=.1+.85*adv-.75*ret;if(v>front)return null;const d=Math.abs(u-cxv(v));const Wi=.22+.06*adv;if(d>Wi)return null;const th=(.42*(1-.4*v)+.12)*Math.min(1,adv*1.5)*(1-ret*.85)*Math.pow(clamp((front-v)/.12,0,1),.5);const bed=zf(cxv(v),v);const surf=bed+th-Math.pow(d/Wi,4)*th*.6;return surf}
+function drawValle(x,w,h,d,t){sky(x,w,h,'#8fb8d8','#eef4f8');const n=w<560,q=Math.round(T*60)/60,zf=gZ(q),ph=phase(q);
+ const c=R.cached('gl'+q,w,h,d,cx=>R.block(cx,w,h,{z:(u,v)=>zf(u,v)+morr(q,u,v),N:110,M:70,color:(u,v,z,s)=>{if(morr(q,u,v)>.01)return [150,140,120];if(z>.95)return [240,244,248];if(s>1.6)return [130,124,118];return ph.ret>0||q<.15?mix([100,140,80],[125,120,100],clamp((z-.2)/.6,0,1)):[180,190,195]},water:(u,v)=>{const il=iceLevel(q,u,v,zf);if(il!=null)return il;const lk=Math.hypot((u-cxv(.62))/.07,(v-.62)/.06);if(ph.ret>.6&&lk<1)return zf(cxv(.62),.62)+.05;if(q<.15&&Math.abs(u-cxv(v))<.01)return zf(u,v)+.01;return null},wcolor:(()=>{return [214,232,242]})(),strata:[[0,'#7a7068'],[.2,'#5e564e'],[.45,'#4a433c']],v:{top:.42,hz:.27}}));
+ // recolor: el lago debe ser azul, el hielo blanco: segunda pasada simple sobre el lago
+ x.drawImage(c.cv,0,0,w,h);const P=c.r.P;
+ if(ph.ret>.6){const [lx,ly]=P(cxv(.62),.62,zf(cxv(.62),.62)+.05);x.fillStyle='rgba(50,120,170,.75)';x.beginPath();x.ellipse(lx,ly,(.07*c.r.V.W)*.95,.06*c.r.V.D*.8,0,0,7);x.fill()}
+ // flujo del hielo
+ if(ph.adv>.3&&ph.ret<.8){for(let i=0;i<24;i++){const pp=(t*.04+i/24)%1,front=.1+.85*ph.adv-.75*ph.ret,v=.12+pp*(front-.15),u=cxv(v)+(hash(i)-.5)*.2,il=iceLevel(q,u,v,zf);if(il==null)continue;const [px,py]=P(u,v,il+.005);x.fillStyle='rgba(60,110,150,.7)';x.beginPath();x.arc(px,py,2,0,7);x.fill()}}
+ const lab=q<.15?'1 · valle fluvial en V':q<.45?'2 · avanza el glaciar y rellena el valle':q<.7?'3 · el hielo excava: arranca y pule la roca':q<.92?'4 · el clima se calienta y el glaciar se retira':'5 · queda un valle en U';txt(x,lab,10,22,{a:'left',s:n?12:15,w:900,c:'#10263a',bg:'rgba(255,255,255,.78)'})}
+function drawFormas(x,w,h,d,t){T=1;drawValle(x,w,h,d,t);const n=w<560,P=R.view(w,h,{top:.42,hz:.27}).P,zf=gZ(1);
+ const L=[['circo glaciar',.5,.1,.15],['arista (cresta afilada)',.8,.04,.12],['arista',.22,.04,.12],['valle en U',.5,.42,.05],['valle colgado',.16,.45,.05],['lago glaciar',.5,.62,.06],['morrena lateral',.75,.7,.08],['morrena frontal',.5,.93,.08]];
+ for(const [s,u,v,dz] of L){const [px,py]=P(u,v,zf(u,v)+dz);tag(x,s,px,py,n)}}
+function drawHielo(x,w,h,d,t){const n=w<560;const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#5a7ea0');g.addColorStop(1,'#c8dce8');x.fillStyle=g;x.fillRect(0,0,w,h);
+ const X0=w*(n?.08:.12),W=w*(n?.42:.32),Y0=h*.14,H=h*.8;const layers=[['nieve recién caída: copos con mucho aire',[250,252,255],.12],['nieve granulada',[232,240,248],.16],['neviza (firn): granos soldados',[205,222,238],.22],['hielo glaciar: casi sin aire, azulado',[150,190,225],.5]];let y=Y0;
+ for(const [s,col,f] of layers){const hh=H*f;x.fillStyle=`rgb(${col})`;x.fillRect(X0,y,W,hh);for(let i=0;i<hh*W/(f<.2?60:200);i++){x.fillStyle='rgba(255,255,255,.6)';const r=f<.15?2.5:f<.2?1.8:f<.3?1.2:.7;x.beginPath();x.arc(X0+hash(i*3+f*100)*W,y+hash(i*7+f*100)*hh,r,0,7);x.fill()}txt(x,s,X0+W+10,y+hh/2+4,{a:'left',s:n?10:12.5,w:800,c:'#0e2236',bg:'rgba(255,255,255,.7)'});y+=hh}
+ for(let i=0;i<50;i++){const px=X0+hash(i)*W,py=((hash(i*3)*h)+t*40*(.5+hash(i)))%(Y0);x.fillStyle='#fff';x.font='10px system-ui';x.fillText('❄',px,py)}
+ arrow(x,X0-14,Y0+10,X0-14,Y0+H-10,'#0e2236',3,9);x.save();x.translate(X0-24,Y0+H/2);x.rotate(-Math.PI/2);txt(x,'el peso de la nieve la compacta',0,0,{s:n?10:12,w:800,c:'#0e2236'});x.restore();
+ txt(x,'De la nieve al hielo (puede tardar décadas o siglos)',w/2,h-8,{s:n?10.5:13,w:900,c:'#0e2236',bg:'rgba(255,255,255,.75)'})}
+function drawRetro(x,w,h,d,t){sky(x,w,h,'#7fa8c8','#e8f0f4');const n=w<560;const g=R.cached('pir',w,h,d,cx=>R.block(cx,w,h,{z:(u,v)=>{let z=.35+.5*Math.exp(-Math.pow((u-.5)/.25,2)-Math.pow((v-.3)/.3,2))+.08*NZ(u*5,v*5);return z},N:100,M:60,color:(u,v,z,s)=>s>1.4?[120,112,104]:z>.6?[150,140,128]:mix([110,140,90],[140,130,110],clamp((z-.35)/.3,0,1)),strata:[[0,'#7a7068'],[.3,'#5e564e']],v:{top:.3,hz:.45}}));x.drawImage(g.cv,0,0,w,h);
+ const yr=Math.round(1850+T*175),f=1-.85*Math.pow(T,.9);const P=g.r.P;
+ x.fillStyle='rgba(235,245,252,.92)';x.strokeStyle='rgba(150,190,220,.9)';x.lineWidth=1.5;x.beginPath();for(let i=0;i<=40;i++){const a=i/40*Math.PI*2,r=f*(.2+.03*Math.sin(a*5)),u=.5+r*Math.cos(a)*1.1,v=.28+r*Math.sin(a)*.8,zz=.35+.5*Math.exp(-Math.pow((u-.5)/.25,2)-Math.pow((v-.3)/.3,2))+.08*NZ(u*5,v*5);const [px,py]=P(u,v,zz+.01);i?x.lineTo(px,py):x.moveTo(px,py)}x.closePath();x.fill();x.stroke();
+ txt(x,'Año '+yr,10,24,{a:'left',s:n?16:22,w:900,c:'#10263a',bg:'rgba(255,255,255,.8)'});txt(x,'esquema: no es la forma real de un glaciar concreto',w-8,h-8,{a:'right',s:10,w:600,c:'#10263a'})}
+STEPS=[
+ {k:'Nieve → hielo',v:'hielo',t:'¿Cómo se forma un glaciar?',p:'Donde nieva más en invierno de lo que se funde en verano, la nieve se acumula año tras año. El peso de las capas de arriba aplasta las de abajo: la nieve pierde el aire, se convierte en <b>neviza</b> y, después, en <b>hielo glaciar</b>. Cuando el hielo es lo bastante grueso, empieza a moverse ladera abajo por su propio peso, muy despacio: es un <b>glaciar</b>, un «río de hielo».'},
+ {k:'Valle en U',v:'valle',time:'Tiempo (miles de años)',dur:22,t:'Cómo un glaciar transforma un valle',p:'Un glaciar excava mucho más que un río. El hielo arranca bloques de roca y los arrastra; las piedras incrustadas en su base pulen y rayan el fondo como una lija. Pulsa ▶: el glaciar llega a un valle fluvial en <b>V</b>, lo rellena, lo ensancha y lo ahonda, y cuando el clima se calienta y se retira, deja un valle con forma de <b>U</b>, de fondo plano y paredes casi verticales.'},
+ {k:'Formas glaciares',v:'formas',t:'Las huellas que dejan los glaciares',p:'Al retirarse el hielo quedan formas inconfundibles: el <b>circo</b>, el anfiteatro donde nacía el glaciar; las <b>aristas</b> y los <b>horns</b>, crestas y picos afilados entre circos; el <b>valle en U</b>; los <b>valles colgados</b> de los afluentes, que quedan a más altura y hoy caen en cascadas; los <b>lagos</b> en las cubetas excavadas; y las <b>morrenas</b>, montones de piedras y barro que el glaciar empujó o dejó en sus bordes.'},
+ {k:'Glaciares que desaparecen',v:'retro',time:'Año',dur:16,t:'Los glaciares del Pirineo se están fundiendo',p:'En la última glaciación, hace unos 20.000 años, los glaciares cubrían buena parte de los Pirineos, la cordillera Cantábrica y Sierra Nevada, y excavaron valles como el de <b>Ordesa</b> o el de <b>Benasque</b>. Hoy solo quedan pequeños glaciares en el Pirineo (Aneto, Monte Perdido…), y desde mediados del siglo XIX han perdido la mayor parte de su superficie: varios ya han desaparecido por el calentamiento del clima.'}];
+DRAW={hielo:drawHielo,valle:drawValle,formas:drawFormas,retro:drawRetro};
+INFO={hielo:()=>'Un glaciar avanza de unos centímetros a varios metros al día. Las grietas de su superficie (las <b>grietas</b> o <i>crevasses</i>) se abren donde el hielo se estira al pasar por un escalón.',valle:()=>{const ph=phase(T);return T<.15?'Un valle fluvial en V.':ph.ret>0?'El glaciar se retira: deja las <b>morrenas</b> donde estuvieron su frente y sus bordes.':'El hielo rellena el valle: el glaciar puede tener cientos de metros de espesor.'},formas:()=>'Ejemplos en España: el valle de Ordesa y el circo de Soaso (Huesca), los lagos de Saliencia (Asturias), la laguna de la Caldera en Sierra Nevada.',retro:()=>T<.15?'Mediados del siglo XIX: final de la <b>Pequeña Edad de Hielo</b>, cuando los glaciares alcanzaron su máximo de los últimos siglos.':T>.9?'Hoy: quedan pocos glaciares en el Pirineo, cada vez más pequeños y delgados. Se calcula que muchos desaparecerán en las próximas décadas.':'El glaciar se encoge y adelgaza.'};
+LEG={valle:'<span style="color:#d6e8f2">▬</span> hielo glaciar · <span style="color:#3278aa">▬</span> lago · <span style="color:#968c78">▬</span> morrena',formas:'Pulsa ▶ en el paso anterior para ver cómo se forman.',retro:'Esquema de un glaciar de montaña que se reduce con el tiempo.'};
+
+function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
+function renderOpt(){const s=STEPS[step];if(!s.o){$('optBox').style.display='none';return}$('optBox').style.display='';$('optLab').textContent=s.ol;if(opt[s.v]==null)opt[s.v]=s.o[0][0];$('opt').innerHTML=s.o.map(([k,n])=>`<button data-k="${k}" class="${opt[s.v]===k?'on':''}">${n}</button>`).join('');$('opt').querySelectorAll('button').forEach(b=>b.onclick=()=>{opt[s.v]=b.dataset.k;if(s.resetT)T=0;renderOpt();info();legend()})}
+function legend(){const v=STEPS[step].v;$('legend').innerHTML=typeof LEG[v]==='function'?LEG[v]():(LEG[v]||'')}
+function info(){const v=STEPS[step].v;$('info').innerHTML=INFO[v]?INFO[v]():''}
+function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();renderOpt();$('timeBox').style.display=s.time?'':'none';if(s.time)$('timeLab').innerHTML=s.time;T=s.t0??0;playing=!!s.autoplay;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir';document.querySelectorAll('[data-show]').forEach(el=>el.style.display=el.dataset.show.split(' ').includes(s.v)?'':'none');legend();info()}
+$('time').oninput=()=>{T=+$('time').value;playing=false;$('play').textContent='▶ Reproducir';info()};
+$('play').onclick=()=>{if(T>=1)T=0;playing=!playing;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir'};
+$('reset').onclick=()=>{T=0;info()};
+let last=performance.now(),acc=0;
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;const s=STEPS[step];if(playing&&s.time){T=Math.min(1,T+dt/(s.dur||14));if(T>=1){if(s.loop)T=0;else{playing=false;$('play').textContent='▶ Reproducir'}}acc+=dt;if(acc>.3){acc=0;info()}}$('time').value=T;
+ const {x,w,h,d}=fit($('main'));DRAW[s.v](x,w,h,d,tt);requestAnimationFrame(frame)}
+renderSteps();go(0);requestAnimationFrame(frame);
+window.__g={go,set T(v){T=v;info()},set opt(v){opt[STEPS[step].v]=v;renderOpt();info();legend()}};
+})();
+</script>
+</body>
+</html>

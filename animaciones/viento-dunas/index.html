@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · El viento: dunas y calima</title>
+<style>
+:root{--gold:#ffd166;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eef5f0;background:#0a1410}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#1d3a2e 0,#0a1410 55%,#030705 100%)}
+.app{max-width:1300px;margin:auto;padding:12px 14px 18px}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}.brand{font-size:12px;color:#a9c4b8;font-weight:700;letter-spacing:.04em}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.steps button{border:1px solid #3e6656;background:#12291f;color:#e0efe8;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
+.stage{margin:10px 0;padding:10px 14px;background:#11241c;border:1px solid #2f5646;border-radius:12px;line-height:1.45}
+.stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:10px}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.card{background:#06100c;border:1px solid #2a4a3c;border-radius:14px;position:relative;overflow:hidden;aspect-ratio:16/10}
+.card canvas{display:block;width:100%;height:100%}
+.box{background:#11241c;border:1px solid #2f5646;border-radius:12px;padding:10px 12px;line-height:1.4}
+.box label{display:block;font-size:12.5px;color:#b8d4c6;font-weight:700}
+.box input[type=range]{width:100%;accent-color:#ffd166}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.seg button{border:1px solid #5a8a76;border-radius:8px;background:#12291f;color:#fff;font-weight:800;padding:6px 9px;cursor:pointer;font-size:12.5px}
+.seg button.on{background:#ffd166;color:#2a1d00}
+.info{min-height:44px}.info b{color:#ffd166}
+#legend{font-size:12.5px;line-height:1.5}
+.small{font-size:11.5px;color:#a9c4b8;margin-top:10px;line-height:1.4}
+@media(max-width:940px){.grid{grid-template-columns:1fr}}
+@media(max-width:560px){.app{padding:8px}.stage{font-size:14px}.card{aspect-ratio:1/1}}
+</style>
+</head>
+<body>
+<main class="app">
+ <div class="top"><div class="brand">ANAMBRO · AULA · MODELADO DEL RELIEVE</div><h1>🏜️ El viento: dunas y calima</h1></div>
+ <nav class="steps" id="steps"></nav>
+ <section class="stage" id="stage"></section>
+ <div class="grid">
+  <div class="col">
+   <div class="card" id="mainCard"><canvas id="main"></canvas></div>
+   <div class="box info" id="info"></div>
+  </div>
+  <div class="col">
+   <div class="box" id="optBox"><label id="optLab"></label><div class="seg" id="opt"></div></div>
+   <div class="box" id="timeBox"><label id="timeLab"></label><input id="time" type="range" min="0" max="1" step="0.002" value="0"><div class="seg"><button id="play">▶ Reproducir</button><button id="reset">↺ Inicio</button></div></div>
+
+   <div class="box"><div id="legend"></div></div>
+  </div>
+ </div>
+ <p class="small">Esquemas sin escala. Contorno de Canarias: Natural Earth. Ejemplos: dunas de Maspalomas y de Corralejo, el jable de Lanzarote, El Médano.</p>
+</main>
+<script src="../comun/relieve.js"></script>
+<script>
+(()=>{
+'use strict';
+const R=window.AulaRelieve,$=id=>document.getElementById(id),clamp=R.clamp;
+const fmt=(x,d=0)=>Number(x).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const hash=i=>{let x=Math.sin(i*127.1+3.7)*43758.5;return x-Math.floor(x)};
+function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height,d}}
+function txt(x,s,X,Y,o={}){x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';x.textAlign=o.a||'center';if(o.bg){const m=x.measureText(s).width,l=o.a==='left'?X:o.a==='right'?X-m:X-m/2;x.fillStyle=o.bg;x.fillRect(l-4,Y-(o.s||12),m+8,(o.s||12)+5)}x.fillStyle=o.c||'#f2f7f4';x.fillText(s,X,Y);x.restore()}
+function arrow(x,x1,y1,x2,y2,col,wd=3,hs=9){x.strokeStyle=col;x.fillStyle=col;x.lineWidth=wd;x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke();const a=Math.atan2(y2-y1,x2-x1);x.beginPath();x.moveTo(x2+Math.cos(a)*2,y2+Math.sin(a)*2);x.lineTo(x2-Math.cos(a-.45)*hs,y2-Math.sin(a-.45)*hs);x.lineTo(x2-Math.cos(a+.45)*hs,y2-Math.sin(a+.45)*hs);x.closePath();x.fill()}
+function sky(x,w,h,c1='#9cc7e6',c2='#e6f0f4'){const g=x.createLinearGradient(0,0,0,h*.6);g.addColorStop(0,c1);g.addColorStop(1,c2);x.fillStyle=g;x.fillRect(0,0,w,h)}
+function tag(x,s,X,Y,n){txt(x,s,X,Y,{s:n?10:12,w:800,c:'#fff',bg:'rgba(0,0,0,.55)'})}
+let step=0,T=0,playing=false,tt=0,opt={},STEPS=[],DRAW={},INFO={},LEG={};
+const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*clamp(t,0,1));
+function desertSky(x,w,h){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#f0c27a');g.addColorStop(1,'#f8e6c0');x.fillStyle=g;x.fillRect(0,0,w,h)}
+/* 1 · cómo transporta el viento */
+function drawTrans(x,w,h,d,t){desertSky(x,w,h);const n=w<560,gy=h*.78;x.fillStyle='#d9a860';x.fillRect(0,gy,w,h-gy);for(let i=0;i<400;i++){x.fillStyle=`rgba(150,100,50,${.3*hash(i)})`;x.fillRect(hash(i*3)*w,gy+hash(i*7)*(h-gy),2,2)}
+ // suspensión
+ for(let i=0;i<120;i++){const ph=(t*.06+i/120)%1,px=ph*w*1.2-w*.1,py=h*.12+hash(i)*h*.35+Math.sin(t*2+i)*6;x.fillStyle='rgba(160,110,60,.55)';x.fillRect(px,py,1.6,1.6)}
+ // saltación
+ for(let i=0;i<26;i++){const T0=(t*.6+i/26)%1,hop=(T0*4)%1,k=Math.floor(T0*4),x0=(hash(i)*w+k*w*.12+T0*w*.08)%w;const px=x0+hop*w*.1,py=gy-4-Math.sin(hop*Math.PI)*h*(.12+.08*hash(i))*(1-hop*.4);x.fillStyle='#b07a3a';x.beginPath();x.arc(px,py,2.6,0,7);x.fill();x.strokeStyle='rgba(176,122,58,.25)';x.beginPath();x.arc(px-6,py+2,2,0,7);x.stroke()}
+ // reptación
+ for(let i=0;i<14;i++){const px=(hash(i)*w+t*14)%w;x.fillStyle='#8a5a2a';x.beginPath();x.arc(px,gy-4,5,0,7);x.fill()}
+ for(let k=0;k<5;k++){const y=h*(.1+k*.12),ph=(t*.8+k*.3)%1;arrow(x,ph*w-60,y,ph*w,y,'rgba(255,255,255,.7)',2,7)}
+ tag(x,'SUSPENSIÓN: el polvo fino viaja muy lejos (¡hasta otro continente!)',w*.5,h*.1,n);tag(x,'SALTACIÓN: la arena avanza a saltos, cerca del suelo',w*.5,gy-h*.24,n);tag(x,'REPTACIÓN: los granos gruesos ruedan empujados',w*.5,gy+26,n)}
+/* 2 · cómo avanza una duna */
+function dune(X,c,Lw,H){const s=X-c;if(s<-Lw||s>Lw*.35)return 0;if(s<=0)return H*Math.pow(Math.cos(Math.PI/2*(-s/Lw)),1.4);return H*Math.max(0,1-s/(Lw*.35))}
+function drawDuna(x,w,h,d,t){desertSky(x,w,h);const n=w<560,gy=h*.8,Lw=w*.32,H=h*.32,c=w*.45+T*w*.35;
+ x.fillStyle='#d9a860';x.beginPath();x.moveTo(0,h);for(let X=0;X<=w;X+=3)x.lineTo(X,gy-dune(X,c,Lw,H)-2*Math.sin(X*.25));x.lineTo(w,h);x.fill();
+ // cara de sotavento en sombra
+ x.fillStyle='rgba(120,70,30,.28)';x.beginPath();x.moveTo(c,gy-H);for(let X=c;X<=c+Lw*.35;X+=3)x.lineTo(X,gy-dune(X,c,Lw,H));x.lineTo(c,gy);x.fill();
+ // estratificación interna
+ x.strokeStyle='rgba(140,90,40,.4)';x.lineWidth=1;for(let k=1;k<10;k++){const ox=c-Lw*.05*k;x.beginPath();x.moveTo(ox,gy-dune(ox,c,Lw,H));x.lineTo(ox+Lw*.3,gy);x.stroke()}
+ // granos subiendo por barlovento y cayendo en avalancha
+ for(let i=0;i<30;i++){const ph=(t*.3+i/30)%1;let X,Y;if(ph<.8){X=c-Lw+ph/.8*Lw;Y=gy-dune(X,c,Lw,H)-3-Math.abs(Math.sin(ph*40))*5}else{const f=(ph-.8)/.2;X=c+f*Lw*.3;Y=gy-H*(1-f)+(gy-H)*0}x.fillStyle='#9a6a30';x.beginPath();x.arc(X,Y,2,0,7);x.fill()}
+ for(let k=0;k<4;k++){const y=h*(.12+k*.07),ph=(t*.8+k*.3)%1;arrow(x,ph*w-60,y,ph*w,y,'rgba(255,255,255,.75)',2,7)}txt(x,'viento',w*.05,h*.08,{a:'left',s:n?12:14,w:900,c:'#fff'});
+ tag(x,'barlovento: pendiente suave, la arena sube',c-Lw*.55,gy-H*.55,n);tag(x,'sotavento: la arena cae en avalanchas (unos 34°)',c+Lw*.2,gy-H*.95,n);
+ x.strokeStyle='#5a3a1a';x.setLineDash([4,4]);x.beginPath();x.moveTo(w*.45,gy+6);x.lineTo(c,gy+6);x.stroke();x.setLineDash([]);if(T>.05)txt(x,'avance de la duna',(w*.45+c)/2,gy+20,{s:n?10:12,w:800,c:'#5a3a1a'})}
+/* 3 · tipos de dunas (planta) */
+function drawTipos(x,w,h,d,t){const n=w<560,m=opt.tipos||'barjan';x.fillStyle='#e8c07a';x.fillRect(0,0,w,h);for(let i=0;i<500;i++){x.fillStyle=`rgba(180,130,70,${.15*hash(i)})`;x.fillRect(hash(i*3)*w,hash(i*7)*h,2,2)}
+ const sh=t*6%w;
+ if(m==='barjan'){for(let k=0;k<6;k++){const X=((hash(k)*w+sh*(1+hash(k+3)))%(w+120))-60,Y=h*(.15+.7*hash(k*5)),s=26+36*hash(k*9);x.fillStyle='#d49a50';x.beginPath();x.moveTo(X+s*1.1,Y-s*1.05);x.bezierCurveTo(X-s*.2,Y-s*1.1,X-s*.9,Y-s*.5,X-s*.9,Y);x.bezierCurveTo(X-s*.9,Y+s*.5,X-s*.2,Y+s*1.1,X+s*1.1,Y+s*1.05);x.bezierCurveTo(X+s*.35,Y+s*.7,X+s*.15,Y+s*.3,X+s*.15,Y);x.bezierCurveTo(X+s*.15,Y-s*.3,X+s*.35,Y-s*.7,X+s*1.1,Y-s*1.05);x.fill();x.fillStyle='rgba(110,60,20,.32)';x.beginPath();x.moveTo(X+s*.9,Y-s*.85);x.bezierCurveTo(X+s*.3,Y-s*.6,X-s*.05,Y-s*.3,X-s*.05,Y);x.bezierCurveTo(X-s*.05,Y+s*.3,X+s*.3,Y+s*.6,X+s*.9,Y+s*.85);x.bezierCurveTo(X+s*.35,Y+s*.7,X+s*.15,Y+s*.3,X+s*.15,Y);x.bezierCurveTo(X+s*.15,Y-s*.3,X+s*.35,Y-s*.7,X+s*.9,Y-s*.85);x.fill()}tag(x,'BARJANES: dunas en media luna con los cuernos hacia donde sopla el viento',w/2,h-12,n)}
+ else{for(let k=0;k<7;k++){const X=((k*w/6+sh)%(w+80))-40;x.fillStyle='#d49a50';x.beginPath();x.moveTo(X,0);for(let y=0;y<=h;y+=10)x.lineTo(X+12*Math.sin(y*.03+k),y);for(let y=h;y>=0;y-=10)x.lineTo(X+45+12*Math.sin(y*.03+k),y);x.fill();x.fillStyle='rgba(110,60,20,.3)';x.beginPath();for(let y=0;y<=h;y+=10)x.lineTo(X+45+12*Math.sin(y*.03+k),y);for(let y=h;y>=0;y-=10)x.lineTo(X+30+12*Math.sin(y*.03+k),y);x.fill()}tag(x,'DUNAS TRANSVERSALES: largas crestas perpendiculares al viento, donde hay mucha arena',w/2,h-12,n)}
+ arrow(x,20,26,110,26,'#fff',3,9);txt(x,'viento',20,18,{a:'left',s:12,w:900,c:'#fff'});txt(x,'vista desde arriba',w-10,22,{a:'right',s:n?10:12,w:800,c:'#5a3a1a'})}
+/* 4 · Canarias: dunas y calima */
+let CAN=null;(()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);const id=x.getImageData(0,0,c.width,c.height),p=id.data;for(let i=0;i<p.length;i+=4){const v=p[i];p[i]=v?120:0;p[i+1]=v?104:0;p[i+2]=v?80:0;p[i+3]=v?255:0}x.putImageData(id,0,0);CAN=c};im.src='../comun/canarias.png'})();
+function drawCanarias(x,w,h,d,t){const n=w<560;x.fillStyle='#1f5f8a';x.fillRect(0,0,w,h);const W0=-18.4,E0=-13.2,S0=27.5,N0=29.5,k=Math.cos(28.4*Math.PI/180);let W=w*.86,H=W*(N0-S0)/((E0-W0)*k);if(H>h*.8){H=h*.8;W=H*(E0-W0)*k/(N0-S0)}const x0=(w-W)/2-w*.04,y0=(h-H)/2,X=lo=>x0+(lo-W0)/(E0-W0)*W,Y=la=>y0+(N0-la)/(N0-S0)*H;
+ if(CAN)x.drawImage(CAN,x0,y0,W,H);
+ x.fillStyle='#c79a5a';x.fillRect(w*.94,0,w*.06,h);txt(x,'África',w*.97,h*.5,{s:n?10:12,w:900,c:'#3a2a10'});
+ const cal=opt.can==='calima';if(cal){for(let i=0;i<500;i++){const ph=(t*.05+i/500)%1,px=w*(1-ph*1.05),py=h*hash(i)+Math.sin(t+i)*8;x.fillStyle=`rgba(210,150,80,${.45*(1-Math.abs(ph-.5))})`;x.fillRect(px,py,2.2,2.2)}x.fillStyle='rgba(210,160,90,.18)';x.fillRect(0,0,w,h)}
+ else{for(let i=0;i<14;i++){const ph=((t*.15+i/14)%1),sx=w*(.95-ph*.9),sy=h*(.05+ph*.6)+hash(i)*h*.3;arrow(x,sx,sy,sx-30,sy+14,`rgba(255,255,255,${.6*Math.sin(ph*Math.PI)})`,2,6)}txt(x,'alisio (del noreste)',w*.8,h*.08,{s:n?10:12,w:800,c:'#fff'})}
+ const P=[['Dunas de Maspalomas',-15.58,27.74,0,16],['Dunas de Corralejo',-13.87,28.71,40,-6],['El Jable',-13.6,29.08,30,-10],['El Médano (Tenerife)',-16.53,28.05,0,16]];
+ for(const [nm,lo,la,ox,oy] of P){const px=X(lo),py=Y(la);x.fillStyle='#ffd166';x.beginPath();x.arc(px,py,5,0,7);x.fill();if(!cal)tag(x,nm,px+ox*(n?.6:1),py+oy,n)}
+ txt(x,cal?'CALIMA: polvo del Sáhara traído por el viento del este':'Arenas que mueve el viento en Canarias',10,22,{a:'left',s:n?12:15,w:900,c:'#fff',bg:'rgba(0,0,0,.4)'})}
+STEPS=[
+ {k:'Cómo trabaja el viento',v:'trans',t:'El viento erosiona, transporta y deposita',p:'Donde hay poca vegetación, como en los desiertos o en las playas, el viento puede mover el suelo. Levanta el polvo más fino y lo lleva en <b>suspensión</b> a enormes distancias; la arena avanza a saltos cerca del suelo (<b>saltación</b>); y los granos más gruesos ruedan empujados (<b>reptación</b>). Al arrastrarse, la arena actúa como un chorro de arena que pule y talla las rocas.'},
+ {k:'Cómo avanza una duna',v:'duna',time:'Tiempo',dur:16,t:'Las dunas caminan',p:'Una <b>duna</b> es un montón de arena acumulada por el viento. El viento sube la arena por la ladera de <b>barlovento</b>, de pendiente suave, y la deja caer por la de <b>sotavento</b>, más empinada, en pequeñas avalanchas. Así, grano a grano, toda la duna se desplaza en la dirección del viento, y puede llegar a cubrir carreteras y casas. Pulsa ▶.'},
+ {k:'Tipos de dunas',v:'tipos',o:[['barjan','Barjanes'],['trans','Transversales']],ol:'Tipo',t:'Formas de las dunas',p:'La forma de las dunas depende de cuánta arena hay y de cómo sopla el viento. Con poca arena y viento de una sola dirección se forman <b>barjanes</b>, dunas en forma de media luna que avanzan como un rebaño. Con mucha arena se unen en largas crestas, las <b>dunas transversales</b>.'},
+ {k:'En Canarias',v:'can',o:[['dunas','Campos de dunas'],['calima','Calima']],ol:'Ver',t:'El viento en Canarias: dunas y calima',p:'En Canarias hay campos de dunas protegidos, como las <b>dunas de Maspalomas</b> (Gran Canaria) y las de <b>Corralejo</b> (Fuerteventura), formadas sobre todo por arena clara de conchas y organismos marinos que los alisios empujan tierra adentro. Y cuando sopla viento del este o del sureste llega la <b>calima</b>: polvo del Sáhara en suspensión que vuelve el cielo amarillento.'}];
+DRAW={trans:drawTrans,duna:drawDuna,tipos:drawTipos,can:drawCanarias};
+INFO={trans:()=>'La mayoría de los granos que mueve el viento no suben más de un metro del suelo. Por eso las rocas de los desiertos se desgastan sobre todo por abajo y pueden quedar con forma de seta.',duna:()=>'Las dunas más grandes del mundo, en el Sáhara y en Namibia, superan los 300 m de altura. Una duna pequeña puede avanzar varios metros al año.',tipos:()=>opt.tipos==='trans'?'Las dunas transversales forman «mares de arena» llamados ergs, como el Gran Erg Oriental del Sáhara.':'Los cuernos del barján avanzan más deprisa que el centro porque tienen menos arena.',can:()=>opt.can==='calima'?'Durante la calima empeora la calidad del aire y baja la visibilidad: a veces hay que cerrar aeropuertos. El polvo del Sáhara también fertiliza el océano y llega hasta la Amazonia.':'Las dunas de Maspalomas y de Corralejo son espacios naturales protegidos. En Lanzarote, el <b>jable</b> es arena clara de origen marino que el viento ha extendido por el interior de la isla y que se aprovecha en la agricultura.'};
+LEG={trans:'Las flechas blancas indican el viento.',duna:'Perfil de una duna (esquema).',tipos:'Vista desde arriba: la parte oscura es la cara de sotavento.',can:'Puntos amarillos: campos de dunas.'};
+
+function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
+function renderOpt(){const s=STEPS[step];if(!s.o){$('optBox').style.display='none';return}$('optBox').style.display='';$('optLab').textContent=s.ol;if(opt[s.v]==null)opt[s.v]=s.o[0][0];$('opt').innerHTML=s.o.map(([k,n])=>`<button data-k="${k}" class="${opt[s.v]===k?'on':''}">${n}</button>`).join('');$('opt').querySelectorAll('button').forEach(b=>b.onclick=()=>{opt[s.v]=b.dataset.k;if(s.resetT)T=0;renderOpt();info();legend()})}
+function legend(){const v=STEPS[step].v;$('legend').innerHTML=typeof LEG[v]==='function'?LEG[v]():(LEG[v]||'')}
+function info(){const v=STEPS[step].v;$('info').innerHTML=INFO[v]?INFO[v]():''}
+function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();renderOpt();$('timeBox').style.display=s.time?'':'none';if(s.time)$('timeLab').innerHTML=s.time;T=s.t0??0;playing=!!s.autoplay;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir';document.querySelectorAll('[data-show]').forEach(el=>el.style.display=el.dataset.show.split(' ').includes(s.v)?'':'none');legend();info()}
+$('time').oninput=()=>{T=+$('time').value;playing=false;$('play').textContent='▶ Reproducir';info()};
+$('play').onclick=()=>{if(T>=1)T=0;playing=!playing;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir'};
+$('reset').onclick=()=>{T=0;info()};
+let last=performance.now(),acc=0;
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;const s=STEPS[step];if(playing&&s.time){T=Math.min(1,T+dt/(s.dur||14));if(T>=1){if(s.loop)T=0;else{playing=false;$('play').textContent='▶ Reproducir'}}acc+=dt;if(acc>.3){acc=0;info()}}$('time').value=T;
+ const {x,w,h,d}=fit($('main'));DRAW[s.v](x,w,h,d,tt);requestAnimationFrame(frame)}
+renderSteps();go(0);requestAnimationFrame(frame);
+window.__g={go,set T(v){T=v;info()},set opt(v){opt[STEPS[step].v]=v;renderOpt();info();legend()}};
+})();
+</script>
+</body>
+</html>
