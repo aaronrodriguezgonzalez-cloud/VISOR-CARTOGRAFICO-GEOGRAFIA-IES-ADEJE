@@ -47,11 +47,12 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
   <div class="col">
    <div class="box" id="timeBox"><label>Hace <b id="maV" style="color:#ffd166"></b> millones de años</label><input id="ma" type="range" min="0" max="250" step="1" value="250"><div class="seg"><button id="playT">▶ Reproducir</button><button data-ma="250">Pangea</button><button data-ma="0">Hoy</button></div><ul class="ev" id="events"></ul></div>
    <div class="box" id="subBox"><label>Tipo de subducción</label><div class="seg"><button data-sub="oc">Océano bajo continente</button><button data-sub="oo">Océano bajo océano</button></div></div>
-   <div class="box" id="mapBox"><label>En el mapa</label><div class="seg" id="mapLayers"></div></div>
+   <div class="box" id="mapBox"><label>Capas del globo</label><div class="seg" id="mapLayers"></div></div>
+   <div class="box" id="viewerBox"><label>Explóralo con todas las herramientas</label><div class="seg"><button id="toViewer">🌍 Verlo en el globo 3D de ANAMBRO</button></div><div style="font-size:12px;color:#a9c0cd;margin-top:6px">Cierra la animación y abre el globo del visor con las placas, los terremotos y los volcanes activados.</div></div>
    <div class="box"><div class="legend" id="legend"></div></div>
   </div>
  </div>
- <p class="small">Placas y límites actuales: modelo PB2002 (Bird, 2003, <i>Geochem. Geophys. Geosyst.</i> 4(3), 1027; versión digital de github.com/fraxen/tectonicplates, licencia ODC‑By 1.0). Velocidades calculadas con los polos de rotación de PB2002 en un marco sin rotación neta. Costas del pasado: modelo de Müller et al. (2022), <i>Solid Earth</i> 13, 1127–1159 (CC BY 4.0), obtenidas mediante GPlates Web Service (EarthByte, Universidad de Sídney). Costas actuales de Natural Earth. Los cortes son esquemas sin escala.</p>
+ <p class="small">Placas y límites actuales: modelo PB2002 (Bird, 2003, <i>Geochem. Geophys. Geosyst.</i> 4(3), 1027; versión digital de github.com/fraxen/tectonicplates, licencia ODC‑By 1.0). Velocidades calculadas con los polos de rotación de PB2002 en un marco sin rotación neta. Costas del pasado: modelo de Müller et al. (2022), <i>Solid Earth</i> 13, 1127–1159 (CC BY 4.0), obtenidas mediante GPlates Web Service (EarthByte, Universidad de Sídney). Terremotos: USGS Earthquake Hazards Program (dominio público), en directo. Volcanes: Smithsonian Institution, Global Volcanism Program, <i>Volcanoes of the World</i>, en directo. Si no hay conexión se muestran terremotos históricos y volcanes conocidos. Costas actuales de Natural Earth. Los cortes son esquemas sin escala.</p>
 </main>
 <script src="../comun/tierra.js"></script>
 <script>
@@ -107,145 +108,209 @@ function drawInterior(x,w,h,t,d){x.fillStyle='#05101a';x.fillRect(0,0,w,h);const
  lab(2500,8,'Núcleo externo (líquido)','hierro y níquel fundidos · crea el campo magnético','#ffd166');
  lab(600,40,'Núcleo interno (sólido)','unos 5.400 °C · a 6.371 km de profundidad','#fff1a8');
  txt(x,'↻ corrientes de convección en el manto',cx+R*.5,h-8,{a:'center',s:narrow?10.5:12.5,w:800,c:'#ff9a6b'})}
-/* ---- cortes de los límites ---- */
-function sec(x,w,h){return {X0:8,Y0:8,W:w-16,H:h-16}}
-function stripes(x,X1,X2,y,hh,phase,dir,cols){const sw=16;for(let k=-1;k<40;k++){let a=X1+((k*sw+phase*dir)%(sw*2)+sw*2)%(sw*2)+Math.floor(k/2)*sw*2;}
-}
-function drawDivergent(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),cx=X0+W/2,sea=Y0+H*.3,crust=Y0+H*.42,lith=Y0+H*.56;
- x.fillStyle='#0d3b5c';x.fillRect(X0,Y0+H*.12,W,crust-(Y0+H*.12));x.fillStyle='#bde3ff';x.fillRect(X0,Y0+H*.12,W,2);
- // astenosfera
- const ga=x.createLinearGradient(0,lith,0,Y0+H);ga.addColorStop(0,'#c4562a');ga.addColorStop(1,'#7a2a14');x.fillStyle=ga;x.fillRect(X0,lith,W,Y0+H-lith);
- // litosfera con bandas de edad que se alejan del eje
- const sp=(t*14)%32;for(const s of [-1,1]){for(let k=0;k<30;k++){const d0=k*16+sp/2,xa=cx+s*d0,xb=cx+s*(d0+16);if(d0>W/2)break;const age=k;x.fillStyle=Math.floor((k*16+sp/2)/16+t*0)%2?'#4b5d6b':'#3a4a57';x.fillStyle=(k%2)?'#4d6070':'#36495a';const rise=Math.max(0,1-d0/(W*.35))*H*.08;x.fillRect(Math.min(xa,xb),crust-rise,Math.abs(xb-xa)+1,lith-crust+rise)}}
- // dorsal y magma
- x.fillStyle='#ff6a3d';x.beginPath();x.moveTo(cx-W*.08,lith+H*.18);x.quadraticCurveTo(cx,lith-H*.02,cx+W*.08,lith+H*.18);x.fill();
- x.fillStyle='#ffb000';x.fillRect(cx-3,crust-H*.08,6,lith-crust+H*.1);
- for(let i=0;i<14;i++){const ph=(t*.5+i/14)%1,yy=lith+H*.2-ph*(H*.3),xx=cx+Math.sin(i*2.1+t)*W*.03*(1-ph);x.fillStyle=`rgba(255,${150+80*ph|0},60,${1-ph*.6})`;x.beginPath();x.arc(xx,yy,3,0,7);x.fill()}
- arrow(x,cx-W*.12,crust+ (lith-crust)/2,cx-W*.3,crust+(lith-crust)/2,'#fff',4,12);arrow(x,cx+W*.12,crust+(lith-crust)/2,cx+W*.3,crust+(lith-crust)/2,'#fff',4,12);
- const n=w<560;txt(x,'DORSAL',cx,Y0+H*.2,{s:n?12:15,w:900,c:'#ffd166',bg:'rgba(5,16,26,.6)'});txt(x,'el magma asciende y se crea corteza oceánica nueva',cx,Y0+H*.98-4,{s:n?10:12.5,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.6)'});
- txt(x,'Placa',X0+W*.16,crust+(lith-crust)/2+4,{s:n?10:12,w:800});txt(x,'Placa',X0+W*.84,crust+(lith-crust)/2+4,{s:n?10:12,w:800});txt(x,'Océano',X0+W*.1,Y0+H*.25,{s:n?10:12,c:'#bde3ff'});txt(x,'Astenosfera',X0+W*.12,Y0+H*.9,{s:n?10:12,c:'#ffd1b8'});
- txt(x,'la corteza más joven está junto a la dorsal; cuanto más lejos, más antigua',cx,Y0+H*.28,{s:n?9:11,w:600,c:'#cfe0e8'})}
-function drawSubduction(x,w,h,t,oo){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,sea=Y0+H*.22,tr=X0+W*(oo?.42:.45),top=Y0+H*.34,th=H*.1,ang=oo?.62:.5;
- x.fillStyle='#0d3b5c';x.fillRect(X0,Y0+H*.12,oo?W:tr-X0+W*.06,top-(Y0+H*.12));x.fillStyle='#bde3ff';x.fillRect(X0,Y0+H*.12,oo?W:tr-X0+W*.06,2);
- const ga=x.createLinearGradient(0,top,0,Y0+H);ga.addColorStop(0,'#c4562a');ga.addColorStop(1,'#7a2a14');x.fillStyle=ga;x.fillRect(X0,top+th,W,Y0+H-top-th);
- // placa superior (continente u océano)
- if(oo){x.fillStyle='#4d6070';x.fillRect(tr,top,X0+W-tr,th);// arco de islas
-  for(const [px,hh] of [[tr+W*.14,H*.13],[tr+W*.25,H*.1]]){x.fillStyle='#6b5a48';x.beginPath();x.moveTo(px-W*.06,top);x.lineTo(px,top-hh);x.lineTo(px+W*.06,top);x.fill()}}
- else{x.fillStyle='#8a7a5a';x.beginPath();x.moveTo(tr+W*.02,top);x.lineTo(tr+W*.08,Y0+H*.13);x.lineTo(tr+W*.16,Y0+H*.05);x.lineTo(tr+W*.24,Y0+H*.1);x.lineTo(tr+W*.34,Y0+H*.18);x.lineTo(X0+W,Y0+H*.2);x.lineTo(X0+W,top+th*1.9);x.lineTo(tr+W*.06,top+th*1.9);x.closePath();x.fill();x.fillStyle='#6f6048';x.fillRect(tr+W*.06,top+th*1.9,X0+W-tr-W*.06,th*.6)}
- // losa que subduce
- const sx=tr,sy=top,cs=Math.cos(ang),sn=Math.sin(ang),len=W*.6;x.save();x.beginPath();x.rect(X0,Y0,W,H);x.clip();
- x.fillStyle='#36495a';x.beginPath();x.moveTo(X0,top);x.lineTo(sx,top);x.quadraticCurveTo(sx+W*.05,top,sx+W*.05+cs*20,top+sn*20);x.lineTo(sx+W*.05+cs*len,top+sn*len);x.lineTo(sx+W*.05+cs*len-sn*th,top+sn*len+cs*th);x.lineTo(sx+W*.02-sn*th+cs*10,top+th+sn*10);x.quadraticCurveTo(sx-W*.02,top+th,sx-W*.05,top+th);x.lineTo(X0,top+th);x.closePath();x.fill();
- // marcas de movimiento sobre la placa oceánica
- const mv=(t*30)%40;x.strokeStyle='rgba(255,255,255,.35)';x.lineWidth=2;for(let px=X0+mv;px<sx;px+=40){x.beginPath();x.moveTo(px,top+3);x.lineTo(px,top+th-3);x.stroke()}
- // magma hacia los volcanes y terremotos
- const vx=oo?tr+W*.14:tr+W*.16,vy=oo?top-H*.13:Y0+H*.05,mx=sx+W*.05+cs*len*.42,my=top+sn*len*.42;
- for(let i=0;i<10;i++){const ph=(t*.35+i/10)%1,px=mx+(vx-mx)*ph+Math.sin(i+t*2)*4,py=my+(vy-my)*ph;x.fillStyle=`rgba(255,${120+100*ph|0},40,${.95-.4*ph})`;x.beginPath();x.arc(px,py,3.2,0,7);x.fill()}
- x.fillStyle='#ff4d00';x.beginPath();x.arc(vx,vy-2,5+Math.sin(t*6)*1.5,0,7);x.fill();
- for(let i=0;i<9;i++){const f=i/9*.9+.05,px=sx+W*.05+cs*len*f-sn*th*.5,py=top+sn*len*f+cs*th*.5,on=((t*1.7+i*.37)%1)<.18;if(on){x.fillStyle='#fff36b';x.font=(n?13:17)+'px system-ui';x.textAlign='center';x.fillText('✸',px,py+5)}else{x.fillStyle='rgba(255,243,107,.35)';x.beginPath();x.arc(px,py,2,0,7);x.fill()}}
- x.restore();
- arrow(x,X0+W*.08,top+th/2,X0+W*.24,top+th/2,'#fff',4,12);if(!oo)arrow(x,X0+W*.95,top+th*1.2,X0+W*.8,top+th*1.2,'#fff',4,12);else arrow(x,X0+W*.96,top+th/2,X0+W*.84,top+th/2,'#fff',4,12);
- txt(x,'FOSA',tr,top-6,{s:n?10:12,w:900,c:'#9fd3ff',bg:'rgba(5,16,26,.6)'});
- txt(x,oo?'ARCO DE ISLAS VOLCÁNICAS':'CORDILLERA Y VOLCANES',oo?tr+W*.3:Math.min(tr+W*.4,X0+W-(n?70:110)),oo?Y0+H*.08:Y0+H*.06,{s:n?10.5:13,w:900,c:'#ffd166',bg:'rgba(5,16,26,.6)'});
- txt(x,oo?'Placa oceánica':'Placa oceánica (densa)',X0+W*.16,top+th/2+ (n?14:18)+th/2,{s:n?10:12,w:800});txt(x,oo?'Placa oceánica':'Placa continental',X0+W*.8,oo?top+th+16:top+th*2.9+14,{s:n?10:12,w:800});
- txt(x,'✸ terremotos a lo largo de la placa que se hunde',X0+W*.5,Y0+H-6,{s:n?9.5:12,w:800,c:'#fff36b',bg:'rgba(5,16,26,.6)'});
- txt(x,'se funde y sube magma',mx+(vx-mx)*.5-10,my+(vy-my)*.5+4,{a:'right',s:n?9.5:11.5,w:700,c:'#ffb27a',bg:'rgba(5,16,26,.6)'})}
-function drawCollision(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,cx=X0+W/2,top=Y0+H*.4,th=H*.16,sq=(Math.sin(t*.6)*.5+.5);
- const ga=x.createLinearGradient(0,top,0,Y0+H);ga.addColorStop(0,'#c4562a');ga.addColorStop(1,'#7a2a14');x.fillStyle=ga;x.fillRect(X0,top+th,W,Y0+H-top-th);
- x.fillStyle='#8a7a5a';x.fillRect(X0,top,W,th);
- // montañas plegadas que crecen
- const mh=H*(.18+.12*sq);x.fillStyle='#a08a62';x.beginPath();x.moveTo(cx-W*.28,top);for(let k=0;k<=24;k++){const f=k/24,px=cx-W*.28+f*W*.56,env=Math.sin(f*Math.PI),py=top-mh*env*(.75+.25*Math.sin(f*40+1));x.lineTo(px,py)}x.lineTo(cx+W*.28,top);x.fill();
- // raíz y pliegues
- x.fillStyle='#8a7a5a';x.beginPath();x.moveTo(cx-W*.25,top+th);x.quadraticCurveTo(cx,top+th+H*(.18+.08*sq),cx+W*.25,top+th);x.fill();
- x.strokeStyle='rgba(60,40,20,.65)';x.lineWidth=2;for(let k=0;k<6;k++){x.beginPath();const yy=top+th*.15+k*th*.14;for(let px=cx-W*.26;px<=cx+W*.26;px+=4){const f=(px-(cx-W*.26))/(W*.52),env=Math.sin(f*Math.PI);x.lineTo(px,yy-env*mh*.55+Math.sin(px*.06+k)*env*8)}x.stroke()}
- // losa oceánica desprendida
- x.fillStyle='#36495a';x.save();x.translate(cx-W*.05,top+th+H*.12+sq*4);x.rotate(1.2);x.fillRect(0,0,H*.3,th*.6);x.restore();
- arrow(x,X0+W*.05,top+th/2,X0+W*.2,top+th/2,'#fff',4,12);arrow(x,X0+W*.95,top+th/2,X0+W*.8,top+th/2,'#fff',4,12);
- txt(x,'CORDILLERA DE PLEGAMIENTO',cx,Y0+H*.08,{s:n?11:14,w:900,c:'#ffd166',bg:'rgba(5,16,26,.6)'});txt(x,'Continente',X0+W*.12,top-8,{s:n?10:12,w:800});txt(x,'Continente',X0+W*.88,top-8,{s:n?10:12,w:800});
- txt(x,'la corteza se pliega, se rompe y se engrosa (raíz de la montaña)',cx,Y0+H-6,{s:n?9.5:12,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.6)'})}
-function drawTransform(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,cy=Y0+H*.5,off=((t*18)%(W*.5));
- x.fillStyle='#7d8a6a';x.fillRect(X0,Y0,W,H/2);x.fillStyle='#8a8f6c';x.fillRect(X0,cy,W,H/2);
- // carretera y río desplazados
- const road=(y0,y1,dx,col,wd)=>{x.strokeStyle=col;x.lineWidth=wd;x.beginPath();x.moveTo(X0+W*.5+dx,y0);x.lineTo(X0+W*.5+dx,y1);x.stroke()};
- const d=Math.min(W*.3,off);road(Y0,cy,-d/2,'#ddd',8);road(cy,Y0+H,d/2,'#ddd',8);road(Y0,cy,-d/2-W*.2,'#4cc9f0',5);road(cy,Y0+H,d/2-W*.2,'#4cc9f0',5);
- x.strokeStyle='#ff4d6d';x.lineWidth=3;x.setLineDash([10,6]);x.beginPath();x.moveTo(X0,cy);x.lineTo(X0+W,cy);x.stroke();x.setLineDash([]);
- arrow(x,X0+W*.85,Y0+H*.22,X0+W*.65,Y0+H*.22,'#fff',4,12);arrow(x,X0+W*.15,Y0+H*.78,X0+W*.35,Y0+H*.78,'#fff',4,12);
- if(((t*1.3)%1)<.2){x.fillStyle='#fff36b';x.font=(n?22:30)+'px system-ui';x.textAlign='center';x.fillText('✸',X0+W*.3+((t*7|0)%5)*W*.08,cy+8)}
- txt(x,'FALLA TRANSFORMANTE (vista desde arriba)',X0+W/2,Y0+18,{s:n?11:14,w:900,c:'#ffd166',bg:'rgba(5,16,26,.6)'});txt(x,'carretera',X0+W*.5-d/2+8,Y0+H*.08+20,{a:'left',s:n?9.5:11,c:'#fff',bg:'rgba(5,16,26,.5)'});txt(x,'río',X0+W*.3-d/2+8,Y0+H*.08+20,{a:'left',s:n?9.5:11,c:'#bde3ff',bg:'rgba(5,16,26,.5)'});
- txt(x,'las placas se deslizan una junto a otra: ni se crea ni se destruye corteza, pero hay terremotos',X0+W/2,Y0+H-8,{s:n?9:11.5,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.6)'})}
-/* ---- deriva ---- */
+
 const EVENTS=[[250,'Pangea: todos los continentes forman uno solo, rodeado por el océano Panthalassa. El mar de Tetis se abre por el este.'],[200,'Pangea empieza a romperse: se abre el Atlántico central entre Norteamérica y África.'],[175,'Se separan Laurasia (al norte) y Gondwana (al sur).'],[150,'Gondwana se fragmenta: la Antártida, India y Australia se alejan de África.'],[125,'Se abre el Atlántico Sur: Sudamérica se separa de África.'],[100,'India, ya separada, se dirige hacia el norte.'],[80,'El Atlántico Norte se ensancha. India acelera hacia Asia.'],[66,'Extinción de los dinosaurios. India avanza unos 15 cm al año, muy rápido para una placa.'],[50,'India choca con Asia: empieza a levantarse el Himalaya.'],[35,'Australia se separa de la Antártida, que queda aislada y se cubre de hielo.'],[20,'Arabia se acerca a Asia; se levantan los Alpes y las Béticas.'],[10,'El mapa ya se parece mucho al actual.'],[0,'Hoy: el Atlántico sigue ensanchándose unos 2–3 cm al año, lo que crecen las uñas.']];
-function drawDrift(x,w,h,d){const g=mapGeom(w,h);x.fillStyle='#0b2234';x.fillRect(0,0,w,h);const oc=x.createLinearGradient(0,g.y0,0,g.y0+g.H);oc.addColorStop(0,'#16405f');oc.addColorStop(.5,'#1d5f8a');oc.addColorStop(1,'#16405f');x.fillStyle=oc;x.fillRect(g.x0,g.y0,g.W,g.H);
- let a=PALEO[0],b=PALEO[0];for(let i=0;i<PALEO.length-1;i++){if(ma<=PALEO[i]&&ma>=PALEO[i+1]){a=PALEO[i];b=PALEO[i+1];break}}const f=a===b?0:(a-ma)/(a-b);
- // el raster cubre de 90 a −90; el mapa de VIEW.n a VIEW.s
- const sy=(90-VIEW.n)/180,sh=(VIEW.n-VIEW.s)/180;const draw=(m,al)=>{const c=paleo[m];if(!c||al<=0)return;x.globalAlpha=al;x.drawImage(c,0,sy*c.height,c.width,sh*c.height,g.x0,g.y0,g.W,g.H);x.globalAlpha=1};
- if(f<.5){draw(a,1);draw(b,f*2)}else{draw(b,1);draw(a,(1-f)*2)}
- for(const [la,c] of [[0,'rgba(255,255,255,.4)'],[23.44,'rgba(255,209,102,.3)'],[-23.44,'rgba(255,209,102,.3)']]){x.strokeStyle=c;x.setLineDash(la?[4,4]:[]);x.beginPath();x.moveTo(g.x0,g.Y(la));x.lineTo(g.x0+g.W,g.Y(la));x.stroke();x.setLineDash([])}
- const n=w<560;if(ma>=190){const al=Math.min(1,(ma-190)/30);x.globalAlpha=al;txt(x,'PANGEA',g.X(25),g.Y(5),{s:n?13:18,w:900,c:'#3a2500',bg:'rgba(255,230,170,.75)'});txt(x,'Panthalassa',g.X(-125),g.Y(0),{s:n?11:15,w:800,c:'#cfe8ff'});txt(x,'Tetis',g.X(82),g.Y(-6),{s:n?11:14,w:800,c:'#cfe8ff'});x.globalAlpha=1}
- txt(x,'hace '+fmt(ma)+' millones de años',g.x0+10,g.y0+24,{a:'left',s:n?14:18,w:900,c:'#ffd166',bg:'rgba(5,16,26,.75)'})}
-/* ---- mini mapa de ejemplos ---- */
+
 const EXO={'Alpes':[22,-10],'Pirineos':[-26,0],'Falla de Anatolia del Norte':[40,-8],'Azores–Gibraltar':[-20,14],'Zagros':[-8,14]};
 const EX={div:[['Dorsal Mesoatlántica',-30,10],['Islandia',-19,65],['Rift de África Oriental',36,2],['Mar Rojo',39,20],['Dorsal del Pacífico Este',-112,-20]],sub:[['Andes',-70,-20],['Japón',140,37],['Fosa de las Marianas',146,13],['Aleutianas',-170,52],['Indonesia',110,-9]],col:[['Himalaya',85,29],['Alpes',10,46],['Pirineos',0,42.7],['Zagros',50,31]],tra:[['Falla de San Andrés',-121,36],['Falla de Anatolia del Norte',35,40.8],['Azores–Gibraltar',-20,36.5],['Nueva Zelanda (Alpina)',170,-43]]};
 function drawMiniMap(x,w,h,d,k,Y0,H){const g0=mapGeom(w,H),g={...g0,y0:Y0+g0.y0,Y:la=>Y0+g0.y0+(VIEW.n-la)/(VIEW.n-VIEW.s)*g0.H};x.save();x.translate(0,Y0);drawMapBase(x,w,H,d,'land',g0);x.restore();drawBoundaries(x,g,[k],0);
  for(const [nm,lo,la] of EX[k]){const X=g.X(lo),Y=g.Y(la),o=EXO[nm]||[0,0];x.fillStyle='#fff';x.beginPath();x.arc(X,Y,3.5,0,7);x.fill();txt(x,nm,X+o[0],Y-7+o[1],{s:w<560?9:11,w:800,bg:'rgba(5,16,26,.7)'})}}
-/* ---- relieve y exploración ---- */
-const RELIEF=[['Himalaya',85,29,0,0],['Andes',-69,-18,0,0],['Montañas Rocosas',-110,45,0,-12],['Alpes',10,46,30,-12],['Pirineos',0,42.7,-32,-12],['Béticas',-3.5,37.2,-34,6],['Dorsal Mesoatlántica',-30,0,0,0],['Fosa de las Marianas (−11 km)',146,11,-50,14],['Islandia',-19,65,0,0],['Rift africano',36,-4,0,0],['San Andrés',-121,36,-20,14],['Japón',140,37,0,0]];
-/* ---- pasos ---- */
+
+/* ================= GLOBO ================= */
+const GV={lon0:-25,lat0:18};let lastUser=-10,gCacheG=null,dragging=false;
+const paleoR={};
+for(const m of PALEO)loadImg('../comun/paleo/'+m+'.png',im=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height).data,a=new Uint8Array(c.width*c.height);for(let i=0;i<a.length;i++)a[i]=d[i*4];paleoR[m]={w:c.width,h:c.height,a};gCacheG=null});
+function gGeom(w,h){const n=w<560,R=Math.min(h*.45,w*(n?.45:.33));return {cx:n?w/2:w*.38,cy:h/2,R,n}}
+function proj(g,la,lo){const p=la*D2R,l=(lo-GV.lon0)*D2R,p0=GV.lat0*D2R,cp=Math.cos(p);return {x:g.cx+g.R*cp*Math.sin(l),y:g.cy-g.R*(Math.cos(p0)*Math.sin(p)-Math.sin(p0)*cp*Math.cos(l)),v:Math.sin(p0)*Math.sin(p)+Math.cos(p0)*cp*Math.cos(l)}}
+function unproj(g,X,Y){const u=(X-g.cx)/g.R,v=-(Y-g.cy)/g.R,rr=u*u+v*v;if(rr>1)return null;const z=Math.sqrt(1-rr),p0=GV.lat0*D2R;const la=Math.asin(v*Math.cos(p0)+z*Math.sin(p0))*R2D,lo=GV.lon0+Math.atan2(u,z*Math.cos(p0)-v*Math.sin(p0))*R2D;return {la,lo:((lo+540)%360)-180}}
+function paleoPair(){let a=PALEO[0],b=PALEO[0];for(let i=0;i<PALEO.length-1;i++){if(ma<=PALEO[i]&&ma>=PALEO[i+1]){a=PALEO[i];b=PALEO[i+1];break}}return {A:paleoR[a],B:paleoR[b],f:a===b?0:(a-ma)/(a-b)}}
+function renderGlobe(x,g,mode,q){const pp=mode==='paleo'?paleoPair():null;const key=[mode,GV.lon0.toFixed(2),GV.lat0.toFixed(2),g.R.toFixed(1),q,mode==='paleo'?ma.toFixed(1):'',!!land,!!PIDX,Object.keys(paleoR).length].join('|');
+ if(!gCacheG||gCacheG.key!==key){const S=Math.max(20,Math.ceil(2*g.R*q)),c=(gCacheG&&gCacheG.c.width===S)?gCacheG.c:document.createElement('canvas');c.width=S;c.height=S;const cx=c.getContext('2d'),im=cx.createImageData(S,S),p=im.data,p0=GV.lat0*D2R,sp0=Math.sin(p0),cp0=Math.cos(p0);
+  for(let j=0;j<S;j++){const v=1-(j+.5)/S*2;for(let i=0;i<S;i++){const u=(i+.5)/S*2-1,rr=u*u+v*v;if(rr>1)continue;const z=Math.sqrt(1-rr),la=Math.asin(v*cp0+z*sp0)*R2D;let lo=GV.lon0+Math.atan2(u,z*cp0-v*sp0)*R2D;lo=((lo+540)%360)-180;let r,gg,b;
+   if(mode==='paleo'){let L=false;if(pp.A&&pp.B){const va=T.sample(pp.A,la,lo),vb=T.sample(pp.B,la,lo);L=va*(1-pp.f)+vb*pp.f>127}else if(pp.A)L=T.sample(pp.A,la,lo)>127;if(L){r=176;gg=156;b=98}else{r=24;gg=78;b=124}}
+   else{const L=land&&T.sample(land,la,lo)>127;if(mode==='plates'&&PIDX){const id=T.sample(PIDX,la,lo),pc=PCOL[id%PCOL.length];if(L){r=pc[0]*.7+50;gg=pc[1]*.7+50;b=pc[2]*.7+35}else{r=pc[0]*.32+12;gg=pc[1]*.32+34;b=pc[2]*.32+64}}else if(L){r=104;gg=124;b=90}else{r=20;gg=62;b=100}}
+   const sh=.5+.55*Math.max(0,-.42*u+.46*v+.78*z),k=(j*S+i)*4,e=Math.min(1,(1-Math.sqrt(rr))*S*.5);p[k]=Math.min(255,r*sh);p[k+1]=Math.min(255,gg*sh);p[k+2]=Math.min(255,b*sh);p[k+3]=255*e}}
+  cx.putImageData(im,0,0);gCacheG={key,c}}
+ const gl=x.createRadialGradient(g.cx,g.cy,g.R*.95,g.cx,g.cy,g.R*1.12);gl.addColorStop(0,'rgba(120,190,255,.45)');gl.addColorStop(1,'rgba(120,190,255,0)');x.fillStyle=gl;x.beginPath();x.arc(g.cx,g.cy,g.R*1.12,0,7);x.fill();
+ x.drawImage(gCacheG.c,g.cx-g.R,g.cy-g.R,2*g.R,2*g.R)}
+function gBoundaries(x,g,hi){if(!PB)return;const S=PB.steps,C=PB.classes,paths={};for(const s of S){const a=proj(g,s[1],s[0]),b=proj(g,s[3],s[2]);if(a.v<.02||b.v<.02)continue;const c=CLS[C[s[4]]];if(hi&&!hi.includes(c.k))continue;(paths[c.c]||(paths[c.c]=[])).push(a.x,a.y,b.x,b.y)}
+ x.lineCap='round';for(const col in paths){const P=paths[col];x.strokeStyle='rgba(0,0,0,.45)';x.lineWidth=4;x.beginPath();for(let i=0;i<P.length;i+=4){x.moveTo(P[i],P[i+1]);x.lineTo(P[i+2],P[i+3])}x.stroke();x.strokeStyle=col;x.lineWidth=2.2;x.stroke()}
+ S.forEach((s,i)=>{if(s[7]===0||i%3)return;const a=proj(g,s[1],s[0]),b=proj(g,s[3],s[2]);if(a.v<.15||b.v<.15)return;const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1,nx=-dy/L*s[7],ny=dx/L*s[7],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,z=3.2;x.fillStyle=CLS[C[s[4]]].c;x.beginPath();x.moveTo(mx-dx/L*z,my-dy/L*z);x.lineTo(mx+dx/L*z,my+dy/L*z);x.lineTo(mx-nx*z*1.5,my-ny*z*1.5);x.closePath();x.fill()})}
+/* partículas que muestran el movimiento de las placas */
+let GP=[];function seedGP(n){GP=[];for(let i=0;i<n;i++)GP.push(newGP(true))}
+function newGP(rand){const la=Math.asin(Math.random()*2-1)*R2D,lo=Math.random()*360-180;return {la,lo,age:rand?Math.random()*4:0,life:3+Math.random()*2}}
+function gParticles(x,g,dt){if(!PB||!PIDX)return;for(let i=0;i<GP.length;i++){const q=GP[i],p=plateAt(q.la,q.lo);if(!p){GP[i]=newGP();continue}const [ve,vn]=plateVel(p,q.la,q.lo),m=Math.hypot(ve,vn),k=.05;
+  q.lo+=ve*k*dt/Math.max(.2,Math.cos(q.la*D2R));q.la=Math.max(-89,Math.min(89,q.la+vn*k*dt));q.age+=dt;if(q.age>q.life){GP[i]=newGP();continue}
+  const a=proj(g,q.la,q.lo);if(a.v<.05)continue;const tl=2.2,b=proj(g,q.la-vn*k*tl,q.lo-ve*k*tl/Math.max(.2,Math.cos(q.la*D2R)));const al=Math.min(1,q.age/.6,(q.life-q.age)/.6)*Math.min(1,a.v*3);
+  const gr=x.createLinearGradient(b.x,b.y,a.x,a.y);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,`rgba(255,255,255,${.95*al})`);x.strokeStyle=gr;x.lineWidth=1.6+m/35;x.beginPath();x.moveTo(b.x,b.y);x.lineTo(a.x,a.y);x.stroke()}}
+/* terremotos y volcanes: los mismos servicios que usa el visor ANAMBRO */
+const QHIST=[[-73.05,-38.29,33,9.5,'Valdivia (Chile)',1960],[-147.6,61.0,25,9.2,'Alaska',1964],[95.98,3.3,30,9.1,'Sumatra (Indonesia)',2004],[142.37,38.3,29,9.1,'Tōhoku (Japón)',2011],[159.5,52.6,21,9.0,'Kamchatka',1952],[-72.9,-36.1,23,8.8,'Maule (Chile)',2010],[-11,36.5,20,8.5,'Lisboa (est.)',1755],[-102.5,18.2,27,8.0,'Michoacán (México)',1985],[-122.5,37.7,10,7.9,'San Francisco',1906],[84.7,28.2,8,7.8,'Nepal',2015],[37.0,37.2,10,7.8,'Turquía y Siria',2023],[-72.5,18.4,13,7.0,'Haití',2010],[-1.7,37.7,4,5.1,'Lorca (España)',2011],[-3.7,36.9,10,6.5,'Arenas del Rey (Granada)',1884],[178.7,-17.9,600,8.2,'Fiyi (profundo)',2018],[-69.0,-13.8,630,8.2,'Bolivia (profundo)',1994],[121.0,23.8,33,7.7,'Taiwán',1999],[-90.2,13.4,60,7.7,'El Salvador',2001],[45.9,35.0,23,7.3,'Irán-Irak',2017],[101.1,4.7,20,6.0,'Malasia',2015],[-17.9,28.6,15,4.6,'La Palma (enjambre)',2021],[174.8,-41.6,15,7.8,'Kaikōura (N. Zelanda)',2016],[-117.6,35.8,8,7.1,'Ridgecrest (California)',2019],[71.0,36.5,200,7.5,'Hindu Kush',2015],[-77.8,-1.0,10,7.8,'Ecuador',2016],[40.3,11.5,10,5.6,'Afar (Etiopía)',2005],[-18.0,64.0,10,5.0,'Islandia',2014]];
+const VHIST=[['Teide',-16.64,28.27],['Cumbre Vieja (La Palma)',-17.84,28.57],['Etna',15.0,37.75],['Vesubio',14.43,40.82],['Estrómboli',15.21,38.79],['Hekla',-19.67,63.98],['Eyjafjallajökull',-19.62,63.63],['Fuji',138.73,35.36],['Sakurajima',130.66,31.58],['Krakatoa',105.42,-6.1],['Tambora',118.0,-8.25],['Merapi',110.44,-7.54],['Pinatubo',120.35,15.13],['Mayón',123.69,13.26],['Monte Santa Helena',-122.18,46.2],['Kīlauea',-155.29,19.41],['Mauna Loa',-155.6,19.48],['Popocatépetl',-98.62,19.02],['Fuego (Guatemala)',-90.88,14.47],['Cotopaxi',-78.44,-0.68],['Chimborazo',-78.82,-1.47],['Villarrica',-71.93,-39.42],['Nevado del Ruiz',-75.32,4.89],['Monte Pelée',-61.17,14.81],['Soufrière Hills',-62.18,16.72],['Kilimanjaro',37.36,-3.07],['Nyiragongo',29.25,-1.52],['Erta Ale',40.67,13.6],['Klyuchevskoy',160.64,56.06],['Erebus',167.17,-77.53],['Ruapehu',175.57,-39.28],['Taal',120.99,14.0],['Agung',115.51,-8.34],['Ararat',44.3,39.7],['Damavand',52.11,35.95],['Shishaldin',-163.97,54.76],['Rainier',-121.76,46.85],['Osorno',-72.49,-41.1],['Lascar',-67.73,-23.37],['Piton de la Fournaise',55.71,-21.24]];
+let QK=null,QSRC='',VO=null,VSRC='',showQ=true,showV=true,showB=true,showM=false;
+async function loadQuakes(){try{const r=await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson',{cache:'no-store'});if(!r.ok)throw 0;const j=await r.json();QK=j.features.map(f=>[f.geometry.coordinates[0],f.geometry.coordinates[1],f.geometry.coordinates[2],f.properties.mag,f.properties.place||'',new Date(f.properties.time)]);QSRC=`${QK.length} terremotos de magnitud 4,5 o más de los últimos 30 días (USGS, datos en directo)`}catch(e){QK=QHIST.map(q=>[q[0],q[1],q[2],q[3],q[4]+' ('+q[5]+')',null]);QSRC='Sin conexión con el USGS: se muestran grandes terremotos históricos'}if(STEPS[step].v==='sismo')info()}
+async function loadVolcanoes(){const parse=j=>j.features.map(f=>{const p=f.properties||{},c=f.geometry.coordinates;return [p.Volcano_Name||p.VOLCANO_NAME||p.Name||'Volcán',c[0],c[1]]}).filter(v=>isFinite(v[1])&&isFinite(v[2]));
+ try{const r=await fetch('https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=GVP-VOTW%3ASmithsonian_VOTW_Holocene_Volcanoes&outputFormat=application%2Fjson&maxFeatures=2000');if(!r.ok)throw 0;VO=parse(await r.json());VSRC=`${VO.length} volcanes activos en los últimos 12.000 años (Smithsonian, Global Volcanism Program)`}
+ catch(e){VO=VHIST.map(v=>[v[0],v[1],v[2]]);VSRC='Sin conexión con la Smithsonian: se muestran 40 volcanes conocidos'}if(STEPS[step].v==='sismo')info()}
+function quakeColor(dep){return dep<35?'#ff3b30':dep<70?'#ff9f40':dep<300?'#4f8dff':'#7a5cff'}
+const hash=i=>{let x=Math.sin(i*127.1)*43758.5;return x-Math.floor(x)};
+function gQuakes(x,g,t){if(!QK)return;QK.forEach((q,i)=>{const a=proj(g,q[1],q[0]);if(a.v<.05)return;const r0=1.5+Math.max(0,q[3]-4)*1.6,col=quakeColor(q[2]);x.fillStyle=col;x.globalAlpha=.85*Math.min(1,a.v*3);x.beginPath();x.arc(a.x,a.y,r0,0,7);x.fill();
+  const ph=((t*.35+hash(i))%1);if(ph<.35){const f=ph/.35;x.strokeStyle=col;x.lineWidth=2;x.globalAlpha=(1-f)*Math.min(1,a.v*3);x.beginPath();x.arc(a.x,a.y,r0+f*(6+q[3]*3),0,7);x.stroke()}x.globalAlpha=1})}
+function gVolcanoes(x,g,t){if(!VO)return;const big=VO.length<100;for(let i=0;i<VO.length;i++){const v=VO[i],a=proj(g,v[2],v[1]);if(a.v<.05)continue;const s=big?5:3.2;x.fillStyle='#ff6a00';x.strokeStyle='rgba(30,10,0,.8)';x.lineWidth=1;x.beginPath();x.moveTo(a.x,a.y-s);x.lineTo(a.x+s*.9,a.y+s*.6);x.lineTo(a.x-s*.9,a.y+s*.6);x.closePath();x.fill();x.stroke();
+  if(hash(i+7)<.06){const ph=(t*.5+hash(i))%1;x.fillStyle=`rgba(120,110,110,${.6*(1-ph)})`;x.beginPath();x.arc(a.x+ph*4,a.y-s-ph*10,1.5+ph*4,0,7);x.fill()}}}
+function gNames(x,g,w){if(!PB)return;for(const p of PB.plates){if(!BIG.includes(p.c))continue;const a=proj(g,p.lat,p.lon);if(a.v<.25)continue;txt(x,p.n.replace('Placa ',w<560?'':'Placa '),a.x,a.y,{s:w<560?9.5:11.5,w:900,c:'#fff',bg:'rgba(5,16,26,.55)'})}}
+function gPick(x,g){if(!picked)return;const a=proj(g,picked.la,picked.lo);if(a.v<0)return;x.strokeStyle='#ffd166';x.lineWidth=2.5;x.beginPath();x.arc(a.x,a.y,8,0,7);x.stroke()}
+/* ================= CORTES ANIMADOS ================= */
+function sec(x,w,h){return {X0:8,Y0:8,W:w-16,H:h-16}}
+function asth(x,X0,y,W,y2){const ga=x.createLinearGradient(0,y,0,y2);ga.addColorStop(0,'#c4562a');ga.addColorStop(1,'#6e2410');x.fillStyle=ga;x.fillRect(X0,y,W,y2-y)}
+function eruption(x,vx,vy,t,s){for(let i=0;i<16;i++){const ph=(t*.32+i/16)%1,yy=vy-ph*s*6,xx=vx+Math.sin(i*1.7+t*.7)*s*.5*ph+ph*ph*s*1.6,rad=s*(.28+ph*1.3),gr=Math.round(95-35*ph);x.fillStyle=`rgba(${gr+10},${gr},${gr},${.8*(1-ph)})`;x.beginPath();x.arc(xx,yy,rad,0,7);x.fill()}
+ const gl=x.createRadialGradient(vx,vy,0,vx,vy,s*1.2);gl.addColorStop(0,'rgba(255,200,60,.95)');gl.addColorStop(1,'rgba(255,80,0,0)');x.fillStyle=gl;x.beginPath();x.arc(vx,vy,s*1.2,0,7);x.fill();
+ for(let i=0;i<7;i++){const ph=(t*.55+i/7)%1,tau=ph*1.4,dir=(i%2?1:-1)*(.5+hash(i)*.9),bx=vx+dir*s*2.2*tau,by=vy-s*5*tau+s*4.2*tau*tau;x.fillStyle=`rgba(255,${Math.round(90+110*(1-ph))},30,${1-ph*.6})`;x.beginPath();x.arc(bx,by,s*.17,0,7);x.fill()}}
+function lava(x,pts,t,wd){const L=pts.length-1,f=(t*.12)%1.25,n=Math.min(L,f*L);if(n<=0)return;x.lineCap='round';x.lineJoin='round';for(const [w,c] of [[wd*1.9,'rgba(255,90,0,.35)'],[wd,'#ff6a00'],[wd*.45,'#ffd23f']]){x.strokeStyle=c;x.lineWidth=w;x.beginPath();x.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<=Math.floor(n);i++)x.lineTo(pts[i][0],pts[i][1]);const i0=Math.floor(n),fr=n-i0;if(i0<L)x.lineTo(pts[i0][0]+(pts[i0+1][0]-pts[i0][0])*fr,pts[i0][1]+(pts[i0+1][1]-pts[i0][1])*fr);x.stroke()}}
+/* ondas sísmicas desde el foco; devuelve la sacudida en superficie */
+function quake(x,fx,fy,surf,t,per,maxR,lab){const ph=(t%per)/per;if(ph>.7)return 0;const f=ph/.7;if(f<.12){x.fillStyle='#fff36b';x.font='bold 22px system-ui';x.textAlign='center';x.fillText('✸',fx,fy+8)}
+ for(let k=0;k<3;k++){const ff=f-k*.1;if(ff<=0)continue;x.strokeStyle=`rgba(255,243,107,${.8*(1-ff)})`;x.lineWidth=2.5-k*.6;x.beginPath();x.arc(fx,fy,ff*maxR,0,7);x.stroke()}
+ if(lab&&f<.5)txt(x,'foco (hipocentro)',fx+12,fy+18,{a:'left',s:11,w:800,c:'#fff36b',bg:'rgba(5,16,26,.6)'});
+ const dist=fy-surf,reach=dist/maxR;return f>reach?Math.max(0,1-(f-reach)/.35):0}
+function buildings(x,X,Y,amp,t,s){const sh=amp*Math.sin(t*45);for(let i=0;i<3;i++){const bx=X+i*s*1.3,hh=s*(1.4+i%2*.9);x.save();x.translate(bx,Y);x.rotate(sh*.12*(1+i*.2));x.fillStyle=['#d9d2c3','#c8bfae','#e3dccb'][i];x.fillRect(-s*.5,-hh,s,hh);x.fillStyle='#4a6a8a';for(let r=1;r<hh/(s*.4)-.5;r++)for(let c=0;c<2;c++)x.fillRect(-s*.32+c*s*.4,-hh+r*s*.4-s*.2,s*.22,s*.2);x.restore()}
+ if(amp>.15)txt(x,'¡tiembla!',X+s*1.3,Y-s*3.2,{s:11,w:900,c:'#fff36b',bg:'rgba(5,16,26,.6)'})}
+function drawDivergent(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,cx=X0+W/2,sea=Y0+H*.12,crust=Y0+H*.44,lith=Y0+H*.58;
+ x.fillStyle='#0d3b5c';x.fillRect(X0,sea,W,crust-sea);x.fillStyle='#bde3ff';x.fillRect(X0,sea,W,2);asth(x,X0,lith,W,Y0+H);
+ const sp=(t*16)%32;for(const s of [-1,1])for(let k=0;k<40;k++){const d0=k*16+sp/2-16,xa=cx+s*Math.max(0,d0),xb=cx+s*(d0+16);if(d0>W/2)break;const rise=Math.max(0,1-Math.max(0,d0)/(W*.35))*H*.1;x.fillStyle=(k%2)?'#4d6070':'#36495a';x.fillRect(Math.min(xa,xb),crust-rise,Math.abs(xb-xa)+1,lith-crust+rise)}
+ const gl=x.createRadialGradient(cx,lith+H*.1,0,cx,lith+H*.1,W*.14);gl.addColorStop(0,'#ffcc33');gl.addColorStop(1,'rgba(255,90,0,0)');x.fillStyle=gl;x.fillRect(cx-W*.15,lith-H*.1,W*.3,H*.4);
+ x.fillStyle='#ff8a00';x.fillRect(cx-3,crust-H*.1,6,lith-crust+H*.12);
+ for(let i=0;i<18;i++){const ph=(t*.45+i/18)%1,yy=lith+H*.25-ph*(H*.4),xx=cx+Math.sin(i*2.1+t)*W*.035*(1-ph);x.fillStyle=`rgba(255,${150+90*ph|0},60,${1-ph*.5})`;x.beginPath();x.arc(xx,yy,3,0,7);x.fill()}
+ // lava almohadillada en el fondo
+ for(let i=0;i<5;i++){const ph=(t*.4+i/5)%1;x.fillStyle=`rgba(255,${120+80*ph|0},40,${.9-ph*.7})`;x.beginPath();x.ellipse(cx+(i-2)*7,crust-H*.1-ph*8,5,3,0,0,7);x.fill()}
+ for(const s of [-1,1]){const m=(t*16)%60;x.fillStyle='#fff';for(let k=0;k<3;k++){}arrow(x,cx+s*W*.12,crust+(lith-crust)/2,cx+s*W*.3,crust+(lith-crust)/2,'#fff',4,12)}
+ quake(x,cx+W*.06,crust+(lith-crust)*.4,sea,t,3.3,W*.12,false);
+ txt(x,'DORSAL',cx,sea+H*.08,{s:n?12:15,w:900,c:'#ffd166',bg:'rgba(5,16,26,.6)'});txt(x,'el magma asciende y se crea corteza oceánica nueva',cx,Y0+H-6,{s:n?10:12.5,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.6)'});
+ txt(x,'Placa',X0+W*.12,crust+(lith-crust)/2+4,{s:n?10:12,w:800});txt(x,'Placa',X0+W*.88,crust+(lith-crust)/2+4,{s:n?10:12,w:800});txt(x,'Océano',X0+W*.08,sea+H*.1,{s:n?10:12,c:'#bde3ff'});txt(x,'Astenosfera',X0+W*.12,Y0+H*.86,{s:n?10:12,c:'#ffd1b8'});
+ txt(x,'cuanto más lejos de la dorsal, más antigua es la corteza',cx,sea+H*.2,{s:n?9:11,w:600,c:'#cfe0e8'})}
+function drawSubduction(x,w,h,t,oo){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,tr=X0+W*(oo?.4:.42),top=Y0+H*.5,th=H*.08,ang=oo?.62:.5,sea=Y0+H*.36;
+ x.fillStyle='#0d3b5c';x.fillRect(X0,sea,oo?W:tr-X0+W*.06,top-sea);x.fillStyle='#bde3ff';x.fillRect(X0,sea,oo?W:tr-X0+W*.06,2);asth(x,X0,top+th,W,Y0+H);
+ let vx,vy,slope;
+ if(oo){x.fillStyle='#4d6070';x.fillRect(tr,top,X0+W-tr,th);const px=tr+W*.17;vx=px;vy=sea-H*.1;x.fillStyle='#6b5a48';x.beginPath();x.moveTo(px-W*.09,top);x.lineTo(px-W*.012,vy);x.lineTo(px+W*.012,vy);x.lineTo(px+W*.09,top);x.fill();slope=[[px+W*.012,vy],[px+W*.035,vy+H*.06],[px+W*.06,vy+H*.13],[px+W*.08,vy+H*.19]];x.fillStyle='#6b5a48';x.beginPath();x.moveTo(px+W*.06,top);x.lineTo(px+W*.13,sea-H*.03);x.lineTo(px+W*.2,top);x.fill()}
+ else{const ct=Y0+H*.3;vx=tr+W*.19;vy=Y0+H*.22;x.fillStyle='#8a7a5a';x.beginPath();x.moveTo(tr+W*.02,top);x.lineTo(tr+W*.1,ct+H*.05);x.lineTo(vx-W*.015,vy);x.lineTo(vx+W*.015,vy);x.lineTo(tr+W*.3,ct+H*.04);x.lineTo(tr+W*.4,ct+H*.1);x.lineTo(X0+W,ct+H*.12);x.lineTo(X0+W,top+th*1.9);x.lineTo(tr+W*.06,top+th*1.9);x.closePath();x.fill();x.fillStyle='#6f6048';x.fillRect(tr+W*.06,top+th*1.9,X0+W-tr-W*.06,th*.6);slope=[[vx+W*.015,vy],[vx+W*.04,vy+H*.04],[vx+W*.07,vy+H*.08],[vx+W*.1,vy+H*.12]]}
+ const sx=tr,cs=Math.cos(ang),sn=Math.sin(ang),len=W*.62,ex=sx+W*.05,ey=top;x.save();x.beginPath();x.rect(X0,Y0,W,H);x.clip();
+ x.fillStyle='#36495a';x.beginPath();x.moveTo(X0,top);x.lineTo(sx,top);x.quadraticCurveTo(ex,top,ex+cs*20,top+sn*20);x.lineTo(ex+cs*len,top+sn*len);x.lineTo(ex+cs*len-sn*th,top+sn*len+cs*th);x.lineTo(ex-sn*th+cs*10,top+th+sn*10);x.quadraticCurveTo(sx-W*.02,top+th,sx-W*.05,top+th);x.lineTo(X0,top+th);x.closePath();x.fill();
+ // la placa avanza y se hunde (marcas en movimiento)
+ x.strokeStyle='rgba(255,255,255,.35)';x.lineWidth=2;x.setLineDash([3,25]);x.lineDashOffset=-t*30;x.beginPath();x.moveTo(X0,top+th/2);x.lineTo(sx-W*.02,top+th/2);x.quadraticCurveTo(ex,top+th/2,ex+cs*20,top+sn*20+th*.4);x.lineTo(ex+cs*len,top+sn*len+th*.4);x.stroke();x.setLineDash([]);
+ const mx=ex+cs*len*.42,my=top+sn*len*.42;
+ for(let i=0;i<12;i++){const ph=(t*.35+i/12)%1,px=mx+(vx-mx)*ph+Math.sin(i+t*2)*4,py=my+(vy-my)*ph;x.fillStyle=`rgba(255,${120+100*ph|0},40,${.95-.4*ph})`;x.beginPath();x.arc(px,py,3.2,0,7);x.fill()}
+ const gl=x.createRadialGradient(mx,my,0,mx,my,W*.06);gl.addColorStop(0,'rgba(255,170,40,.8)');gl.addColorStop(1,'rgba(255,90,0,0)');x.fillStyle=gl;x.beginPath();x.arc(mx,my,W*.06,0,7);x.fill();
+ // terremotos a lo largo de la losa (zona de Benioff)
+ for(let i=0;i<10;i++){const f=i/10*.9+.05,px=ex+cs*len*f-sn*th*.5,py=top+sn*len*f+cs*th*.5;x.fillStyle='rgba(255,243,107,.35)';x.beginPath();x.arc(px,py,2,0,7);x.fill()}
+ const qi=Math.floor(t/3.2)%4,qf=[.12,.35,.6,.2][qi],fx=ex+cs*len*qf-sn*th*.5,fy=top+sn*len*qf+cs*th*.5;const amp=quake(x,fx,fy,oo?sea:Y0+H*.4,t,3.2,W*.42,true);x.restore();
+ eruption(x,vx,vy,t,n?7:10);lava(x,slope,t,n?3:4.5);
+ if(!oo)buildings(x,X0+W*.86,Y0+H*.42+1,amp,t,n?8:11);
+ arrow(x,X0+W*.06,top+th/2,X0+W*.22,top+th/2,'#fff',4,12);arrow(x,X0+W*.96,oo?top+th/2:top+th*1.3,X0+W*.84,oo?top+th/2:top+th*1.3,'#fff',4,12);
+ txt(x,'FOSA',tr,top-6,{s:n?10:12,w:900,c:'#9fd3ff',bg:'rgba(5,16,26,.6)'});
+ txt(x,oo?'ARCO DE ISLAS VOLCÁNICAS':'CORDILLERA Y VOLCANES',oo?tr+W*.36:Math.min(tr+W*.42,X0+W-(n?70:110)),Y0+(n?14:18),{s:n?10.5:13,w:900,c:'#ffd166',bg:'rgba(5,16,26,.6)'});
+ txt(x,oo?'Placa oceánica':'Placa oceánica (densa)',X0+W*.15,top+th+(n?14:18),{s:n?10:12,w:800});txt(x,oo?'Placa oceánica':'Placa continental',X0+W*.82,oo?top+th+16:top+th*2.9+14,{s:n?10:12,w:800});
+ txt(x,'la placa se funde y sube el magma',mx+(vx-mx)*.5+12,my+(vy-my)*.5+4,{a:'left',s:n?9.5:11.5,w:700,c:'#ffb27a',bg:'rgba(5,16,26,.6)'})}
+function drawCollision(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,cx=X0+W/2,top=Y0+H*.45,th=H*.16,grow=(t*.05)%1,sq=grow<.85?grow/.85:1-(grow-.85)/.15;
+ asth(x,X0,top+th,W,Y0+H);x.fillStyle='#8a7a5a';x.fillRect(X0,top,W,th);
+ const mw=W*(.4-.12*sq),mh=H*(.08+.28*sq);x.fillStyle='#a08a62';x.beginPath();x.moveTo(cx-mw,top);for(let k=0;k<=30;k++){const f=k/30,px=cx-mw+f*2*mw,env=Math.sin(f*Math.PI),py=top-mh*env*(.78+.22*Math.sin(f*37+1));x.lineTo(px,py)}x.lineTo(cx+mw,top);x.fill();
+ x.fillStyle='#eef4f8';x.beginPath();for(let k=0;k<=30;k++){const f=k/30,px=cx-mw+f*2*mw,env=Math.sin(f*Math.PI),py=top-mh*env*(.78+.22*Math.sin(f*37+1));if(env>.75){x.moveTo(px-4,py+6);x.lineTo(px,py);x.lineTo(px+4,py+6)}}x.fill();
+ x.fillStyle='#8a7a5a';x.beginPath();x.moveTo(cx-mw*.9,top+th);x.quadraticCurveTo(cx,top+th+H*(.06+.2*sq),cx+mw*.9,top+th);x.fill();
+ x.strokeStyle='rgba(60,40,20,.65)';x.lineWidth=2;for(let k=0;k<6;k++){x.beginPath();const yy=top+th*.15+k*th*.14;for(let px=cx-mw;px<=cx+mw;px+=4){const f=(px-(cx-mw))/(2*mw),env=Math.sin(f*Math.PI);x.lineTo(px,yy-env*mh*.6+Math.sin(px*.07*(1+sq)+k)*env*10*sq)}x.stroke()}
+ x.save();x.translate(cx-W*.04,top+th+H*.08+sq*H*.05);x.rotate(1.25);x.fillStyle='#36495a';x.fillRect(0,0,H*.3,th*.6);x.restore();
+ const amp=quake(x,cx+W*.08,top+th*.7,top-mh*.5,t,3.6,W*.3,true);buildings(x,X0+W*.82,top,amp,t,n?9:12);
+ arrow(x,X0+W*.04,top+th/2,X0+W*.18,top+th/2,'#fff',4,12);arrow(x,X0+W*.96,top+th/2,X0+W*.82,top+th/2,'#fff',4,12);
+ txt(x,'CORDILLERA DE PLEGAMIENTO · altura: '+['muy baja','baja','media','alta','muy alta'][Math.min(4,Math.floor(sq*5))],cx,Y0+(n?14:18),{s:n?10.5:13,w:900,c:'#ffd166',bg:'rgba(5,16,26,.6)'});txt(x,'Continente',X0+W*.1,top-8,{s:n?10:12,w:800});
+ txt(x,'la corteza se pliega, se rompe y se engrosa; la montaña crece mientras los continentes empujan',cx,Y0+H-6,{s:n?9:11.5,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.6)'})}
+/* falla transformante: la tensión se acumula (la carretera se dobla) y se libera de golpe (terremoto) */
+function drawTransform(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,cy=Y0+H*.5,C=5,ph=(t%C)/C,ev=Math.floor(t/C),P=W*.36,D=P/3,lock=.82;
+ x.fillStyle='#7d8a6a';x.fillRect(X0,Y0,W,H/2);x.fillStyle='#8f946c';x.fillRect(X0,cy,W,H/2);
+ const base=(ev%3)*D,Lk=H*.12;const u=y=>{if(ph<lock){const s=D*ph/lock;return (y>cy?base:0)+s*(.5+Math.atan((y-cy)/Lk)/Math.PI)}return y>cy?base+D:0};
+ const road=(x0,col,wd)=>{x.strokeStyle=col;x.lineWidth=wd;x.lineCap='butt';for(const side of [0,1]){x.beginPath();for(let y=side?cy+1:Y0;side?y<=Y0+H:y<=cy-1;y+=4){const X=x0+u(y);y===(side?cy+1:Y0)?x.moveTo(X,y):x.lineTo(X,y)}x.stroke()}};
+ x.save();x.beginPath();x.rect(X0,Y0,W,H);x.clip();for(let k=-2;k<5;k++){road(X0+W*.1+k*P,'#ddd',n?6:8);road(X0+W*.1+k*P+P*.5,'#4cc9f0',n?4:5)}x.restore();
+ x.strokeStyle='#ff4d6d';x.lineWidth=3;x.setLineDash([10,6]);x.beginPath();x.moveTo(X0,cy);x.lineTo(X0+W,cy);x.stroke();x.setLineDash([]);
+ arrow(x,X0+W*.88,Y0+H*.16,X0+W*.7,Y0+H*.16,'#fff',4,12);arrow(x,X0+W*.12,Y0+H*.86,X0+W*.3,Y0+H*.86,'#fff',4,12);
+ let amp=0;if(ph>=lock){const f=(ph-lock)/(1-lock);for(let k=0;k<3;k++){const ff=f-k*.12;if(ff<=0)continue;x.strokeStyle=`rgba(255,243,107,${1-ff})`;x.lineWidth=3;x.beginPath();x.arc(X0+W*.5,cy,ff*W*.45,0,7);x.stroke()}amp=1-f;x.fillStyle='#fff36b';x.font='bold 26px system-ui';x.textAlign='center';x.fillText('✸',X0+W*.5,cy+9)}
+ buildings(x,X0+W*.62,cy-H*.12,amp,t,n?8:11);
+ const bar=Math.min(1,ph/lock);txt(x,ph<lock?'Tensión acumulada: '+Math.round(bar*100)+' %':'¡TERREMOTO! La falla se desliza de golpe',X0+W/2,Y0+(n?14:20),{s:n?11:14,w:900,c:ph<lock?'#ffd166':'#fff36b',bg:'rgba(5,16,26,.7)'});
+ x.fillStyle='rgba(5,16,26,.6)';x.fillRect(X0+W*.3,Y0+(n?20:28),W*.4,7);x.fillStyle=bar<.7?'#ffd166':'#ff4d6d';x.fillRect(X0+W*.3,Y0+(n?20:28),W*.4*bar,7);
+ txt(x,'vista desde arriba: carreteras (gris) y ríos (azul) se doblan y luego se cortan',X0+W/2,Y0+H-8,{s:n?9:11.5,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.6)'})}
+
+/* ================= PASOS ================= */
 const STEPS=[
  {k:'Interior',v:'interior',t:'¿Qué hay dentro de la Tierra?',p:'La Tierra tiene capas: la <b>corteza</b> (fina como la piel de una manzana), el <b>manto</b> y el <b>núcleo</b>. La corteza y la parte más alta del manto forman la <b>litosfera</b>, rígida y rota en grandes piezas: las <b>placas tectónicas</b>. Debajo, el manto está tan caliente que, aunque es sólido, fluye muy despacio. Como el agua del caldero, se mueve en <b>corrientes de convección</b> que arrastran las placas.'},
- {k:'Placas',v:'placas',t:'La litosfera está rota en placas que se mueven',p:'Estas son las placas actuales. Las flechas indican hacia dónde y a qué velocidad se mueve cada una: de 1 a 10 centímetros al año, más o menos lo que crecen las uñas. La placa Pacífica es la más rápida. Los colores de los bordes indican qué ocurre en cada límite: las placas se <b>separan</b>, <b>chocan</b> o <b>se deslizan</b>. <b>Pulsa en el mapa</b> para saber en qué placa estás.'},
- {k:'Pangea',v:'deriva',t:'La deriva de los continentes: de Pangea a hoy',p:'Hace 250 millones de años todos los continentes estaban unidos en uno solo: <b>Pangea</b>. Alfred Wegener lo propuso en 1912 al ver que las costas de África y Sudamérica encajan y que hay los mismos fósiles a ambos lados del Atlántico. Hoy lo sabemos gracias a la edad del fondo oceánico y al magnetismo de las rocas. Mueve el tiempo o pulsa ▶.'},
- {k:'Se separan',v:'div',t:'Límites divergentes: las placas se separan',p:'Donde dos placas se separan, el magma del manto sube, se enfría y forma <b>corteza oceánica nueva</b>. En medio de los océanos se forman las <b>dorsales</b>, enormes cordilleras submarinas: la <b>Dorsal Mesoatlántica</b> recorre todo el Atlántico y asoma en <b>Islandia</b>. Si ocurre dentro de un continente se abre un <b>rift</b>, como el de África Oriental: dentro de millones de años puede ser un nuevo océano, como ya lo es el Mar Rojo.'},
- {k:'Subducción',v:'sub',t:'Límites convergentes: la subducción',p:'Cuando chocan una placa oceánica y otra continental, la oceánica, más densa, se <b>hunde</b> bajo la otra: es la <b>subducción</b>. Allí se forma una <b>fosa</b> profunda, la placa que se hunde se funde en parte y el magma sube formando <b>volcanes</b>, y se levantan <b>cordilleras</b> como los <b>Andes</b>. Si chocan dos placas oceánicas se forman <b>arcos de islas</b> volcánicas, como Japón o las Marianas, donde está la fosa más profunda: 11 km. Hay muchos <b>terremotos</b>.'},
- {k:'Colisión',v:'col',t:'Límites convergentes: la colisión de continentes',p:'Cuando chocan dos continentes, ninguno se hunde porque los dos son poco densos: la corteza se <b>pliega</b>, se rompe y se apila, y se levantan las grandes <b>cordilleras de plegamiento</b>. El <b>Himalaya</b> nació cuando la India chocó con Asia, y todavía crece. Los <b>Alpes</b>, los <b>Pirineos</b> (choque de la península ibérica con Europa) y las <b>Béticas</b> (empuje de África) son cordilleras de este tipo.'},
- {k:'Se deslizan',v:'tra',t:'Límites transformantes: las placas se deslizan',p:'En algunos límites las placas no se separan ni chocan: se <b>deslizan</b> una junto a la otra. Son las <b>fallas transformantes</b>. No se crea ni se destruye corteza, pero la fricción acumula tensión que se libera en forma de <b>terremotos</b>, como en la <b>falla de San Andrés</b> (California). Al suroeste de la península está la zona Azores–Gibraltar, origen del gran terremoto de Lisboa de 1755.'},
- {k:'Explora',v:'explora',t:'Placas y relieve: explora el mapa',p:'Las grandes montañas y fosas están en los bordes de las placas: las cordilleras más altas donde chocan, las fosas donde una placa se hunde y las dorsales donde se separan. <b>Pulsa en cualquier lugar</b> para saber en qué placa está, a qué velocidad se mueve y qué límite tiene más cerca. Canarias, en medio de la placa Africana, tiene otro origen: lo verás en la animación de vulcanismo.'}];
+ {k:'Placas',v:'placas',t:'La litosfera está rota en placas que se mueven',p:'Gira el globo con el dedo o el ratón. Las estelas blancas muestran hacia dónde se mueve cada placa (muy acelerado: en realidad avanzan de 1 a 10 cm al año, lo que crecen las uñas). Fíjate en lo rápido que va la placa <b>Pacífica</b> comparada con la Africana. Los colores de los bordes indican qué pasa en cada límite: las placas se <b>separan</b>, <b>chocan</b> o <b>se deslizan</b>. <b>Pulsa</b> sobre el globo para saber en qué placa estás.'},
+ {k:'Pangea',v:'deriva',t:'La deriva de los continentes: de Pangea a hoy',p:'Hace 250 millones de años todos los continentes estaban unidos en uno solo: <b>Pangea</b>. Alfred Wegener lo propuso en 1912 al ver que las costas de África y Sudamérica encajan y que hay los mismos fósiles a ambos lados del Atlántico. Hoy lo sabemos gracias a la edad del fondo oceánico y al magnetismo de las rocas. Pulsa ▶ y gira el globo: verás abrirse el Atlántico y viajar a la India.'},
+ {k:'Se separan',v:'div',t:'Límites divergentes: las placas se separan',p:'Donde dos placas se separan, el magma del manto sube, se enfría y forma <b>corteza oceánica nueva</b>. En medio de los océanos se forman las <b>dorsales</b>, enormes cordilleras submarinas: la <b>Dorsal Mesoatlántica</b> recorre todo el Atlántico y asoma en <b>Islandia</b>. Si ocurre dentro de un continente se abre un <b>rift</b>, como el de África Oriental: dentro de millones de años puede ser un nuevo océano, como ya lo es el Mar Rojo. Hay volcanes y terremotos poco profundos.'},
+ {k:'Subducción',v:'sub',t:'Límites convergentes: la subducción',p:'Cuando chocan una placa oceánica y otra continental, la oceánica, más densa, se <b>hunde</b> bajo la otra: es la <b>subducción</b>. Se forma una <b>fosa</b> profunda; la placa que se hunde se funde en parte y el magma sube hasta los <b>volcanes</b>, que tienen erupciones explosivas; y se levantan <b>cordilleras</b> como los <b>Andes</b>. Al rozar, la placa produce <b>terremotos</b>, cada vez más profundos tierra adentro. Si chocan dos placas oceánicas se forman <b>arcos de islas</b>, como Japón o las Marianas.'},
+ {k:'Colisión',v:'col',t:'Límites convergentes: la colisión de continentes',p:'Cuando chocan dos continentes, ninguno se hunde porque los dos son poco densos: la corteza se <b>pliega</b>, se rompe y se apila, y se levantan las grandes <b>cordilleras de plegamiento</b>. Mira cómo crece la montaña. El <b>Himalaya</b> nació cuando la India chocó con Asia, y todavía crece. Los <b>Alpes</b>, los <b>Pirineos</b> y las <b>Béticas</b> son cordilleras de este tipo. Hay muchos terremotos, pero casi no hay volcanes.'},
+ {k:'Se deslizan',v:'tra',t:'Límites transformantes: las placas se deslizan',p:'En algunos límites las placas se <b>deslizan</b> una junto a la otra: son las <b>fallas transformantes</b>. Las placas no se mueven suavemente: se <b>traban</b>, la roca se deforma y acumula tensión (mira cómo se doblan la carretera y el río) hasta que se rompe de golpe: es el <b>terremoto</b>. Así ocurre en la <b>falla de San Andrés</b> (California) o en la zona Azores–Gibraltar, origen del terremoto de Lisboa de 1755.'},
+ {k:'Terremotos y volcanes',v:'sismo',t:'¿Dónde tiembla la Tierra y dónde hay volcanes?',p:'Estos son los <b>terremotos reales</b> del último mes (se actualizan solos) y los <b>volcanes activos</b> del mundo, con los mismos datos que usa el visor ANAMBRO. Gira el globo: ¿ves que casi todos están en los <b>bordes de las placas</b>? El anillo de volcanes y terremotos que rodea el Pacífico es el <b>Cinturón de Fuego</b>. Hay excepciones, como Hawái o Canarias, en medio de una placa: son <b>puntos calientes</b>.'}];
+const GLOBE_STEPS=['placas','deriva','sismo'];
 function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
 function legend(){const v=STEPS[step].v;let h='';
  if(v==='interior')h='<span><i style="background:#e8c79a"></i>Corteza</span><span><i style="background:#d9783a"></i>Manto</span><span><i style="background:#f2b33d"></i>Núcleo externo (líquido)</span><span><i style="background:#fff1a8"></i>Núcleo interno (sólido)</span>';
- else if(v==='deriva')h='<span><i style="background:#a8965f;height:10px"></i>Tierras emergidas en esa época</span><span>Entre dos momentos con datos, la imagen funde uno con el siguiente.</span>';
- else{h='<span><i style="background:#ffd166"></i>Divergente: dorsal o rift (se separan)</span><span><i style="background:#ff4d6d"></i>Subducción (una placa se hunde; los triángulos, en la que queda encima)</span><span><i style="background:#c77dff"></i>Colisión continental</span><span><i style="background:#4cc9f0"></i>Transformante (se deslizan)</span>';if(v==='placas'||v==='explora')h+='<span><i style="background:#fff;height:3px"></i>Movimiento de la placa (cm/año)</span>'}
+ else if(v==='deriva')h='<span><i style="background:#b09c62;height:10px"></i>Tierras emergidas en esa época</span><span>Entre dos momentos con datos, la imagen pasa suavemente de uno al otro.</span>';
+ else{h='<span><i style="background:#ffd166"></i>Divergente: dorsal o rift (se separan)</span><span><i style="background:#ff4d6d"></i>Subducción (los triángulos, en la placa que queda encima)</span><span><i style="background:#c77dff"></i>Colisión continental</span><span><i style="background:#4cc9f0"></i>Transformante (se deslizan)</span>';
+  if(v==='placas'||(v==='sismo'&&showM))h+='<span><i style="background:linear-gradient(90deg,transparent,#fff)"></i>Movimiento de las placas (acelerado)</span>';
+  if(v==='sismo'){if(showQ)h+='<span><i style="background:#ff3b30;height:9px;width:9px;border-radius:50%"></i>Terremoto superficial (menos de 70 km)</span><span><i style="background:#4f8dff;height:9px;width:9px;border-radius:50%"></i>Terremoto intermedio (70–300 km)</span><span><i style="background:#7a5cff;height:9px;width:9px;border-radius:50%"></i>Terremoto profundo (más de 300 km)</span>';if(showV)h+='<span><i style="background:#ff6a00;height:9px;width:9px;clip-path:polygon(50% 0,100% 100%,0 100%)"></i>Volcán</span>'}
+  if(['div','sub','col','tra'].includes(v))h+='<span><b style="color:#fff36b">✸</b>&nbsp;Terremoto: las ondas salen del foco</span>'}
  $('legend').innerHTML=h}
 function nearestBoundary(la,lo){if(!PB)return null;let best=null,bd=1e9;for(const s of PB.steps){const mlo=(s[0]+s[2])/2,mla=(s[1]+s[3])/2;let dl=Math.abs(lo-mlo);if(dl>180)dl=360-dl;const dd=(dl*Math.cos(la*D2R))**2+(la-mla)**2;if(dd<bd){bd=dd;best=s}}return {s:best,km:Math.sqrt(bd)*111}}
 const card=['N','NE','E','SE','S','SO','O','NO'];const dirName=(ve,vn)=>card[Math.round(((Math.atan2(ve,vn)*R2D+360)%360)/45)%8];
+function plateText(){const p=plateAt(picked.la,picked.lo);if(!p)return '';const [ve,vn]=plateVel(p,picked.la,picked.lo),m=Math.hypot(ve,vn),nb=nearestBoundary(picked.la,picked.lo),c=nb&&CLS[PB.classes[nb.s[4]]];
+ return `<b>${p.n}</b> · ${fmt(Math.abs(picked.la),1)}° ${picked.la>=0?'N':'S'}, ${fmt(Math.abs(picked.lo),1)}° ${picked.lo>=0?'E':'O'}. Se mueve unos <b>${fmt(m/10,1)} cm al año</b> hacia el <b>${dirName(ve,vn)}</b>.`+(c?` Límite más cercano (a unos ${fmt(Math.max(50,Math.round(nb.km/50)*50))} km): <b>${c.n}</b>.`:'')}
 function info(){const v=STEPS[step].v;let s='';
  if(v==='interior')s='Si la Tierra fuera una manzana, la corteza sería más fina que su piel. Nadie ha llegado al manto: el pozo más profundo alcanzó 12 km. Lo conocemos por cómo viajan las ondas de los terremotos.';
  else if(v==='deriva'){const e=EVENTS.reduce((a,b)=>Math.abs(b[0]-ma)<Math.abs(a[0]-ma)?b:a);s=`<b>Hace ${fmt(e[0])} millones de años.</b> ${e[1]}`}
- else if(v==='sub')s=sub==='oc'?'Ejemplos: los <b>Andes</b> (placa de Nazca bajo la Sudamericana, unos 7 cm al año), las Cascadas (EE. UU.). Volcanes explosivos y grandes terremotos, como el de Chile de 1960, el mayor registrado.':'Ejemplos: <b>Japón</b>, las <b>Marianas</b>, las Aleutianas, las Antillas Menores. La fosa de las Marianas tiene 11 km de profundidad: el Everest cabría dentro.';
+ else if(v==='sub')s=sub==='oc'?'Ejemplos: los <b>Andes</b> (placa de Nazca bajo la Sudamericana, unos 7 cm al año). Volcanes explosivos y grandes terremotos, como el de Chile de 1960 (magnitud 9,5), el mayor jamás registrado.':'Ejemplos: <b>Japón</b>, las <b>Marianas</b>, las Aleutianas, las Antillas Menores. La fosa de las Marianas tiene 11 km de profundidad: el Everest cabría dentro.';
  else if(v==='div')s='La Dorsal Mesoatlántica separa América de Europa y África unos <b>2–3 cm al año</b>. En la dorsal del Pacífico Este, hasta 15 cm al año.';
  else if(v==='col')s='El Himalaya sigue subiendo unos milímetros al año, porque la India todavía empuja a Asia unos <b>4–5 cm al año</b>.';
- else if(v==='tra')s='La falla de San Andrés se desliza unos <b>3–5 cm al año</b>. Los Ángeles y San Francisco se acercan poco a poco.';
- else if(picked){const p=plateAt(picked.la,picked.lo);if(p){const [ve,vn]=plateVel(p,picked.la,picked.lo),m=Math.hypot(ve,vn),nb=nearestBoundary(picked.la,picked.lo),c=nb&&CLS[PB.classes[nb.s[4]]];
-  s=`<b>${p.n}</b> · ${fmt(Math.abs(picked.la),1)}° ${picked.la>=0?'N':'S'}, ${fmt(Math.abs(picked.lo),1)}° ${picked.lo>=0?'E':'O'}. Se mueve unos <b>${fmt(m/10,1)} cm al año</b> hacia el <b>${dirName(ve,vn)}</b>.`+(c?` Límite más cercano (a unos ${fmt(Math.round(nb.km/50)*50)} km): <b>${c.n}</b>, ${nb.s[5]>=0?'se separan':'se acercan'} unos ${fmt(Math.abs(nb.s[5])/10,1)} cm/año${Math.abs(nb.s[6])>Math.abs(nb.s[5])?' y se deslizan '+fmt(Math.abs(nb.s[6])/10,1)+' cm/año':''}.`:'')}}
- else s='Pulsa en el mapa para saber en qué placa estás.';$('info').innerHTML=s}
-function renderLayers(){$('mapLayers').innerHTML=`<button id="lyV" class="${showVel?'on':''}">➜ Movimiento</button><button id="lyN" class="${showNames?'on':''}">Nombres</button>`;$('lyV').onclick=()=>{showVel=!showVel;renderLayers()};$('lyN').onclick=()=>{showNames=!showNames;renderLayers()}}
+ else if(v==='tra')s='La falla de San Andrés se desliza unos <b>3–5 cm al año</b> de media, pero a golpes: años sin moverse y, de repente, metros en segundos.';
+ else if(v==='placas')s=picked?plateText():'Arrastra para girar el globo. Pulsa sobre él para saber en qué placa estás.';
+ else if(v==='sismo'){let nq='';if(picked&&QK){let b=null,bd=1e9;for(const q of QK){let dl=Math.abs(q[0]-picked.lo);if(dl>180)dl=360-dl;const dd=(dl*Math.cos(picked.la*D2R))**2+(q[1]-picked.la)**2;if(dd<bd){bd=dd;b=q}}if(b&&Math.sqrt(bd)*111<600)nq=`Terremoto cercano: <b>M ${fmt(b[3],1)}</b> · ${b[4]} · ${fmt(b[2])} km de profundidad`+(b[5]?' · '+b[5].toLocaleDateString('es-ES'):'')+'<br>'}s=(picked?plateText()+'<br>'+nq:'')+`<span style="font-size:13px">🌎 ${QSRC||'Cargando terremotos del USGS…'}<br>🌋 ${VSRC||'Cargando volcanes de la Smithsonian…'}</span>`}
+ $('info').innerHTML=s}
+function renderLayers(){$('mapLayers').innerHTML=[['q','🌎 Terremotos',showQ],['v','🌋 Volcanes',showV],['b','Límites de placas',showB],['m','➜ Movimiento',showM]].map(([k,n,on])=>`<button data-ly="${k}" class="${on?'on':''}">${n}</button>`).join('');$('mapLayers').querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.ly;if(k==='q')showQ=!showQ;if(k==='v')showV=!showV;if(k==='b')showB=!showB;if(k==='m')showM=!showM;renderLayers();legend()})}
 function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();picked=null;
- $('timeBox').style.display=s.v==='deriva'?'':'none';$('subBox').style.display=s.v==='sub'?'':'none';$('mapBox').style.display=(s.v==='placas'||s.v==='explora')?'':'none';
- const mc=$('mainCard');mc.style.aspectRatio=(s.v==='placas'||s.v==='explora'||s.v==='deriva')?(innerWidth<560?'1.6':'2.2'):'';mapCache=null;
- if(s.v==='deriva'&&ma===0)ma=250;$('ma').value=ma;legend();info();renderSub()}
+ $('timeBox').style.display=s.v==='deriva'?'':'none';$('subBox').style.display=s.v==='sub'?'':'none';$('mapBox').style.display=s.v==='sismo'?'':'none';$('viewerBox').style.display=(s.v==='sismo'&&viewerLink())?'':'none';
+ const G=GLOBE_STEPS.includes(s.v),mc=$('mainCard');mc.style.touchAction=G?'none':'';mc.style.cursor=G?'grab':'';mc.style.aspectRatio=G?(innerWidth<560?'1/1':'16/10.5'):'';
+ if(s.v==='deriva'){GV.lon0=0;GV.lat0=10;if(ma===0)ma=250}else if(s.v==='placas'){GV.lon0=-30;GV.lat0=15}else if(s.v==='sismo'){GV.lon0=-150;GV.lat0=10}
+ $('ma').value=ma;lastUser=-10;legend();info();renderSub()}
 function renderSub(){document.querySelectorAll('[data-sub]').forEach(b=>b.classList.toggle('on',b.dataset.sub===sub))}
-/* ---- bucle ---- */
+/* enlace con el globo 3D del visor (la animación se abre dentro de ANAMBRO) */
+function viewerLink(){try{return window.parent!==window&&typeof window.parent.anambroShowTectonics==='function'}catch(e){return false}}
+/* ================= BUCLE ================= */
 let last=performance.now(),tt=0,acc=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;const s=STEPS[step];
- if(playT&&s.v==='deriva'){ma=Math.max(0,ma-dt*12);$('ma').value=Math.round(ma);if(ma<=0){playT=false;$('playT').textContent='▶ Reproducir'}acc+=dt;if(acc>.25){acc=0;info();markEvent()}}
+ if(playT&&s.v==='deriva'){ma=Math.max(0,ma-dt*10);$('ma').value=Math.round(ma);if(ma<=0){playT=false;$('playT').textContent='▶ Reproducir'}acc+=dt;if(acc>.25){acc=0;info();markEvent()}}
  $('maV').textContent=fmt(Math.round(ma));
  const {x,w,h,d}=fit($('main'));
  if(s.v==='interior')drawInterior(x,w,h,tt,d);
- else if(s.v==='deriva')drawDrift(x,w,h,d);
- else if(s.v==='placas'||s.v==='explora'){const g=mapGeom(w,h);drawMapBase(x,w,h,d,'plates',g);drawBoundaries(x,g,null,tt);if(showVel)drawVelocities(x,g,w);if(s.v==='explora'){for(const [n,lo,la,ox,oy] of RELIEF){const X=g.X(lo),Y=g.Y(la);x.fillStyle='#ffd166';x.beginPath();x.moveTo(X,Y-6);x.lineTo(X+5,Y+3);x.lineTo(X-5,Y+3);x.fill();txt(x,n,X+ox*(w<560?.6:1),Y-9+oy,{s:w<560?9:11,w:800,c:'#ffd166',bg:'rgba(5,16,26,.65)'})}}else if(showNames)drawNames(x,g,w);
-  if(picked){const X=g.X(picked.lo),Y=g.Y(picked.la);x.strokeStyle='#ffd166';x.lineWidth=2.5;x.beginPath();x.arc(X,Y,8,0,7);x.stroke()}geo=g}
- else{x.fillStyle='#05101a';x.fillRect(0,0,w,h);const Hs=h*.6;x.save();x.beginPath();x.rect(0,0,w,Hs);x.clip();const fn={div:drawDivergent,sub:(a,b,c,t)=>drawSubduction(a,b,c,t,sub==='oo'),col:drawCollision,tra:drawTransform}[s.v];fn(x,w,Hs,tt);x.restore();drawMiniMap(x,w,h,d,s.v,Hs+4,h-Hs-4)}
+ else if(GLOBE_STEPS.includes(s.v)){x.fillStyle='#05101a';x.fillRect(0,0,w,h);
+  // estrellas
+  for(let i=0;i<70;i++){x.fillStyle=`rgba(255,255,255,${.25+.5*hash(i+3)})`;x.fillRect(hash(i)*w,hash(i+50)*h,1.2,1.2)}
+  const g=gGeom(w,h);const idle=tt-lastUser>3&&!dragging;if(idle&&s.v!=='deriva')GV.lon0=((GV.lon0+dt*5+540)%360)-180;const moving=dragging||idle&&s.v!=='deriva'||playT;
+  renderGlobe(x,g,s.v==='deriva'?'paleo':s.v==='placas'?'plates':'land',moving?1:Math.min(d,1.5));
+  if(s.v==='placas'){gBoundaries(x,g,null);gParticles(x,g,dt);gNames(x,g,w)}
+  else if(s.v==='sismo'){if(showB)gBoundaries(x,g,null);if(showM)gParticles(x,g,dt);if(showV)gVolcanoes(x,g,tt);if(showQ)gQuakes(x,g,tt)}
+  else{const n=w<560;if(ma>=190){x.globalAlpha=Math.min(1,(ma-190)/30);const a=proj(g,0,25);if(a.v>0)txt(x,'PANGEA',a.x,a.y,{s:n?13:18,w:900,c:'#3a2500',bg:'rgba(255,230,170,.8)'});const b=proj(g,0,-140);if(b.v>0)txt(x,'Panthalassa',b.x,b.y,{s:n?11:15,w:800,c:'#cfe8ff'});const c=proj(g,-5,85);if(c.v>0)txt(x,'Tetis',c.x,c.y,{s:n?11:14,w:800,c:'#cfe8ff'});x.globalAlpha=1}
+   txt(x,'hace '+fmt(Math.round(ma))+' millones de años',10,24,{a:'left',s:n?14:18,w:900,c:'#ffd166',bg:'rgba(5,16,26,.75)'})}
+  gPick(x,g);if(w>=560&&s.v!=='deriva')txt(x,'↻ arrastra para girar',w-10,h-10,{a:'right',s:11,w:700,c:'#a9c0cd'});geo=g}
+ else{x.fillStyle='#05101a';x.fillRect(0,0,w,h);const Hs=h*.62;x.save();x.beginPath();x.rect(0,0,w,Hs);x.clip();const fn={div:drawDivergent,sub:(a,b,c,t)=>drawSubduction(a,b,c,t,sub==='oo'),col:drawCollision,tra:drawTransform}[s.v];fn(x,w,Hs,tt);x.restore();drawMiniMap(x,w,h,d,s.v,Hs+4,h-Hs-4)}
  requestAnimationFrame(frame)}
 let geo=null;
-/* ---- controles ---- */
+/* ================= CONTROLES ================= */
 $('events').innerHTML=EVENTS.map(e=>`<li data-ma="${e[0]}"><b>${e[0]} Ma.</b> ${e[1]}</li>`).join('');
 function markEvent(){const e=EVENTS.reduce((a,b)=>Math.abs(b[0]-ma)<Math.abs(a[0]-ma)?b:a);document.querySelectorAll('#events li').forEach(li=>{const on=+li.dataset.ma===e[0];if(on&&!li.classList.contains('on')){const ev=$('events');ev.scrollTop=li.offsetTop-ev.offsetTop-ev.clientHeight/2}li.classList.toggle('on',on)})}
 document.querySelectorAll('#events li,[data-ma]').forEach(el=>el.onclick=()=>{ma=+el.dataset.ma;$('ma').value=ma;playT=false;$('playT').textContent='▶ Reproducir';info();markEvent()});
 $('ma').oninput=()=>{ma=+$('ma').value;playT=false;$('playT').textContent='▶ Reproducir';info();markEvent()};
 $('playT').onclick=()=>{if(ma<=0)ma=250;playT=!playT;$('playT').textContent=playT?'⏸ Pausa':'▶ Reproducir'};
 document.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{sub=b.dataset.sub;renderSub();info()});
-$('main').addEventListener('click',e=>{const v=STEPS[step].v;if(!(v==='placas'||v==='explora')||!geo)return;const r=$('main').getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;if(px<geo.x0||px>geo.x0+geo.W||py<geo.y0||py>geo.y0+geo.H)return;picked={lo:VIEW.w+(px-geo.x0)/geo.W*360,la:VIEW.n-(py-geo.y0)/geo.H*(VIEW.n-VIEW.s)};info()});
-renderLayers();go(0);markEvent();requestAnimationFrame(frame);
-window.__tr={go,set ma(v){ma=v;$('ma').value=v;info();markEvent()},set sub(v){sub=v;renderSub();info()},pick:(la,lo)=>{picked={la,lo};info()}};
+$('toViewer').onclick=()=>{try{window.parent.anambroShowTectonics()}catch(e){}};
+let drag=null;const mc=$('mainCard');
+mc.addEventListener('pointerdown',e=>{if(!GLOBE_STEPS.includes(STEPS[step].v))return;drag={x:e.clientX,y:e.clientY,lo:GV.lon0,la:GV.lat0,moved:false};dragging=true;lastUser=tt;mc.setPointerCapture(e.pointerId)});
+mc.addEventListener('pointermove',e=>{if(!drag||!geo)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4)drag.moved=true;const k=90/geo.R;GV.lon0=((drag.lo-dx*k+540)%360)-180;GV.lat0=Math.max(-80,Math.min(80,drag.la+dy*k));lastUser=tt});
+mc.addEventListener('pointerup',e=>{const was=drag;drag=null;dragging=false;lastUser=tt;if(was&&!was.moved&&geo&&STEPS[step].v!=='deriva'){const r=$('main').getBoundingClientRect(),q=unproj(geo,e.clientX-r.left,e.clientY-r.top);if(q){picked=q;info()}}});
+mc.addEventListener('pointercancel',()=>{drag=null;dragging=false});
+renderLayers();seedGP(innerWidth<560?380:650);go(0);markEvent();requestAnimationFrame(frame);loadQuakes();loadVolcanoes();
+window.__tr={go,set ma(v){ma=v;$('ma').value=v;info();markEvent()},set sub(v){sub=v;renderSub();info()},pick:(la,lo)=>{picked={la,lo};info()},set t(v){tt=v},view:(lo,la)=>{GV.lon0=lo;GV.lat0=la;lastUser=tt}};
 })();
 </script>
 </body>
