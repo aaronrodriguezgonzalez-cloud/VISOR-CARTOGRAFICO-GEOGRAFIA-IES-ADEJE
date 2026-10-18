@@ -2477,6 +2477,13 @@ html body .anambro-scale-num{display:block!important;visibility:visible!importan
 @media(max-width:520px){html body .anambro-scale-num{font-size:9px!important;padding:3px 5px!important;margin-bottom:27px!important}}
 
 .explainIntro,.politicalIntro{padding:8px 10px;border-radius:9px;background:#eef6fa;border:1px solid #c9dce8;line-height:1.35;margin-bottom:9px}
+.libGroup{margin-top:9px;border:1px solid #d6e0e7;border-radius:12px;background:#f7fafc;overflow:hidden}
+.libGroup>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;font-weight:800;font-size:15px;color:#123}
+.libGroup>summary::-webkit-details-marker{display:none}
+.libGroup>summary::after{content:"▾";font-size:14px;color:#52616d;transition:transform .2s}
+.libGroup[open]>summary::after{transform:rotate(180deg)}
+.libGroup>summary small{margin-left:auto;font-weight:600;color:#52616d;font-size:12px;white-space:nowrap}
+.libCards{display:grid;gap:9px;padding:0 10px 10px}
 .explainCard{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;padding:11px;border:1px solid #d6e0e7;background:#fff;border-radius:12px}
 .explainCardIcon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:27px;background:#fff3c4;border:1px solid #efd26d}
 .explainCardBody{min-width:0}.explainCardBody>b{display:block;font:900 14px/1.15 Montserrat,system-ui,sans-serif;color:#17324d}.explainCardBody small{display:block;margin:5px 0 8px;line-height:1.35;color:#4b5d6b}.explainLaunch{width:100%}
@@ -2932,7 +2939,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <button class="tool" id="geoAnalysisToolBtn" onclick="togglePanel('geoAnalysisPanel')"><span>🧮</span> Análisis geográfico</button>
 
 <button class="tool" onclick="togglePanel('trackPanel')"><span>🧭</span> Track GPX/KML</button>
-<button class="tool" onclick="togglePanel('explainPanel')"><span>🎬</span> Explicaciones y animaciones</button>
+<button class="tool" onclick="togglePanel('explainPanel')"><span>📚</span> Biblioteca didáctica</button>
 <button class="tool" id="politicalToolBtn" onclick="window.togglePoliticalTool?.()"><span>🗺️</span> Mapas políticos / mudos</button>
 <button class="tool" onclick="togglePanel('searchPanel')"><span>🔎</span> Buscar topónimo</button>
 <button class="tool" onclick="openLayoutEditor()"><span>🖨️</span> Imprimir / PDF</button>
@@ -2960,7 +2967,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <section class="hubCard"><b>📊 Atlas estadístico y análisis</b><button data-hub="atlas-world">🌍 Mundo · Banco Mundial / PNUD</button><button data-hub="atlas-eu">🇪🇺 Europa · Eurostat (regiones)</button><button data-hub="atlas-spain">🇪🇸 España · INE</button><button data-hub="atlas-canary">🏝️ Canarias · ISTAC</button><button data-hub="analysis">🧮 Análisis geográfico · indicadores, mapa derivado y CSV</button></section>
     <section class="hubCard"><b>🏛️ Historia y patrimonio</b><button data-hub="history">Fronteras históricas y acontecimientos · línea de tiempo</button><button data-hub="heritage">Patrimonio cultural de Canarias · BIC y arqueología insular</button><button data-hub="indigenous">🏺 Mundo indígena · particiones territoriales</button></section>
     <section class="hubCard"><b>🥾 Senderismo y campo</b><button data-hub="gps">Mi ubicación GPS</button><button data-hub="tracks">Crear, importar y exportar tracks GPX/KML</button><button data-hub="profile">Perfil territorial</button><button data-hub="measure">Medir distancias y superficies</button></section>
-    <section class="hubCard"><b>🎓 Aula y creación</b><button data-hub="political">Mapas políticos / mudos · actuales e históricos</button><button data-hub="game">🎮 Juego territorial</button><button data-hub="animations">🎬 Explicaciones y animaciones</button><button data-hub="print">🖨️ Compositor cartográfico / PDF</button></section>
+    <section class="hubCard"><b>🎓 Aula y creación</b><button data-hub="political">Mapas políticos / mudos · actuales e históricos</button><button data-hub="game">🎮 Juego territorial</button><button data-hub="animations">📚 Biblioteca didáctica ANAMBRO</button><button data-hub="print">🖨️ Compositor cartográfico / PDF</button></section>
     <section class="hubCard hubWide"><b>ℹ️ Acerca de ANAMBRO</b><div class="hubRow"><button data-hub="welcome">👋 Bienvenido</button><button data-hub="sources">ⓘ Fuentes, licencias y créditos</button><button data-hub="radio">📻 Radio Garden · emisoras del mundo</button></div></section>
   </div>
 </div>
@@ -3381,7 +3388,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-18 (r43: mapa de relieve solo desde Geografía física de España)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-18 (r44: Biblioteca didáctica ANAMBRO por temas)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -3448,8 +3455,33 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <button class="action politicalExit" id="spainReliefPresetOff" type="button" style="width:100%;margin-top:8px">Desactivar capas de relieve</button>
 </div>
 <div class="panel hidden" id="explainPanel">
-  <h3>🎬 Explicaciones audiovisuales y animaciones</h3>
-  <div class="explainIntro">Recursos didácticos interactivos de ANAMBRO. Se cargan solo cuando los abres, por lo que no ralentizan el visor.</div>
+  <h3>📚 Biblioteca didáctica ANAMBRO</h3>
+  <div class="explainIntro">Animaciones y explicaciones interactivas para el aula, ordenadas por temas. Se cargan solo cuando las abres, por lo que no ralentizan el visor. <b id="libCount"></b></div>
+  <details class="libGroup" name="anambroLib" open><summary><span>🌍 La Tierra en el Universo</span><small>5 animaciones</small></summary>
+  <div class="libCards">
+  <div class="explainCard">
+    <div class="explainCardIcon">📐</div>
+    <div class="explainCardBody">
+      <b>Eratóstenes y la medida de la Tierra</b>
+      <small>Una sombra, una distancia y una proporción: cómo un ser humano midió el planeta hace más de 2.200 años con matemáticas elementales.</small>
+      <button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/eratostenes/index.html','Eratóstenes y la medida de la Tierra')">▶ Abrir animación interactiva</button>
+    </div>
+  </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🌙</div><div class="explainCardBody"><b>Sol, Tierra y Luna</b><small>Rotación y traslación, la órbita elíptica y las leyes de Kepler, las fases de la Luna, por qué no hay eclipses cada mes y los próximos eclipses visibles desde España, con fechas reales.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/sol-tierra-luna/index.html','Sol, Tierra y Luna')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🌍</div><div class="explainCardBody"><b>Las estaciones del año</b><small>La Tierra recorre su órbita real con el eje fijo: solsticios, equinoccios, perihelio y afelio, el día y la noche, y las horas de luz en cualquier latitud.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/estaciones/index.html','Las estaciones del año')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🌅</div><div class="explainCardBody"><b>El movimiento aparente del Sol</b><small>El camino del Sol en el cielo desde el Polo Norte hasta el Polo Sur, pasando por Adeje, los trópicos y el ecuador. Cómo el Sol «se detiene» en los solsticios y vuelve en sentido contrario.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/movimiento-sol/index.html','El movimiento aparente del Sol')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🕒</div><div class="explainCardBody"><b>Husos horarios</b><small>La Tierra girando vista desde el polo, el día y la noche en tiempo real, husos teóricos y oficiales, línea de cambio de fecha y retos para practicar.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/husos-horarios/index.html','Husos horarios')">▶ Abrir animación interactiva</button></div>
+  </div>
+  </div></details>
+  <details class="libGroup" name="anambroLib"><summary><span>🌡️ Clima y atmósfera</span><small>3 animaciones</small></summary>
+  <div class="libCards">
   <div class="explainCard">
     <div class="explainCardIcon">☀️</div>
     <div class="explainCardBody">
@@ -3458,34 +3490,16 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
       <button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/insolacion-latitud/index.html','Insolación y latitud')">▶ Abrir animación interactiva</button>
     </div>
   </div>
-  <div class="explainCard" style="margin-top:9px">
-    <div class="explainCardIcon">📐</div>
-    <div class="explainCardBody">
-      <b>Eratóstenes y la medida de la Tierra</b>
-      <small>Una sombra, una distancia y una proporción: cómo un ser humano midió el planeta hace más de 2.200 años con matemáticas elementales.</small>
-      <button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/eratostenes/index.html','Eratóstenes y la medida de la Tierra')">▶ Abrir animación interactiva</button>
-    </div>
-  </div>
-
-  <div class="explainCard" style="margin-top:9px">
-    <div class="explainCardIcon">🌍</div><div class="explainCardBody"><b>Las estaciones del año</b><small>La Tierra recorre su órbita real con el eje fijo: solsticios, equinoccios, perihelio y afelio, el día y la noche, y las horas de luz en cualquier latitud.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/estaciones/index.html','Las estaciones del año')">▶ Abrir animación interactiva</button></div>
-  </div>
-  <div class="explainCard" style="margin-top:9px">
-    <div class="explainCardIcon">🌅</div><div class="explainCardBody"><b>El movimiento aparente del Sol</b><small>El camino del Sol en el cielo desde el Polo Norte hasta el Polo Sur, pasando por Adeje, los trópicos y el ecuador. Cómo el Sol «se detiene» en los solsticios y vuelve en sentido contrario.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/movimiento-sol/index.html','El movimiento aparente del Sol')">▶ Abrir animación interactiva</button></div>
-  </div>
-  <div class="explainCard" style="margin-top:9px">
-    <div class="explainCardIcon">🌙</div><div class="explainCardBody"><b>Sol, Tierra y Luna</b><small>Rotación y traslación, la órbita elíptica y las leyes de Kepler, las fases de la Luna, por qué no hay eclipses cada mes y los próximos eclipses visibles desde España, con fechas reales.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/sol-tierra-luna/index.html','Sol, Tierra y Luna')">▶ Abrir animación interactiva</button></div>
-  </div>
-  <div class="explainCard" style="margin-top:9px">
+  <div class="explainCard">
     <div class="explainCardIcon">🌡️</div><div class="explainCardBody"><b>Las zonas de la Tierra y los climas</b><small>Por qué la forma esférica y la inclinación del eje crean las zonas cálida, templadas y frías; qué pasaría con otra inclinación; el continente ideal y el mapa real de climas de Köppen para explorar.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/zonas-climas/index.html','Las zonas de la Tierra y los climas')">▶ Abrir animación interactiva</button></div>
   </div>
-  <div class="explainCard" style="margin-top:9px">
+  <div class="explainCard">
     <div class="explainCardIcon">🌬️</div><div class="explainCardBody"><b>Circulación atmosférica, corrientes y la ruta de Colón</b><small>Las células de Hadley, Ferrel y polar, los alisios y los vientos del oeste, las corrientes marinas, por qué hay desiertos junto a los trópicos, el clima de Canarias y el primer viaje de Colón día a día.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/circulacion-colon/index.html','Circulación atmosférica, corrientes y la ruta de Colón')">▶ Abrir animación interactiva</button></div>
   </div>
-  <div class="explainCard" style="margin-top:9px">
-    <div class="explainCardIcon">🕒</div><div class="explainCardBody"><b>Husos horarios</b><small>La Tierra girando vista desde el polo, el día y la noche en tiempo real, husos teóricos y oficiales, línea de cambio de fecha y retos para practicar.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/husos-horarios/index.html','Husos horarios')">▶ Abrir animación interactiva</button></div>
-  </div>
-  <div class="explainSoon"><b>Biblioteca didáctica ANAMBRO.</b> Animaciones, simulaciones y explicaciones audiovisuales creadas para el aula y cargadas solo cuando se necesitan.</div>
+  </div></details>
+  <details class="libGroup" name="anambroLib"><summary><span>🌋 Relieve y dinámica interna</span><small>próximamente</small></summary>
+  <div class="libCards"><div class="explainSoon" style="margin-top:0">En preparación: <b>Tectónica de placas y relieve</b> (la deriva de los continentes desde Pangea con reconstrucciones científicas reales) y <b>Vulcanismo y Canarias</b>.</div></div></details>
+  <div class="explainSoon"><b>Biblioteca didáctica ANAMBRO.</b> Animaciones, simulaciones y explicaciones creadas para el aula y cargadas solo cuando se necesitan.</div>
 </div>
 
 <div class="panel hidden politicalPanel" id="politicalPanel">
@@ -27110,5 +27124,8 @@ const b=bar.querySelectorAll('button');b[0].onclick=()=>{try{toggleWelcome(true)
 h.appendChild(bar);h.classList.add('mCompact');
 })();
 </script>
+<script id="anambro-library-v44">(()=>{const p=document.getElementById('explainPanel');if(!p)return;const g=[...p.querySelectorAll('details.libGroup')];
+g.forEach(d=>d.addEventListener('toggle',()=>{if(d.open)g.forEach(o=>{if(o!==d)o.open=false})}));
+const n=p.querySelectorAll('.libCards .explainCard').length,c=document.getElementById('libCount');if(c)c.textContent=n+' animaciones · '+g.length+' temas';})();</script>
 </body>
 </html>
