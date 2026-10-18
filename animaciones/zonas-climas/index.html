@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · Las zonas de la Tierra y los climas</title>
+<style>
+:root{--panel:#0d2231;--line:#2d536a;--ink:#eef5f8;--muted:#a9c0cd;--gold:#ffd166;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#07131d}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314b 0,#07131d 55%,#02080d 100%)}
+.app{max-width:1300px;margin:auto;padding:12px 14px 18px}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
+.stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;line-height:1.45}
+.stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:10px}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.card{background:#05101a;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card canvas{display:block;width:100%;height:100%}
+.mainCard{aspect-ratio:16/10.2;cursor:grab;touch-action:none}.chartCard{aspect-ratio:1/0.72}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;line-height:1.4}
+.box label{display:block;font-size:12.5px;color:var(--muted);font-weight:700}
+.box input[type=range]{width:100%;accent-color:#ffd166}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.seg button{border:1px solid #5e8094;border-radius:8px;background:#102b3d;color:#fff;font-weight:800;padding:6px 9px;cursor:pointer;font-size:12.5px}
+.seg button.on{background:#ffd166;color:#2a1d00}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;font-size:12.5px}
+.legend span{display:flex;align-items:center;gap:6px}.legend i{width:14px;height:14px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.25)}
+.info{min-height:44px}.info b{color:#ffd166}
+.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+@media(max-width:940px){.grid{grid-template-columns:1fr}}
+@media(max-width:560px){.app{padding:8px}.mainCard{aspect-ratio:1/0.95}.stage{font-size:14px}.legend{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+ <div class="top"><div class="brand">ANAMBRO · AULA</div><h1>🌡️ Las zonas de la Tierra y los climas</h1></div>
+ <nav class="steps" id="steps"></nav>
+ <section class="stage" id="stage"></section>
+ <div class="grid">
+  <div class="col">
+   <div class="card mainCard" id="mainCard"><h2 id="mainTitle"></h2><canvas id="main"></canvas></div>
+   <div class="box info" id="info"></div>
+  </div>
+  <div class="col">
+   <div class="card chartCard"><h2>Energía del Sol según la latitud</h2><canvas id="chart"></canvas></div>
+   <div class="box" id="tiltBox"><label>Inclinación del eje terrestre: <b id="tiltV" style="color:#ffd166"></b></label><input id="tilt" type="range" min="0" max="90" step="0.5" value="23.44"><div class="seg"><button data-t="0">0°</button><button data-t="23.44">23,44° (real)</button><button data-t="45">45°</button><button data-t="90">90°</button></div>
+    <label style="margin-top:8px">Momento del año</label><div class="seg" id="season"><button data-s="jun">Solsticio de junio</button><button data-s="equ">Equinoccio</button><button data-s="dic">Solsticio de diciembre</button></div></div>
+   <div class="box" id="legendBox"><div class="legend" id="legend"></div><div class="seg"><button id="kDetail">Ver tipos de Köppen</button></div></div>
+  </div>
+ </div>
+ <p class="small">Energía solar calculada en lo alto de la atmósfera (media diaria). Mapa de climas: clasificación de Köppen‑Geiger (Rubel, Brugger, Haslinger y Auer, 2016; datos del paquete kgcpy, licencia BSD‑3), simplificado a 0,25°. Costas de Natural Earth.</p>
+</main>
+<script src="../comun/tierra.js"></script>
+<script>
+(()=>{
+'use strict';
+const T=window.AulaTierra,{V}=T,D2R=Math.PI/180,R2D=180/Math.PI,$=id=>document.getElementById(id);
+const fmt=(x,d=0)=>Number(x).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+let tilt=23.44,season='jun',step=0,yaw=0,pitch=0,kDetail=false,land=null,kop=null,picked=null;
+T.land().then(r=>{land=r;draw()}).catch(()=>{});
+(()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height).data,a=new Uint8Array(c.width*c.height);for(let i=0;i<a.length;i++)a[i]=d[i*4];kop={w:c.width,h:c.height,a};mapCache=null;draw()};im.src='../comun/koppen.png'})();
+/* ---- climas: Köppen y grupos didácticos ---- */
+const KC=['','Af','Am','As','Aw','BSh','BSk','BWh','BWk','Cfa','Cfb','Cfc','Csa','Csb','Csc','Cwa','Cwb','Cwc','Dfa','Dfb','Dfc','Dfd','Dsa','Dsb','Dsc','Dsd','Dwa','Dwb','Dwc','Dwd','EF','ET','Océano'];
+const KCOL={Af:'#0000fe',Am:'#0077ff',As:'#46a9fa',Aw:'#46a9fa',BWh:'#fe0000',BWk:'#fe9695',BSh:'#f5a301',BSk:'#ffdb63',Csa:'#ffff00',Csb:'#c6c700',Csc:'#969600',Cwa:'#96ff96',Cwb:'#63c764',Cwc:'#329633',Cfa:'#c6ff4e',Cfb:'#66ff33',Cfc:'#33c701',Dsa:'#ff00fe',Dsb:'#c600c7',Dsc:'#963295',Dsd:'#966495',Dwa:'#abb1ff',Dwb:'#5a77db',Dwc:'#4c51b5',Dwd:'#320087',Dfa:'#00ffff',Dfb:'#38c7ff',Dfc:'#007e7d',Dfd:'#00455e',ET:'#b2b2b2',EF:'#686868'};
+const GROUPS=[
+ {k:'ecu',n:'Ecuatorial (selva)',c:'#1f6f2a',codes:['Af','Am'],d:'Calor y lluvia todo el año: selva. Aire que asciende en el ecuador.'},
+ {k:'tro',n:'Tropical con estación seca (sabana)',c:'#9bc53d',codes:['Aw','As'],d:'Siempre cálido, con una estación de lluvias y otra seca.'},
+ {k:'des',n:'Desértico',c:'#e8c06a',codes:['BWh','BWk'],d:'Casi sin lluvias: bajo los anticiclones subtropicales (≈ 30°) o lejos del mar.'},
+ {k:'est',n:'Estepa (semiárido)',c:'#d99a3e',codes:['BSh','BSk'],d:'Pocas lluvias, transición entre el desierto y los climas húmedos.'},
+ {k:'med',n:'Mediterráneo',c:'#e34f33',codes:['Csa','Csb','Csc'],d:'Veranos secos y calurosos, lluvias en otoño e invierno. Fachada oeste de los continentes, 30–45°.'},
+ {k:'sub',n:'Subtropical húmedo',c:'#f08aa6',codes:['Cfa','Cwa','Cwb','Cwc'],d:'Veranos calurosos y húmedos. Fachada este de los continentes, 25–40°.'},
+ {k:'oce',n:'Oceánico',c:'#4aa564',codes:['Cfb','Cfc'],d:'Suave y lluvioso todo el año. Fachada oeste, 45–60°, por los vientos del oeste.'},
+ {k:'con',n:'Continental',c:'#7c6bd6',codes:['Dfa','Dfb','Dsa','Dsb','Dwa','Dwb'],d:'Inviernos muy fríos y veranos cálidos: interior de los grandes continentes del norte.'},
+ {k:'sua',n:'Subártico (taiga)',c:'#3c4fa0',codes:['Dfc','Dfd','Dsc','Dsd','Dwc','Dwd'],d:'Inviernos larguísimos y muy fríos; bosque de coníferas.'},
+ {k:'tun',n:'Tundra',c:'#9fb7c4',codes:['ET'],d:'Ningún mes supera los 10 °C: solo musgos y líquenes.'},
+ {k:'hie',n:'Hielos perpetuos',c:'#e9f2f6',codes:['EF'],d:'Siempre bajo cero: Antártida y Groenlandia.'}];
+const groupOf=code=>GROUPS.find(g=>g.codes.includes(code));
+const colorOf=code=>{if(!code||code==='Océano')return null;return kDetail?KCOL[code]:groupOf(code)?.c};
+/* ---- energía solar diaria media en lo alto de la atmósfera ---- */
+const S0=1361;
+function Q(lat,dec){const f=lat*D2R,d=dec*D2R;let c=-Math.tan(f)*Math.tan(d);c=Math.max(-1,Math.min(1,c));const h0=Math.acos(c);return S0/Math.PI*(h0*Math.sin(f)*Math.sin(d)+Math.cos(f)*Math.cos(d)*Math.sin(h0))}
+const decOf=(eps,lam)=>Math.asin(Math.sin(eps*D2R)*Math.sin(lam*D2R))*R2D;
+function Qyear(lat,eps){let s=0,n=0;for(let l=0;l<360;l+=5){s+=Q(lat,decOf(eps,l));n++}return s/n}
+const seasonDec=()=>season==='jun'?tilt:season==='dic'?-tilt:0;
+/* ---- zonas térmicas ---- */
+function zoneOf(lat){const a=Math.abs(lat);const trop=a<=tilt,pol=a>=90-tilt;if(trop&&pol)return 'ambas';if(trop)return 'calida';if(pol)return 'fria';return 'templada'}
+const ZCOL={calida:[240,138,75],templada:[110,190,110],fria:[150,205,240],ambas:[220,120,200]};
+const ZNAME={calida:'Zona cálida (intertropical)',templada:'Zonas templadas',fria:'Zonas frías (polares)',ambas:'¡Zona tropical y polar a la vez!'};
+/* ---- lienzos ---- */
+function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d',{willReadFrequently:true});x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height,d}}
+function txt(x,s,X,Y,o={}){x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';x.textAlign=o.a||'center';if(o.bg){const m=x.measureText(s).width,l=o.a==='left'?X:o.a==='right'?X-m:X-m/2;x.fillStyle=o.bg;x.fillRect(l-4,Y-(o.s||12),m+8,(o.s||12)+5)}x.fillStyle=o.c||'#eef5f8';x.fillText(s,X,Y);x.restore()}
+/* globo con bandas (zonas o climas), visto de perfil con el Sol a la izquierda */
+function globeView(){const ya=yaw*D2R,pa=pitch*D2R;const e=tilt*D2R;let N=season==='jun'?[-Math.sin(e),Math.cos(e),0]:season==='dic'?[Math.sin(e),Math.cos(e),0]:[0,Math.cos(e),Math.sin(e)];
+ // giro de la vista (arrastrando)
+ const rotY=v=>[v[0]*Math.cos(ya)+v[2]*Math.sin(ya),v[1],-v[0]*Math.sin(ya)+v[2]*Math.cos(ya)],rotX=v=>[v[0],v[1]*Math.cos(pa)-v[2]*Math.sin(pa),v[1]*Math.sin(pa)+v[2]*Math.cos(pa)];
+ const right=rotY(rotX([1,0,0])),up=rotY(rotX([0,1,0])),toward=rotY(rotX([0,0,1]));let E0=V.sub([0,0,1],V.mul(N,N[2]));E0=V.norm(E0);if(!isFinite(E0[0]))E0=[1,0,0];return {N,E0,right,up,toward,sun:[-1,0,0]}}
+function drawBandGlobe(x,w,h,d,mode){const g=globeView(),R=Math.min(w*.33,h*.37),cx=w*.56,cy=h*.53;const o={cx,cy,R,...g};drawBandGlobe.geom=o;
+ // rayos
+ const sx=-V.dot(g.sun,g.right),sy=V.dot(g.sun,g.up);for(let k=-6;k<=6;k++){const y=cy+k*R*.17;x.strokeStyle='rgba(255,214,90,.45)';x.lineWidth=2;x.beginPath();x.moveTo(8,y);x.lineTo(cx-R*1.05,y);x.stroke()}
+ txt(x,'☀ rayos del Sol',10,cy-R*1.08,{a:'left',s:12,c:'#ffd166'});
+ const img=x.getImageData(Math.floor((cx-R)*d),Math.floor((cy-R)*d),Math.ceil(2*R*d),Math.ceil(2*R*d)),p=img.data,W=img.width,H=img.height,E90=V.cross(g.N,g.E0);
+ for(let j=0;j<H;j++)for(let i=0;i<W;i++){const u=(i+.5)/(R*d)-1,v=1-(j+.5)/(R*d),rr=u*u+v*v;if(rr>1)continue;const z=Math.sqrt(1-rr),P=[u*g.right[0]+v*g.up[0]+z*g.toward[0],u*g.right[1]+v*g.up[1]+z*g.toward[1],u*g.right[2]+v*g.up[2]+z*g.toward[2]];
+  const lat=Math.asin(Math.max(-1,Math.min(1,V.dot(P,g.N))))*R2D,lon=Math.atan2(V.dot(P,E90),V.dot(P,g.E0))*R2D,isL=land?T.sample(land,lat,lon)>127:false;let c;
+  if(mode==='zonas'){c=ZCOL[zoneOf(lat)].slice();if(isL){c=[c[0]*.72,c[1]*.72,c[2]*.72]}}else{const code=kop?KC[T.sample(kop,lat,lon)]:null,col=colorOf(code);if(col){c=[parseInt(col.slice(1,3),16),parseInt(col.slice(3,5),16),parseInt(col.slice(5,7),16)]}else c=isL?[150,150,140]:[34,98,146]}
+  const cosI=-P[0],day=Math.max(0,Math.min(1,(cosI+.03)/.06)),sh=mode==='zonas'?.55+.45*day:.8+.2*day;const k=(j*W+i)*4,edge=Math.min(1,(1-Math.sqrt(rr))*R*d*1.2+.15);p[k]=p[k]*(1-edge)+c[0]*sh*edge;p[k+1]=p[k+1]*(1-edge)+c[1]*sh*edge;p[k+2]=p[k+2]*(1-edge)+c[2]*sh*edge;p[k+3]=255}
+ x.putImageData(img,Math.floor((cx-R)*d),Math.floor((cy-R)*d));
+ // paralelos clave
+ const par=(la,col,lab,dash)=>{let prev=null,best=null;x.lineWidth=1.6;for(let lo=-180;lo<=180;lo+=3){const q=T.project(o,la,lo);const f=V.dot(q.p,g.toward)>=0;if(prev&&prev.f===f){x.strokeStyle=f?col:col.replace(/[\d.]+\)$/,'0.2)');x.setLineDash(f?(dash||[]):[2,4]);x.beginPath();x.moveTo(prev.x,prev.y);x.lineTo(q.x,q.y);x.stroke()}prev={x:q.x,y:q.y,f};if(f&&(!best||q.x>best.x))best=q}x.setLineDash([]);if(best&&lab){if(w<520)lab=lab.replace('Círculo polar','C. polar').replace(/ \([^)]*\)/,'');x.font='700 11px system-ui';const tw=x.measureText(lab).width;txt(x,lab,Math.min(w-tw-6,best.x+5),best.y+4,{a:'left',s:11,c:col,bg:'rgba(5,16,26,.55)'})}};
+ par(0,'rgba(255,255,255,.9)','Ecuador');if(tilt>0.2){par(tilt,'rgba(255,209,102,.95)','Trópico ('+fmt(tilt,1)+'° N)',[5,4]);par(-tilt,'rgba(255,209,102,.95)','Trópico ('+fmt(tilt,1)+'° S)',[5,4])}if(tilt<89.8&&tilt>0.2){par(90-tilt,'rgba(124,198,255,.95)','Círculo polar ('+fmt(90-tilt,1)+'° N)',[5,4]);par(-(90-tilt),'rgba(124,198,255,.95)','Círculo polar ('+fmt(90-tilt,1)+'° S)',[5,4])}
+ const np=[cx+R*1.22*V.dot(g.N,g.right),cy-R*1.22*V.dot(g.N,g.up)],sp=[cx-R*1.22*V.dot(g.N,g.right),cy+R*1.22*V.dot(g.N,g.up)];x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(np[0],np[1]);x.lineTo(cx+R*V.dot(g.N,g.right),cy-R*V.dot(g.N,g.up));x.moveTo(sp[0],sp[1]);x.lineTo(cx-R*V.dot(g.N,g.right),cy+R*V.dot(g.N,g.up));x.stroke();txt(x,'N',np[0],np[1]-5,{s:12,w:800});if(picked&&mode!=='zonas'){const q=T.project(o,picked.la,picked.lo);if(q.front){x.strokeStyle='#ffd166';x.lineWidth=2.4;x.beginPath();x.arc(q.x,q.y,7,0,7);x.stroke()}}txt(x,'S',sp[0],sp[1]+14,{s:12,w:800})}
+/* rayos sobre una Tierra esférica */
+function drawRays(x,w,h){const R=Math.min(w*.3,h*.38),cx=w*.66,cy=h*.56;x.fillStyle='#1d5f8a';x.beginPath();x.arc(cx,cy,R,0,7);x.fill();x.strokeStyle='#c9efff';x.lineWidth=2;x.stroke();
+ for(let k=-9;k<=9;k++){const y=cy+k*R*.105;if(Math.abs(y-cy)>R)continue;const hx=cx-Math.sqrt(R*R-(y-cy)**2);x.strokeStyle='rgba(255,214,90,.25)';x.lineWidth=1.2;x.beginPath();x.moveTo(10,y);x.lineTo(hx,y);x.stroke()}
+ const beam=R*.16;const items=[[0,'#ff5a3c'],[45,'#ffb43c'],[70,'#7cc6ff']];
+ for(const [la,col] of items){const yc=cy-R*Math.sin(la*D2R),y1=yc-beam/2,y2=yc+beam/2;const a1=Math.asin(Math.max(-1,Math.min(1,(cy-y1)/R))),a2=Math.asin(Math.max(-1,Math.min(1,(cy-y2)/R)));
+  x.fillStyle=col.replace(')',',.35)').replace('#','');x.fillStyle=col+'55';x.beginPath();x.moveTo(10,y1);x.lineTo(cx-R*Math.cos(a1),y1);x.lineTo(cx-R*Math.cos(a2),y2);x.lineTo(10,y2);x.closePath();x.fill();
+  x.strokeStyle=col;x.lineWidth=7;x.beginPath();x.arc(cx,cy,R+1,Math.PI+a2,Math.PI+a1,false);x.stroke();
+  const fac=1/Math.cos(la*D2R),nm=la===0?'Ecuador':la+'°';txt(x,w<600?nm+' → ×'+fmt(fac,1):nm+': la luz se reparte en ×'+fmt(fac,1)+' de superficie',14,y1-5,{a:'left',s:w<600?11:12,w:800,c:col,bg:'rgba(5,16,26,.75)'})}
+ txt(x,w<600?'Rayo inclinado: menos calor por m²':'cuanto más inclinado llega el rayo, más superficie calienta y menos le toca a cada metro cuadrado',w/2,h-12,{s:w<600?11:12,c:'#cfe0e8',bg:'rgba(5,16,26,.7)'})}
+/* continente ideal */
+function idealClimate(lat,xr){// xr: 0 costa oeste … 1 costa este
+ const a=Math.abs(lat),N=lat>=0;
+ if(a<8)return 'Af';if(a<16)return xr<.25&&a>13?'BSh':'Aw';
+ if(a<30){if(xr>.8)return a>24?'Cfa':'Aw';return a<20&&xr>.55?'BSh':'BWh'}
+ if(a<40){if(xr<.22)return 'Csa';if(xr>.75)return 'Cfa';return 'BSk'}
+ if(a<57){if(xr<.25)return 'Cfb';if(!N)return xr>.7?'Cfb':'BSk';return xr>.7?'Dfa':'Dfb'}
+ if(a<70){if(xr<.15)return N?'Cfc':'ET';return N?'Dfc':'ET'}
+ return 'ET'}
+function contWidth(lat){// anchura relativa del continente ideal por latitud (más ancho en el norte, como en la realidad)
+ if(lat>78||lat<-58)return 0;if(lat>=0)return .45+.55*Math.sin(Math.min(1,(lat+5)/65)*Math.PI/2)-(lat>70?(lat-70)/8*.5:0);return Math.max(.12,.45-(-lat)/58*.33)}
+function drawContinent(x,w,h){x.fillStyle='#1d5f8a';x.fillRect(0,0,w,h);const top=14,bot=h-24,Y=la=>top+(80-la)/140*(bot-top),cx=w*.5,half=w*.36;drawContinent.geom={top,bot,cx,half};
+ const cell=3;for(let py=top;py<bot;py+=cell){const la=80-(py-top)/(bot-top)*140,wid=contWidth(la);if(wid<=0)continue;const x0=cx-half*wid,x1=cx+half*wid;for(let px=x0;px<x1;px+=cell){const xr=(px-x0)/(x1-x0),col=colorOf(idealClimate(la,xr));x.fillStyle=col;x.fillRect(px,py,cell+.5,cell+.5)}}
+ for(const [la,c,n] of [[0,'#fff','Ecuador'],[23.44,'#ffd166','Trópico de Cáncer'],[-23.44,'#ffd166','Trópico de Capricornio'],[66.56,'#7cc6ff','Círculo polar ártico'],[30,'rgba(255,255,255,.35)','30°'],[60,'rgba(255,255,255,.35)','60°'],[-30,'rgba(255,255,255,.35)','30°']]){x.strokeStyle=c;x.setLineDash(la%30===0&&la!==0?[3,4]:[]);x.lineWidth=1;x.beginPath();x.moveTo(0,Y(la));x.lineTo(w,Y(la));x.stroke();x.setLineDash([]);txt(x,n,6,Y(la)-3,{a:'left',s:10.5,c})}
+ if(picked&&picked.ideal){x.strokeStyle='#ffd166';x.lineWidth=2.4;x.beginPath();x.arc(picked.px,picked.py,7,0,7);x.stroke()}
+ txt(x,'OESTE',cx-half*.9,Y(45),{s:12,w:800,c:'#fff',bg:'rgba(5,16,26,.5)'});txt(x,'ESTE',cx+half*.9,Y(45),{s:12,w:800,c:'#fff',bg:'rgba(5,16,26,.5)'});
+ txt(x,'Continente ideal (esquema): los climas se ordenan por latitud y según la fachada',w/2,h-6,{s:12,c:'#cfe0e8'})}
+/* mapa de Köppen */
+let mapCache=null;const VIEW={west:-180,east:180,north:84,south:-58};
+function drawMap(x,w,h,d){const top=6,H2=h-top-6,W2=Math.min(w,H2*(360/(VIEW.north-VIEW.south))),x0=(w-W2)/2;
+ const key=[W2,H2,d,kDetail,!!kop,!!land].join('|');if(!mapCache||mapCache.key!==key){const c=document.createElement('canvas');c.width=Math.round(W2*d);c.height=Math.round(H2*d);const cx=c.getContext('2d'),im=cx.createImageData(c.width,c.height),p=im.data;
+  for(let j=0;j<c.height;j++){const la=VIEW.north-(j+.5)/c.height*(VIEW.north-VIEW.south);for(let i=0;i<c.width;i++){const lo=VIEW.west+(i+.5)/c.width*360,code=kop?KC[T.sample(kop,la,lo)]:null,col=colorOf(code);let r,g,b;if(col){r=parseInt(col.slice(1,3),16);g=parseInt(col.slice(3,5),16);b=parseInt(col.slice(5,7),16)}else if(land&&T.sample(land,la,lo)>127){r=g=b=170}else{r=30;g=80;b=120}const k=(j*c.width+i)*4;p[k]=r;p[k+1]=g;p[k+2]=b;p[k+3]=255}}cx.putImageData(im,0,0);mapCache={key,c}}
+ x.drawImage(mapCache.c,x0,top,W2,H2);const Y=la=>top+(VIEW.north-la)/(VIEW.north-VIEW.south)*H2,X=lo=>x0+(lo+180)/360*W2;
+ for(const [la,c,n] of [[0,'#fff','Ecuador'],[23.44,'#ffd166','T. Cáncer'],[-23.44,'#ffd166','T. Capricornio'],[66.56,'#7cc6ff','C. polar ártico']]){x.strokeStyle=c;x.lineWidth=1.2;x.setLineDash(la?[5,4]:[]);x.beginPath();x.moveTo(x0,Y(la));x.lineTo(x0+W2,Y(la));x.stroke();x.setLineDash([]);txt(x,n,x0+4,Y(la)-3,{a:'left',s:10.5,c,bg:'rgba(5,16,26,.55)'})}
+ const can=[X(-16.6),Y(28.3)];x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.arc(can[0],can[1],5,0,7);x.stroke();txt(x,'Canarias',can[0]-8,can[1]+4,{a:'right',s:11,w:800,bg:'rgba(5,16,26,.6)'});
+ if(picked){const px=X(picked.lo),py=Y(picked.la);x.strokeStyle='#ffd166';x.lineWidth=2.4;x.beginPath();x.arc(px,py,7,0,7);x.stroke()}
+ drawMap.geom={x0,top,W2,H2}}
+/* gráfica de energía */
+function drawChart(){const {x,w,h}=fit($('chart'));x.fillStyle='#05101a';x.fillRect(0,0,w,h);const pl=42,pr=18,pt=50,pb=26,W=w-pl-pr,H=h-pt-pb,X=la=>pl+(la+90)/180*W,vmax=(()=>{let m=0;for(let l=-90;l<=90;l+=5)m=Math.max(m,Q(l,seasonDec()),Qyear(l,tilt));return Math.max(560,Math.ceil((m+30)/100)*100)})(),Y=v=>pt+H-v/vmax*H;
+ x.strokeStyle='rgba(255,255,255,.1)';x.fillStyle='#a9c0cd';x.font='10px system-ui';x.textAlign='right';for(let v=0;v<=vmax-20;v+=100){x.beginPath();x.moveTo(pl,Y(v));x.lineTo(w-pr,Y(v));x.stroke();x.fillText(v,pl-4,Y(v)+3)}x.save();x.translate(11,pt+H/2);x.rotate(-Math.PI/2);x.textAlign='center';x.fillText('W/m² (media diaria)',0,0);x.restore();
+ x.textAlign='center';for(const la of [-90,-60,-30,0,30,60,90])x.fillText((la===0?'0°':Math.abs(la)+'°'+(la<0?'S':'N')),X(la),h-8);
+ // zonas
+ for(let la=-90;la<90;la+=1){const z=zoneOf(la+.5),c=ZCOL[z];x.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},.13)`;x.fillRect(X(la),pt,W/180+.5,H)}
+ const curve=(fn,col,wd,dash)=>{x.strokeStyle=col;x.lineWidth=wd;x.setLineDash(dash||[]);x.beginPath();for(let la=-90;la<=90;la+=1){const v=fn(la);la===-90?x.moveTo(X(la),Y(v)):x.lineTo(X(la),Y(v))}x.stroke();x.setLineDash([])};
+ if(Math.abs(tilt-23.44)>.3)curve(la=>Qyear(la,23.44),'rgba(255,255,255,.35)',1.4,[5,4]);
+ curve(la=>Q(la,seasonDec()),'#ff9f43',1.8,[3,3]);curve(la=>Qyear(la,tilt),'#ffd166',2.8);
+ x.textAlign='left';x.font='700 11px system-ui';x.fillStyle='#ffd166';x.fillText('━ media del año',pl+4,pt-10);x.fillStyle='#ff9f43';x.fillText('┅ '+({jun:'solsticio de junio',dic:'solsticio de diciembre',equ:'equinoccio'})[season],pl+108,pt-10);if(Math.abs(tilt-23.44)>.3){x.fillStyle='rgba(255,255,255,.6)';x.fillText('┅ con 23,44°',pl+4,pt+4)}}
+/* ---- pasos ---- */
+const STEPS=[
+ {k:'Esfera',v:'rayos',t:'Una Tierra esférica no se calienta igual',p:'Los rayos del Sol llegan <b>paralelos</b>. Como la Tierra es una <b>esfera</b>, cerca del ecuador llegan casi perpendiculares y concentran mucha energía en poca superficie; hacia los polos llegan cada vez más <b>inclinados</b> y la misma luz se reparte en una superficie mucho mayor (y atraviesa más atmósfera). Por eso el ecuador es cálido y los polos, fríos.'},
+ {k:'Eje inclinado',v:'zonas',season:'jun',t:'El eje inclinado mueve el Sol entre los trópicos',p:'El eje de la Tierra está inclinado <b>23,44°</b>. Por eso el Sol llega al cenit (rayos perpendiculares) en cualquier punto entre el <b>trópico de Cáncer</b> y el de <b>Capricornio</b>, y más allá de los <b>círculos polares</b> hay días sin noche en verano y sin día en invierno. Los trópicos están a 23,44° y los círculos polares a 90° − 23,44° = 66,56°. Cambia la estación.'},
+ {k:'Zonas',v:'zonas',season:'equ',t:'Las zonas térmicas de la Tierra',p:'Así quedan cinco zonas: una <b>zona cálida</b> o intertropical entre los dos trópicos, dos <b>zonas templadas</b> entre los trópicos y los círculos polares, y dos <b>zonas frías</b> o polares. Arrastra el globo para girarlo. La gráfica muestra la energía media que recibe cada latitud a lo largo del año.'},
+ {k:'¿Y si…?',v:'zonas',season:'jun',t:'¿Y si el eje estuviera más o menos inclinado?',p:'Mueve la inclinación. Con <b>0°</b> no hay trópicos ni círculos polares ni estaciones. Con <b>45°</b> la zona cálida y las frías crecen y las templadas se estrechan. Con más de 45° ¡se solapan! (en rosa: zonas a la vez tropicales y polares). Los trópicos y los círculos polares no están donde están por casualidad: los fija la inclinación del eje.'},
+ {k:'Climas',v:'continente',t:'De las zonas a los climas: el continente ideal',p:'Dentro de cada zona, el clima depende también de la <b>circulación del aire</b> y de la <b>fachada</b> del continente. Este esquema clásico ordena los climas: <b>ecuatorial</b> junto al ecuador, <b>sabana</b>, <b>desiertos</b> hacia los 20–30° (sobre todo en la fachada oeste), <b>mediterráneo</b> en la fachada oeste a 30–45°, <b>oceánico</b> más al norte, <b>continental</b> en el interior y <b>polar</b> al final.'},
+ {k:'Mapa real',v:'mapa',t:'Los climas reales de la Tierra',p:'Este es el mapa real de climas (clasificación de Köppen). Compara con el continente ideal: verás los desiertos cerca de los trópicos (Sáhara, Arabia, Australia, Atacama, Kalahari), el clima mediterráneo en las fachadas oeste (Mediterráneo, California, Chile central, Sudáfrica, sur de Australia) y los climas continentales solo en el hemisferio norte. <b>Pulsa en el mapa</b> para ver el clima de cualquier lugar.'},
+ {k:'Explora',v:'globoclima',t:'Los climas sobre el globo',p:'Gira el globo y busca los grandes cinturones de climas. ¿Ves que los desiertos se alinean a unos 30° al norte y al sur del ecuador? Eso lo explica la <b>circulación atmosférica general</b>: es la siguiente animación.'}];
+function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
+function legend(){const v=STEPS[step].v;if(v==='rayos'||v==='zonas'){$('legend').innerHTML=Object.keys(ZNAME).filter(k=>k!=='ambas'||tilt>45).map(k=>`<span><i style="background:rgb(${ZCOL[k].join(',')})"></i>${ZNAME[k]}</span>`).join('');$('kDetail').style.display='none';return}
+ $('kDetail').style.display='';$('kDetail').textContent=kDetail?'Ver grupos de climas':'Ver tipos de Köppen';
+ if(kDetail){$('legend').innerHTML=KC.slice(1,31).map(c=>`<span><i style="background:${KCOL[c]}"></i>${c}</span>`).join('')}else $('legend').innerHTML=GROUPS.map(g=>`<span><i style="background:${g.c}"></i>${g.n}</span>`).join('')}
+function info(){const v=STEPS[step].v;let s='';
+ if(v==='rayos')s='En el ecuador, un haz de luz calienta <b>1</b> unidad de superficie; a 45° la misma luz se reparte en <b>1,4</b>; a 70°, en <b>2,9</b>. En el polo, casi nada.';
+ else if(v==='zonas')s=`Con una inclinación de <b>${fmt(tilt,2)}°</b>: trópicos a <b>${fmt(tilt,2)}°</b> y círculos polares a <b>${fmt(90-tilt,2)}°</b>. Zona cálida: ${fmt(Math.min(100,Math.sin(tilt*D2R)*100),0)} % de la superficie de la Tierra; zonas frías: ${fmt((1-Math.sin(Math.max(0,90-tilt)*D2R))*100,0)} %.`;
+ else if(picked&&picked.ideal){const g=groupOf(idealClimate(picked.la,picked.xr));s=`Latitud ≈ <b>${fmt(Math.abs(picked.la),0)}° ${picked.la>=0?'N':'S'}</b>, ${picked.xr<.3?'fachada oeste':picked.xr>.7?'fachada este':'interior'} · <b>${g.n}</b>. ${g.d}`}
+ else if(picked&&kop){const code=KC[T.sample(kop,picked.la,picked.lo)],g=groupOf(code);s=code&&code!=='Océano'?`<b>${fmt(Math.abs(picked.la),1)}° ${picked.la>=0?'N':'S'}, ${fmt(Math.abs(picked.lo),1)}° ${picked.lo>=0?'E':'O'}</b> · Köppen <b>${code}</b> · ${g.n}. ${g.d}`:'Océano: pulsa sobre tierra firme.'}
+ else s=v==='continente'?'<b>Fachada oeste</b>: le llegan los vientos del oeste desde el mar (oceánico) y, más al sur, el anticiclón en verano (mediterráneo). <b>Fachada este</b>: veranos húmedos por los vientos del mar (subtropical húmedo) e inviernos muy fríos en el norte (continental). <b>Pulsa en el esquema</b> para ver cada clima.':v==='globoclima'?'Arrastra para girar el globo. <b>Pulsa sobre él</b> para ver el clima de un lugar.':'Pulsa en el mapa para ver el clima de un lugar.';$('info').innerHTML=s}
+function draw(){const s=STEPS[step],{x,w,h,d}=fit($('main'));x.fillStyle='#05101a';x.fillRect(0,0,w,h);
+ if(s.v==='rayos'){$('mainTitle').textContent='Rayos paralelos sobre una Tierra esférica';drawRays(x,w,h)}
+ else if(s.v==='zonas'){$('mainTitle').textContent='Zonas térmicas · arrastra para girar';drawBandGlobe(x,w,h,d,'zonas')}
+ else if(s.v==='continente'){$('mainTitle').textContent='';drawContinent(x,w,h)}
+ else if(s.v==='mapa'){$('mainTitle').textContent='';drawMap(x,w,h,d)}
+ else{$('mainTitle').textContent='Climas de Köppen sobre el globo · arrastra para girar';drawBandGlobe(x,w,h,d,'climas')}
+ $('tiltV').textContent=fmt(tilt,2)+'°';document.querySelectorAll('#season button').forEach(b=>b.classList.toggle('on',b.dataset.s===season));drawChart();legend();info()}
+function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();if(s.season)season=s.season;if(i!==3&&i!==2)tilt=23.44;$('tilt').value=tilt;yaw=0;pitch=0;picked=null;$('tiltBox').style.display=(s.v==='zonas'||s.v==='globoclima')?'':'none';draw()}
+$('tilt').oninput=()=>{tilt=+$('tilt').value;draw()};document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tilt=+b.dataset.t;$('tilt').value=tilt;draw()});
+document.querySelectorAll('#season button').forEach(b=>b.onclick=()=>{season=b.dataset.s;draw()});
+$('kDetail').onclick=()=>{kDetail=!kDetail;mapCache=null;draw()};
+let drag=null;$('mainCard').addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,y0:yaw,p0:pitch,moved:false};$('mainCard').setPointerCapture(e.pointerId)});
+$('mainCard').addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4)drag.moved=true;const v=STEPS[step].v;if(v==='zonas'||v==='globoclima'){yaw=drag.y0+dx*.5;pitch=Math.max(-80,Math.min(80,drag.p0+dy*.4));draw()}});
+$('mainCard').addEventListener('pointerup',e=>{const was=drag;drag=null;if(was&&!was.moved&&STEPS[step].v==='mapa'&&drawMap.geom){const r=$('main').getBoundingClientRect(),g=drawMap.geom,px=e.clientX-r.left,py=e.clientY-r.top;if(px>=g.x0&&px<=g.x0+g.W2&&py>=g.top&&py<=g.top+g.H2){picked={lo:(px-g.x0)/g.W2*360-180,la:VIEW.north-(py-g.top)/g.H2*(VIEW.north-VIEW.south)};draw()}}
+ else if(was&&!was.moved&&STEPS[step].v==='continente'&&drawContinent.geom){const r=$('main').getBoundingClientRect(),g=drawContinent.geom,px=e.clientX-r.left,py=e.clientY-r.top,la=80-(py-g.top)/(g.bot-g.top)*140,wid=contWidth(la);if(wid>0){const x0=g.cx-g.half*wid,x1=g.cx+g.half*wid;if(px>=x0&&px<=x1){picked={ideal:true,la,xr:(px-x0)/(x1-x0),px,py};draw()}}}
+ else if(was&&!was.moved&&STEPS[step].v==='globoclima'&&drawBandGlobe.geom){const r=$('main').getBoundingClientRect(),o=drawBandGlobe.geom,u=(e.clientX-r.left-o.cx)/o.R,v=-(e.clientY-r.top-o.cy)/o.R,rr=u*u+v*v;if(rr<1){const z=Math.sqrt(1-rr),P=[0,1,2].map(i=>u*o.right[i]+v*o.up[i]+z*o.toward[i]),E90=V.cross(o.N,o.E0);picked={la:Math.asin(V.dot(P,o.N))*R2D,lo:Math.atan2(V.dot(P,E90),V.dot(P,o.E0))*R2D};draw()}}});
+let rq=0;new ResizeObserver(()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{mapCache=null;draw()})}).observe(document.querySelector('.grid'));
+go(0);
+window.__zc={go,set tilt(v){tilt=v;draw()},pick:(la,lo)=>{picked={la,lo};draw()}};
+})();
+</script>
+</body>
+</html>
