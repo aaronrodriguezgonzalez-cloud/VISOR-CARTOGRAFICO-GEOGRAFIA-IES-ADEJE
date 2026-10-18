@@ -2930,7 +2930,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <button class="tool" onclick="togglePanel('measurePanel')"><span>📏</span> Medir</button>
 <button class="tool" onclick="togglePanel('profilePanel')"><span>⛰️</span> Perfil</button>
 <button class="tool" id="geoAnalysisToolBtn" onclick="togglePanel('geoAnalysisPanel')"><span>🧮</span> Análisis geográfico</button>
-<button class="tool" id="spainReliefMapToolBtn" onclick="togglePanel('spainReliefMapPanel')"><span>🏔️</span> Mapa de relieve</button>
+
 <button class="tool" onclick="togglePanel('trackPanel')"><span>🧭</span> Track GPX/KML</button>
 <button class="tool" onclick="togglePanel('explainPanel')"><span>🎬</span> Explicaciones y animaciones</button>
 <button class="tool" id="politicalToolBtn" onclick="window.togglePoliticalTool?.()"><span>🗺️</span> Mapas políticos / mudos</button>
@@ -2960,7 +2960,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <section class="hubCard"><b>📊 Atlas estadístico y análisis</b><button data-hub="atlas-world">🌍 Mundo · Banco Mundial / PNUD</button><button data-hub="atlas-eu">🇪🇺 Europa · Eurostat (regiones)</button><button data-hub="atlas-spain">🇪🇸 España · INE</button><button data-hub="atlas-canary">🏝️ Canarias · ISTAC</button><button data-hub="analysis">🧮 Análisis geográfico · indicadores, mapa derivado y CSV</button></section>
     <section class="hubCard"><b>🏛️ Historia y patrimonio</b><button data-hub="history">Fronteras históricas y acontecimientos · línea de tiempo</button><button data-hub="heritage">Patrimonio cultural de Canarias · BIC y arqueología insular</button><button data-hub="indigenous">🏺 Mundo indígena · particiones territoriales</button></section>
     <section class="hubCard"><b>🥾 Senderismo y campo</b><button data-hub="gps">Mi ubicación GPS</button><button data-hub="tracks">Crear, importar y exportar tracks GPX/KML</button><button data-hub="profile">Perfil territorial</button><button data-hub="measure">Medir distancias y superficies</button></section>
-    <section class="hubCard"><b>🎓 Aula y creación</b><button data-hub="political">Mapas políticos / mudos · actuales e históricos</button><button data-hub="game">🎮 Juego territorial</button><button data-hub="relief-spain">🏔️ Mapa de relieve de España</button><button data-hub="animations">🎬 Explicaciones y animaciones</button><button data-hub="print">🖨️ Compositor cartográfico / PDF</button></section>
+    <section class="hubCard"><b>🎓 Aula y creación</b><button data-hub="political">Mapas políticos / mudos · actuales e históricos</button><button data-hub="game">🎮 Juego territorial</button><button data-hub="animations">🎬 Explicaciones y animaciones</button><button data-hub="print">🖨️ Compositor cartográfico / PDF</button></section>
     <section class="hubCard hubWide"><b>ℹ️ Acerca de ANAMBRO</b><div class="hubRow"><button data-hub="welcome">👋 Bienvenido</button><button data-hub="sources">ⓘ Fuentes, licencias y créditos</button><button data-hub="radio">📻 Radio Garden · emisoras del mundo</button></div></section>
   </div>
 </div>
@@ -3381,7 +3381,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-18 (r42: animaciones zonas y climas, y circulación atmosférica y ruta de Colón)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-18 (r43: mapa de relieve solo desde Geografía física de España)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
