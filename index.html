@@ -3388,7 +3388,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-18 (r44: Biblioteca didáctica ANAMBRO por temas)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-18 (r45: animación Tectónica de placas y relieve)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -3497,8 +3497,11 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <div class="explainCardIcon">🌬️</div><div class="explainCardBody"><b>Circulación atmosférica, corrientes y la ruta de Colón</b><small>Las células de Hadley, Ferrel y polar, los alisios y los vientos del oeste, las corrientes marinas, por qué hay desiertos junto a los trópicos, el clima de Canarias y el primer viaje de Colón día a día.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/circulacion-colon/index.html','Circulación atmosférica, corrientes y la ruta de Colón')">▶ Abrir animación interactiva</button></div>
   </div>
   </div></details>
-  <details class="libGroup" name="anambroLib"><summary><span>🌋 Relieve y dinámica interna</span><small>próximamente</small></summary>
-  <div class="libCards"><div class="explainSoon" style="margin-top:0">En preparación: <b>Tectónica de placas y relieve</b> (la deriva de los continentes desde Pangea con reconstrucciones científicas reales) y <b>Vulcanismo y Canarias</b>.</div></div></details>
+  <details class="libGroup" name="anambroLib"><summary><span>🌋 Relieve y dinámica interna</span><small>1 animación</small></summary>
+  <div class="libCards">  <div class="explainCard">
+    <div class="explainCardIcon">🗻</div><div class="explainCardBody"><b>Tectónica de placas y relieve</b><small>El interior de la Tierra, las placas reales y su velocidad, la deriva de los continentes desde Pangea con reconstrucciones científicas, dorsales, subducción, colisión, fallas transformantes y el relieve que crean.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/tectonica-relieve/index.html','Tectónica de placas y relieve')">▶ Abrir animación interactiva</button></div>
+  </div>
+<div class="explainSoon" style="margin-top:0">En preparación: <b>Vulcanismo y Canarias</b>.</div></div></details>
   <div class="explainSoon"><b>Biblioteca didáctica ANAMBRO.</b> Animaciones, simulaciones y explicaciones creadas para el aula y cargadas solo cuando se necesitan.</div>
 </div>
 
