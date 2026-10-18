@@ -3388,7 +3388,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-18 (r48: tectónica rehecha, Vulcanismo y Canarias, aviso «municipios» del análisis corregido)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-18 (r51: bloque Modelado del relieve: ríos, glaciares, costas, viento y karst)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -3497,14 +3497,35 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <div class="explainCardIcon">🌬️</div><div class="explainCardBody"><b>Circulación atmosférica, corrientes y la ruta de Colón</b><small>Las células de Hadley, Ferrel y polar, los alisios y los vientos del oeste, las corrientes marinas, por qué hay desiertos junto a los trópicos, el clima de Canarias y el primer viaje de Colón día a día.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/circulacion-colon/index.html','Circulación atmosférica, corrientes y la ruta de Colón')">▶ Abrir animación interactiva</button></div>
   </div>
   </div></details>
-  <details class="libGroup" name="anambroLib"><summary><span>🌋 Relieve y dinámica interna</span><small>2 animaciones</small></summary>
+  <details class="libGroup" name="anambroLib"><summary><span>🌋 Relieve y dinámica interna</span><small>3 animaciones</small></summary>
   <div class="libCards">  <div class="explainCard">
     <div class="explainCardIcon">🗻</div><div class="explainCardBody"><b>Tectónica de placas y relieve</b><small>Un globo con las placas reales en movimiento, la deriva de los continentes desde Pangea, dorsales, subducción, colisión y fallas con volcanes y terremotos animados, y los terremotos reales del último mes y los volcanes del mundo.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/tectonica-relieve/index.html','Tectónica de placas y relieve')">▶ Abrir animación interactiva</button></div>
   </div>
   <div class="explainCard">
     <div class="explainCardIcon">🌋</div><div class="explainCardBody"><b>Vulcanismo y Canarias</b><small>Un volcán por dentro, los tipos de erupción, el origen de las Canarias y cómo crece una isla, las erupciones históricas, Tajogaite (La Palma, 2021) día a día, la vigilancia volcánica y los paisajes volcánicos de las islas.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/vulcanismo-canarias/index.html','Vulcanismo y Canarias')">▶ Abrir animación interactiva</button></div>
   </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🪨</div><div class="explainCardBody"><b>Los materiales volcánicos</b><small>Coladas (lajial y malpaís), tubos, columnas y hornitos; piroclastos por tamaño, bombas, pumita, tosca, ignimbrita y fonolita; olivino, almagre y gases. Catálogo de 23 materiales canarios y reto para reconocer muestras.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/materiales-volcanicos/index.html','Los materiales volcánicos')">▶ Abrir animación interactiva</button></div>
+  </div>
 </div></details>
+  <details class="libGroup" name="anambroLib"><summary><span>🏞️ Modelado del relieve</span><small>5 animaciones</small></summary>
+  <div class="libCards">
+  <div class="explainCard">
+    <div class="explainCardIcon">🏞️</div><div class="explainCardBody"><b>Ríos, barrancos, deltas y estuarios</b><small>Cómo erosiona, transporta y sedimenta un río; el valle en V; meandros y lagos en herradura; los barrancos canarios y sus avenidas; y por qué en unas desembocaduras se forma un delta y en otras un estuario.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/rios-barrancos/index.html','Ríos, barrancos, deltas y estuarios')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🏔️</div><div class="explainCardBody"><b>Glaciares y valles glaciares</b><small>De la nieve al hielo; cómo un glaciar convierte un valle en V en un valle en U; circos, aristas, valles colgados, lagos y morrenas; y el retroceso de los glaciares del Pirineo.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/glaciares/index.html','Glaciares y valles glaciares')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🌊</div><div class="explainCardBody"><b>Las costas: acantilados, playas y tómbolos</b><small>Cómo retrocede un acantilado y se forma la rasa; cabos, arcos y farallones; deriva litoral, flechas y tómbolos, con ejemplos canarios como La Isleta.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/costas/index.html','Las costas: acantilados, playas y tómbolos')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🏜️</div><div class="explainCardBody"><b>El viento: dunas y calima</b><small>Suspensión, saltación y reptación; cómo avanza una duna; barjanes y dunas transversales; las dunas de Maspalomas y Corralejo y la calima.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/viento-dunas/index.html','El viento: dunas y calima')">▶ Abrir animación interactiva</button></div>
+  </div>
+  <div class="explainCard">
+    <div class="explainCardIcon">🕳️</div><div class="explainCardBody"><b>El relieve kárstico: dolinas y cuevas</b><small>La disolución de la caliza; lapiaces, dolinas, poljés y cuevas; y cómo crecen las estalactitas y estalagmitas.</small><button class="action explainLaunch" type="button" onclick="openAnambroExplanation('animaciones/karst/index.html','El relieve kárstico: dolinas y cuevas')">▶ Abrir animación interactiva</button></div>
+  </div>
+  </div></details>
   <div class="explainSoon"><b>Biblioteca didáctica ANAMBRO.</b> Animaciones, simulaciones y explicaciones creadas para el aula y cargadas solo cuando se necesitan.</div>
 </div>
 
