@@ -108,11 +108,18 @@ function yearOf(lat,eps){const q=[],hl=[];for(let d=0;d<365;d++){const dec=decOf
  const m=q.reduce((a,b)=>a+b,0)/365;return {q,hl,m,mn:Math.min(...q),mx:Math.max(...q),hmin:Math.min(...hl),hmax:Math.max(...hl),night:hl.filter(h=>h<.05).length,midnight:hl.filter(h=>h>23.95).length}}
 const zoneName=st=>({extrema:'Estaciones extremas',calida:'Zona cálida',templada:'Zona templada',fria:'Zona fría'})[isExtreme(st)?'extrema':st.m>=QT?'calida':st.m>=QP?'templada':'fria'];
 function renderPlaces(){$('places').innerHTML=PL.map((p,i)=>`<button data-p="${i}" class="${i===place?'on':''}">${p.n}</button>`).join('');$('places').querySelectorAll('button').forEach(b=>b.onclick=()=>{place=+b.dataset.p;renderPlaces();draw()})}
+const SEAS={jun:{d:171,n:'21 de junio'},equ:{d:79,n:'20 de marzo'},dic:{d:355,n:'21 de diciembre'}};
+function dayInfo(lat,eps){const dec=season==='jun'?eps:season==='dic'?-eps:0,q=Q(lat,dec);let c=-Math.tan(lat*D2R)*Math.tan(dec*D2R);const hl=Math.abs(lat)>89.9?(dec*Math.sign(lat)>.001?24:Math.abs(dec)<.001?12:0):Math.acos(Math.max(-1,Math.min(1,c)))*24/Math.PI;const alt=90-Math.abs(lat-dec);
+ let note=alt<=0?'no sale':Math.abs(lat-dec)<.3?'en el cenit':hl>23.95?'sol de medianoche':'';return {q,hl,alt,note}}
+function dayBlock(p,same){const A=dayInfo(p.lat,23.44),B=dayInfo(p.lat,tilt),c=(a,b,f)=>`<span>${f(a)}</span><span class="${same?'':'n'}">${same?'—':f(b)}</span>`;
+ const alt=o=>o.alt<=0?'☾ no sale':fmt(o.alt,0)+'°'+(o.note?' · '+o.note:'');
+ return `<div style="margin-top:8px;color:#ffd166;font-weight:800;font-size:12.5px">El ${SEAS[season].n} en ${p.n}</div><div class="pc" style="margin-top:3px"><span class="h"></span><span class="h">Tierra real (23,44°)</span><span class="h">${same?'':'Con '+fmt(tilt,1)+'°'}</span>
+ <span class="h">Energía ese día</span>${c(A,B,o=>fmt(o.q)+' W/m²')}<span class="h">Horas de luz</span>${c(A,B,o=>fmt(o.hl,1).replace(',0','')+' h')}<span class="h">Sol a mediodía</span>${c(A,B,alt)}</div>`}
 function placeCard(){const p=PL[place],A=yearOf(p.lat,23.44),B=yearOf(p.lat,tilt),same=Math.abs(tilt-23.44)<.01;
  const hh=h=>fmt(h,1).replace(',0','')+' h',cell=(a,b,f,warn)=>`<span>${f(a)}</span><span class="${same?'':warn?'x':'n'}">${same?'—':f(b)}</span>`;
  const nights=v=>v?`${v} días`:'ninguno';
  $('placeCard').innerHTML=`<b style="font-size:14px">${p.n}</b> <span style="color:#a9c0cd">${fmt(Math.abs(p.lat),2)}° ${p.lat>=0?'N':'S'}${p.d?' · '+p.d:''}</span>
- <div class="pc" style="margin-top:6px"><span class="h"></span><span class="h">Hoy (23,44°)</span><span class="h">${same?'':'Con '+fmt(tilt,1)+'°'}</span>
+ ${dayBlock(p,same)}<div style="margin-top:9px;color:#ffd166;font-weight:800;font-size:12.5px">A lo largo del año</div><div class="pc" style="margin-top:3px"><span class="h"></span><span class="h">Tierra real (23,44°)</span><span class="h">${same?'':'Con '+fmt(tilt,1)+'°'}</span>
  <span class="h">Energía media</span>${cell(A.m,B.m,v=>fmt(v)+' W/m²')}
  <span class="h">Día más oscuro</span>${cell(A.mn,B.mn,v=>fmt(v)+' W/m²',B.mn<A.mn*.5)}
  <span class="h">Día más soleado</span>${cell(A.mx,B.mx,v=>fmt(v)+' W/m²',B.mx>QMAX*1.15)}
@@ -125,7 +132,8 @@ function placeCard(){const p=PL[place],A=yearOf(p.lat,23.44),B=yearOf(p.lat,tilt
  x.textAlign='center';'EFMAMJJASOND'.split('').forEach((m,i)=>x.fillText(m,X(i*30.4+15),h-4));
  const line=(arr,col,wd,dash)=>{x.strokeStyle=col;x.lineWidth=wd;x.setLineDash(dash);x.beginPath();arr.forEach((v,d)=>d?x.lineTo(X(d),Y(v)):x.moveTo(X(d),Y(v)));x.stroke();x.setLineDash([])};
  line(A.q,'rgba(255,255,255,.6)',1.4,[4,3]);if(!same)line(B.q,'#e7a3ff',2.2,[]);
- x.textAlign='left';x.font='700 10px system-ui';x.fillStyle='rgba(255,255,255,.75)';x.fillText('┅ hoy',pl+4,pt+9);if(!same){x.fillStyle='#e7a3ff';x.fillText('━ con '+fmt(tilt,1)+'°',pl+44,pt+9)}}
+ const dd=SEAS[season].d;x.strokeStyle='#ffd166';x.lineWidth=1.5;x.setLineDash([3,3]);x.beginPath();x.moveTo(X(dd),pt);x.lineTo(X(dd),pt+H);x.stroke();x.setLineDash([]);for(const [arr,col] of [[A.q,'#fff'],...(same?[]:[[B.q,'#e7a3ff']])]){x.fillStyle=col;x.strokeStyle='#05101a';x.lineWidth=1.5;x.beginPath();x.arc(X(dd),Y(arr[dd]),4,0,7);x.fill();x.stroke()}
+ x.textAlign='left';x.font='700 10px system-ui';x.fillStyle='rgba(255,255,255,.75)';x.fillText('┅ Tierra real',pl+4,pt+9);if(!same){x.fillStyle='#e7a3ff';x.fillText('━ con '+fmt(tilt,1)+'°',pl+78,pt+9)}x.fillStyle='#ffd166';x.textAlign=dd>300?'right':'left';x.fillText(SEAS[season].n,X(dd)+(dd>300?-4:4),pt+H-4)}
 /* ---- lienzos ---- */
 function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d',{willReadFrequently:true});x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height,d}}
 function txt(x,s,X,Y,o={}){x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';x.textAlign=o.a||'center';if(o.bg){const m=x.measureText(s).width,l=o.a==='left'?X:o.a==='right'?X-m:X-m/2;x.fillStyle=o.bg;x.fillRect(l-4,Y-(o.s||12),m+8,(o.s||12)+5)}x.fillStyle=o.c||'#eef5f8';x.fillText(s,X,Y);x.restore()}
