@@ -112,10 +112,10 @@ INFO={dis:()=>'Rocas solubles: caliza, dolomía y yeso. En Canarias, donde casi 
 LEG={dis:'Las gotas azules son el agua que se infiltra por las grietas.',karst:'En el corte frontal se ve una cueva con su río subterráneo.',cueva:'Gotas de agua (azul) depositando caliza.'};
 
 function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
-function renderOpt(){const s=STEPS[step];if(!s.o){$('optBox').style.display='none';return}$('optBox').style.display='';$('optLab').textContent=s.ol;if(opt[s.v]==null)opt[s.v]=s.o[0][0];$('opt').innerHTML=s.o.map(([k,n])=>`<button data-k="${k}" class="${opt[s.v]===k?'on':''}">${n}</button>`).join('');$('opt').querySelectorAll('button').forEach(b=>b.onclick=()=>{opt[s.v]=b.dataset.k;if(s.resetT)T=0;renderOpt();info();legend()})}
+function renderOpt(){const s=STEPS[step];if(!s.o){$('optBox').style.display='none';return}$('optBox').style.display='';$('optLab').textContent=s.ol;if(opt[s.v]==null)opt[s.v]=s.o[0][0];$('opt').innerHTML=s.o.map(([k,n])=>`<button data-k="${k}" class="${opt[s.v]===k?'on':''}">${n}</button>`).join('');$('opt').querySelectorAll('button').forEach(b=>b.onclick=()=>{opt[s.v]=b.dataset.k;if(s.resetT){T=0;if(s.time){playing=true;$('play').textContent='⏸ Pausa'}}renderOpt();info();legend()})}
 function legend(){const v=STEPS[step].v;$('legend').innerHTML=typeof LEG[v]==='function'?LEG[v]():(LEG[v]||'')}
 function info(){const v=STEPS[step].v;$('info').innerHTML=INFO[v]?INFO[v]():''}
-function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();renderOpt();$('timeBox').style.display=s.time?'':'none';if(s.time)$('timeLab').innerHTML=s.time;T=s.t0??0;playing=!!s.autoplay;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir';document.querySelectorAll('[data-show]').forEach(el=>el.style.display=el.dataset.show.split(' ').includes(s.v)?'':'none');legend();info()}
+function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();renderOpt();$('timeBox').style.display=s.time?'':'none';if(s.time)$('timeLab').innerHTML=s.time;T=s.t0??0;playing=s.autoplay!==false&&!!s.time;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir';document.querySelectorAll('[data-show]').forEach(el=>el.style.display=el.dataset.show.split(' ').includes(s.v)?'':'none');legend();info()}
 $('time').oninput=()=>{T=+$('time').value;playing=false;$('play').textContent='▶ Reproducir';info()};
 $('play').onclick=()=>{if(T>=1)T=0;playing=!playing;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir'};
 $('reset').onclick=()=>{T=0;info()};
@@ -123,7 +123,7 @@ let last=performance.now(),acc=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;const s=STEPS[step];if(playing&&s.time){T=Math.min(1,T+dt/(s.dur||14));if(T>=1){if(s.loop)T=0;else{playing=false;$('play').textContent='▶ Reproducir'}}acc+=dt;if(acc>.3){acc=0;info()}}$('time').value=T;
  const {x,w,h,d}=fit($('main'));DRAW[s.v](x,w,h,d,tt);requestAnimationFrame(frame)}
 renderSteps();go(0);requestAnimationFrame(frame);
-window.__g={go,set T(v){T=v;info()},set opt(v){opt[STEPS[step].v]=v;renderOpt();info();legend()}};
+window.__g={go,set play(v){playing=v},set T(v){T=v;info()},set opt(v){opt[STEPS[step].v]=v;renderOpt();info();legend()}};
 })();
 </script>
 </body>

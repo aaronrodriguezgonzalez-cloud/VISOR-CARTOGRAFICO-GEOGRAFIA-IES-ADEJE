@@ -65,37 +65,126 @@ function tag(x,s,X,Y,n){txt(x,s,X,Y,{s:n?10:12,w:800,c:'#fff',bg:'rgba(0,0,0,.55
 let step=0,T=0,playing=false,tt=0,opt={},STEPS=[],DRAW={},INFO={},LEG={};
 const NZ=R.noise(31);
 const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*clamp(t,0,1));
-/* 1 · el acantilado retrocede (perfil) */
-function drawCliff(x,w,h,d,t){const n=w<560;sky(x,w,h,'#8fc0e0','#eaf4f8');const sea=h*.5,base=h,top=h*.16;
- const cl0=w*.3,ret=T*w*.45,clx=cl0+ret,cyc=(T*6)%1,notch=(cyc<.8?cyc/.8:1)*w*.06,coll=cyc>=.8?(cyc-.8)/.2:0;
- const seabed=X=>X<clx?sea+h*.06+(clx-X)/w*h*.35*(X<cl0?1.6:.25):sea+h*.06;
- // roca bajo el mar (rasa) y acantilado
- x.fillStyle='#6a5846';x.beginPath();x.moveTo(0,base);for(let X=0;X<=clx;X+=6)x.lineTo(X,seabed(X));x.lineTo(clx,sea+h*.03);x.lineTo(clx+notch,sea-h*.015);x.lineTo(clx,sea-h*.06);x.lineTo(clx,top);x.lineTo(w,top);x.lineTo(w,base);x.closePath();x.save();x.clip();
- const lay=['#a08460','#8a7458','#b09070','#7a6650','#9a7e5e','#6a5846','#8a7458'];for(let i=0;i<lay.length;i++){x.fillStyle=lay[i];x.fillRect(0,top+i*(base-top)/lay.length,w,(base-top)/lay.length+1)}
- x.strokeStyle='rgba(0,0,0,.18)';for(let i=0;i<30;i++){const X=clx+hash(i)*(w-clx),Y=top+hash(i*3)*(sea-top);x.beginPath();x.moveTo(X,Y);x.lineTo(X+3,Y+14);x.stroke()}x.restore();
- x.fillStyle='#6a9a50';x.fillRect(clx,top-7,w-clx,8);
- // bloques caídos en la rasa
- for(let i=0;i<Math.floor(T*16);i++){const X=cl0+hash(i)*(ret);x.fillStyle='#7a6650';x.beginPath();x.arc(X,seabed(X)-1,3+4*hash(i*7),Math.PI,0);x.fill()}
- if(coll>0){for(let i=0;i<12;i++){const px=clx+hash(i)*w*.05-coll*w*.03,py=sea-h*.06-(1-coll)*(sea-top)*hash(i*3)*.6;x.fillStyle='#9a7e5e';x.fillRect(px,py,7+6*hash(i),6+5*hash(i*5))}txt(x,'¡derrumbe!',clx+w*.08,top+28,{s:n?12:15,w:900,c:'#c0392b',bg:'rgba(255,255,255,.85)'})}
- // agua
- x.save();x.beginPath();x.rect(0,sea,clx+notch,base-sea);x.clip();x.fillStyle='rgba(38,108,160,.5)';x.beginPath();x.moveTo(0,sea);for(let X=0;X<=clx+notch;X+=6)x.lineTo(X,sea+3*Math.sin(X*.05+t*3));x.lineTo(clx+notch,base);x.lineTo(0,base);x.fill();x.restore();
- for(let k=0;k<3;k++){const ph=(t*.3+k/3)%1,wx=ph*clx;x.strokeStyle=`rgba(255,255,255,${.85*ph})`;x.lineWidth=3;x.beginPath();x.moveTo(wx-34,sea);x.quadraticCurveTo(wx-6,sea-16*ph,wx+6,sea);x.stroke();if(ph>.88)for(let i=0;i<10;i++){x.fillStyle='rgba(255,255,255,.85)';x.beginPath();x.arc(clx-2-hash(i+k)*16,sea-hash(i*3+k)*h*.12*(1-ph)*6,2.5,0,7);x.fill()}}
- tag(x,'acantilado',clx+(w-clx)*.5,top+34,n);tag(x,'socavón',clx+notch+40,sea-4,n);tag(x,'rasa (plataforma de abrasión)',Math.max(70,(cl0+clx)/2),sea+h*.16,n);tag(x,'olas',clx*.35,sea-22,n);
- txt(x,'el acantilado ha retrocedido unos '+fmt(Math.round(T*400/10)*10)+' m (esquema)',10,22,{a:'left',s:n?11:14,w:900,c:'#0e2a3a',bg:'rgba(255,255,255,.8)'})}
-/* 2 · cabos, arcos y farallones (bloque) */
-function capeZ(T){return (u,v)=>{let z=.35+.05*NZ(u*4,v*4);// tierra al fondo, mar al frente
-  const coast=.42+.28*Math.exp(-Math.pow((u-.5)/.12,2))*(1-.45*T);if(v>coast)z=-.06-(v-coast)*.3;
-  // cueva → arco → farallón en el extremo del cabo
-  const tipV=.42+.28*(1-.45*T);const cut1=Math.abs(v-(tipV-.07));if(T>.25&&Math.abs(u-.5)<.12&&cut1<.025){const arch=T<.55;if(!arch)z=-.06}
-  // farallón aislado
-  if(T>.55){const st=Math.hypot((u-.5)/.045,(v-(tipV+.0))/.035);if(st<1)z=.32*(T<.85?1:1-(T-.85)/.15*.7);}
-  return z}}
-function drawCape(x,w,h,d,t){sky(x,w,h,'#8fc0e0','#eaf4f8');const n=w<560,q=Math.round(T*40)/40,zf=capeZ(q);const c=R.cached('cp'+q,w,h,d,cx=>R.block(cx,w,h,{z:zf,N:110,M:70,color:(u,v,z,s)=>z<.0?[200,186,140]:s>1.3?[150,130,100]:[110,140,80],water:()=>0,strata:[[0,'#a08460'],[.12,'#8a7458'],[.3,'#76624c']],v:{top:.34,hz:.3}}));x.drawImage(c.cv,0,0,w,h);const P=c.r.P;
- const tipV=.42+.28*(1-.45*q);
- if(q>.25&&q<.55){const [ax,ay]=P(.5,tipV-.07,.0);x.fillStyle='rgba(20,40,60,.85)';x.beginPath();x.ellipse(ax,ay-8,c.r.V.W*.07,14,0,Math.PI,0);x.fill();tag(x,'ARCO',ax,ay-40,n)}
- else if(q>.55){const [sx,sy]=P(.5,tipV,.3);tag(x,q<.85?'FARALLÓN (roque aislado)':'el farallón se desmorona',sx,sy-20,n)}
- else{const [sx,sy]=P(.5,tipV,.3);tag(x,q<.15?'CABO: las olas atacan sus lados':'se abren cuevas por las grietas',sx,sy-20,n)}
- for(let k=0;k<4;k++){const ph=(t*.3+k/4)%1;const [a,b]=P(.1+.8*hash(k),.98-ph*.25,.005);x.strokeStyle=`rgba(255,255,255,${.7*(1-ph)})`;x.lineWidth=2;x.beginPath();x.moveTo(a-40,b);x.lineTo(a+40,b);x.stroke()}}
+/* 1 · el acantilado retrocede (perfil). Acantilado de coladas basálticas con capas blandas (escorias, piroclastos) entre ellas.
+   Las olas arrancan bloques al pie siguiendo las diaclasas; las capas blandas se vacían antes; la roca que queda en voladizo cae a trozos;
+   los derrubios forman un talud que protege el pie hasta que el mar lo deshace. Simulación sencilla y determinista. */
+function cliffSim(w,h,n){const key=[w,h].join('|');if(cliffSim.c&&cliffSim.c.key===key)return cliffSim.c;
+ const yTop=h*.25,ySea=h*.6,hiY=ySea-h*.035,loY=ySea+h*.035,rasa0=ySea+h*.028,X0=w*(n?.24:.28);
+ // capas de arriba abajo: [y0,y1,dura,espaciado de diaclasas,nombre,color]
+ const L=[[yTop,h*.37,1,w*.05,'colada de basalto (dura)','#5d544b'],[h*.37,h*.395,0,0,'escorias (blandas)','#8a5a3c'],[h*.395,h*.5,1,w*.036,'colada de basalto','#6b5f52'],[h*.5,hiY-h*.03,0,0,'piroclastos y almagre (blandos)','#a0583a'],[hiY-h*.03,rasa0,1,w*.04,'colada de basalto','#57504a']];
+ const B=L.length-1,joints=L.map((l,k)=>{if(!l[2])return null;const a=[];let xx=X0;for(let i=0;i<80;i++){xx+=l[3]*(.7+.6*hash(k*97+i));a.push(xx)}return a});
+ const nextJoint=(k,x)=>{for(const j of joints[k])if(j>x+2)return j;return x+L[k][3]};
+ const run=(rw)=>{const N=700,F=new Float32Array(N*(B+1)),Vt=new Float32Array(N),ev=[];let f=L.map(()=>X0),V=0,pend=[],face=X0;
+  for(let i=0;i<N;i++){const bandH=rasa0-L[B][0],ht=Math.sqrt(2*V*.7),prot=Math.min(1,ht/(bandH*.7)),storm=.35+1.3*Math.pow(.5+.5*Math.sin(i*.07)*Math.sin(i*.023+1),2);
+   // las olas arrancan bloques al pie (por las diaclasas) salvo si el talud las frena
+   const q=rw*storm*(1-.92*prot);f[B]+=q;
+   // las capas blandas se vacían por la meteorización y la maresía
+   f[3]+=rw*.32*(1-.6*prot);f[1]+=rw*.06;
+   // comprobación de apoyos, de abajo arriba
+   for(let k=B-1;k>=0;k--){const o=f[k+1]-f[k];if(L[k][2]){if(o>L[k][3]*.55){const nx=Math.min(nextJoint(k,f[k+1]-L[k][3]*.25),f[k+1]+L[k][3]*.2),dx=nx-f[k];if(dx>0){ev.push({s:i,k,x0:f[k],x1:nx,y0:L[k][0],y1:L[k][1]});pend.push([i+14,dx*(L[k][1]-L[k][0])*.45]);f[k]=nx}}}
+    else if(o>3){const dx=o;pend.push([i+6,dx*(L[k][1]-L[k][0])*.3]);f[k]=f[k+1]-1}}
+   pend=pend.filter(p=>{if(p[0]<=i){V+=p[1];return false}return true});V=Math.max(0,V-(rw*9+V*.012));
+   for(let k=0;k<=B;k++)F[i*(B+1)+k]=f[k];Vt[i]=V}
+  return {N,F,Vt,ev,ret:Math.max(...Array.from({length:B+1},(_,k)=>F[(N-1)*(B+1)+k]))-X0}};
+ let rw=w*.0012,S=run(rw);rw*=w*.3/Math.max(1,S.ret);S=run(rw);
+ const o={key,...S,L,B,joints,yTop,ySea,hiY,loY,rasa0,X0,rw};cliffSim.c=o;return o}
+function cliffState(){const c=cliffSim.c;if(!c)return 'olas';const i=Math.min(c.N-1,Math.floor(T*(c.N-1)));if(T>=1)return 'fin';const e=c.ev.filter(e=>e.s<=i&&i-e.s<16).pop();if(e)return 'cae';const ht=Math.sqrt(2*c.Vt[i]*.7);return ht>(c.rasa0-c.L[c.B][0])*.35?'talud':'olas'}
+function drawCliff(x,w,h,d,t){const n=w<560,baja=opt.cliff==='baja',C=cliffSim(w,h,n),{L,B,yTop,ySea,hiY,loY,rasa0,X0,N}=C;
+ sky(x,w,h,'#8fc0e0','#eaf4f8');
+ const fi=T*(N-1),i=Math.min(N-1,Math.floor(fi)),f=k=>C.F[i*(B+1)+k],V=C.Vt[i],ht=Math.sqrt(2*V*.7),face=f(B),fmax=Math.max(...L.map((_,k)=>f(k)));
+ const rasaY=X=>X>=X0?rasa0+(X0+w*.32-X)/w*h*.03:Math.min(h*.97,rasa0+h*.0096+(X0-X)*.75);
+ const lev=baja?loY+h*.03:ySea-h*.012+h*.016*Math.sin(t*.35);
+ // talud de derrubios: triángulo apoyado en el pie
+ const tb=ht/Math.tan(35*Math.PI/180),tx0=face-tb;
+ const brk=baja?Math.min(X0-6,tx0):(ht>(rasa0-hiY)*.6?tx0+tb*.3:face);
+ const Wp=2.4,ph=(t/Wp)%1,xc=ph*brk,Ah=h*(baja?.022:.034);
+ const sy=X=>lev-Ah*Math.exp(-Math.pow((X-xc)/(w*.045),2))*(.35+.65*Math.min(1,X/brk))+1.6*Math.sin(X*.06-t*2.2);
+ const gw=x.createLinearGradient(0,lev,0,h);gw.addColorStop(0,'#3d8cc0');gw.addColorStop(1,'#123e62');x.fillStyle=gw;x.beginPath();x.moveTo(0,h);for(let X=0;X<=fmax+8;X+=4)x.lineTo(X,Math.min(sy(Math.min(X,brk)),h));x.lineTo(fmax+8,h);x.closePath();x.fill();
+ x.fillStyle='rgba(120,95,70,.07)';x.fillRect(X0,yTop,fmax-X0,rasa0-yTop);
+ // capas
+ const paint=()=>{L.forEach((l,k)=>{x.fillStyle=l[5];x.fillRect(0,l[0],w,l[1]-l[0]+1);if(!l[2]){for(let j=0;j<160;j++){x.fillStyle=hash(j*7+k)<.5?'rgba(40,20,10,.35)':'rgba(220,150,100,.25)';x.fillRect(hash(j*3+k)*w,l[0]+hash(j*5+k)*(l[1]-l[0]),2.5,2)}}});x.fillStyle='#4f4842';x.fillRect(0,rasa0,w,h-rasa0);x.fillStyle='#3e2a1c';x.fillRect(0,yTop,w,5)};
+ x.save();x.beginPath();x.moveTo(0,h);for(let X=0;X<=face;X+=4)x.lineTo(X,rasaY(X));x.lineTo(face,rasaY(face));
+ for(let k=B;k>=0;k--){x.lineTo(f(k),L[k][1]);x.lineTo(f(k),L[k][0])}x.lineTo(w,yTop);x.lineTo(w,h);x.closePath();x.clip();paint();
+ // diaclasas en las coladas
+ x.strokeStyle='rgba(15,12,10,.6)';x.lineWidth=1.2;L.forEach((l,k)=>{if(!l[2])return;for(const j of C.joints[k]){if(j<f(k)||j>w)continue;x.beginPath();x.moveTo(j,l[0]+1);x.lineTo(j+2*(hash(j)-.5),l[1]-1);x.stroke()}});x.restore();
+ // vegetación, casa y cardón
+ x.fillStyle='#6f9a4c';x.fillRect(f(0),yTop-3,w-f(0),4);for(let k=0;k<30;k++){const sx=X0+(k+.3*hash(k))*w*.026;if(sx<f(0)+4)continue;const r=3+3*hash(k);x.fillStyle=hash(k*3)>.7?'#7d8f3a':'#557a3a';x.beginPath();x.ellipse(sx,yTop-r*.6,r*1.3,r,0,Math.PI,0);x.fill()}
+ const Hx=X0+C.ret+w*.025,hw=w*(n?.09:.07),hh=h*.075;x.fillStyle='#f3efe6';x.fillRect(Hx,yTop-hh,hw,hh);x.fillStyle='#b5523b';x.beginPath();x.moveTo(Hx-4,yTop-hh);x.lineTo(Hx+hw/2,yTop-hh-hh*.55);x.lineTo(Hx+hw+4,yTop-hh);x.fill();x.fillStyle='#3a6a8a';x.fillRect(Hx+hw*.18,yTop-hh*.7,hw*.22,hh*.3);x.fillStyle='#6b4a2e';x.fillRect(Hx+hw*.6,yTop-hh*.6,hw*.2,hh*.6);
+ {const cx=Hx+hw+w*.05;x.strokeStyle='#4f7a3a';x.lineCap='round';x.lineWidth=5;x.beginPath();x.moveTo(cx,yTop);x.lineTo(cx,yTop-h*.07);x.moveTo(cx-8,yTop-4);x.lineTo(cx-8,yTop-h*.05);x.moveTo(cx+8,yTop-4);x.lineTo(cx+8,yTop-h*.055);x.moveTo(cx-8,yTop-4);x.lineTo(cx+8,yTop-4);x.stroke();x.lineCap='butt'}
+ // silueta inicial
+ x.setLineDash([6,5]);x.strokeStyle='rgba(30,30,30,.75)';x.lineWidth=1.5;x.beginPath();x.moveTo(X0,rasaY(X0)+2);x.lineTo(X0,yTop);x.lineTo(f(0),yTop);x.stroke();x.setLineDash([]);
+ // talud
+ if(ht>2){x.save();x.beginPath();x.moveTo(face,rasaY(face)+1);x.lineTo(face,rasaY(face)-ht);x.lineTo(tx0,rasaY(tx0)+1);x.closePath();x.fillStyle='#6e655c';x.fill();x.clip();for(let j=0;j<120;j++){const X=tx0+hash(j*3)*tb,Y=rasaY(face)-hash(j*7)*ht;x.fillStyle=['#8c8378','#5a524b','#9d958a','#4a443e'][j%4];x.beginPath();x.ellipse(X,Y,3+4*hash(j*11),2+3*hash(j*13),hash(j)*3,0,7);x.fill()}x.restore()}
+ // callaos
+ for(let j=0;j<8;j++){const X=Math.min(face,tx0)-4-hash(j*41)*30,ry=rasaY(X);if(X<X0)continue;x.fillStyle=['#8c8378','#6f675e','#9d958a'][j%3];x.beginPath();x.ellipse(X,ry-2.5,3.5+2*hash(j),2.6,0,0,7);x.fill()}
+ // charcos con marea baja
+ if(baja)for(let k=0;k<6;k++){const X=X0+(k+.5)*(tx0-X0)/6;if(X<X0+12||X>tx0-12)continue;const ry=rasaY(X);x.fillStyle='#2f6f9a';x.beginPath();x.ellipse(X,ry+1.5,8+6*hash(k),2.6,0,0,7);x.fill()}
+ // bloques que caen
+ for(const e of C.ev){const q=(fi-e.s)/14;if(q<0||q>1)continue;const pieces=e.k===0?3:2,pw=(e.x1-e.x0)/pieces;for(let p=0;p<pieces;p++){const bx=e.x0+p*pw,dy=q*q*(rasaY(face)-ht*.5-e.y1+(e.y1-e.y0)*.3),dx=-q*(10+14*p),rot=-q*(.5+.4*p);x.save();x.globalAlpha=q>.8?1-(q-.8)/.2:1;x.translate(bx+pw/2+dx,(e.y0+e.y1)/2+dy);x.rotate(rot);x.fillStyle=L[e.k][5];x.fillRect(-pw/2,-(e.y1-e.y0)/2,pw-1,e.y1-e.y0);x.strokeStyle='rgba(0,0,0,.5)';x.strokeRect(-pw/2,-(e.y1-e.y0)/2,pw-1,e.y1-e.y0);x.restore()}
+  for(let j=0;j<16;j++){const a=hash(j*7)*6.28,r=q*(14+30*hash(j));x.fillStyle=`rgba(150,120,90,${.45*(1-q)})`;x.beginPath();x.arc((e.x0+e.x1)/2+Math.cos(a)*r,e.y1+q*(rasaY(face)-e.y1)*.6+Math.sin(a)*r*.6,3+4*hash(j*3),0,7);x.fill()}}
+ // espuma y salpicaduras
+ x.strokeStyle='rgba(255,255,255,.85)';x.lineWidth=2.4;x.beginPath();for(let X=Math.max(0,xc-w*.05);X<=Math.min(brk,xc+w*.02);X+=3)x.lineTo(X,sy(X)-1);x.stroke();
+ if(ph>.86){const q=(ph-.86)/.14;for(let j=0;j<24;j++){const a=-Math.PI/2-.2-hash(j*3)*1.2,v=(baja?.5:1)*h*.18*(.4+.6*hash(j*7));x.fillStyle=`rgba(255,255,255,${.95*(1-q)})`;x.beginPath();x.arc(brk-2+Math.cos(a)*v*q,lev+Math.sin(a)*v*q+q*q*h*.08,1.6+2.4*hash(j),0,7);x.fill()}}
+ // mareas
+ x.setLineDash([3,4]);x.lineWidth=1;x.strokeStyle='rgba(255,255,255,.75)';for(const yy of [hiY,loY]){x.beginPath();x.moveTo(Math.max(0,X0-w*.2),yy);x.lineTo(face,yy);x.stroke()}x.setLineDash([]);
+ txt(x,'pleamar',Math.max(8,X0-w*.2),hiY-4,{a:'left',s:n?9:10.5,w:800,c:'#fff',bg:'rgba(10,40,70,.6)'});txt(x,'bajamar',Math.max(8,X0-w*.2),loY+13,{a:'left',s:n?9:10.5,w:800,c:'#fff',bg:'rgba(10,40,70,.6)'});
+ // rótulos de las capas, a la derecha
+ if(!n)L.forEach((l,k)=>txt(x,l[4],w-8,(l[0]+l[1])/2+4,{a:'right',s:10,w:800,c:'#fff',bg:'rgba(0,0,0,.45)'}));
+ if(!n&&T<.35)tag(x,'diaclasas (grietas)',Math.min(w*.62,C.joints[2][3]),(L[2][0]+L[2][1])/2,n);
+ if(ht>8)tag(x,n?'talud de derrubios':'talud de derrubios: protege el pie… hasta que el mar se lo lleva',Math.max(n?110:w*.4,tx0+tb*.3),rasaY(face)-ht-(n?10:14),n);
+ if(fmax-X0>w*.12)tag(x,baja?'rasa al descubierto (marea baja)':'rasa (plataforma de abrasión)',(X0+Math.min(face,tx0))/2,rasaY(X0)+(n?24:30),n);
+ tag(x,'posición inicial',X0,yTop-(n?12:16),n);if(Hx-fmax<w*.05)tag(x,'⚠ la casa queda al borde',Hx+hw/2,yTop-hh-hh*.55-10,n);
+ const st=cliffState(),fase={olas:'las olas arrancan bloques al pie por las grietas',cae:'¡desprendimiento! cae la roca que se quedó sin apoyo',talud:'los derrubios protegen el pie del acantilado',fin:'el acantilado ha retrocedido: delante queda la rasa'}[st];
+ txt(x,fase,10,22,{a:'left',s:n?11:14,w:900,c:'#0e2a3a',bg:'rgba(255,255,255,.82)'});
+ txt(x,'perfil esquemático, sin escala',w-8,h-8,{a:'right',s:10,w:600,c:'#fff'})}
+/* 2 · cabos, cuevas, arcos y farallones (alzado lateral del cabo + planta con la refracción del oleaje) */
+function drawCape(x,w,h,d,t){const n=w<560,c=T;
+ const yT=h*.27,ySea=h*.66,yHor=h*.5,xTip=w*.12,xa0=w*.25,xa1=w*.35,xm=(xa0+xa1)/2;
+ // cielo y mar al fondo (se ve a través del arco)
+ const bg=()=>{const g=x.createLinearGradient(0,0,0,yHor);g.addColorStop(0,'#8fc0e0');g.addColorStop(1,'#eaf4f8');x.fillStyle=g;x.fillRect(0,0,w,yHor);const g2=x.createLinearGradient(0,yHor,0,h);g2.addColorStop(0,'#7fb0d0');g2.addColorStop(1,'#3b7fb0');x.fillStyle=g2;x.fillRect(0,yHor,w,h-yHor);x.fillStyle='rgba(120,145,165,.55)';x.beginPath();x.moveTo(w*.45,yHor);for(let X=w*.45;X<=w;X+=8)x.lineTo(X,yHor-h*.035*Math.min(1,(X-w*.45)/(w*.2))-h*.012*Math.sin(X*.02));x.lineTo(w,yHor);x.fill()};
+ bg();
+ const top=X=>yT+h*.006*Math.sin(X*.021)+h*.003*Math.sin(X*.09)+Math.max(0,(w*.55-X)/w)*h*.12;
+ const bands=[[0,'#8a7458'],[.12,'#a08460'],[.27,'#7a6650'],[.43,'#9a7e5e'],[.6,'#6e5c48'],[.78,'#8a7458']];
+ const paint=()=>{const H=h-yT;bands.forEach((b,i)=>{const y0=yT-h*.03+b[0]*H,y1=i<bands.length-1?yT-h*.03+bands[i+1][0]*H:h;x.fillStyle=b[1];x.fillRect(0,y0,w,y1-y0+1)});x.strokeStyle='rgba(0,0,0,.12)';for(let k=0;k<40;k++){const X=hash(k*3)*w,Y=yT+hash(k*7)*(ySea-yT);x.beginPath();x.moveTo(X,Y);x.lineTo(X+2,Y+10+10*hash(k));x.stroke()}};
+ const body=(x0,x1,ytop,round0,round1)=>{x.beginPath();x.moveTo(x0,h);x.lineTo(x0,ytop(x0)+round0);x.quadraticCurveTo(x0,ytop(x0),x0+round0,ytop(x0+round0));for(let X=x0+round0;X<=x1-round1;X+=4)x.lineTo(X,ytop(X));x.quadraticCurveTo(x1,ytop(x1),x1,ytop(x1)+round1);x.lineTo(x1,h);x.closePath()};
+ const grass=(f)=>{x.strokeStyle='#6f9a4c';x.lineWidth=7;x.beginPath();for(let X=0;X<=w;X+=4){const y=f(X)+2;X?x.lineTo(X,y):x.moveTo(X,y)}x.stroke()};const fill=()=>{x.save();x.clip();paint();grass(top);x.restore()};
+ const split=c>=.62,fallS=clamp((c-.62)/.08,0,1);
+ // altura del farallón: se socava y se desploma al final
+ const stN=clamp((c-.8)/.12,0,1),stF=clamp((c-.92)/.08,0,1),stTop=X=>top(X)*(1-stF)+(ySea-h*.035-h*.006*Math.sin(X*.2))*stF;
+ if(!split){body(xTip,w+20,top,h*.04,0);fill()}
+ else{body(xa1,w+20,top,h*.03,0);fill();
+  // farallón con su socavón en la base
+  if(stF>0){const yS=top(xm)*(1-stF)+(ySea-h*.035)*stF,xl=xTip+(xa0-xTip)*.08*stF,xr=xa0-(xa0-xTip)*.08*stF;x.save();x.beginPath();x.moveTo(xl,h);x.lineTo(xl,yS+h*.02);x.quadraticCurveTo(xl+2,yS,xl+h*.025,yS);x.lineTo(xr-h*.025,yS+2);x.quadraticCurveTo(xr-2,yS,xr,yS+h*.02);x.lineTo(xr,h);x.closePath();x.clip();paint();x.restore()}else{x.save();x.beginPath();const nb=w*.022*stN;x.moveTo(xTip,h);x.lineTo(xTip,ySea+h*.02);x.quadraticCurveTo(xTip+nb,ySea-h*.03,xTip,ySea-h*.08);x.lineTo(xTip,stTop(xTip)+h*.03);x.quadraticCurveTo(xTip,stTop(xTip),xTip+h*.03,stTop(xTip+h*.03));for(let X=xTip+h*.03;X<=xa0-h*.02;X+=3)x.lineTo(X,stTop(X));x.quadraticCurveTo(xa0,stTop(xa0),xa0,stTop(xa0)+h*.02);x.lineTo(xa0,ySea-h*.08);x.quadraticCurveTo(xa0-nb,ySea-h*.03,xa0,ySea+h*.02);x.lineTo(xa0,h);x.closePath();x.clip();paint();grass(stTop);x.restore()}}
+ // grieta que aprovecha el mar
+ if(c>.04&&c<.62){const g=clamp((c-.04)/.2,0,1);x.strokeStyle='#2a221c';x.lineWidth=1.5+1.5*g;x.beginPath();x.moveTo(xm,ySea);for(let k=1;k<=10;k++)x.lineTo(xm+(hash(k*5)-.5)*6,ySea-(ySea-yT)*g*k/10*.95);x.stroke()}
+ // cueva → arco
+ if(c>.12&&c<.4){const g=(c-.12)/.28;x.fillStyle='#231d18';x.beginPath();x.ellipse(xm,ySea,(xa1-xa0)*.5*(.4+.6*g),h*(.04+.11*g),0,Math.PI,0);x.fill()}
+ const archTop=ySea-h*(.15+.15*clamp((c-.4)/.22,0,1));
+ if(c>=.4&&!split||(split&&fallS<1)){const aw=(xa1-xa0)*.5*.98;const archP=()=>{x.beginPath();x.moveTo(xm-aw,ySea+h*.1);x.lineTo(xm-aw*.97,archTop+aw*.9);x.bezierCurveTo(xm-aw*.95,archTop-aw*.05,xm+aw*.9,archTop-aw*.1,xm+aw*.96,archTop+aw*.85);x.lineTo(xm+aw*1.02,ySea+h*.1);x.closePath()};x.save();archP();
+  if(!split){x.clip();bg();x.restore();archP();x.strokeStyle='rgba(30,22,16,.55)';x.lineWidth=5;x.stroke()}else x.restore()}
+ // el techo del arco se hunde
+ if(split&&fallS<1){const dy=fallS*fallS*(ySea-archTop+h*.04),rot=fallS*.35;x.save();x.translate(xm,archTop+dy);x.rotate(rot);x.translate(-xm,-archTop);x.beginPath();x.moveTo(xa0,archTop);x.lineTo(xa0,top(xa0));for(let X=xa0;X<=xa1;X+=3)x.lineTo(X,top(X));x.lineTo(xa1,archTop);x.closePath();x.clip();paint();grass(top);x.restore();
+  for(let i=0;i<20;i++){const a=hash(i*7)*6.28,r=fallS*(10+30*hash(i));x.fillStyle=`rgba(160,130,95,${.55*(1-fallS)})`;x.beginPath();x.arc(xm+Math.cos(a)*r,archTop+dy*.6+Math.sin(a)*r*.6,3+4*hash(i*3),0,7);x.fill()}}
+ // bloques caídos
+ const rock=(cx,cy,r,k)=>{x.fillStyle=['#7a6650','#8a7458','#6e5c48'][k%3];x.beginPath();for(let i=0;i<8;i++){const a=i/8*6.283,rr=r*(1+.4*(hash(i*7+k*3)-.5));x.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr*.75)}x.closePath();x.fill();x.strokeStyle='rgba(0,0,0,.3)';x.stroke()};
+ if(split&&fallS>=1){const er=clamp((c-.7)/.3,0,1);for(let k=0;k<6;k++)rock(xa0+(xa1-xa0)*(k+.5)/6,ySea+h*.005-hash(k)*h*.02,(xa1-xa0)*.13*(1-.6*er),k)}
+ if(stF>0){for(let k=0;k<5;k++)rock(xTip-w*.02+(xa0-xTip+w*.04)*hash(k*11),ySea+h*.01,w*.018*(1-.3*hash(k)),k+3)}
+ // mar delante, olas y salpicaduras
+ const lev=ySea,sy=X=>lev+2*Math.sin(X*.05-t*2.4);const g3=x.createLinearGradient(0,lev,0,h);g3.addColorStop(0,'rgba(48,120,170,.86)');g3.addColorStop(1,'rgba(18,60,98,.95)');x.fillStyle=g3;x.beginPath();x.moveTo(0,h);for(let X=0;X<=w;X+=4)x.lineTo(X,sy(X));x.lineTo(w,h);x.fill();
+ for(let k=0;k<2;k++){const ph=(t/2.2+k*.5)%1;if(ph>.75){const q=(ph-.75)/.25,ix=k?xTip:xm;for(let i=0;i<18;i++){const a=-Math.PI/2+(hash(i*3+k)-.5)*1.6,v=h*.16*(.4+.6*hash(i*7));x.fillStyle=`rgba(255,255,255,${.95*(1-q)})`;x.beginPath();x.arc(ix+Math.cos(a)*v*q,lev+Math.sin(a)*v*q+q*q*h*.06,1.6+2.2*hash(i),0,7);x.fill()}}}
+ x.strokeStyle='rgba(255,255,255,.6)';x.lineWidth=2;for(let k=0;k<3;k++){const ph=(t*.25+k/3)%1,X=w*(.02+.9*ph);x.beginPath();x.moveTo(X-30,lev+h*.05+k*h*.06);x.lineTo(X+30,lev+h*.05+k*h*.06);x.stroke()}
+ // rótulos
+ const lab=c<.12?['CABO: las olas atacan su punta y sus lados',xm+w*.08]:c<.4?['CUEVA: el mar agranda la grieta',xm]:!split?['ARCO: la cueva atraviesa el cabo',xm]:fallS<1?['el techo del arco se hunde',xm]:stF<.01?['FARALLÓN (roque aislado)',(xTip+xa0)/2]:['el farallón se desploma: queda un escollo',(xTip+xa0)/2+w*.04];
+ tag(x,lab[0],Math.max(n?90:130,lab[1]),yT-(n?12:16),n);if(c>.04&&c<.3)tag(x,'grieta',xm+(n?30:40),yT+(ySea-yT)*.3,n);
+ if(split&&stF<.01&&stN>.2)tag(x,'socavón',xTip+(n?34:44),ySea-h*.05,n);
+ // planta: refracción del oleaje
+ const ix=w-(n?118:170)-8,iy=8,iw=n?118:170,ih=n?78:104;x.fillStyle='rgba(47,120,172,.95)';x.fillRect(ix,iy,iw,ih);x.strokeStyle='#fff';x.strokeRect(ix,iy,iw,ih);
+ x.fillStyle='#8a9a5a';x.beginPath();x.moveTo(ix,iy);x.lineTo(ix+iw,iy);x.lineTo(ix+iw,iy+ih*.3);x.lineTo(ix+iw*.62,iy+ih*.3);x.quadraticCurveTo(ix+iw*.56,iy+ih*.7,ix+iw*.5,iy+ih*.72);x.quadraticCurveTo(ix+iw*.44,iy+ih*.7,ix+iw*.38,iy+ih*.3);x.lineTo(ix,iy+ih*.3);x.closePath();x.fill();
+ x.fillStyle='#e6d29a';x.fillRect(ix+3,iy+ih*.3-3,iw*.33,4);x.fillRect(ix+iw*.66,iy+ih*.3-3,iw*.33-3,4);
+ x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=1.6;for(let k=0;k<3;k++){const yy=iy+ih*(.98-k*.12)-((t*.12)%1)*ih*.12,bend=ih*(.05+k*.07);x.beginPath();x.moveTo(ix+3,yy-bend*1.1);x.quadraticCurveTo(ix+iw*.5,yy+bend*.5,ix+iw-3,yy-bend*1.1);x.stroke()}
+ arrow(x,ix+iw*.3,iy+ih*.93,ix+iw*.46,iy+ih*.76,'#ffd166',2,6);arrow(x,ix+iw*.7,iy+ih*.93,ix+iw*.54,iy+ih*.76,'#ffd166',2,6);
+ txt(x,'vista desde arriba: el oleaje se curva',w-8,iy+ih+12,{a:'right',s:n?8.5:10.5,w:800,c:'#10263a'});txt(x,'y concentra su energía en el cabo',w-8,iy+ih+(n?22:26),{a:'right',s:n?8.5:10.5,w:800,c:'#10263a'});
+ txt(x,'cabo visto de lado (esquema sin escala)',w-8,h-8,{a:'right',s:10,w:600,c:'#fff'})}
 /* 3 · playas, flechas y tómbolos (planta) */
 function drawPlaya(x,w,h,d,t){const n=w<560,mode=opt.playa||'flecha';x.fillStyle='#2f78ac';x.fillRect(0,0,w,h);for(let i=0;i<6;i++){const ph=(t*.25+i/6)%1;x.strokeStyle=`rgba(255,255,255,${.5*(1-ph)})`;x.lineWidth=2;x.beginPath();x.moveTo(-w*.1+ph*w*.3,h*(1-ph*.55));x.lineTo(w*.9+ph*w*.3,h*(.6-ph*.55));x.stroke()}
  const land=()=>{x.fillStyle='#7fa65a';x.fillRect(0,0,w,h*.22);x.fillStyle='#e6d29a';x.fillRect(0,h*.21,w,h*.05)};
@@ -106,18 +195,18 @@ function drawPlaya(x,w,h,d,t){const n=w<560,mode=opt.playa||'flecha';x.fillStyle
  for(let i=0;i<14;i++){const ph=(t*.3+i/14)%1,px=w*.05+ph*w*.9,zz=Math.abs(((ph*12)%2)-1);x.fillStyle='#fff3c0';x.beginPath();x.arc(px,h*.255+zz*h*.03,2.6,0,7);x.fill()}
  arrow(x,w*.1,h*.12,w*.45,h*.12,'#163024',3,10);txt(x,'deriva litoral: las olas mueven la arena a lo largo de la costa',w*.1,h*.09,{a:'left',s:n?10:12,w:800,c:'#163024'});txt(x,'vista desde arriba',w-10,h-10,{a:'right',s:n?10:12,w:800,c:'#fff'})}
 STEPS=[
- {k:'Acantilados',v:'cliff',time:'Tiempo',dur:18,t:'Cómo retrocede un acantilado',p:'Las olas golpean la base del acantilado con agua, arena y piedras, y la van desgastando: se forma un <b>socavón</b> o muesca. Cuando la roca de encima se queda sin apoyo, se <b>derrumba</b>. El mar retira los bloques caídos y el ciclo vuelve a empezar. Así el acantilado <b>retrocede</b> tierra adentro y deja delante una plataforma rocosa casi llana: la <b>rasa</b> o plataforma de abrasión. Pulsa ▶.'},
- {k:'Cabos, arcos y roques',v:'cape',time:'Tiempo',dur:18,t:'Cabos, arcos y farallones',p:'Las olas concentran su energía en los <b>cabos</b>, que sobresalen hacia el mar. Primero abren <b>cuevas</b> aprovechando las grietas; si dos cuevas se unen a través del cabo se forma un <b>arco</b>; cuando el techo del arco se hunde, queda un roque aislado en el mar: un <b>farallón</b>, que con el tiempo también desaparecerá. Pulsa ▶.'},
+ {k:'Acantilados',v:'cliff',time:'Tiempo (de siglos a miles de años)',dur:30,o:[['normal','Marea alta'],['baja','Marea baja']],ol:'Marea',t:'Cómo retrocede un acantilado',p:'Muchos acantilados de Canarias están hechos de <b>coladas de basalto</b>, duras y llenas de grietas (<b>diaclasas</b>), con capas <b>blandas</b> de escorias y piroclastos entre ellas. Las olas golpean la base con agua, arena y cantos y <b>arrancan bloques</b> por las grietas; las capas blandas se vacían antes y la roca de encima queda sin apoyo y <b>cae a trozos</b>. Los derrubios forman un <b>talud</b> al pie que protege el acantilado hasta que el mar lo deshace. Así retrocede, a saltos, y deja delante la <b>rasa</b>. Pulsa ▶.'},
+ {k:'Cabos, arcos y roques',v:'cape',time:'Tiempo (miles de años)',dur:24,t:'Cabos, arcos y farallones',p:'Las olas concentran su energía en los <b>cabos</b>, que sobresalen hacia el mar. Primero abren <b>cuevas</b> aprovechando las grietas; si dos cuevas se unen a través del cabo se forma un <b>arco</b>; cuando el techo del arco se hunde, queda un roque aislado en el mar: un <b>farallón</b>, que con el tiempo también desaparecerá. Pulsa ▶.'},
  {k:'Playas, flechas y tómbolos',v:'playa',time:'Tiempo',dur:16,resetT:true,o:[['flecha','Flecha'],['tombolo','Tómbolo']],ol:'Forma',t:'Las costas que crecen: playas, flechas y tómbolos',p:'Las olas no solo destruyen: también transportan arena. Cuando llegan inclinadas a la costa, empujan los granos en zigzag a lo largo de la playa: es la <b>deriva litoral</b>. Donde la costa cambia de dirección, la arena sigue avanzando mar adentro y forma una <b>flecha</b>, que puede cerrar una albufera. Si una isla está cerca de la costa, la arena se acumula a su abrigo hasta unirla a tierra: es un <b>tómbolo</b>.'}];
 DRAW={cliff:drawCliff,cape:drawCape,playa:drawPlaya};
-INFO={cliff:()=>'En Canarias hay acantilados espectaculares: <b>Los Gigantes</b> (Tenerife), el risco de <b>Famara</b> (Lanzarote), el norte de La Gomera y el oeste de Gran Canaria. En la costa norte de las islas se ven rasas que quedan al descubierto con la marea baja.',cape:()=>'Ejemplos: los <b>Roques de Anaga</b> (Tenerife) son farallones; en la costa de Lanzarote y de La Gomera hay arcos y cuevas marinas. En el Cantábrico, la playa de las Catedrales (Lugo) tiene arcos famosos.',playa:()=>opt.playa==='tombolo'?'<b>La Isleta</b> (Gran Canaria) era una isla y quedó unida a Gran Canaria por un tómbolo de arena: el istmo de Guanarteme, donde hoy está parte de Las Palmas de Gran Canaria, entre las playas de Las Canteras y de Las Alcaravaneras. El peñón de Gibraltar también es un tómbolo.':'Ejemplos de flechas: La Manga del Mar Menor (Murcia), que cierra una albufera, y la punta del Fangar en el delta del Ebro.'};
-LEG={cliff:'Perfil del acantilado (esquema sin escala).',cape:'Bloque diagrama: tierra al fondo, mar delante.',playa:'Vista en planta: tierra (verde), playa (amarillo) y mar.'};
+INFO={cliff:()=>{const st=cliffState(),f={olas:'Las olas lanzan agua, arena y cantos contra la base y <b>arrancan bloques</b> aprovechando las grietas de la roca (las <b>diaclasas</b>). Las capas blandas que hay entre colada y colada (escorias, piroclastos) se vacían antes y dejan la roca dura de encima en <b>voladizo</b>. ',cae:'La roca que se ha quedado sin apoyo <b>cae a trozos</b>, siguiendo las grietas, no todo el acantilado de golpe. ',talud:'Los bloques caídos forman al pie un <b>talud de derrubios</b> que frena a las olas durante un tiempo. Poco a poco el mar los rompe, los redondea (los <b>callaos</b>) y se los lleva, y el ataque al pie vuelve a empezar. ',fin:'El acantilado está mucho más atrás y delante queda una <b>rasa</b> ancha. El retroceso no es regular: va a saltos y es más rápido donde la roca es blanda. La casa, que al principio estaba lejos del borde, ahora corre peligro. '}[st];return f+(opt.cliff==='baja'?'Con la <b>marea baja</b> la rasa queda al descubierto, con charcos, y las olas rompen en su borde. ':'')+'En Canarias hay acantilados espectaculares: <b>Los Gigantes</b> (Tenerife), el risco de <b>Famara</b> (Lanzarote), el norte de La Gomera y el oeste de Gran Canaria. En la costa norte de las islas se ven rasas que quedan al descubierto con la marea baja.'},cape:()=>'Ejemplos: los <b>Roques de Anaga</b> (Tenerife) son farallones; en la costa de Lanzarote y de La Gomera hay arcos y cuevas marinas. En el Cantábrico, la playa de las Catedrales (Lugo) tiene arcos famosos.',playa:()=>opt.playa==='tombolo'?'<b>La Isleta</b> (Gran Canaria) era una isla y quedó unida a Gran Canaria por un tómbolo de arena: el istmo de Guanarteme, donde hoy está parte de Las Palmas de Gran Canaria, entre las playas de Las Canteras y de Las Alcaravaneras. El peñón de Gibraltar también es un tómbolo.':'Ejemplos de flechas: La Manga del Mar Menor (Murcia), que cierra una albufera, y la punta del Fangar en el delta del Ebro.'};
+LEG={cliff:'Perfil del acantilado (esquema sin escala).',cape:'Alzado lateral de un cabo y, arriba a la derecha, vista en planta del oleaje.',playa:'Vista en planta: tierra (verde), playa (amarillo) y mar.'};
 
 function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
-function renderOpt(){const s=STEPS[step];if(!s.o){$('optBox').style.display='none';return}$('optBox').style.display='';$('optLab').textContent=s.ol;if(opt[s.v]==null)opt[s.v]=s.o[0][0];$('opt').innerHTML=s.o.map(([k,n])=>`<button data-k="${k}" class="${opt[s.v]===k?'on':''}">${n}</button>`).join('');$('opt').querySelectorAll('button').forEach(b=>b.onclick=()=>{opt[s.v]=b.dataset.k;if(s.resetT)T=0;renderOpt();info();legend()})}
+function renderOpt(){const s=STEPS[step];if(!s.o){$('optBox').style.display='none';return}$('optBox').style.display='';$('optLab').textContent=s.ol;if(opt[s.v]==null)opt[s.v]=s.o[0][0];$('opt').innerHTML=s.o.map(([k,n])=>`<button data-k="${k}" class="${opt[s.v]===k?'on':''}">${n}</button>`).join('');$('opt').querySelectorAll('button').forEach(b=>b.onclick=()=>{opt[s.v]=b.dataset.k;if(s.resetT){T=0;if(s.time){playing=true;$('play').textContent='⏸ Pausa'}}renderOpt();info();legend()})}
 function legend(){const v=STEPS[step].v;$('legend').innerHTML=typeof LEG[v]==='function'?LEG[v]():(LEG[v]||'')}
 function info(){const v=STEPS[step].v;$('info').innerHTML=INFO[v]?INFO[v]():''}
-function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();renderOpt();$('timeBox').style.display=s.time?'':'none';if(s.time)$('timeLab').innerHTML=s.time;T=s.t0??0;playing=!!s.autoplay;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir';document.querySelectorAll('[data-show]').forEach(el=>el.style.display=el.dataset.show.split(' ').includes(s.v)?'':'none');legend();info()}
+function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();renderOpt();$('timeBox').style.display=s.time?'':'none';if(s.time)$('timeLab').innerHTML=s.time;T=s.t0??0;playing=s.autoplay!==false&&!!s.time;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir';document.querySelectorAll('[data-show]').forEach(el=>el.style.display=el.dataset.show.split(' ').includes(s.v)?'':'none');legend();info()}
 $('time').oninput=()=>{T=+$('time').value;playing=false;$('play').textContent='▶ Reproducir';info()};
 $('play').onclick=()=>{if(T>=1)T=0;playing=!playing;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir'};
 $('reset').onclick=()=>{T=0;info()};
@@ -125,7 +214,7 @@ let last=performance.now(),acc=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;const s=STEPS[step];if(playing&&s.time){T=Math.min(1,T+dt/(s.dur||14));if(T>=1){if(s.loop)T=0;else{playing=false;$('play').textContent='▶ Reproducir'}}acc+=dt;if(acc>.3){acc=0;info()}}$('time').value=T;
  const {x,w,h,d}=fit($('main'));DRAW[s.v](x,w,h,d,tt);requestAnimationFrame(frame)}
 renderSteps();go(0);requestAnimationFrame(frame);
-window.__g={go,set T(v){T=v;info()},set opt(v){opt[STEPS[step].v]=v;renderOpt();info();legend()}};
+window.__g={go,set play(v){playing=v},set T(v){T=v;info()},set opt(v){opt[STEPS[step].v]=v;renderOpt();info();legend()}};
 })();
 </script>
 </body>

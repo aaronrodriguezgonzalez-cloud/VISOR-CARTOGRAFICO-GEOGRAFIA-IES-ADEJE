@@ -60,7 +60,7 @@ const $=id=>document.getElementById(id);
 const hash=i=>{let x=Math.sin(i*127.1+3.7)*43758.5;return x-Math.floor(x)};
 let step=0,tt=0,opt={cat:'Piroclastos',fam:'col',coladas:'pah',tubos:'tubo',bombas:'fus',pum:'pum',gases:'comp'},wind=.5;
 function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height,d}}
-function txt(x,s,X,Y,o={}){x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';x.textAlign=o.a||'center';if(o.bg){const m=x.measureText(s).width,l=o.a==='left'?X:o.a==='right'?X-m:X-m/2;x.fillStyle=o.bg;x.fillRect(l-4,Y-(o.s||12),m+8,(o.s||12)+5)}x.fillStyle=o.c||'#f5ece6';x.fillText(s,X,Y);x.restore()}
+function txt(x,s,X,Y,o={}){if(!o.nowrap){x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';const tr=x.getTransform().a||1,CW=x.canvas.width/tr,m=x.measureText(s).width;x.restore();const a=o.a||'center',room=a==='center'?Math.min(X,CW-X)*2-12:a==='left'?CW-X-8:X-8;if(m>room&&s.includes(' ')&&room>40){const ws=s.split(' '),ls=[];let cur='';x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';for(const wd of ws){const tst=cur?cur+' '+wd:wd;if(x.measureText(tst).width>room&&cur){ls.push(cur);cur=wd}else cur=tst}ls.push(cur);x.restore();const lh=(o.s||12)+4,y0=Y-(ls.length-1)*lh*(Y>CW*0?.5:0);ls.forEach((l,i)=>txt(x,l,X,Y-(ls.length-1-i)*lh,{...o,nowrap:1}));return}}x.save();x.font=(o.w||700)+' '+(o.s||12)+'px system-ui';x.textAlign=o.a||'center';if(o.bg){const m=x.measureText(s).width,l=o.a==='left'?X:o.a==='right'?X-m:X-m/2;x.fillStyle=o.bg;x.fillRect(l-4,Y-(o.s||12),m+8,(o.s||12)+5)}x.fillStyle=o.c||'#f5ece6';x.fillText(s,X,Y);x.restore()}
 function glow(x,X,Y,r){const g=x.createRadialGradient(X,Y,0,X,Y,r);g.addColorStop(0,'rgba(255,220,90,.95)');g.addColorStop(1,'rgba(255,80,0,0)');x.fillStyle=g;x.beginPath();x.arc(X,Y,r,0,7);x.fill()}
 function sky(x,w,h){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#1a1020');g.addColorStop(1,'#3a1f18');x.fillStyle=g;x.fillRect(0,0,w,h)}
 function blob(x,cx,cy,r,seed,k=9,irr=.25){x.beginPath();for(let i=0;i<=k;i++){const a=i/k*2*Math.PI,rr=r*(1-irr/2+irr*hash(seed+i%k));const px=cx+rr*Math.cos(a),py=cy+rr*Math.sin(a)*.85;i?x.lineTo(px,py):x.moveTo(px,py)}x.closePath()}
@@ -145,32 +145,122 @@ const KMAP={fus:'bomba_fus',pan:'bomba_pan',coliflor:'bomba_col',columnar:'basal
 /* ---------- utilidades de erupción ---------- */
 function bombsArc(x,vx,vy,t,s,n,pw,col){for(let i=0;i<n;i++){const ph=(t*.6+i/n)%1,tau=ph*1.4,dir=(i%2?1:-1)*(.4+hash(i)),bx=vx+dir*s*2.2*tau*pw,by=vy-s*5*tau*pw+s*4.2*tau*tau*pw;x.fillStyle=col||`rgba(255,${Math.round(90+110*(1-ph))},30,${1-ph*.6})`;x.beginPath();x.arc(bx,by,s*.18,0,7);x.fill()}}
 /* 1 · tres familias */
-function drawFam(x,w,h,t){sky(x,w,h);const n=w<560,cx=w*.5,base=h*.88,top=h*.42,sel=opt.fam;x.fillStyle='#2a1a12';x.fillRect(0,base,w,h-base);x.fillStyle='#4a3426';x.beginPath();x.moveTo(cx-w*.3,base);x.lineTo(cx-w*.03,top);x.lineTo(cx+w*.03,top);x.lineTo(cx+w*.3,base);x.fill();glow(x,cx,top,w*.05);
- const dim=k=>sel===k?1:.25;
- x.globalAlpha=dim('gas');for(let i=0;i<20;i++){const ph=(t*.25+i/20)%1;x.fillStyle=`rgba(230,230,210,${.5*(1-ph)})`;x.beginPath();x.arc(cx-w*.02+Math.sin(i+t)*w*.03*ph-ph*w*.06,top-ph*h*.38,5+ph*14,0,7);x.fill()}
- x.globalAlpha=dim('pir');for(let i=0;i<16;i++){const ph=(t*.3+i/16)%1;x.fillStyle=`rgba(90,85,80,${.8*(1-ph)})`;x.beginPath();x.arc(cx+w*.02+ph*ph*w*.12,top-ph*h*.35,4+ph*10,0,7);x.fill()}bombsArc(x,cx,top,t,n?7:10,10,1);
- x.globalAlpha=dim('col');x.lineCap='round';const f=(t*.12)%1.2;const pts=[[cx+w*.03,top],[cx+w*.09,top+h*.12],[cx+w*.17,top+h*.28],[cx+w*.26,base-3],[cx+w*.42,base-2]];x.strokeStyle='#ff6a00';x.lineWidth=n?6:9;x.beginPath();x.moveTo(...pts[0]);const L=Math.min(pts.length-1,f*(pts.length-1));for(let i=1;i<=Math.floor(L);i++)x.lineTo(...pts[i]);x.stroke();x.globalAlpha=1;
- const lab={col:['COLADAS DE LAVA','roca fundida que corre por el suelo',cx+w*.3,base-h*.12],pir:['PIROCLASTOS','fragmentos lanzados al aire',cx+w*.24,top-h*.2],gas:['GASES','vapor de agua, CO₂, SO₂…',cx-w*.24,top-h*.26]}[sel];txt(x,lab[0],lab[2],lab[3],{s:n?13:17,w:900,c:'#ffd166',bg:'rgba(0,0,0,.55)'});txt(x,lab[1],lab[2],lab[3]+(n?15:19),{s:n?10:12,w:700,c:'#fff',bg:'rgba(0,0,0,.55)'})}
-/* 2 · coladas */
-function drawFlow(x,w,h,t){sky(x,w,h);const n=w<560,k=opt.coladas,gy=h*.62;x.fillStyle='#4a3a2e';x.fillRect(0,gy,w,h-gy);
- const adv=(t*.05)%1,front=w*(.25+.55*adv);
- if(k==='pah'){for(let l=0;l<6;l++){const lx=front-l*w*.07,ly=gy-8-hash(l)*6;const g=x.createLinearGradient(0,ly-26,0,gy);g.addColorStop(0,'#5a5450');g.addColorStop(1,'#1a1816');x.fillStyle=g;x.beginPath();x.ellipse(lx,gy,w*.075,h*.11,0,Math.PI,0);x.fill();x.strokeStyle='rgba(255,255,255,.25)';x.lineWidth=2;for(let r=0;r<5;r++){x.beginPath();x.ellipse(lx-w*.02,gy,w*.012+r*w*.012,h*.02+r*h*.018,0,Math.PI*1.05,Math.PI*1.95);x.stroke()}}
-  x.fillStyle='#2e2a27';x.fillRect(0,gy-h*.05,Math.max(0,front-w*.42),h*.05);const gl=x.createRadialGradient(front+w*.03,gy-8,0,front+w*.03,gy-8,30);gl.addColorStop(0,'rgba(255,170,40,.95)');gl.addColorStop(1,'rgba(255,80,0,0)');x.fillStyle=gl;x.beginPath();x.arc(front+w*.03,gy-8,30,0,7);x.fill();x.fillStyle='#ff7a10';x.beginPath();x.ellipse(front+w*.035,gy-7,w*.022,10,0,0,7);x.fill();
-  txt(x,'COLADA PAHOEHOE (lisa, cordada)',w/2,26,{s:n?13:17,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'});txt(x,'avanza en lóbulos: la superficie se enfría y se arruga como una cuerda',w/2,gy+30,{s:n?10:12.5,w:700,c:'#fff',bg:'rgba(0,0,0,.5)'});drawSample(x,w*.84,h*.3,Math.min(w,h)*.12,'pahoehoe',3)}
- else{x.fillStyle='#2a2422';x.beginPath();x.moveTo(0,gy);x.lineTo(0,gy-40);for(let X=0;X<front;X+=10)x.lineTo(X,gy-40-hash(X)*14);x.lineTo(front,gy-40);x.lineTo(front+20,gy);x.closePath();x.fill();
-  for(let i=0;i<26;i++){const ph=(t*.8+i/26)%1,ang=ph*Math.PI,bx=front+Math.sin(ang)*18,by=gy-40+(1-Math.cos(ang))*20;x.fillStyle=hash(i)<.3?'#7a3a20':'#3a3431';x.beginPath();for(let j=0;j<8;j++){const a=j/8*6.28,r=(j%2?3:7);x.lineTo(bx+r*Math.cos(a+i),by+r*Math.sin(a+i))}x.fill()}
-  const gl=x.createLinearGradient(front-30,0,front+10,0);gl.addColorStop(0,'rgba(255,100,20,0)');gl.addColorStop(1,'rgba(255,120,20,.55)');x.fillStyle=gl;x.fillRect(front-30,gy-30,40,26);
-  txt(x,'COLADA AA (malpaís, escoriácea)',w/2,26,{s:n?13:17,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'});txt(x,'la costra se rompe en bloques ásperos que ruedan por el frente',w/2,gy+30,{s:n?10:12.5,w:700,c:'#fff',bg:'rgba(0,0,0,.5)'});drawSample(x,w*.84,h*.3,Math.min(w,h)*.12,'aa',5)}}
-/* 3 · tubos y columnas */
-function drawTube(x,w,h,t){sky(x,w,h);const n=w<560;if(opt.tubos==='tubo'){const gy=h*.3;x.fillStyle='#4a3a2e';x.fillRect(0,gy,w,h-gy);const ph=(t*.08)%1,stage=ph<.6?0:1;
-  x.fillStyle='#2a2422';x.beginPath();x.moveTo(0,gy);x.quadraticCurveTo(w/2,gy-30,w,gy);x.lineTo(w,h*.75);x.quadraticCurveTo(w/2,h*.8,0,h*.75);x.fill();
-  x.fillStyle=stage?'#0a0605':'#ff6a00';x.beginPath();x.ellipse(w/2,h*.55,w*.42,h*.13,0,0,7);x.fill();
-  if(!stage){for(let i=0;i<20;i++){const p=(t*.3+i/20)%1;x.fillStyle='#ffd23f';x.beginPath();x.arc(w*.08+p*w*.84,h*.55+Math.sin(i)*h*.05,3,0,7);x.fill()}}
-  else{x.fillStyle='#3a3230';x.fillRect(w*.08,h*.62,w*.84,h*.04);txt(x,'¡TUBO VACÍO! (como la Cueva de los Verdes)',w/2,h*.56,{s:n?11:14,w:900,c:'#ffd166'})}
-  txt(x,'TUBO VOLCÁNICO',w/2,24,{s:n?13:17,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'});txt(x,stage?'2 · La lava se vacía y deja un túnel':'1 · La superficie se enfría y forma un techo; la lava sigue corriendo por dentro',w/2,h*.9,{s:n?10:12.5,w:700,c:'#fff',bg:'rgba(0,0,0,.5)'})}
- else{const ph=(t*.1)%1;x.fillStyle='#ff6a00';x.fillRect(0,h*.25,w,h*.5);const cool=Math.min(1,ph*1.6);x.fillStyle=`rgba(40,36,34,${cool})`;x.fillRect(0,h*.25,w,h*.5);
-  const cw=w/12;x.strokeStyle=`rgba(0,0,0,${cool})`;x.lineWidth=3;for(let i=1;i<12;i++){const len=h*.5*Math.min(1,Math.max(0,(ph-.2)*2));x.beginPath();x.moveTo(i*cw+Math.sin(i)*4,h*.25);x.lineTo(i*cw+Math.sin(i)*4,h*.25+len);x.stroke()}
-  drawSample(x,w*.84,h*.12+20,Math.min(w,h)*.1,'columnar',2);txt(x,'DISYUNCIÓN COLUMNAR',w/2-w*.1,24,{s:n?13:17,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'});txt(x,ph<.2?'la lava empieza a enfriarse…':'al enfriarse se contrae y se agrieta en columnas de 5 o 6 lados (Los Órganos, La Gomera)',w/2,h*.88,{s:n?10:12.5,w:700,c:'#fff',bg:'rgba(0,0,0,.5)'})}}
+function famCard(x,X,Y,W,Hc,title,lines,kind,n){x.fillStyle='rgba(12,8,8,.82)';x.strokeStyle='#ffd166';x.lineWidth=1.2;x.beginPath();x.roundRect(X,Y,W,Hc,10);x.fill();x.stroke();txt(x,title,X+10,Y+(n?17:20),{a:'left',s:n?11.5:13.5,w:900,c:'#ffd166'});lines.forEach((l,i)=>txt(x,l,X+10,Y+(n?33:40)+i*(n?13:16),{a:'left',s:n?9.5:11.5,w:600,c:'#f2ece4'}));if(kind)drawSample(x,X+W-(n?28:44),Y+Hc/2+4,n?18:30,kind)}
+function drawFam(x,w,h,t){sky(x,w,h);const n=w<560,sel=opt.fam||'col',cx=w*(n?.42:.4),base=h*.84,top=h*.43,cr=w*(n?.06:.045),foot=w*(n?.3:.24);
+ // relieve lejano
+ x.fillStyle='#2c1c1c';x.beginPath();x.moveTo(0,base);for(let X=0;X<=w;X+=10)x.lineTo(X,base-h*.08-h*.05*Math.sin(X*.006+1)-h*.03*Math.sin(X*.017));x.lineTo(w,base);x.fill();
+ const al=k=>sel===k?1:.22;
+ // depósito de ceniza a sotavento
+ x.globalAlpha=al('pir');x.fillStyle='#55504c';x.beginPath();x.moveTo(cx,base);for(let X=cx;X<=w;X+=8)x.lineTo(X,base-h*.03*Math.exp(-(X-cx)/(w*.35)));x.lineTo(w,base+2);x.lineTo(cx,base+2);x.fill();x.globalAlpha=1;
+ // suelo
+ x.fillStyle='#1d1412';x.fillRect(0,base,w,h-base);
+ // cono de escorias (con su cráter)
+ const g=x.createLinearGradient(cx-foot,0,cx+foot,0);g.addColorStop(0,'#2a1812');g.addColorStop(.45,'#5a3022');g.addColorStop(1,'#1e120e');x.fillStyle=g;x.beginPath();x.moveTo(cx-foot,base);x.quadraticCurveTo(cx-foot*.45,base-(base-top)*.55,cx-cr,top);x.quadraticCurveTo(cx,top+h*.03,cx+cr,top);x.quadraticCurveTo(cx+foot*.45,base-(base-top)*.55,cx+foot,base);x.closePath();x.fill();
+ for(let i=0;i<160;i++){const u=hash(i*3)*2-1,vv=hash(i*7),X=cx+u*(cr+(foot-cr)*vv),Y=top+(base-top)*vv;x.fillStyle=hash(i)<.4?'rgba(150,70,40,.35)':'rgba(0,0,0,.3)';x.fillRect(X,Y,2,2)}
+ glow(x,cx,top+h*.01,cr*1.6);
+ // GASES: penacho blanco-azulado y fumarola
+ x.globalAlpha=al('gas');for(let i=0;i<34;i++){const ph=(t*.07+i/34)%1,X=cx-cr*.3+ph*w*.1+Math.sin(i*1.7+t*.6)*w*.012*ph,Y=top-ph*h*.42,r=6+ph*(n?22:34);x.fillStyle=`rgba(232,236,240,${.38*(1-ph)})`;x.beginPath();x.arc(X-w*.05*ph,Y,r,0,7);x.fill()}
+ for(let i=0;i<10;i++){const ph=(t*.12+i/10)%1;x.fillStyle=`rgba(225,230,210,${.35*(1-ph)})`;x.beginPath();x.arc(cx-foot*.55-ph*8,base-h*.12-ph*h*.12,3+ph*9,0,7);x.fill()}
+ if(sel==='gas'){const mol=[['H₂O',-.13,.12],['CO₂',-.07,.24],['SO₂',-.16,.32],['H₂S',-.03,.36]];mol.forEach(([m,dx,dy],i)=>{const Y=top-h*dy-((t*8+i*7)%14);x.fillStyle='rgba(255,255,255,.12)';x.beginPath();x.arc(cx+w*dx,Y,n?13:17,0,7);x.fill();txt(x,m,cx+w*dx,Y+4,{s:n?10:12,w:900,c:'#fff'})})}
+ x.globalAlpha=1;
+ // PIROCLASTOS: columna de ceniza que se dobla con el viento, lluvia de ceniza, lapilli y bombas
+ x.globalAlpha=al('pir');for(let i=0;i<46;i++){const ph=(t*.09+i/46)%1,hgt=ph*h*.4,dr=Math.pow(ph,1.6)*w*.22,X=cx+cr*.3+dr+Math.sin(i*2.3)*w*.015*ph,Y=top-hgt,r=5+ph*(n?18:28);const c=60+40*hash(i);x.fillStyle=`rgba(${c},${c-4},${c-8},${.55*(1-ph*.7)})`;x.beginPath();x.arc(X,Y,r,0,7);x.fill()}
+ x.strokeStyle='rgba(90,86,82,.35)';x.lineWidth=1;for(let i=0;i<34;i++){const X=cx+w*(.12+.3*hash(i*5)),y0=top-h*.3+h*.1*hash(i),off=((t*60+i*37)%60);x.beginPath();x.moveTo(X-6,y0+off);x.lineTo(X-12,y0+off+h*.08);x.stroke()}
+ for(let i=0;i<26;i++){const ph=(t*.55+i/26)%1,dir=(hash(i)-.45)*2,vx=dir*w*.15,vy=h*.55*(.6+.4*hash(i*3)),X=cx+vx*ph,Y=top-vy*ph+h*.85*ph*ph;if(Y>base)continue;const big=i%5===0;x.fillStyle=big?`rgba(255,${120+80*(1-ph)|0},40,${1-ph*.4})`:'rgba(40,32,30,.95)';x.beginPath();x.arc(X,Y,big?(n?4:5.5):(n?1.8:2.4),0,7);x.fill();if(big){x.strokeStyle='rgba(255,140,40,.35)';x.lineWidth=2;x.beginPath();x.moveTo(X,Y);x.lineTo(X-vx*.04,Y+(vy-1.7*h*ph)*.04);x.stroke()}}
+ x.globalAlpha=1;
+ // COLADA: sale por una brecha del flanco y se extiende por el llano
+ x.globalAlpha=al('col');const L=.55+.45*((t*.04)%1),px0=cx+cr*.8,py0=top+h*.05,path=[[px0,py0],[cx+foot*.35,base-(base-top)*.45],[cx+foot*.7,base-h*.04],[cx+foot*1.05,base-h*.012],[cx+foot*1.05+(w-cx-foot*1.05)*.95*L,base-h*.01]];
+ const wid=i=>[3,5,7,10,13][i]*(n?.7:1);x.lineCap='round';x.lineJoin='round';
+ x.strokeStyle='#1a1210';x.lineWidth=wid(4)*2.2;x.beginPath();path.slice(2).forEach((p,i)=>i?x.lineTo(...p):x.moveTo(...p));x.stroke();
+ for(let i=1;i<path.length;i++){x.strokeStyle='#2a1c18';x.lineWidth=wid(i)*1.6;x.beginPath();x.moveTo(...path[i-1]);x.lineTo(...path[i]);x.stroke()}
+ for(let i=1;i<path.length;i++){x.strokeStyle=`rgba(255,${110+40*Math.sin(t*3+i)|0},20,.85)`;x.lineWidth=wid(i)*.55;x.setLineDash([6,5]);x.lineDashOffset=-t*14;x.beginPath();x.moveTo(...path[i-1]);x.lineTo(...path[i]);x.stroke()}x.setLineDash([]);
+ const fp=path[path.length-1];glow(x,fp[0],fp[1],n?14:20);x.fillStyle='#ff8a1a';x.beginPath();x.ellipse(fp[0],fp[1],n?6:9,n?3.5:5,0,0,7);x.fill();x.lineCap='butt';x.globalAlpha=1;
+ // rótulos
+ const lab={col:['COLADAS DE LAVA',fp[0]-w*.12,base+h*.09],pir:['PIROCLASTOS',cx+w*.2,top-h*.32],gas:['GASES',cx-w*.2,top-h*.3]};for(const k in lab){if(n&&k!==sel)continue;const [s,X,Y]=lab[k];txt(x,s,X,Y,{s:n?11:14,w:900,c:k===sel?'#ffd166':'rgba(255,255,255,.45)',bg:k===sel?'rgba(0,0,0,.6)':null})}
+ const cards={col:['Coladas de lava',['roca fundida (unos 1.100 °C en un','basalto) que corre por el suelo y','al enfriarse forma roca: el basalto'],'aa'],pir:['Piroclastos',['fragmentos lanzados al aire:','ceniza, lapilli (picón) y bombas','(«piroclasto» = «roto por el fuego»)'],'lapilli'],gas:['Gases',['sobre todo vapor de agua;','también CO₂, SO₂ y H₂S.','Son invisibles: lo blanco es vapor'],null]};
+ const c=cards[sel],W=n?Math.min(w-16,250):330,Hc=n?84:118;famCard(x,8,8,W,Hc,c[0],c[1],n?null:c[2],n)}
+/* 2 · coladas: pahoehoe y aa (perfil del frente + superficie vista desde arriba) */
+function drawFlow(x,w,h,t){sky(x,w,h);const n=w<560,k=opt.coladas||'pah',gy=h*(n?.56:.58);
+ // terreno antiguo
+ const gg=x.createLinearGradient(0,gy,0,h);gg.addColorStop(0,'#3a2e28');gg.addColorStop(1,'#1c1512');x.fillStyle=gg;x.fillRect(0,gy,w,h-gy);for(let i=0;i<120;i++){x.fillStyle='rgba(0,0,0,.25)';x.fillRect(hash(i*3)*w,gy+hash(i*5)*(h-gy),3,2)}
+ const pw=n?w:w*.62,adv=(t*.03)%1;
+ if(k==='pah'){// lóbulos finos que brotan del frente, se inflan y se cubren de una piel gris brillante
+  const th=h*.075,fr=pw*(.45+.4*adv);{const sg=x.createLinearGradient(0,gy-th,0,gy);sg.addColorStop(0,'#77757a');sg.addColorStop(.3,'#3e3c40');sg.addColorStop(1,'#1e1c1e');x.fillStyle=sg}x.beginPath();x.moveTo(0,gy);x.lineTo(0,gy-th);for(let X=0;X<fr-pw*.12;X+=6)x.lineTo(X,gy-th-2*Math.sin(X*.05));x.lineTo(fr-pw*.12,gy);x.fill();
+  for(let l=0;l<5;l++){const age=((t*.22+l/5)%1),lx=fr-pw*.13+l*pw*.035+age*pw*.02,ly=gy-(l%2)*th*.25,rx=pw*(.025+.035*Math.min(1,age*1.4)),ry=th*(.45+.6*Math.min(1,age*1.4));const hot=Math.max(0,1-age*2.2);
+   const lg=x.createLinearGradient(0,ly-ry,0,ly);lg.addColorStop(0,`rgb(${100+155*hot|0},${96+40*hot|0},${92-60*hot|0})`);lg.addColorStop(1,`rgb(${30+200*hot|0},${28+60*hot|0},${26})`);x.fillStyle=lg;x.beginPath();x.ellipse(lx,ly,rx,ry,0,Math.PI,0);x.fill();if(hot>0){x.fillStyle=`rgba(255,150,40,${hot})`;x.beginPath();x.ellipse(lx+rx*.6,ly-ry*.2,rx*.35,ry*.35,0,0,7);x.fill()}x.strokeStyle='rgba(220,225,235,.35)';x.lineWidth=1;x.beginPath();x.ellipse(lx,ly,rx*.8,ry*.75,0,Math.PI*1.1,Math.PI*1.6);x.stroke()}
+  txt(x,'lóbulos de pocos decímetros',fr-pw*.1,gy-th*2.6,{s:n?9.5:11,w:800,c:'#fff',bg:'rgba(0,0,0,.5)'});
+ }else{// colada gruesa: costra de bloques (escoria) arriba y abajo, núcleo masivo; los bloques del frente caen y la colada los pisa (como una oruga)
+  const th=h*.2,fr=pw*(.5+.32*adv),y0=gy-th;x.fillStyle='#4a2a1e';x.fillRect(0,y0+th*.28,fr-th*.25,th*.5);
+  const core=x.createLinearGradient(0,y0+th*.28,0,y0+th*.78);core.addColorStop(0,'#5a2a18');core.addColorStop(.5,'#c2501a');core.addColorStop(1,'#5a2a18');x.fillStyle=core;x.fillRect(0,y0+th*.3,fr-th*.3,th*.46);
+  for(let i=0;i<70;i++){const X=hash(i*7)*(fr-th*.2),top_=hash(i*3)<.62,Y=top_?y0+th*.28*hash(i*11):y0+th*.8+th*.18*hash(i*13),r=(n?3:4.5)+5*hash(i*17);x.fillStyle=hash(i*5)<.3?'#6a3420':'#2c2522';x.beginPath();for(let j=0;j<7;j++){const a=j/7*6.283+i,rr=r*(.6+.6*hash(i*19+j));x.lineTo(X+Math.cos(a)*rr,Y+Math.sin(a)*rr*.8)}x.closePath();x.fill()}
+  for(let i=0;i<14;i++){const ph=(t*.35+i/14)%1,a=-Math.PI/2+ph*Math.PI,X=fr-th*.22+Math.cos(a)*th*.22,Y=y0+th*.5+Math.sin(a)*th*.5,r=(n?3:4.5)+4*hash(i);x.fillStyle=hash(i*3)<.35?'#7a3a20':'#332a27';x.beginPath();for(let j=0;j<7;j++){const aa=j/7*6.283+i,rr=r*(.6+.6*hash(i*19+j));x.lineTo(X+Math.cos(aa)*rr,Y+Math.sin(aa)*rr*.8)}x.closePath();x.fill()}
+  const gl=x.createRadialGradient(fr-th*.2,y0+th*.5,0,fr-th*.2,y0+th*.5,th*.5);gl.addColorStop(0,'rgba(255,120,30,.45)');gl.addColorStop(1,'rgba(255,80,0,0)');x.fillStyle=gl;x.fillRect(fr-th*.7,y0,th,th);
+  const lb=(s,Y)=>{txt(x,s,Math.max(6,fr*.08),Y,{a:'left',s:n?9.5:11,w:800,c:'#fff',bg:'rgba(0,0,0,.55)'})};lb('costra de bloques sueltos (escoria)',y0+th*.12);lb('núcleo masivo, aún fundido',y0+th*.56);lb('bloques caídos del frente',gy-th*.02+(n?14:16));
+  x.strokeStyle='rgba(255,255,255,.6)';x.lineWidth=1;x.beginPath();x.moveTo(fr+8,y0);x.lineTo(fr+8,gy);x.stroke();txt(x,'varios metros',fr+12,y0+th/2,{a:'left',s:n?9:10.5,w:800,c:'#fff'})}
+ // superficie vista desde arriba
+ if(!n){const X0=w*.66,Y0=h*.1,W=w*.31,Hh=h*.42;x.save();x.beginPath();x.roundRect(X0,Y0,W,Hh,10);x.clip();
+  if(k==='pah'){const g=x.createLinearGradient(X0,Y0,X0+W,Y0+Hh);g.addColorStop(0,'#3a3a3e');g.addColorStop(.5,'#6a6a72');g.addColorStop(1,'#2a2a2e');x.fillStyle=g;x.fillRect(X0,Y0,W,Hh);
+   for(let s=0;s<4;s++){const cxs=X0+W*(-.05+.32*s),cys=Y0+Hh*(.3+.3*(s%2));for(let r=0;r<16;r++){x.strokeStyle=r%2?'rgba(18,18,22,.75)':'rgba(205,210,220,.5)';x.lineWidth=2.4;x.beginPath();x.arc(cxs,cys,W*.04+r*4.6,-.9+.02*r,.9-.02*r);x.stroke()}}
+   txt(x,'superficie lisa y cordada («lajial»)',X0+W/2,Y0+Hh-10,{s:11,w:800,c:'#fff',bg:'rgba(0,0,0,.5)'})}
+  else{x.fillStyle='#231b18';x.fillRect(X0,Y0,W,Hh);for(let i=0;i<90;i++){const X=X0+hash(i*3)*W,Y=Y0+hash(i*7)*Hh,r=6+12*hash(i*11);x.fillStyle=hash(i*5)<.3?'#6a3420':['#3a302c','#2c2522','#4a3e38'][i%3];x.beginPath();for(let j=0;j<6;j++){const a=j/6*6.283+i,rr=r*(.5+.7*hash(i*19+j));x.lineTo(X+Math.cos(a)*rr,Y+Math.sin(a)*rr)}x.closePath();x.fill();x.strokeStyle='rgba(0,0,0,.5)';x.stroke()}
+   txt(x,'bloques ásperos y cortantes («malpaís»)',X0+W/2,Y0+Hh-10,{s:11,w:800,c:'#fff',bg:'rgba(0,0,0,.5)'})}
+  x.restore();x.strokeStyle='#ffd166';x.lineWidth=1.2;x.beginPath();x.roundRect(X0,Y0,W,Hh,10);x.stroke();txt(x,'vista desde arriba',X0+W/2,Y0-6,{s:11,w:800,c:'#ffd166'})}
+ drawSample(x,n?w*.85:w*.82,n?h*.18:h*.78,Math.min(w,h)*(n?.1:.09),k==='pah'?'pahoehoe':'aa');
+ txt(x,k==='pah'?'PAHOEHOE: lava muy fluida y caliente':'AA: lava más espesa y fría',10,24,{a:'left',s:n?12:16,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'});
+ txt(x,'perfil del frente de la colada (esquema)',10,h-10,{a:'left',s:n?9.5:11,w:700,c:'rgba(255,255,255,.75)'})}
+/* 3 · tubos volcánicos y disyunción columnar */
+function drawTube(x,w,h,t0){sky(x,w,h);const n=w<560;if(drawTube.k!==opt.tubos){drawTube.k=opt.tubos;drawTube.t0=t0}const t=t0-drawTube.t0;
+ if((opt.tubos||'tubo')==='tubo'){const ph=(t/20)%1,st=ph<.2?0:ph<.4?1:ph<.6?2:ph<.8?3:4,sp=(ph%.2)/.2;
+  const cx=w*(n?.5:.36),gy=h*.82,W=w*(n?.42:.3),Ht=h*.3,yTop=gy-Ht,rIn=W*.42,hIn=Ht*.55,yc=gy-Ht*.12;
+  // coladas antiguas
+  [['#3a2c26',0],['#2e2420',.12],['#40302a',.22]].forEach(([c,f])=>{x.fillStyle=c;x.fillRect(0,gy+(h-gy)*f*3,w,h)});
+  // la colada nueva (lente) con su canal
+  {const lg2=x.createLinearGradient(0,yTop,0,gy);lg2.addColorStop(0,'#5a4a42');lg2.addColorStop(1,'#3a2e2a');x.fillStyle=lg2}x.beginPath();x.moveTo(cx-W*1.5,gy);x.quadraticCurveTo(cx-W*1.2,yTop,cx-W*.6,yTop+Ht*.05);x.lineTo(cx+W*.6,yTop+Ht*.05);x.quadraticCurveTo(cx+W*1.2,yTop,cx+W*1.5,gy);x.closePath();x.fill();x.strokeStyle='rgba(255,210,150,.25)';x.lineWidth=1.5;x.stroke();txt(x,'colada nueva',Math.max(8,cx-W*1.3),yTop+Ht*.45,{a:'left',s:n?9.5:11,w:800,c:'#e8d8c8'});txt(x,'coladas antiguas',8,gy+(h-gy)*.45,{a:'left',s:n?9.5:11,w:800,c:'#c8b8a8'});
+  const yTT=st===0?yTop+Ht*.05:st===1?yTop+Ht*(.05+.2*sp):yTop+Ht*.25,tunnel=()=>{const rr=Math.min(rIn*.5,(yc-yTT)*.6);x.beginPath();x.moveTo(cx-rIn,yc);x.lineTo(cx-rIn,yTT+rr);x.quadraticCurveTo(cx-rIn,yTT,cx-rIn+rr,yTT);x.lineTo(cx+rIn-rr,yTT);x.quadraticCurveTo(cx+rIn,yTT,cx+rIn,yTT+rr);x.lineTo(cx+rIn,yc);x.quadraticCurveTo(cx,yc+hIn*.18,cx-rIn,yc);x.closePath()};
+  // techo: crece desde los bordes del canal
+  const roof=st===0?sp*.6:1;
+  x.save();tunnel();x.clip();
+  if(st<=2){const lev=st<2?yTT+2:yTT+Ht*.04;const lg=x.createLinearGradient(0,lev,0,yc+hIn*.2);lg.addColorStop(0,'#ffb030');lg.addColorStop(1,'#c23a08');x.fillStyle=lg;x.fillRect(cx-rIn,lev,rIn*2,yc-lev+hIn);for(let i=0;i<18;i++){const p=(t*.25+i/18)%1;x.fillStyle='rgba(255,230,120,.8)';x.beginPath();x.arc(cx-rIn+p*rIn*2,lev+(yc-lev)*(.3+.6*hash(i)),2,0,7);x.fill()}
+   if(st<2){x.fillStyle='rgba(255,170,60,.25)';x.fillRect(cx-rIn,yTop-10,rIn*2,20)}}
+  else{x.fillStyle='#0d0908';x.fillRect(cx-rIn,yTT-2,rIn*2,yc-yTT+hIn);const lev=st===3?yTT+Ht*.04+(yc-yTT-Ht*.04)*sp:yc;// la lava se vacía y deja «bancos» en las paredes
+   x.fillStyle='#c23a08';x.fillRect(cx-rIn,lev,rIn*2,yc+hIn-lev);x.strokeStyle='rgba(120,90,70,.7)';x.lineWidth=2;for(const f of [.25,.5,.75]){const yy=yc-(yc-yTT)*.8*f;if(yy<lev-2){x.beginPath();x.moveTo(cx-rIn,yy);x.lineTo(cx-rIn*.75,yy+2);x.moveTo(cx+rIn,yy);x.lineTo(cx+rIn*.75,yy+2);x.stroke()}}
+   x.fillStyle='#3a2c26';for(let i=0;i<12;i++){const X=cx-rIn*.7+i*rIn*1.4/11,Y=yTT+1;x.beginPath();x.moveTo(X-2,Y);x.lineTo(X+2,Y);x.lineTo(X,Y+6+6*hash(i));x.fill()}}
+  x.restore();
+  // costra sobre el canal mientras se forma el techo
+  if(st===0){const gap=rIn*(1-roof);x.fillStyle='#5a4a42';x.fillRect(cx-rIn-2,yTop+Ht*.02,rIn-gap+2,Ht*.1);x.fillRect(cx+gap,yTop+Ht*.02,rIn-gap+2,Ht*.1);x.fillStyle='rgba(255,120,30,.9)';x.fillRect(cx-gap,yTop+Ht*.06,gap*2,Ht*.05)}
+  // jameo: el techo se hunde en un punto
+  if(st===4){x.fillStyle='rgba(140,180,220,.25)';const jw=rIn*.9*Math.min(1,sp*1.5);x.fillRect(cx-jw/2,yTop,jw,yTT-yTop+2);x.fillStyle='#3a2c26';for(let i=0;i<6;i++)x.fillRect(cx-jw/2+hash(i)*jw,yc-6-hash(i*3)*8,8+6*hash(i*5),6+4*hash(i*7))}
+  if(st===2||st===1||st===0){x.fillStyle='#fff';txt(x,'⊙',cx,(yTT+yc)/2,{s:n?20:28,w:900,c:'#fff'});txt(x,'la lava corre hacia ti',cx,(yTT+yc)/2+(n?16:20),{s:n?9:11,w:700,c:'#fff'})}
+  const caps=['1 · La colada corre por un canal y su superficie se enfría','2 · La costra se une desde los bordes: se forma un techo','3 · Aislada por el techo, la lava sigue caliente y corre por dentro','4 · Acaba la erupción: la lava se vacía y deja un túnel','5 · Si el techo se hunde en un punto, se abre un «jameo»'];
+  txt(x,'TUBO VOLCÁNICO (corte transversal)',10,24,{a:'left',s:n?12:16,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'});txt(x,caps[st],w/2,h-12,{s:n?10:12.5,w:800,c:'#fff',bg:'rgba(0,0,0,.6)'});
+  // a la derecha, el tubo visto a lo largo de la ladera
+  if(!n){const X0=w*.64,Y0=h*.16,W2=w*.33,H2=h*.46;x.fillStyle='rgba(12,8,8,.8)';x.strokeStyle='#ffd166';x.beginPath();x.roundRect(X0,Y0,W2,H2,10);x.fill();x.stroke();
+   const sl=X=>Y0+H2*.25+(X-X0)/W2*H2*.5;x.fillStyle='#3a2c26';x.beginPath();x.moveTo(X0+2,sl(X0));for(let X=X0;X<=X0+W2;X+=6)x.lineTo(X,sl(X));x.lineTo(X0+W2-2,Y0+H2-2);x.lineTo(X0+2,Y0+H2-2);x.fill();
+   x.strokeStyle=st<3?'#ff7a1a':'#0d0908';x.lineWidth=9;x.beginPath();x.moveTo(X0+12,sl(X0+12)+16);x.lineTo(X0+W2-12,sl(X0+W2-12)+16);x.stroke();
+   if(st<3){x.setLineDash([5,6]);x.lineDashOffset=-t*20;x.strokeStyle='#ffd23f';x.lineWidth=2;x.beginPath();x.moveTo(X0+12,sl(X0+12)+16);x.lineTo(X0+W2-12,sl(X0+W2-12)+16);x.stroke();x.setLineDash([])}
+   if(st===4){const jx=X0+W2*.55;x.fillStyle='#0d0908';x.fillRect(jx-12,sl(jx)-2,24,16);txt(x,'jameo',jx,sl(jx)-8,{s:11,w:800,c:'#ffd166'})}
+   txt(x,'visto a lo largo de la ladera',X0+W2/2,Y0+18,{s:11.5,w:800,c:'#ffd166'});txt(x,'Cueva de los Verdes y Jameos del Agua (Lanzarote),',X0+W2/2,Y0+H2-24,{s:10,w:600,c:'#f2ece4'});txt(x,'Cueva del Viento (Tenerife)',X0+W2/2,Y0+H2-10,{s:10,w:600,c:'#f2ece4'})}}
+ else{// disyunción columnar
+  const ph=(t/16)%1,cool=Math.min(1,ph/.75),x0=w*(n?.04:.05),W=w*(n?.92:.56),yT=h*.2,yB=h*.84,Hc=yB-yT,mid=yT+Hc*.38;
+  const front=(yy)=>{const dTop=(yy-yT)/(mid-yT),dBot=(yB-yy)/(yB-mid);return yy<mid?dTop:dBot};
+  x.fillStyle='#2a2220';x.fillRect(0,yB,w,h-yB);
+  // fondo: lava aún caliente en el interior
+  const gl=x.createLinearGradient(0,yT,0,yB);gl.addColorStop(0,'#3a3634');gl.addColorStop(.38,'#d4581a');gl.addColorStop(1,'#3a3634');x.fillStyle=gl;x.fillRect(x0,yT,W,Hc);
+  // columnas: la parte ya fría avanza desde arriba (entablamento irregular) y desde abajo (columnata regular)
+  const yTopF=yT+(mid-yT)*cool,yBotF=yB-(yB-mid)*cool,cw=W/(n?9:14),NC=Math.ceil(W/cw);
+  const colm=(X,y0,y1,c,i,tilt)=>{const l=c*.46;x.fillStyle=`rgb(${118-12*hash(i)|0},${112-12*hash(i)|0},${106-10*hash(i)|0})`;x.beginPath();x.moveTo(X,y1);x.lineTo(X+tilt,y0);x.lineTo(X+tilt+l,y0);x.lineTo(X+l,y1);x.fill();x.fillStyle=`rgb(${58-8*hash(i*3)|0},${55-8*hash(i*3)|0},${54-8*hash(i*3)|0})`;x.beginPath();x.moveTo(X+l,y1);x.lineTo(X+tilt+l,y0);x.lineTo(X+tilt+c,y0);x.lineTo(X+c,y1);x.fill();x.strokeStyle='#141212';x.lineWidth=1.5;x.beginPath();x.moveTo(X,y1);x.lineTo(X+tilt,y0);x.moveTo(X+c,y1);x.lineTo(X+tilt+c,y0);x.stroke()};
+  x.save();x.beginPath();x.rect(x0,yBotF,W,yB-yBotF);x.clip();x.fillStyle='#1a1716';x.fillRect(x0,mid,W,yB-mid);for(let i=0;i<NC;i++){colm(x0+i*cw,mid,yB,cw,i,0);x.strokeStyle='rgba(0,0,0,.55)';x.lineWidth=1;for(let k=1;k<7;k++){const yy=yB-(yB-mid)*k/7+(hash(i*7+k)-.5)*8;x.beginPath();x.moveTo(x0+i*cw+1,yy);x.quadraticCurveTo(x0+i*cw+cw*.5,yy+3,x0+(i+1)*cw-1,yy);x.stroke()}}x.restore();
+  x.save();x.beginPath();x.rect(x0,yT,W,yTopF-yT);x.clip();x.fillStyle='#1a1716';x.fillRect(x0,yT,W,mid-yT);const cw2=cw*.55;for(let i=0;i<Math.ceil(W/cw2)+2;i++){const tilt=(Math.sin(i*.9)+Math.sin(i*2.3))*cw2*.9;colm(x0+(i-1)*cw2,yT,mid,cw2,i+50,tilt)}x.restore();
+  // frentes de enfriamiento
+  if(cool<1){x.setLineDash([6,5]);x.strokeStyle='#8fd3ff';x.lineWidth=1.6;for(const yy of [yTopF,yBotF]){x.beginPath();x.moveTo(x0,yy);x.lineTo(x0+W,yy);x.stroke()}x.setLineDash([]);
+   arrow(x,x0+W*.5,yT-14,x0+W*.5,yT+12,'#8fd3ff',2,7);arrow(x,x0+W*.5,yB+16,x0+W*.5,yB-10,'#8fd3ff',2,7);txt(x,'se enfría por arriba (aire)',x0+W*.5+12,yT-4,{a:'left',s:n?9.5:11,w:800,c:'#8fd3ff'});txt(x,'y por abajo (suelo frío)',x0+W*.5+12,yB+16,{a:'left',s:n?9.5:11,w:800,c:'#8fd3ff'})}
+  if(cool>.6){txt(x,'entablamento (columnas irregulares)',x0+8,yT+(mid-yT)*.5,{a:'left',s:n?9.5:11.5,w:800,c:'#fff',bg:'rgba(0,0,0,.55)'});txt(x,'columnata (columnas rectas)',x0+8,yB-Hc*.25,{a:'left',s:n?9.5:11.5,w:800,c:'#fff',bg:'rgba(0,0,0,.55)'})}
+  // vista desde arriba: red de hexágonos
+  if(!n){const X0=w*.65,Y0=h*.2,W2=w*.32,H2=h*.5;x.fillStyle='rgba(12,8,8,.85)';x.strokeStyle='#ffd166';x.beginPath();x.roundRect(X0,Y0,W2,H2,10);x.fill();x.stroke();x.save();x.beginPath();x.roundRect(X0+6,Y0+26,W2-12,H2-60,8);x.clip();x.fillStyle='#ff8a2a';x.fillRect(X0,Y0,W2,H2);const R6=W2*.075;let k=0;
+    for(let r=0;r<9;r++)for(let c=0;c<9;c++){const cxh=X0+12+c*R6*1.75+(r%2)*R6*.87,cyh=Y0+30+r*R6*1.5;if(hash(k++)>cool*1.25)continue;x.fillStyle=['#4a4644','#5a5654','#3e3a38'][k%3];x.strokeStyle='#121010';x.lineWidth=2.2;x.beginPath();for(let j=0;j<6;j++){const a=Math.PI/6+j*Math.PI/3,rr=R6*(.92+.1*hash(k*7+j));x.lineTo(cxh+Math.cos(a)*rr,cyh+Math.sin(a)*rr)}x.closePath();x.fill();x.stroke()}x.restore();
+   txt(x,'desde arriba: grietas en hexágonos',X0+W2/2,Y0+18,{s:11.5,w:800,c:'#ffd166'});txt(x,'como el barro que se seca al sol',X0+W2/2,Y0+H2-22,{s:10.5,w:600,c:'#f2ece4'});txt(x,'Los Órganos (La Gomera)',X0+W2/2,Y0+H2-8,{s:10.5,w:800,c:'#f2ece4'})}
+  txt(x,'DISYUNCIÓN COLUMNAR (corte de una colada gruesa)',10,24,{a:'left',s:n?11:16,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'});
+  txt(x,cool<1?'al enfriarse, la roca se contrae y se agrieta':'columnas de 5 o 6 lados, perpendiculares a las superficies de enfriamiento',w/2,h-10,{s:n?9.5:12,w:800,c:'#fff',bg:'rgba(0,0,0,.6)'})}}
 /* 4 · piroclastos por tamaño */
 function drawSizes(x,w,h,t){sky(x,w,h);const n=w<560,base=h*.7,cx=w*.16,top=base-h*.22;x.fillStyle='#2a1a12';x.fillRect(0,base,w,h-base);x.fillStyle='#4a3426';x.beginPath();x.moveTo(cx-w*.12,base);x.lineTo(cx-w*.02,top);x.lineTo(cx+w*.02,top);x.lineTo(cx+w*.12,base);x.fill();glow(x,cx,top,w*.04);
  const W=wind;// bombas cerca, lapilli medio, ceniza lejos

@@ -67,9 +67,10 @@ const NZ=R.noise(7),NZ2=R.noise(11);
 const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*clamp(t,0,1));
 function landColor(z,slope,o={}){const sea=o.sea??0;if(z<sea+.02)return [212,196,150];if(z>.78)return mix([150,140,130],[245,248,250],(z-.78)/.08);if(slope>.9)return [128,112,96];return mix([96,140,70],[120,110,80],clamp((z-.15)/.6,0,1))}
 /* ---------- 1 · un río de la montaña al mar ---------- */
+const riverW=v=>.012+.034*v;
 const rx=v=>.5+.07*Math.sin(v*5)+.1*Math.pow(v,2)*Math.sin(v*16);
-function riverZ(u,v){const sea=v>.88;let E=.9*Math.pow(1-v,1.5)+.06;E+=(1-v)*.25*NZ(u*4,v*4);const d=Math.abs(u-rx(v)),wv=.035+.3*Math.pow(v,1.6),dep=.42*Math.pow(1-v,1.1)+.02;let cut=d<wv?dep*Math.pow(1-d/wv,v<.4?1:2.2):0;let z=E-cut;if(v>.82)z=Math.min(z,.06-(v-.82)*.9);if(v>.86)z=Math.min(z,-.04-(v-.86)*.6);return z}
-const riverW=v=>.006+.02*v;
+function riverZ(u,v){const sea=v>.88;let E=.9*Math.pow(1-v,1.5)+.06;E+=(1-v)*.25*NZ(u*4,v*4);const d=Math.max(0,Math.abs(u-rx(v))-riverW(v)*1.1),wv=.05+.3*Math.pow(v,1.6),dep=.42*Math.pow(1-v,1.1)+.02;let cut=d<wv?dep*Math.pow(1-d/wv,v<.4?1:2.2):0;let z=E-cut;if(v>.82)z=Math.min(z,.06-(v-.82)*.9);if(v>.86)z=Math.min(z,-.04-(v-.86)*.6);return z}
+
 function drawTramos(x,w,h,d,t){sky(x,w,h);const n=w<560;const c=R.cached('tramos',w,h,d,cx=>R.block(cx,w,h,{z:riverZ,color:(u,v,z,s)=>landColor(z,s),water:(u,v)=>{if(v>.86)return 0;const dd=Math.abs(u-rx(v));return dd<riverW(v)?riverZ(rx(v),v)+.012:null},v:{top:.3,hz:.26}}));x.drawImage(c.cv,0,0,w,h);const P=c.r.P;
  for(let i=0;i<60;i++){const ph=(t*.05+i/60)%1,v=ph*.9,u=rx(v)+(hash(i)-.5)*riverW(v),[px,py]=P(u,v,riverZ(rx(v),v)+.02);const sz=v<.33?3.2:v<.66?2.2:1.3;x.fillStyle=v<.33?'#6a5a4a':v<.66?'#9a8060':'#d0b890';x.beginPath();x.arc(px,py,sz,0,7);x.fill()}
  const L=[[.15,'CURSO ALTO · erosión','#ff9a6b'],[.5,'CURSO MEDIO · transporte','#ffd166'],[.8,'CURSO BAJO · sedimentación','#9fe6a0']];for(const [v,s,c2] of L){const [px,py]=P(rx(v)+.12,v,riverZ(rx(v),v)+.1);txt(x,s,px,py,{a:'left',s:n?10:12.5,w:900,c:c2,bg:'rgba(0,0,0,.6)'})}
@@ -101,14 +102,18 @@ function drawBarranco(x,w,h,d,t){sky(x,w,h,'#7fb3d8','#e8f1f5');const n=w<560,q=
  txt(x,q<.3?'isla joven: barrancos poco profundos (El Hierro, La Palma)':q<.7?'isla de edad media (Tenerife)':'isla antigua: barrancos profundos y cumbres rebajadas (La Gomera, Gran Canaria)',10,22,{a:'left',s:n?10.5:13.5,w:900,c:'#163024',bg:'rgba(255,255,255,.75)'});
  if(!rain)tag(x,'cauces secos casi todo el año',w*.5,h*.92,n);else tag(x,'¡aguacero! el barranco «corre» y arrastra piedras y barro',w*.5,h*.92,n)}
 /* ---------- 5 · delta y estuario ---------- */
-function deltaZ(T,mode){return (u,v)=>{let z;const land=.62;if(v<land){z=.03+(land-v)*.2+.015*NZ(u*5,v*5);z*=clamp((land-v)/.08,0,1)*.85+.15;const d=Math.abs(u-.5-.03*Math.sin(v*9));const W=mode==='estuario'?.025+.18*Math.pow(clamp((v-.25)/(land-.25),0,1),2.2):.022,bed=mode==='estuario'?-.035:.004,bank=W*2.5;if(d<bank){const f=d<W?0:Math.pow((d-W)/(bank-W),1.3);z=Math.min(z,bed+(z-bed)*f)}}else{z=-.03-(v-land)*.45}
-  if(mode==='delta'){const ext=.06+.28*T,dv=v-land+.02;if(dv>-.02&&dv<ext){const wd=(.06+.5*dv/ext*.5)*(1+T);const fan=Math.exp(-Math.pow((u-.5)/(wd),2));const front=1/(1+Math.exp((dv-ext*.92)/.012));const top=.03-dv*.04;z=Math.max(z,top*fan*front+z*(1-fan*front));
-    for(let k=-2;k<=2;k++){const ang=k*.32*(.6+T),cu=.5+Math.sin(ang)*dv*1.2;if(Math.abs(u-cu)<.008&&dv<ext*.95)z=Math.min(z,-.005)}}}
+function deltaZ(T,mode){return (u,v)=>{let z;const land=.62;if(v<land){z=.03+(land-v)*(mode==="delta"?.09:.2)+.015*NZ(u*5,v*5);z*=clamp((land-v)/.08,0,1)*.85+.15;const d=Math.abs(u-.5-.03*Math.sin(v*9));const W=mode==='estuario'?.025+.18*Math.pow(clamp((v-.25)/(land-.25),0,1),2.2):.022,bed=mode==='estuario'?-.035:-.006,bank=W*2.5;if(d<bank){const f=d<W?0:Math.pow((d-W)/(bank-W),1.3);z=Math.min(z,bed+(z-bed)*f)}}else{z=-.03-(v-land)*.45}
+  if(mode==='delta'){const Rf=.04+.24*T,dv=v-land+.01,du=(u-.5)/1.35,r=Math.hypot(du,dv),th=Math.atan2(du,dv);
+   if(dv>-.03&&r<Rf*1.25){const edge=Rf*(1+.07*Math.sin(th*7+1)+.04*Math.sin(th*13));const inside=clamp((edge-r)/.03,0,1),front=clamp((edge*1.18-r)/(edge*.18),0,1);
+    const top=.022*(1-r/(edge+.001)*.5);let zd=inside>0?top*inside+(-.012)*(1-inside):-.012-.02*(1-front);if(Math.abs(th)<1.45)z=Math.max(z,zd);
+    const wc=.0055*(1+.5*T);const br=(rr)=>{const q=rr/Rf;if(q<.3)return [0];if(q<.62)return [-.4,.4];return [-.66,-.2,.2,.66]};
+    if(r<edge*.99&&Math.abs(th)<1.2){let dm=9;for(const a of br(r)){const aa=a+.05*Math.sin(r*60+a*9);dm=Math.min(dm,Math.abs(th-aa)*Math.max(r,.02))}const f=clamp((dm-wc*.5)/(wc*1.1),0,1);if(f<1)z=Math.min(z,-.006+(z+.006)*f*f*(3-2*f))}}}
   return z}}
 function drawDelta(x,w,h,d,t){sky(x,w,h);const n=w<560,mode=opt.delta||'delta',q=Math.round(T*30)/30;const tide=mode==='estuario'?.025*Math.sin(t*.8):0;const zf=deltaZ(q,mode);const key='dl'+mode+q+(mode==='estuario'?Math.round(tide*200):'');
- const c=R.cached(key,w,h,d,cx=>R.block(cx,w,h,{z:zf,N:110,M:70,color:(u,v,z,s)=>z<tide+.004?(mode==='estuario'&&z>-.04?[120,110,80]:[200,186,140]):z<.05?(mode==='estuario'?[110,130,70]:[150,160,90]):landColor(z,s),water:(u,v)=>tide+(mode==='delta'?0:0),wcolor:[52,112,150],strata:[[0,'#6e5a44'],[.15,'#8a7456'],[.35,'#5a4a3a']],v:{top:.26,hz:.5}}));x.drawImage(c.cv,0,0,w,h);const P=c.r.P;
- if(mode==='delta'){for(let i=0;i<40;i++){const ph=(t*.08+i/40)%1,k=(i%5)-2,ang=k*.32*(.6+q),dv=ph*(.06+.28*q),cu=.5+Math.sin(ang)*dv*1.2,[px,py]=P(i%5===2&&ph<.3?.5:cu,.6+dv,.01);x.fillStyle='rgba(170,130,80,.9)';x.beginPath();x.arc(px,py,2,0,7);x.fill()}
-  const [px,py]=P(.5,.62+.06+.28*q,.02);tag(x,'el río deposita sedimentos y gana terreno al mar',px,py+28,n);const [ax,ay]=P(.62,.66,.04);tag(x,'brazos o canales distributarios',ax+40,ay,n)}
+ const c=R.cached(key,w,h,d,cx=>R.block(cx,w,h,{z:zf,N:110,M:70,color:(u,v,z,s)=>{if(mode==='delta'&&v>.6&&z>-.002&&z<.03){const dv=v-.61,r=Math.hypot((u-.5)/1.35,dv),Rf=.04+.24*q;return mix([128,150,82],[214,198,150],clamp((r/Rf-.75)/.25,0,1))}return z<tide+.004?(mode==='estuario'&&z>-.04?[120,110,80]:[200,186,140]):z<.05?(mode==='estuario'?[110,130,70]:[150,160,90]):landColor(z,s)},water:(u,v)=>tide+(mode==='delta'?0:0),wcolor:[52,112,150],strata:[[0,'#6e5a44'],[.15,'#8a7456'],[.35,'#5a4a3a']],v:{top:.26,hz:.5}}));x.drawImage(c.cv,0,0,w,h);const P=c.r.P;
+ if(mode==='delta'){const Rf=.04+.24*q;for(let k=0;k<4;k++){const a=[-.66,-.2,.2,.66][k],ph=(t*.25+k*.37)%1,r=Rf*(1.02+.25*ph),[px,py]=P(.5+Math.sin(a)*r*1.35,.61+Math.cos(a)*r,0);x.fillStyle=`rgba(150,120,70,${.28*(1-ph)})`;x.beginPath();x.ellipse(px,py,10+30*ph,4+10*ph,0,0,7);x.fill()}
+  for(let i=0;i<40;i++){const ph=(t*.12+i/40)%1,k=i%4,a=[-.66,-.2,.2,.66][k]*Math.min(1,ph*1.6),r=ph*Rf,[px,py]=P(.5+Math.sin(a)*r*1.35,.61+Math.cos(a)*r,.004);x.fillStyle='rgba(120,90,50,.9)';x.beginPath();x.arc(px,py,1.6,0,7);x.fill()}
+  const [px,py]=P(.5,.61+Rf*1.15,0);tag(x,'frente del delta: el río gana terreno al mar',px,py+26,n);if(q>.35){const [ax,ay]=P(.5+Rf*.55,.61+Rf*.55,.01);tag(x,'brazos o canales distributarios',ax+(n?40:70),ay-10,n)}const [bx,by]=P(.5-Rf*.7,.61+Rf*.25,.01);if(q>.5)tag(x,'llanura deltaica',bx-(n?20:40),by-12,n)}
  else{const [px,py]=P(.5,.58,0);tag(x,tide>0?'marea alta: el mar entra río arriba':'marea baja: aparecen marismas y bancos de fango',px,py-30,n);for(let i=0;i<30;i++){const ph=(t*.1+i/30)%1,v=.3+ph*.45,[a,b]=P(.5+(hash(i)-.5)*.2*((v-.25)/.4),v,tide);x.fillStyle='rgba(255,255,255,.6)';x.fillRect(a,b,2,2)}}
  txt(x,mode==='delta'?'DELTA: el río aporta más sedimentos de los que el mar puede llevarse':'ESTUARIO: las mareas y las olas se llevan los sedimentos',10,22,{a:'left',s:n?10.5:13.5,w:900,c:'#163024',bg:'rgba(255,255,255,.75)'})}
 STEPS=[
@@ -126,10 +131,10 @@ INFO={tramos:()=>'Las piedras grandes y angulosas del curso alto se van rompiend
 LEG={tramos:'Piedras grandes y oscuras arriba; arena clara abajo.',valleV:'En las paredes del valle se ven las capas de roca que el río ha cortado.',meandros:'<span style="color:#ff7a6a">▬</span> erosión · <span style="color:#e1cd96">●</span> sedimentación (barra de arena)',barranco:'Cauces secos que solo llevan agua durante las lluvias fuertes.',delta:()=>opt.delta==='estuario'?'Marisma: terreno que se inunda con la marea alta.':'Brazos del río abriéndose en abanico sobre sus propios sedimentos.'};
 
 function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
-function renderOpt(){const s=STEPS[step];if(!s.o){$('optBox').style.display='none';return}$('optBox').style.display='';$('optLab').textContent=s.ol;if(opt[s.v]==null)opt[s.v]=s.o[0][0];$('opt').innerHTML=s.o.map(([k,n])=>`<button data-k="${k}" class="${opt[s.v]===k?'on':''}">${n}</button>`).join('');$('opt').querySelectorAll('button').forEach(b=>b.onclick=()=>{opt[s.v]=b.dataset.k;if(s.resetT)T=0;renderOpt();info();legend()})}
+function renderOpt(){const s=STEPS[step];if(!s.o){$('optBox').style.display='none';return}$('optBox').style.display='';$('optLab').textContent=s.ol;if(opt[s.v]==null)opt[s.v]=s.o[0][0];$('opt').innerHTML=s.o.map(([k,n])=>`<button data-k="${k}" class="${opt[s.v]===k?'on':''}">${n}</button>`).join('');$('opt').querySelectorAll('button').forEach(b=>b.onclick=()=>{opt[s.v]=b.dataset.k;if(s.resetT){T=0;if(s.time){playing=true;$('play').textContent='⏸ Pausa'}}renderOpt();info();legend()})}
 function legend(){const v=STEPS[step].v;$('legend').innerHTML=typeof LEG[v]==='function'?LEG[v]():(LEG[v]||'')}
 function info(){const v=STEPS[step].v;$('info').innerHTML=INFO[v]?INFO[v]():''}
-function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();renderOpt();$('timeBox').style.display=s.time?'':'none';if(s.time)$('timeLab').innerHTML=s.time;T=s.t0??0;playing=!!s.autoplay;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir';document.querySelectorAll('[data-show]').forEach(el=>el.style.display=el.dataset.show.split(' ').includes(s.v)?'':'none');legend();info()}
+function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();renderOpt();$('timeBox').style.display=s.time?'':'none';if(s.time)$('timeLab').innerHTML=s.time;T=s.t0??0;playing=s.autoplay!==false&&!!s.time;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir';document.querySelectorAll('[data-show]').forEach(el=>el.style.display=el.dataset.show.split(' ').includes(s.v)?'':'none');legend();info()}
 $('time').oninput=()=>{T=+$('time').value;playing=false;$('play').textContent='▶ Reproducir';info()};
 $('play').onclick=()=>{if(T>=1)T=0;playing=!playing;$('play').textContent=playing?'⏸ Pausa':'▶ Reproducir'};
 $('reset').onclick=()=>{T=0;info()};
@@ -137,7 +142,7 @@ let last=performance.now(),acc=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;const s=STEPS[step];if(playing&&s.time){T=Math.min(1,T+dt/(s.dur||14));if(T>=1){if(s.loop)T=0;else{playing=false;$('play').textContent='▶ Reproducir'}}acc+=dt;if(acc>.3){acc=0;info()}}$('time').value=T;
  const {x,w,h,d}=fit($('main'));DRAW[s.v](x,w,h,d,tt);requestAnimationFrame(frame)}
 renderSteps();go(0);requestAnimationFrame(frame);
-window.__g={go,set T(v){T=v;info()},set opt(v){opt[STEPS[step].v]=v;renderOpt();info();legend()}};
+window.__g={go,set play(v){playing=v},set T(v){T=v;info()},set opt(v){opt[STEPS[step].v]=v;renderOpt();info();legend()}};
 })();
 </script>
 </body>

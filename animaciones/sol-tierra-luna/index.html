@@ -164,7 +164,7 @@ function drawMain(){const {x,w,h,d}=fit($('main'));const st=state(t);x.fillStyle
  else if(zoom==='tierra'){const R=Math.min(w,h)*.33;// rayos desde el Sol
   const l=st.s.lambda*D2R,ux=Math.cos(l),uy=-Math.sin(l);// hacia el Sol en pantalla
   x.save();x.translate(cx,cy);x.rotate(0);x.restore();
-  for(let k=-4;k<=4;k++){const px=-uy,py=ux,ox=cx+ux*R*1.5+px*k*R*.22,oy=cy+uy*R*1.5+py*k*R*.22;if(Math.abs(k)*.22<1){x.strokeStyle='rgba(255,214,90,.5)';x.lineWidth=2;x.beginPath();x.moveTo(ox,oy);x.lineTo(ox-ux*R*.35,oy-uy*R*.35);x.stroke()}}
+  for(let k=-4;k<=4;k++){const px=-uy,py=ux,off=k*R*.2,hit=Math.sqrt(Math.max(0,R*R-off*off)),sx0=cx+ux*R*3+px*off,sy0=cy+uy*R*3+py*off,ex=cx+ux*(hit+4)+px*off,ey=cy+uy*(hit+4)+py*off;x.strokeStyle='rgba(255,214,90,.75)';x.fillStyle='rgba(255,214,90,.9)';x.lineWidth=2;x.beginPath();x.moveTo(sx0,sy0);x.lineTo(ex,ey);x.stroke();const a=Math.atan2(-uy,-ux);x.beginPath();x.moveTo(ex,ey);x.lineTo(ex-Math.cos(a-.4)*9,ey-Math.sin(a-.4)*9);x.lineTo(ex-Math.cos(a+.4)*9,ey-Math.sin(a+.4)*9);x.closePath();x.fill()}
   x.save();x.setTransform(d,0,0,d,0,0);const o=earthGlobe(x,d,cx,cy,R,st);x.restore();
   const c=T.project(o,28.3,-16.5);x.fillStyle='#ff5a4e';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.arc(c.x/d*0+c.x,c.y,6,0,7);x.fill();x.stroke();txt(x,'Canarias',c.x+9,c.y-6,{a:'left',s:12,bg:'rgba(5,16,26,.6)'});
   txt(x,'☀ hacia el Sol',cx+ux*R*1.62,cy+uy*R*1.62,{s:13,c:'#ffd166',bg:'rgba(5,16,26,.6)'});
@@ -173,7 +173,7 @@ function drawMain(){const {x,w,h,d}=fit($('main'));const st=state(t);x.fillStyle
  else{// sistema Tierra–Luna
   const S=Math.min(w,h)*.38/405000,l=st.s.lambda*D2R,ux=Math.cos(l),uy=-Math.sin(l),RE=Math.max(14,Math.min(w,h)*.045),RM=RE*.27*1.6;
   // rayos del Sol
-  for(let k=-7;k<=7;k++){const px=-uy,py=ux,ox=cx+ux*Math.min(w,h)*.62+px*k*Math.min(w,h)*.07,oy=cy+uy*Math.min(w,h)*.62+py*k*Math.min(w,h)*.07;x.strokeStyle='rgba(255,214,90,.25)';x.lineWidth=1.5;x.beginPath();x.moveTo(ox,oy);x.lineTo(ox-ux*40,oy-uy*40);x.stroke()}
+  for(let k=-7;k<=7;k++){const px=-uy,py=ux,ox=cx+ux*Math.min(w,h)*1.2+px*k*Math.min(w,h)*.07,oy=cy+uy*Math.min(w,h)*1.2+py*k*Math.min(w,h)*.07;const L=Math.min(w,h)*.62,ex=ox-ux*L,ey=oy-uy*L,a=Math.atan2(-uy,-ux);x.strokeStyle='rgba(255,214,90,.3)';x.fillStyle='rgba(255,214,90,.45)';x.lineWidth=1.5;x.beginPath();x.moveTo(ox,oy);x.lineTo(ex,ey);x.stroke();x.beginPath();x.moveTo(ex,ey);x.lineTo(ex-Math.cos(a-.4)*8,ey-Math.sin(a-.4)*8);x.lineTo(ex-Math.cos(a+.4)*8,ey-Math.sin(a+.4)*8);x.closePath();x.fill()}
   txt(x,'☀ luz del Sol',cx+ux*Math.min(w,h)*.47,cy+uy*Math.min(w,h)*.47,{s:12,c:'#ffd166',bg:'rgba(5,16,26,.6)'});
   // órbita de la Luna con su inclinación: parte al norte de la eclíptica continua, al sur discontinua
   const inc=5.145*D2R,Om=st.m.node*D2R,orb=[];for(let u=0;u<=360;u+=3){const U=u*D2R,lam=Om+Math.atan2(Math.cos(inc)*Math.sin(U),Math.cos(U)),b=Math.asin(Math.sin(inc)*Math.sin(U));orb.push([cx+Math.cos(lam)*st.m.dist*S,cy-Math.sin(lam)*st.m.dist*S,b])}
@@ -223,7 +223,7 @@ function drawMoon(){const {x,w,h}=fit($('moon')),st=state(t);x.fillStyle='#05101
  txt(x,phaseName(st)+' · '+fmt(k*100,0)+' % iluminada',cx,h-12,{s:13,w:800,c:'#ffd166',bg:'rgba(5,16,26,.7)'})}
 /* ---- vista de perfil ---- */
 function drawSide(){const {x,w,h}=fit($('side')),st=state(t);x.fillStyle='#05101a';x.fillRect(0,0,w,h);const cx=w*.55,cy=h*.55,S=w*.36/405000,EX=5;
- sunDisk(x,-30,cy,60);x.strokeStyle='rgba(255,209,102,.5)';x.lineWidth=1.2;x.beginPath();x.moveTo(0,cy);x.lineTo(w,cy);x.stroke();txt(x,'eclíptica (plano de la órbita de la Tierra)',w-8,cy+22,{a:'right',s:10.5,c:'#ffd166'});
+ sunDisk(x,-30,cy,60);x.strokeStyle='rgba(255,209,102,.5)';x.lineWidth=1.2;x.beginPath();x.moveTo(0,cy);x.lineTo(w,cy);x.stroke();txt(x,'eclíptica (plano de la órbita de la Tierra)',40,cy-8,{a:'left',s:10.5,c:'#ffd166'});
  // sombra de la Tierra
  x.fillStyle='rgba(0,0,0,.6)';x.fillRect(cx,cy-9,w-cx,18);
  // órbita lunar proyectada (exagerada ×5 en altura)

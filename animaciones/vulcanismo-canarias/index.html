@@ -67,7 +67,7 @@ const hash=i=>{let x=Math.sin(i*127.1)*43758.5;return x-Math.floor(x)};
 let step=0,etype='est',age=25,playAge=false,grow=0,playGrow=false,lpd=0,playLp=false,sem=0,hsel=-1,lsel=-1,tt=0;
 /* ---- islas ---- */
 const ISL=['El Hierro','La Palma','La Gomera','Tenerife','Gran Canaria','Fuerteventura','Lanzarote'];
-const AGE={'Fuerteventura':20.6,'Lanzarote':15.5,'Gran Canaria':14.5,'Tenerife':11.9,'La Gomera':11.0,'La Palma':1.7,'El Hierro':1.1};
+const AGE={'Fuerteventura':20.6,'Lanzarote':15.5,'Gran Canaria':14.5,'Tenerife':11.9,'La Gomera':10.5,'La Palma':1.7,'El Hierro':1.1};
 const CEN={'El Hierro':[-18.0,27.75],'La Palma':[-17.86,28.68],'La Gomera':[-17.23,28.12],'Tenerife':[-16.6,28.27],'Gran Canaria':[-15.6,27.95],'Fuerteventura':[-14.05,28.4],'Lanzarote':[-13.65,29.04]};
 const BB={w:-18.4,e:-13.2,s:27.5,n:29.5};let CAN=null;
 (()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height).data,a=new Uint8Array(c.width*c.height);for(let i=0;i<a.length;i++)a[i]=d[i*4];CAN={w:c.width,h:c.height,a};islCache={}};im.src='../comun/canarias.png'})();
@@ -213,7 +213,7 @@ function sec2(x,w,h,t,k){const n=w<560;const top=h*.36,crust=h*.48,lith=h*.6;con
  x.fillStyle='#174a72';x.fillRect(0,top,w,crust-top);x.fillStyle='#4d6070';x.fillRect(0,crust,w,lith-crust);const ga=x.createLinearGradient(0,lith,0,h);ga.addColorStop(0,'#b5502a');ga.addColorStop(1,'#5a1e0c');x.fillStyle=ga;x.fillRect(0,lith,w,h-lith);
  // África a la derecha
  x.fillStyle='#8a7a5a';x.beginPath();x.moveTo(w*.86,top+4);x.lineTo(w*.9,top-h*.04);x.lineTo(w,top-h*.07);x.lineTo(w,lith+h*.04);x.lineTo(w*.86,lith+h*.04);x.closePath();x.fill();txt(x,'África',w*.94,top-h*.09,{s:n?11:13,w:900,c:'#f5ece6'});
- const IS=[['El Hierro',.06,1.1],['La Palma',.16,1.7],['La Gomera',.27,11],['Tenerife',.38,11.9],['Gran Canaria',.52,14.5],['Fuerteventura',.68,20.6],['Lanzarote',.78,15.5]];
+ const IS=[['El Hierro',.06,1.1],['La Palma',.16,1.7],['La Gomera',.27,10.5],['Tenerife',.38,11.9],['Gran Canaria',.52,14.5],['Fuerteventura',.68,20.6],['Lanzarote',.78,15.5]];
  const isle=(fx,hh,wd,col)=>{const X=w*fx;x.fillStyle=col||'#6b5a48';x.beginPath();x.moveTo(X-wd,crust);x.lineTo(X-wd*.25,top-hh);x.lineTo(X+wd*.25,top-hh);x.lineTo(X+wd,crust);x.fill()};
  for(const [nm,fx,a] of IS){const hh=h*(a<3?.07:a<13?.1:.08),wd=w*.045;isle(fx,hh,wd);txt(x,n?nm.replace('Gran ','G. ').replace('Fuerteventura','Fuertev.'):nm,w*fx,top-hh-6,{s:n?8.5:10.5,w:800,c:'#fff'})}
  if(k==='punto'){const px=w*.1;for(let i=0;i<22;i++){const ph=(t*.25+i/22)%1,yy=h-ph*(h-lith),xx=px+Math.sin(i*2+t)*w*.03*(1-ph*.5);x.fillStyle=`rgba(255,${120+100*ph|0},40,${.85-ph*.3})`;x.beginPath();x.arc(xx,yy,4+ (1-ph)*3,0,7);x.fill()}
@@ -231,9 +231,19 @@ function sec2(x,w,h,t,k){const n=w<560;const top=h*.36,crust=h*.48,lith=h*.6;con
   for(let i=0;i<12;i++){const ph=(t*.4+i/12)%1,fx=[.04,.11,.19,.33,.44,.6][i%6];x.fillStyle=`rgba(255,${130+90*ph|0},40,${1-ph})`;x.beginPath();x.arc(w*fx+w*.02*(1-ph),ay-ph*(ay-crust),3,0,7);x.fill()}}
  txt(x,'Corte esquemático de oeste a este (sin escala)',10,22,{a:'left',s:n?12:15,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'});txt(x,'Hipótesis: '+HYP[k].n,10,n?40:44,{a:'left',s:n?11:13,w:800,c:'#fff',bg:'rgba(0,0,0,.5)'})}
 function drawOrigin(x,w,h,t){if(hyp!=='datos'){sec2(x,w,h,t,hyp);return}sea(x,w,h);const n=w<560,g=canGeom(w,h);
- for(const isl of ISL){const a=AGE[isl];if(age>a+.6)continue;const [lo,la]=CEN[isl];if(age>a){txt(x,'emergiendo…',g.X(lo),g.Y(la)+4,{s:n?9:11,w:800,c:'#9fd3ff'})}}
- drawIslands(x,g,(isl)=>{const a=AGE[isl];if(age>a)return null;const yrs=a-age,f=Math.min(1,yrs/3+.2),o=Math.min(1,a/22);return [Math.round(95+100*o),Math.round(72+80*o),Math.round(58+42*o),Math.round(255*f)]},'o'+Math.round(age*10));
- for(const isl of ISL){const a=AGE[isl];if(age>a)continue;const [lo,la]=CEN[isl];const [ox,oy]={'La Palma':[0,-g.H*.18],'El Hierro':[0,g.H*.1],'La Gomera':[0,g.H*.1],'Tenerife':[0,-g.H*.14],'Gran Canaria':[0,g.H*.14],'Fuerteventura':[g.W*.05,g.H*.12],'Lanzarote':[0,-g.H*.1]}[isl];txt(x,isl,g.X(lo)+ox,g.Y(la)+oy,{s:n?10:12.5,w:900,c:'#fff',bg:'rgba(0,0,0,.45)'});txt(x,'≈ '+fmt(a,1).replace(',0','')+' Ma',g.X(lo)+ox,g.Y(la)+oy+(n?12:15),{s:n?9:11,w:700,c:'#ffd166'})}
+ const ramp=a=>{const f=Math.max(0,Math.min(1,a/21)),c0=[242,214,110],c1=[150,62,30];return c0.map((v,i)=>Math.round(v+(c1[i]-v)*f))};
+ drawIslands(x,g,(isl)=>{const a=AGE[isl];if(age>a)return [150,175,200,55];const c=ramp(a),f=Math.min(1,(a-age)/1.5+.35);return [...c,Math.round(255*f)]},'o'+Math.round(age*10));
+ for(const isl of ISL){const a=AGE[isl],[lo,la]=CEN[isl],up=age<=a;const [ox,oy]={'La Palma':[0,-g.H*.18],'El Hierro':[0,g.H*.1],'La Gomera':[0,g.H*.1],'Tenerife':[0,-g.H*.14],'Gran Canaria':[0,g.H*.14],'Fuerteventura':[g.W*.05,g.H*.12],'Lanzarote':[0,-g.H*.1]}[isl];
+  txt(x,isl,g.X(lo)+ox,g.Y(la)+oy,{s:n?10:12.5,w:900,c:up?'#fff':'rgba(200,220,240,.6)',bg:up?'rgba(0,0,0,.45)':null});txt(x,up?'≈ '+fmt(a,1).replace(',0','')+' Ma':'aún bajo el mar',g.X(lo)+ox,g.Y(la)+oy+(n?12:15),{s:n?9:11,w:700,c:up?`rgb(${ramp(a)})`:'rgba(170,200,230,.6)'})}
+ // flecha: más jóvenes hacia el oeste
+ {const y=g.Y(29.55),xa=g.X(-13.6),xb=g.X(-17.6);x.strokeStyle='rgba(255,255,255,.75)';x.fillStyle='rgba(255,255,255,.85)';x.lineWidth=2;x.beginPath();x.moveTo(xa,y);x.lineTo(xb,y);x.stroke();x.beginPath();x.moveTo(xb,y);x.lineTo(xb+10,y-5);x.lineTo(xb+10,y+5);x.closePath();x.fill();txt(x,n?'más jóvenes hacia el oeste':'en general, las islas son más jóvenes cuanto más al oeste',(xa+xb)/2,y-7,{s:n?9.5:11.5,w:800,c:'#fff',bg:'rgba(0,0,0,.45)'})}
+ // barra del tiempo con la edad de cada isla
+ {const X0=n?14:40,X1=w-(n?14:40),Y=h-(n?34:40),A=v=>X0+(22-v)/22*(X1-X0);x.fillStyle='rgba(0,0,0,.45)';x.fillRect(X0-8,Y-(n?26:30),X1-X0+16,n?50:58);
+  const gr=x.createLinearGradient(X0,0,X1,0);gr.addColorStop(0,`rgb(${ramp(21)})`);gr.addColorStop(1,`rgb(${ramp(0)})`);x.fillStyle=gr;x.fillRect(X0,Y-3,X1-X0,6);
+  for(const v of [20,15,10,5,0])txt(x,v+' Ma',A(v),Y+(n?15:18),{s:n?8.5:10,w:700,c:'#cfd8e0'});
+  const order=ISL.slice().sort((p,q)=>AGE[q]-AGE[p]);order.forEach((isl,i)=>{const X=A(AGE[isl]),up=age<=AGE[isl];x.fillStyle=up?`rgb(${ramp(AGE[isl])})`:'rgba(200,220,240,.35)';x.beginPath();x.arc(X,Y,n?4:5,0,7);x.fill();x.strokeStyle='#000';x.lineWidth=1;x.stroke();const short={'Fuerteventura':'FV','Lanzarote':'LZ','Gran Canaria':'GC','Tenerife':'TF','La Gomera':'LG','La Palma':'LP','El Hierro':'EH'}[isl];txt(x,n?short:isl,X,Y-(i%2?(n?8:9):(n?16:19)),{s:n?8.5:10,w:800,c:up?'#fff':'rgba(200,220,240,.5)'})});
+  const ma=A(age);x.strokeStyle='#ffd166';x.lineWidth=2;x.beginPath();x.moveTo(ma,Y-10);x.lineTo(ma,Y+8);x.stroke()}
+ if(!n)txt(x,'Edad de las rocas emergidas más antiguas. Bajo el mar, cada isla es aún más antigua; La Palma y El Hierro son casi igual de jóvenes.',w/2,h-(n?2:6),{s:9.5,w:600,c:'#cfd8e0'});
  if(age<.3){for(const [lo,la,yr] of [[-13.78,29.0,'1824'],[-16.78,28.29,'1909'],[-17.87,28.61,'2021'],[-17.99,27.62,'2011']]){const X=g.X(lo),Y=g.Y(la),ph=((t*.8+lo)%1+1)%1;x.fillStyle=`rgba(255,90,0,${.6*(1-ph)})`;x.beginPath();x.arc(X,Y,4+ph*12,0,7);x.fill();x.fillStyle='#ff6a00';x.beginPath();x.arc(X,Y,4,0,7);x.fill();txt(x,yr,X+7,Y+4,{a:'left',s:n?9:11,w:900,c:'#ffb27a',bg:'rgba(0,0,0,.5)'})}}
  if(!n)txt(x,'África →',g.X(-12.9),g.Y(28.1),{s:n?11:13,w:900,c:'#e8d8cc'});
  txt(x,'hace '+fmt(age,1)+' millones de años',10,22,{a:'left',s:n?14:18,w:900,c:'#ffd166',bg:'rgba(0,0,0,.5)'})}
@@ -268,7 +278,7 @@ function drawLP(x,w,h,t){sea(x,w,h);const n=w<560,g=canGeom(w,h,LPV);drawIslands
  if(lpd<85){glow(x,g.X(VENT[0]),g.Y(VENT[1]),18);ash(x,g.X(VENT[0]),g.Y(VENT[1]),t,n?4:6,true,h*.25,w*.12)}
  x.fillStyle='#000';x.beginPath();x.arc(g.X(VENT[0]),g.Y(VENT[1]),4,0,7);x.fill();txt(x,'Tajogaite',g.X(VENT[0])+8,g.Y(VENT[1])-8,{a:'left',s:n?11:13,w:900,c:'#ffd166',bg:'rgba(0,0,0,.55)'});
  for(const [nm,lo,la] of [['Todoque',-17.905,28.617],['Tazacorte',-17.935,28.642],['Los Llanos de Aridane',-17.915,28.66],['El Paso',-17.885,28.65],['Puerto Naos',-17.913,28.586],['Santa Cruz de La Palma',-17.765,28.68],['Caldera de Taburiente',-17.865,28.735]])txt(x,nm,g.X(lo),g.Y(la),{s:n?9:11,w:700,c:'#fff',bg:'rgba(0,0,0,.45)'});
- const dt=new Date(Date.UTC(2021,8,19)+lpd*864e5);txt(x,dt.getUTCDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][dt.getUTCMonth()]+' de 2021 · día '+lpd,10,22,{a:'left',s:n?13:16,w:900,c:'#ffd166',bg:'rgba(0,0,0,.55)'})}
+ const dt=new Date(Date.UTC(2021,8,19)+lpd*864e5);txt(x,dt.getUTCDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][dt.getUTCMonth()]+' de 2021 · día '+Math.floor(lpd),10,22,{a:'left',s:n?13:16,w:900,c:'#ffd166',bg:'rgba(0,0,0,.55)'})}
 /* 7 · vigilancia */
 const SEM=[{n:'Verde',c:'#3ec46d',d:'Normalidad: actividad volcánica de fondo. La población hace vida normal.'},{n:'Amarillo',c:'#ffd23f',d:'Aumento de la actividad: más terremotos y cambios en el terreno o en los gases. Se informa a la población y se refuerza la vigilancia.'},{n:'Naranja',c:'#ff8a00',d:'Erupción posible en días o semanas. Se preparan evacuaciones y la población debe estar atenta a las instrucciones.'},{n:'Rojo',c:'#ff3b30',d:'Erupción inminente o en curso: se evacúan las zonas de peligro.'}];
 function drawRisk(x,w,h,t){x.fillStyle='#0a0605';x.fillRect(0,0,w,h);const n=w<560,lv=sem,pad=12,cw=(w-pad*3)/2,ch=(h-pad*3)/2;
@@ -317,7 +327,7 @@ function info(){const v=STEPS[step].v;let s='';
  $('info').innerHTML=s}
 function go(i){step=i;const s=STEPS[i];$('stage').innerHTML=`<b class="t">${s.t}</b><p>${s.p}</p>`;renderSteps();
  const sh={typeBox:'tipos',ageBox:'origen',growBox:'crece',histBox:'hist',lpBox:'lp',riskBox:'riesgo',landBox:'land'};for(const k in sh)$(k).style.display=sh[k]===s.v?'':'none';
- if(s.v==='origen'&&age<=0)age=25;if(s.v==='lp'&&lpd>=85)lpd=0;legend();info()}
+ if(s.v==='origen'){if(age<=0)age=25;playAge=true;$('playAge').textContent='⏸ Pausa'}if(s.v==='crece'){if(grow>=1)grow=0;playGrow=true;$('playGrow').textContent='⏸ Pausa'}if(s.v==='lp'){if(lpd>=85)lpd=0;playLp=true;$('playLp').textContent='⏸ Pausa'}legend();info()}
 /* ---- bucle ---- */
 let last=performance.now();
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;const s=STEPS[step];
@@ -327,7 +337,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;const
  $('ageV').textContent=fmt(age,1);$('lpV').textContent=Math.round(lpd);
  const {x,w,h}=fit($('main'));
  if(s.v==='tipos')drawTypeChart();
- ({anat:drawAnatomy,tipos:drawTypes,origen:drawOrigin,crece:drawGrow,hist:drawHist,lp:(a,b,c,t)=>{lpd=Math.round(lpd*1)/1;drawLP(a,b,c,t)},riesgo:drawRisk,land:drawLands})[s.v](x,w,h,tt);
+ ({anat:drawAnatomy,tipos:drawTypes,origen:drawOrigin,crece:drawGrow,hist:drawHist,lp:drawLP,riesgo:drawRisk,land:drawLands})[s.v](x,w,h,tt);
  requestAnimationFrame(frame)}
 $('age').oninput=()=>{age=+$('age').value;playAge=false;$('playAge').textContent='▶ Reproducir';info()};
 $('playAge').onclick=()=>{if(age<=0)age=25;playAge=!playAge;$('playAge').textContent=playAge?'⏸ Pausa':'▶ Reproducir'};

@@ -220,18 +220,33 @@ function drawCollision(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,cx=X0+W/2,t
  txt(x,'CORDILLERA DE PLEGAMIENTO · altura: '+['muy baja','baja','media','alta','muy alta'][Math.min(4,Math.floor(sq*5))],cx,Y0+(n?14:18),{s:n?10.5:13,w:900,c:'#ffd166',bg:'rgba(5,16,26,.6)'});txt(x,'Continente',X0+W*.1,top-8,{s:n?10:12,w:800});
  txt(x,'la corteza se pliega, se rompe y se engrosa; la montaña crece mientras los continentes empujan',cx,Y0+H-6,{s:n?9:11.5,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.6)'})}
 /* falla transformante: la tensión se acumula (la carretera se dobla) y se libera de golpe (terremoto) */
-function drawTransform(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,cy=Y0+H*.5,C=5,ph=(t%C)/C,ev=Math.floor(t/C),P=W*.36,D=P/3,lock=.82;
- x.fillStyle='#7d8a6a';x.fillRect(X0,Y0,W,H/2);x.fillStyle='#8f946c';x.fillRect(X0,cy,W,H/2);
- const base=(ev%3)*D,Lk=H*.12;const u=y=>{if(ph<lock){const s=D*ph/lock;return (y>cy?base:0)+s*(.5+Math.atan((y-cy)/Lk)/Math.PI)}return y>cy?base+D:0};
- const road=(x0,col,wd)=>{x.strokeStyle=col;x.lineWidth=wd;x.lineCap='butt';for(const side of [0,1]){x.beginPath();for(let y=side?cy+1:Y0;side?y<=Y0+H:y<=cy-1;y+=4){const X=x0+u(y);y===(side?cy+1:Y0)?x.moveTo(X,y):x.lineTo(X,y)}x.stroke()}};
- x.save();x.beginPath();x.rect(X0,Y0,W,H);x.clip();for(let k=-2;k<5;k++){road(X0+W*.1+k*P,'#ddd',n?6:8);road(X0+W*.1+k*P+P*.5,'#4cc9f0',n?4:5)}x.restore();
- x.strokeStyle='#ff4d6d';x.lineWidth=3;x.setLineDash([10,6]);x.beginPath();x.moveTo(X0,cy);x.lineTo(X0+W,cy);x.stroke();x.setLineDash([]);
- arrow(x,X0+W*.88,Y0+H*.16,X0+W*.7,Y0+H*.16,'#fff',4,12);arrow(x,X0+W*.12,Y0+H*.86,X0+W*.3,Y0+H*.86,'#fff',4,12);
- let amp=0;if(ph>=lock){const f=(ph-lock)/(1-lock);for(let k=0;k<3;k++){const ff=f-k*.12;if(ff<=0)continue;x.strokeStyle=`rgba(255,243,107,${1-ff})`;x.lineWidth=3;x.beginPath();x.arc(X0+W*.5,cy,ff*W*.45,0,7);x.stroke()}amp=1-f;x.fillStyle='#fff36b';x.font='bold 26px system-ui';x.textAlign='center';x.fillText('✸',X0+W*.5,cy+9)}
- buildings(x,X0+W*.62,cy-H*.12,amp,t,n?8:11);
- const bar=Math.min(1,ph/lock);txt(x,ph<lock?'Tensión acumulada: '+Math.round(bar*100)+' %':'¡TERREMOTO! La falla se desliza de golpe',X0+W/2,Y0+(n?14:20),{s:n?11:14,w:900,c:ph<lock?'#ffd166':'#fff36b',bg:'rgba(5,16,26,.7)'});
+function drawTransform(x,w,h,t){const {X0,Y0,W,H}=sec(x,w,h),n=w<560,cy=Y0+H*.5,C=5,ph=(t%C)/C,ev=Math.floor(t/C)%6,lock=.8,D=W*.045,Lk=H*.1;
+ // terreno visto desde arriba (campos y matorral)
+ if(!drawTransform.bg||drawTransform.bg.w!==W||drawTransform.bg.h!==H){const c=document.createElement('canvas'),d=Math.min(2,devicePixelRatio||1);c.width=W*d;c.height=H*d;const g=c.getContext('2d');g.scale(d,d);g.fillStyle='#8c9468';g.fillRect(0,0,W,H);for(let i=0;i<900;i++){g.fillStyle=`rgba(${hash(i)<.5?'70,90,50':'150,140,95'},${.25*hash(i*3)})`;g.beginPath();g.arc(hash(i*5)*W,hash(i*7)*H,2+5*hash(i*11),0,7);g.fill()}drawTransform.bg={w:W,h:H,c}}
+ // desplazamiento: lejos de la falla el terreno se mueve sin parar; junto a ella la falla está bloqueada y todo se dobla; en el terremoto se suelta de golpe
+ const s=ph<lock?D*ph/lock:0,off=D*(ev+(ph<lock?0:1)),u=y=>{const sg=y<cy?1:-1;return sg*off/2+(s/2)*(2/Math.PI)*Math.atan((cy-y)/Lk)};
+ const half=(top)=>{x.save();x.beginPath();top?x.rect(X0,Y0,W,H/2):x.rect(X0,cy,W,H/2);x.clip();x.drawImage(drawTransform.bg.c,X0+(top?off/2+s/2:-off/2-s/2)-W*0,Y0,W,H);x.drawImage(drawTransform.bg.c,X0+(top?off/2+s/2-W:-off/2-s/2+W),Y0,W,H);x.restore()};
+ half(true);half(false);
+ const line=(x0,fn)=>{for(const top of [1,0]){x.beginPath();let first=1;for(let y=top?Y0:cy+1;top?y<=cy-1:y<=Y0+H;y+=3){const X=x0+u(y)+fn(y);first?x.moveTo(X,y):x.lineTo(X,y);first=0}x.stroke()}};
+ // carretera
+ const rx=X0+W*.27;x.lineCap='butt';x.strokeStyle='#3a3a3c';x.lineWidth=n?10:14;line(rx,()=>0);x.strokeStyle='#f2f2f2';x.lineWidth=1.6;x.setLineDash([8,7]);line(rx,()=>0);x.setLineDash([]);
+ // río (con sus meandros suaves)
+ const vx=X0+W*.53;x.strokeStyle='#3f8fd0';x.lineWidth=n?5:7;x.lineJoin='round';line(vx,y=>W*.012*Math.sin(y*.045));
+ // valla con postes
+ const fx=X0+W*.78;x.strokeStyle='#6b4a2e';x.lineWidth=2;line(fx,()=>0);x.fillStyle='#5a3a20';for(let y=Y0+6;y<Y0+H;y+=n?11:14){if(Math.abs(y-cy)<4)continue;x.fillRect(fx+u(y)-2.5,y-2.5,5,5)}
+ // casa junto a la carretera
+ let amp=0;if(ph>=lock){amp=1-(ph-lock)/(1-lock)}const hs=amp*Math.sin(t*50)*3,hx=rx+u(cy+H*.32)+W*.06+hs,hy=cy+H*.32;x.fillStyle='#e6dccb';x.fillRect(hx-10,hy-8,20,16);x.fillStyle='#b5523b';x.fillRect(hx-11,hy-9,22,6);
+ // traza de la falla
+ x.strokeStyle='rgba(60,40,30,.85)';x.lineWidth=2.5;x.beginPath();for(let X=X0;X<=X0+W;X+=6)x.lineTo(X,cy+1.2*Math.sin(X*.3));x.stroke();
+ txt(x,'FALLA',X0+W*.06,cy-6,{a:'left',s:n?10:12,w:900,c:'#fff',bg:'rgba(60,20,20,.7)'});
+ arrow(x,X0+W*.36,Y0+H*.28,X0+W*.46,Y0+H*.28,'#fff',4,12);arrow(x,X0+W*.68,Y0+H*.74,X0+W*.58,Y0+H*.74,'#fff',4,12);
+ if(!n)txt(x,'este bloque va hacia la derecha',X0+W*.41,Y0+H*.28-10,{s:n?9:11,w:800,c:'#fff',bg:'rgba(5,16,26,.6)'});if(!n)txt(x,'y este, hacia la izquierda',X0+W*.63,Y0+H*.74+(n?15:18),{s:n?9:11,w:800,c:'#fff',bg:'rgba(5,16,26,.6)'});
+ if(ph>=lock){const f=(ph-lock)/(1-lock);for(let k=0;k<3;k++){const ff=f-k*.12;if(ff<=0)continue;x.strokeStyle=`rgba(255,243,107,${1-ff})`;x.lineWidth=3;x.beginPath();x.arc(X0+W*.42,cy,ff*W*.4,0,7);x.stroke()}x.fillStyle='#fff36b';x.font='bold 26px system-ui';x.textAlign='center';x.fillText('✸',X0+W*.42,cy+9)}
+ // rótulos de los elementos
+ const lab=(X,Y,s2)=>txt(x,s2,X,Y,{s:n?9:11,w:800,c:'#fff',bg:'rgba(5,16,26,.6)'});lab(rx+u(Y0+H*.62),Y0+H*.62,'carretera');lab(vx+u(Y0+H*.4)+W*.012*Math.sin((Y0+H*.4)*.045),Y0+H*.4,'río');lab(fx+u(Y0+H*.4),Y0+H*.4,'valla');
+ const bar=Math.min(1,ph/lock);txt(x,ph<lock?(n?'Tensión acumulada: ':'La falla está bloqueada: la tensión se acumula y todo se dobla · ')+Math.round(bar*100)+' %':'¡TERREMOTO! La falla se desliza de golpe',X0+W/2,Y0+(n?14:20),{s:n?10:13.5,w:900,c:ph<lock?'#ffd166':'#fff36b',bg:'rgba(5,16,26,.75)'});
  x.fillStyle='rgba(5,16,26,.6)';x.fillRect(X0+W*.3,Y0+(n?20:28),W*.4,7);x.fillStyle=bar<.7?'#ffd166':'#ff4d6d';x.fillRect(X0+W*.3,Y0+(n?20:28),W*.4*bar,7);
- txt(x,'vista desde arriba: carreteras (gris) y ríos (azul) se doblan y luego se cortan',X0+W/2,Y0+H-8,{s:n?9:11.5,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.6)'})}
+ txt(x,'terremotos: '+(ev+(ph<lock?0:1))+(n?'':' · cada uno desplaza la carretera, el río y la valla unos metros'),X0+W/2,Y0+H-8,{s:n?9:11.5,w:800,c:'#ffe1a8',bg:'rgba(5,16,26,.65)'})}
 
 /* ================= PASOS ================= */
 const STEPS=[

@@ -144,7 +144,7 @@ function globeView(mode){const ya=yaw*D2R,pa=pitch*D2R;const e=tilt*D2R;let N=mo
  const right=rotY(rotX([1,0,0])),up=rotY(rotX([0,1,0])),toward=rotY(rotX([0,0,1]));let E0=V.sub([0,0,1],V.mul(N,N[2]));E0=V.norm(E0);if(!isFinite(E0[0]))E0=[1,0,0];return {N,E0,right,up,toward,sun:[-1,0,0]}}
 function drawBandGlobe(x,w,h,d,mode){const g=globeView(mode),Z=mode==='zonas',R=Math.min(w*.33,h*.37),cx=w*.56,cy=h*.53;const o={cx,cy,R,...g};drawBandGlobe.geom=o;
  // rayos
-if(Z){ for(let k=-6;k<=6;k++){const y=cy+k*R*.17;x.strokeStyle='rgba(255,214,90,.45)';x.lineWidth=2;x.beginPath();x.moveTo(8,y);x.lineTo(cx-R*1.05,y);x.stroke()}
+if(Z){ for(let k=-5;k<=5;k++){const dy=k*R*.18,y=cy+dy,ex=cx-Math.sqrt(R*R-dy*dy)-3;x.strokeStyle='rgba(255,214,90,.6)';x.fillStyle='rgba(255,214,90,.85)';x.lineWidth=2;x.beginPath();x.moveTo(8,y);x.lineTo(ex,y);x.stroke();x.beginPath();x.moveTo(ex,y);x.lineTo(ex-9,y-4);x.lineTo(ex-9,y+4);x.closePath();x.fill()}
  txt(x,'☀ rayos del Sol',10,cy-R*1.08,{a:'left',s:12,c:'#ffd166'})}
  const img=x.getImageData(Math.floor((cx-R)*d),Math.floor((cy-R)*d),Math.ceil(2*R*d),Math.ceil(2*R*d)),p=img.data,W=img.width,H=img.height,E90=V.cross(g.N,g.E0);
  for(let j=0;j<H;j++)for(let i=0;i<W;i++){const u=(i+.5)/(R*d)-1,v=1-(j+.5)/(R*d),rr=u*u+v*v;if(rr>1)continue;const z=Math.sqrt(1-rr),P=[u*g.right[0]+v*g.up[0]+z*g.toward[0],u*g.right[1]+v*g.up[1]+z*g.toward[1],u*g.right[2]+v*g.up[2]+z*g.toward[2]];
@@ -163,7 +163,7 @@ if(Z){ for(let k=-6;k<=6;k++){const y=cy+k*R*.17;x.strokeStyle='rgba(255,214,90,
   if(season!=='equ'&&tilt>.5){const nd=season==='jun';const off=(q)=>Math.abs(q[1]-(cy-R*V.dot([-1,0,0],g.up)))<18?22:2;txt(x,nd?'☀ día polar':'☾ noche polar',np[0]+12,np[1]+off(np),{a:'left',s:11,w:800,c:nd?'#ffd166':'#a9c0cd',bg:'rgba(5,16,26,.6)'});txt(x,nd?'☾ noche polar':'☀ día polar',sp[0]+12,sp[1]+4+off(sp),{a:'left',s:11,w:800,c:nd?'#a9c0cd':'#ffd166',bg:'rgba(5,16,26,.6)'})}}}
 /* rayos sobre una Tierra esférica */
 function drawRays(x,w,h){const R=Math.min(w*.3,h*.38),cx=w*.66,cy=h*.56;x.fillStyle='#1d5f8a';x.beginPath();x.arc(cx,cy,R,0,7);x.fill();x.strokeStyle='#c9efff';x.lineWidth=2;x.stroke();
- for(let k=-9;k<=9;k++){const y=cy+k*R*.105;if(Math.abs(y-cy)>R)continue;const hx=cx-Math.sqrt(R*R-(y-cy)**2);x.strokeStyle='rgba(255,214,90,.25)';x.lineWidth=1.2;x.beginPath();x.moveTo(10,y);x.lineTo(hx,y);x.stroke()}
+ for(let k=-9;k<=9;k++){const y=cy+k*R*.105;if(Math.abs(y-cy)>R)continue;const hx=cx-Math.sqrt(R*R-(y-cy)**2);x.strokeStyle='rgba(255,214,90,.5)';x.lineWidth=1.4;x.beginPath();x.moveTo(10,y);x.lineTo(hx,y);x.stroke()}
  const beam=R*.16;const items=[[0,'#ff5a3c'],[45,'#ffb43c'],[70,'#7cc6ff']];
  for(const [la,col] of items){const yc=cy-R*Math.sin(la*D2R),y1=yc-beam/2,y2=yc+beam/2;const a1=Math.asin(Math.max(-1,Math.min(1,(cy-y1)/R))),a2=Math.asin(Math.max(-1,Math.min(1,(cy-y2)/R)));
   x.fillStyle=col.replace(')',',.35)').replace('#','');x.fillStyle=col+'55';x.beginPath();x.moveTo(10,y1);x.lineTo(cx-R*Math.cos(a1),y1);x.lineTo(cx-R*Math.cos(a2),y2);x.lineTo(10,y2);x.closePath();x.fill();
@@ -180,7 +180,7 @@ function idealClimate(lat,xr){// xr: 0 costa oeste … 1 costa este
  if(a<70){if(xr<.15)return N?'Cfc':'ET';return N?'Dfc':'ET'}
  return 'ET'}
 function contWidth(lat){// anchura relativa del continente ideal por latitud (más ancho en el norte, como en la realidad)
- if(lat>78||lat<-58)return 0;if(lat>=0)return .45+.55*Math.sin(Math.min(1,(lat+5)/65)*Math.PI/2)-(lat>70?(lat-70)/8*.5:0);return Math.max(.12,.45-(-lat)/58*.33)}
+ if(lat>78||lat<-56)return 0;if(lat>=62)return Math.sqrt(Math.max(0,1-Math.pow((lat-62)/16,2)));if(lat>=0)return .48+.52*Math.pow(Math.sin(lat/62*Math.PI/2),1.4);return .48*Math.pow(Math.max(0,1-Math.pow(-lat/56,2.2)),.6)}
 function drawContinent(x,w,h){x.fillStyle='#1d5f8a';x.fillRect(0,0,w,h);const top=14,bot=h-24,Y=la=>top+(80-la)/140*(bot-top),cx=w*.5,half=w*.36;drawContinent.geom={top,bot,cx,half};
  const L=[],Rr=[];for(let la=78;la>=-58;la-=.5){const wd=Math.max(0,contWidth(la));L.push([cx-half*wd,Y(la)]);Rr.push([cx+half*wd,Y(la)])}x.save();x.beginPath();L.forEach((p,i)=>i?x.lineTo(...p):x.moveTo(...p));Rr.reverse().forEach(p=>x.lineTo(...p));x.closePath();x.clip();
  const cell=2;for(let py=top;py<bot;py+=cell){const la=80-(py+cell/2-top)/(bot-top)*140,wid=contWidth(la);if(wid<=0)continue;const x0=cx-half*wid,x1=cx+half*wid;for(let px=x0-cell;px<x1+cell;px+=cell){const xr=Math.max(0,Math.min(.999,(px+cell/2-x0)/(x1-x0))),col=colorOf(idealClimate(la,xr));x.fillStyle=col;x.fillRect(px,py,cell+.6,cell+.6)}}x.restore();
@@ -207,10 +207,11 @@ function drawChart(){const {x,w,h}=fit($('chart'));x.fillStyle='#05101a';x.fillR
  for(let la=-90;la<90;la+=1){const z=zoneOf(la+.5),c=ZCOL[z];x.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},.13)`;x.fillRect(X(la),pt,W/180+.5,H)}
  const curve=(fn,col,wd,dash)=>{x.strokeStyle=col;x.lineWidth=wd;x.setLineDash(dash||[]);x.beginPath();for(let la=-90;la<=90;la+=1){const v=fn(la);la===-90?x.moveTo(X(la),Y(v)):x.lineTo(X(la),Y(v))}x.stroke();x.setLineDash([])};
  {const S=zoneTable().S;x.fillStyle='rgba(255,209,102,.16)';x.beginPath();for(let i=0;i<=360;i+=2){const la=-90+i*.5;i?x.lineTo(X(la),Y(S[i].mx)):x.moveTo(X(la),Y(S[i].mx))}for(let i=360;i>=0;i-=2){const la=-90+i*.5;x.lineTo(X(la),Y(S[i].mn))}x.closePath();x.fill();x.strokeStyle='rgba(255,209,102,.4)';x.lineWidth=1;x.stroke();
-  x.strokeStyle='rgba(231,163,255,.8)';x.setLineDash([2,3]);x.beginPath();x.moveTo(pl,Y(QMAX));x.lineTo(w-pr,Y(QMAX));x.stroke();x.setLineDash([]);x.font='700 9.5px system-ui';x.textAlign='left';x.fillStyle='rgba(231,163,255,.95)';x.fillText('máximo actual en la Tierra ('+fmt(QMAX)+')',pl+4,Y(QMAX)-3)}
- for(const [q,n,c] of [[QT,'umbral zona cálida','rgba(240,138,75,.9)'],[QP,'umbral zona fría','rgba(150,205,240,.9)']]){x.strokeStyle=c;x.lineWidth=1;x.setLineDash([2,3]);x.beginPath();x.moveTo(pl,Y(q));x.lineTo(w-pr,Y(q));x.stroke();x.setLineDash([]);x.font='700 9.5px system-ui';x.textAlign='right';x.fillStyle=c;x.fillText(n+' ('+fmt(q)+')',w-pr-2,Y(q)-3)}
+  x.strokeStyle='rgba(231,163,255,.8)';x.setLineDash([2,3]);x.beginPath();x.moveTo(pl,Y(QMAX));x.lineTo(w-pr,Y(QMAX));x.stroke();x.setLineDash([]);}
+ for(const [q,n,c] of [[QT,'umbral zona cálida','rgba(240,138,75,.9)'],[QP,'umbral zona fría','rgba(150,205,240,.9)']]){x.strokeStyle=c;x.lineWidth=1;x.setLineDash([2,3]);x.beginPath();x.moveTo(pl,Y(q));x.lineTo(w-pr,Y(q));x.stroke();x.setLineDash([])}
  if(Math.abs(tilt-23.44)>.3)curve(la=>Qyear(la,23.44),'rgba(255,255,255,.35)',1.4,[5,4]);
  curve(la=>Q(la,seasonDec()),'#ff9f43',1.8,[3,3]);curve(la=>Qyear(la,tilt),'#ffd166',2.8);
+ {const lab=(t_,X_,Y_,al,c)=>{x.font='700 9.5px system-ui';const m=x.measureText(t_).width,l=al==='left'?X_:X_-m;x.fillStyle='rgba(5,16,26,.82)';x.fillRect(l-3,Y_-10,m+6,13);x.textAlign=al;x.fillStyle=c;x.fillText(t_,X_,Y_)};lab('máximo actual en la Tierra ('+fmt(QMAX)+')',pl+4,Y(QMAX)-3,'left','rgba(231,163,255,.95)');lab('umbral zona cálida ('+fmt(QT)+')',w-pr-2,Y(QT)-3,'right','rgba(240,138,75,.95)');lab('umbral zona fría ('+fmt(QP)+')',w-pr-2,Y(QP)-3,'right','rgba(150,205,240,.95)')}
  x.textAlign='left';x.font='700 11px system-ui';x.fillStyle='#ffd166';x.fillText('━ media del año',pl+4,pt-10);x.fillStyle='rgba(255,209,102,.7)';x.fillText('▒ del mes más oscuro al más soleado',pl+110,pt+4);x.fillStyle='#ffd166';x.fillStyle='#ff9f43';x.fillText('┅ '+({jun:'solsticio de junio',dic:'solsticio de diciembre',equ:'equinoccio'})[season],pl+108,pt-10);if(Math.abs(tilt-23.44)>.3){x.fillStyle='rgba(255,255,255,.6)';x.fillText('┅ con 23,44°',pl+4,pt+4)}}
 /* ---- pasos ---- */
 const STEPS=[

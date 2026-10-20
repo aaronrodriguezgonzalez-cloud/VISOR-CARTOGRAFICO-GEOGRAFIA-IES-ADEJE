@@ -190,26 +190,35 @@ function drawCurrents(x,g,w,labels=true){const narrow=w<560;for(const c of CUR){
    if(labels&&(!narrow||g.v!==VIEWS.mundo)&&!(layers.desiertos&&c.w)){const m=P[Math.floor(P.length/2)];if(m[0]>g.x0&&m[0]<g.x0+g.W)txt(x,c.n,m[0],m[1]-7,{s:narrow?9:10.5,w:800,c:col,bg:'rgba(5,16,26,.6)'})}x.restore()}}}
 /* ---- vista de las células (perfil sobre el globo) ---- */
 let globeCache=null;
-function drawCells(x,w,h,d,t){const narrow=w<560,R=Math.min(h*.27,w*(narrow?.3:.25)),cx=narrow?w*.4:w*.3,cy=h*.5,H=R*.42,b=belts();
+function drawCells(x,w,h,d,t){const narrow=w<560,R=Math.min(h*.25,w*(narrow?.27:.25)),cx=narrow?w*.36:w*.3,cy=h*.5,H=R*.62,b=belts();
  const key=[w,h,d,R,!!land].join('|');if(!globeCache||globeCache.key!==key){const c=document.createElement('canvas');c.width=Math.round(w*d);c.height=Math.round(h*d);const gx=c.getContext('2d',{willReadFrequently:true});const s=Math.sin(20*D2R),co=Math.cos(20*D2R);T.globe(gx,{cx,cy,R,dpr:d,right:[1,0,0],up:[0,1,0],toward:[0,0,1],N:[0,1,0],E0:[s,0,co],sun:[0,0,1],land,night:0,grid:0});globeCache={key,c}}
  x.drawImage(globeCache.c,0,0,w,h);
- // atmósfera
- x.fillStyle='rgba(140,200,255,.08)';x.beginPath();x.arc(cx,cy,R+H,-Math.PI/2,Math.PI/2);x.arc(cx,cy,R,Math.PI/2,-Math.PI/2,true);x.fill();
- const P=(lat,r)=>[cx+r*Math.cos(lat*D2R),cy-r*Math.sin(lat*D2R)];
- const cells=[{a:b.itcz,b:b.hN,dir:-1,c:'#ff8a5b',n:'Célula de Hadley'},{a:b.hN,b:b.fN,dir:1,c:'#7bd88f',n:'Célula de Ferrel'},{a:b.fN,b:90,dir:1,c:'#7cc6ff',n:'Célula polar'},{a:b.hS,b:b.itcz,dir:1,c:'#ff8a5b',n:'Célula de Hadley'},{a:b.fS,b:b.hS,dir:-1,c:'#7bd88f',n:'Célula de Ferrel'},{a:-90,b:b.fS,dir:-1,c:'#7cc6ff',n:'Célula polar'}];
+ // corte de la atmósfera sobre el borde derecho del globo (espesor muy exagerado; la tropopausa está más alta en el ecuador, ≈16 km, que en los polos, ≈8 km)
+ const Hl=la=>H*(.62+.38*Math.cos(la*D2R)),P=(lat,r)=>[cx+r*Math.cos(lat*D2R),cy-r*Math.sin(lat*D2R)],Pa=(lat,f)=>P(lat,R+Hl(lat)*f);
+ {x.beginPath();for(let la=-90;la<=90;la+=2){const q=Pa(la,1);la===-90?x.moveTo(q[0],q[1]):x.lineTo(q[0],q[1])}x.arc(cx,cy,R,-Math.PI/2,Math.PI/2,false);x.closePath();const g=x.createRadialGradient(cx,cy,R,cx,cy,R+H);g.addColorStop(0,'rgba(150,205,255,.34)');g.addColorStop(1,'rgba(150,205,255,.07)');x.fillStyle=g;x.fill();
+  x.setLineDash([5,4]);x.strokeStyle='rgba(200,230,255,.6)';x.lineWidth=1.2;x.beginPath();for(let la=-90;la<=90;la+=2){const q=Pa(la,1);la===-90?x.moveTo(q[0],q[1]):x.lineTo(q[0],q[1])}x.stroke();x.setLineDash([]);
+  const qt=Pa(-8,1);if(!narrow)txt(x,'tropopausa',qt[0]+6,qt[1]+14,{a:'left',s:10,w:700,c:'#bfe0ff'})}
+ const cells=[{up:b.itcz,dn:b.hN,c:'#ff8a5b',n:'Célula de Hadley'},{up:b.fN,dn:b.hN,c:'#7bd88f',n:'Célula de Ferrel'},{up:b.fN,dn:90,c:'#7cc6ff',n:'Célula polar'},{up:b.itcz,dn:b.hS,c:'#ff8a5b',n:'Célula de Hadley'},{up:b.fS,dn:b.hS,c:'#7bd88f',n:'Célula de Ferrel'},{up:b.fS,dn:-90,c:'#7cc6ff',n:'Célula polar'}];
  const only=STEPS[step].only;
- for(const c of cells){if(only&&!only.includes(c.n))continue;const m=(c.a+c.b)/2,hs=(c.b-c.a)/2*.82,loop=tt=>P(m+hs*Math.cos(tt),R+H*(.5+.38*Math.sin(tt)));x.strokeStyle=c.c;x.lineWidth=narrow?2:2.6;x.beginPath();for(let k=0;k<=64;k++){const q=loop(k/64*2*Math.PI);k?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])}x.stroke();
-  for(let k=0;k<4;k++){const tt=(k/4)*2*Math.PI+c.dir*t*.9,q=loop(tt),q2=loop(tt+c.dir*.05);arrowHead(x,q[0],q[1],Math.atan2(q2[1]-q[1],q2[0]-q[0]),narrow?5:7,c.c)}
-}
+ for(const c of cells){if(only&&!only.includes(c.n))continue;const sg=Math.sign(c.dn-c.up),m=3,lu=c.up+sg*m,ld=c.dn-sg*(Math.abs(c.dn)===90?1.5:m),f0=.14,f1=.8;
+  // circuito: superficie (dn→up), ascenso en up, altura (up→dn), descenso en dn
+  const pts=[];const seg=(l0,l1,f)=>{const N=24;for(let k=0;k<=N;k++){const l=l0+(l1-l0)*k/N;pts.push(Pa(l,f))}};const vert=(l,fa,fb)=>{for(let k=1;k<12;k++)pts.push(Pa(l,fa+(fb-fa)*k/12))};
+  seg(ld,lu,f0);vert(lu,f0,f1);seg(lu,ld,f1);vert(ld,f1,f0);pts.push(pts[0]);
+  x.strokeStyle=c.c;x.lineWidth=narrow?2.2:3;x.lineJoin='round';x.setLineDash([9,7]);x.lineDashOffset=-t*26;x.beginPath();pts.forEach((q,i)=>i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]));x.stroke();x.setLineDash([]);
+  const ah=(l0,f0_,l1,f1_)=>{const A=Pa(l0,f0_),B2=Pa(l1,f1_);arrowHead(x,B2[0],B2[1],Math.atan2(B2[1]-A[1],B2[0]-A[0]),narrow?6:8,c.c)};
+  const lm=(lu+ld)/2;ah(lm+sg*1,f0,lm-sg*1,f0);ah(lm-sg*1,f1,lm+sg*1,f1);ah(lu,.42,lu,.52);ah(ld,.58,ld,.48)}
+ // aire que sube y aire que baja junto a la superficie
+ const vmark=(la,upw,lab)=>{const q=Pa(la,1.08);txt(x,upw?'☁':'☀',q[0]+(narrow?6:9),q[1]+5,{s:narrow?12:15,c:upw?'#dfefff':'#ffd166'})};
+ for(const la of [b.itcz,b.fN,b.fS])if(!only||la===b.itcz)vmark(la,true);for(const la of [b.hN,b.hS])vmark(la,false);
  // presiones
  const pres=[[b.itcz,'B','Bajas presiones: el aire caliente sube → lluvias','#5aa9ff','🌧'],[b.hN,'A','Altas presiones: el aire baja seco → desiertos','#ff7a4d','☀'],[b.hS,'A','Altas presiones: desiertos','#ff7a4d','☀'],[b.fN,'B','Frente polar: el aire polar obliga a subir al templado → borrascas','#5aa9ff','🌧'],[b.fS,'B','Frente polar: borrascas','#5aa9ff','🌧'],[88,'A','Alta polar: aire frío que baja','#ff7a4d','❄'],[-88,'A','Alta polar','#ff7a4d','❄']];
  for(const [la,l,txtL,col,ic] of pres){if(STEPS[step].onlyP&&!(la===b.itcz||la===b.hN||la===b.hS))continue;
-  const q=P(la,R+H+(narrow?6:30));x.fillStyle=col;x.beginPath();x.arc(q[0]+8,q[1],9,0,7);x.fill();txt(x,l,q[0]+8,q[1]+4.5,{s:12,w:900,c:'#fff'});if(!narrow){x.font='700 11.5px system-ui';let L=ic+' '+txtL;while(L.length>8&&x.measureText(L).width>w-q[0]-30)L=L.replace(/\s*\S+$/,'');if(L!==ic+' '+txtL)L=L.replace(/[:→,]\s*$/,'')+'…';txt(x,L,q[0]+22,q[1]+4,{a:'left',s:11.5,c:'#e8f1f5'})}}
+  const q=P(la,R+Hl(la)+(narrow?8:22));if(Math.abs(la)>80){q[0]-=narrow?60:120;q[1]+=la>0?-2:2}x.fillStyle=col;x.beginPath();x.arc(q[0]+8,q[1],9,0,7);x.fill();txt(x,l,q[0]+8,q[1]+4.5,{s:12,w:900,c:'#fff'});if(!narrow){x.font='700 11.5px system-ui';let L=ic+' '+txtL;while(L.length>8&&x.measureText(L).width>w-q[0]-30)L=L.replace(/\s*\S+$/,'');if(L!==ic+' '+txtL)L=L.replace(/[:→,]\s*$/,'')+'…';txt(x,L,q[0]+22,q[1]+4,{a:'left',s:11.5,c:'#e8f1f5'})}}
  for(const [la,col,dash] of [[0,'rgba(255,255,255,.8)',[]],[b.itcz,'#5aa9ff',[6,4]],[b.hN,'#ff7a4d',[6,4]],[b.hS,'#ff7a4d',[6,4]],[b.fN,'#5aa9ff',[6,4]],[b.fS,'#5aa9ff',[6,4]]]){if(STEPS[step].onlyP&&(la===b.fN||la===b.fS))continue;const Y=cy-R*Math.sin(la*D2R),cl=R*Math.cos(la*D2R);x.strokeStyle=col;x.lineWidth=1.6;x.setLineDash(dash);x.beginPath();x.moveTo(cx-cl,Y);x.lineTo(cx+cl,Y);x.stroke();x.setLineDash([])}
  // vientos en la cara del globo
  const face=[[(b.itcz+b.hN)/2,'Alisios del NE'],[(b.itcz+b.hS)/2,'Alisios del SE'],[(b.hN+b.fN)/2,'Vientos del oeste'],[(b.hS+b.fS)/2,'Vientos del oeste'],[(b.fN+90)/2,'Levante polar'],[(b.fS-90)/2,'Levante polar']];
  for(const [la,n] of face){const [u,v]=windZonal(la),a=Math.atan2(-v,u);for(const lo of [-60,-25,10]){const cl=Math.cos(la*D2R),X=cx+R*cl*Math.sin((lo+20)*D2R),Y=cy-R*Math.sin(la*D2R),L=R*.16*cl+6;x.strokeStyle='#fff';x.lineWidth=2.2;x.beginPath();x.moveTo(X-Math.cos(a)*L/2,Y-Math.sin(a)*L/2);x.lineTo(X+Math.cos(a)*L/2,Y+Math.sin(a)*L/2);x.stroke();arrowHead(x,X+Math.cos(a)*L/2,Y+Math.sin(a)*L/2,a,6,'#fff')}
-  txt(x,n,cx-R*Math.cos(la*D2R)*.05,cy-R*Math.sin(la*D2R)-9,{s:narrow?9.5:11,w:800,bg:'rgba(5,16,26,.6)'})}
+  const pl=Math.abs(la)>70,ll=pl?la+Math.sign(la)*7:la;txt(x,n,cx-R*Math.cos(ll*D2R)*.05,cy-R*Math.sin(ll*D2R)-(pl?(la>0?6:-14):9),{s:narrow?9:10.5,w:800,bg:'rgba(5,16,26,.6)'})}
  if(narrow){txt(x,'B = bajas presiones · A = altas presiones',w/2,h-8,{s:10.5,c:'#cfe0e8'})}
 }
 /* ---- el caldero: convección ---- */

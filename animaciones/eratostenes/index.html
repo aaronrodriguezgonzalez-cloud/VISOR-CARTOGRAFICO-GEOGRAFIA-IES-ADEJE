@@ -208,12 +208,12 @@ function solarNoon(loc,dateStr){const [Y,M,D]=dateStr.split('-').map(Number);con
 const hm=h=>{const H=Math.floor(h),m=Math.round((h-H)*60);return String(m===60?H+1:H).padStart(2,'0')+':'+String(m===60?0:m).padStart(2,'0')};
 let EXP={h:100,sa:null,sb:null,dist:null};
 S.exp={dur:6,interactive:true,draw(x,t){x.fillStyle='#061420';x.fillRect(0,0,1000,600);const r=expCalc();
- const ex=cl(30/Math.max(1,r.delta||10),1,3),cx=500,cy=1300,R=1100,th=Math.max(.5,r.delta||0)*ex*D2R;x.fillStyle='#1d5f8a';x.beginPath();x.arc(cx,cy,R,0,7);x.fill();x.strokeStyle='#c9efff';x.lineWidth=3;x.stroke();
- const pts=[{n:LOC.b.n,a:-th/2,alpha:r.aB},{n:LOC.a.n,a:th/2,alpha:r.aA}];
- for(const p of pts){const X=cx+R*Math.sin(p.a),Y=cy-R*Math.cos(p.a),nx=Math.sin(p.a),ny=-Math.cos(p.a),gl=90;x.strokeStyle='#5b3b20';x.lineWidth=6;x.beginPath();x.moveTo(X,Y);x.lineTo(X+nx*gl,Y+ny*gl);x.stroke();txt(x,p.n,X,Y+30,{s:15,w:800});if(p.alpha!=null)txt(x,'sombra → '+fmt(p.alpha,2)+'°',X,Y+52,{s:14,c:'#ffd166'})}
+ const dLat=Math.abs(LOC.b.lat-LOC.a.lat)||1,dg=r.delta||dLat,ex=cl(30/Math.max(1,dg),1,3),cx=500,cy=1300,R=1100,th=Math.max(4,dg*ex)*D2R;const north=LOC.b.lat>=LOC.a.lat;x.fillStyle='#1d5f8a';x.beginPath();x.arc(cx,cy,R,0,7);x.fill();x.strokeStyle='#c9efff';x.lineWidth=3;x.stroke();
+ const dd=expDate||new Date().toISOString().slice(0,10),pa=90-solarNoon(LOC.a,dd).alt,pb=90-solarNoon(LOC.b,dd).alt;const pts=[{n:LOC.b.n,a:(north?-1:1)*th/2,alpha:r.aB,pred:pb},{n:LOC.a.n,a:(north?1:-1)*th/2,alpha:r.aA,pred:pa}];
+ for(const p of pts){const X=cx+R*Math.sin(p.a),Y=cy-R*Math.cos(p.a),nx=Math.sin(p.a),ny=-Math.cos(p.a),gl=90;x.strokeStyle='#5b3b20';x.lineWidth=6;x.beginPath();x.moveTo(X,Y);x.lineTo(X+nx*gl,Y+ny*gl);x.stroke();txt(x,p.n,X,Y+30,{s:15,w:800});txt(x,p.alpha!=null?'sombra medida → '+fmt(p.alpha,2)+'°':'ángulo previsto ≈ '+fmt(p.pred,1)+'°',X,Y+52,{s:14,c:p.alpha!=null?'#ffd166':'#a9c0cd'})}
  for(let k=-5;k<=5;k++)arrowLine(x,500+k*80,0,500+k*80,110,'rgba(255,214,90,.5)',1.6);
- txt(x,r.C?('Circunferencia: '+fmt(r.C,0)+' km'):'Introduce tus medidas',500,190,{s:30,w:900,c:'#ffd166'});if(r.C)txt(x,'error: '+(r.err>=0?'+':'')+fmt(r.err,1)+' % respecto a 40.008 km',500,226,{s:17,c:Math.abs(r.err)<10?'#7fe0a0':'#ff8f7b'});
- txt(x,'Δ ángulo = '+(r.delta!=null?fmt(r.delta,2)+'°':'—')+'   ·   distancia norte–sur = '+(r.dist?fmt(r.dist,0)+' km':'—'),500,262,{s:16,c:'#cfe0e8'});txt(x,ex>1.05?'curvatura exagerada ×'+fmt(ex,1):'curvatura a escala del ángulo',990,590,{a:'right',s:12,c:'#a9c0cd'})}};
+ txt(x,r.C?('Circunferencia: '+fmt(r.C,0)+' km'):'Introduce tus medidas',500,175,{s:30,w:900,c:'#ffd166'});if(r.C)txt(x,'error: '+(r.err>=0?'+':'')+fmt(r.err,1)+' % respecto a 40.008 km',500,212,{s:17,c:Math.abs(r.err)<10?'#7fe0a0':'#ff8f7b'});
+ txt(x,'Δ ángulo = '+(r.delta!=null?fmt(r.delta,2)+'°':'—')+'   ·   distancia norte–sur = '+(r.dist?fmt(r.dist,0)+' km':'—'),500,248,{s:16,c:'#cfe0e8'});txt(x,ex>1.05?'curvatura exagerada ×'+fmt(ex,1):'curvatura a escala del ángulo',990,140,{a:'right',s:12,c:'#a9c0cd'})}};
 function expCalc(){const h=EXP.h,aA=EXP.sa>0?Math.atan(EXP.sa/h)*R2D:null,aB=EXP.sb>0?Math.atan(EXP.sb/h)*R2D:null,delta=(aA!=null&&aB!=null)?Math.abs(aB-aA):null,dist=EXP.dist,C=(delta>0.05&&dist>0)?dist*360/delta:null;return {aA,aB,delta,dist,C,err:C?(C-REAL_C)/REAL_C*100:0}}
 /* ---- pasos ---- */
 const STEPS=[
