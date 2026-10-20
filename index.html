@@ -2871,9 +2871,10 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
           <li><b>Territorio:</b> municipios, Espacios Naturales Protegidos y consulta territorial interactiva.</li>
           <li><b>Patrimonio:</b> BIC, zonas arqueológicas, paleontología, esculturas y espacios culturales. Además, el inventario arqueológico de La Palma (Cabildo Insular) y, en Gran Canaria, las capas del Paisaje Cultural de Risco Caído y los Espacios Sagrados de Montaña (manifestaciones rupestres, arqueoastronomía y poblamiento), con información al pulsar sobre los elementos.</li>
           <li><b>Geografía física:</b> geología GEODE, climas Köppen-Geiger, vegetación actual y potencial GRAFCAN, altimetría y perfiles.</li>
+          <li><b>Clima de las estaciones (nuevo):</b> normales 1991–2020 y 1961–1990 de AEMET y la OMM con <b>climograma modelo PAU</b> (P = 2T), temperaturas máximas y mínimas, horas de sol, humedad y días de lluvia, <b>clasificación de Köppen y de Miller razonada</b>, comparación de periodos y exportación a JPG, PDF y Excel.</li>
           <li><b>Atlas ISTAC:</b> cartografía estadística por municipios y secciones censales, con indicadores, años, leyenda y consulta espacial.</li>
           <li><b>Trabajo de campo y aula:</b> GPS, coordenadas, topónimos, mediciones, perfiles, tracks GPX/KML, creación de tracks y exportación.</li>
-          <li><b>Análisis geográfico:</b> indicadores calculados en el visor para municipios, islas, provincias, comunidades autónomas y países —superficie, Espacios Naturales Protegidos (IDECanarias / GRAFCAN), altitud, pendiente y orientación (MDT25 · IGN-CNIG en Canarias, MDE nacional IDEE/IGN en España, MDE mundial Terrarium) y población y densidad (ISTAC, INE, Banco Mundial)— con indicación de los datos cruzados, mapa de intervalos editables, gráfico, tabla, CSV, Excel y exportación a PDF/JPG.</li>
+          <li><b>Análisis geográfico:</b> indicadores calculados en el visor para municipios, islas, provincias, comunidades autónomas y países —superficie, Espacios Naturales Protegidos (IDECanarias / GRAFCAN), altitud, pendiente y orientación (MDT25 · IGN-CNIG en Canarias, MDE nacional IDEE/IGN en España, MDE mundial Terrarium), población y densidad (ISTAC, INE, Banco Mundial) y clima de las estaciones (normales de la OMM y AEMET)— con indicación de los datos cruzados, mapa de intervalos editables, gráfico, tabla, CSV, Excel y exportación a PDF/JPG.</li>
           <li><b>Mapas políticos/mudos y juego territorial:</b> municipios de Canarias para estudiar y practicar su localización.</li>
         </ul>
       </section>
@@ -2884,6 +2885,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
           <li><b>Organización territorial:</b> comunidades autónomas, provincias, municipios, toponimia IGN y vías de comunicación.</li>
           <li><b>Relieve e hidrografía didácticos:</b> hipsometría sombreada específica de España, los 13 ríos principales del temario y una toponimia seleccionada de mares, islas, cabos, relieves, depresiones, ríos y cumbres. Incluye un generador rápido de mapas de relieve, mapas mudos y vista de solo ríos.</li>
           <li><b>Geografía física:</b> geología GEODE, clima, vegetación actual MFE25 y vegetación potencial MITECO.</li>
+          <li><b>Estaciones climáticas (nuevo):</b> fichas de las estaciones de AEMET con climograma modelo PAU, otras variables, Köppen y Miller razonados y comparación 1961–1990 / 1991–2020.</li>
           <li><b>Atlas INE:</b> cartografía municipal de población, estructura demográfica, renta y otros indicadores, con series temporales y leyenda.</li>
           <li><b>Mapas políticos/mudos y juego:</b> comunidades y provincias de España, además de las opciones territoriales mundiales.</li>
           <li><b>Análisis:</b> medición, perfiles topográficos, búsqueda, coordenadas, tracks y composición/exportación cartográfica.</li>
@@ -2894,6 +2896,8 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
         <ul>
           <li><b>Mapamundi 2D y globo 3D</b> con bases satelitales, fronteras, nombres de países, divisiones infraestatales y topónimos.</li>
           <li><b>Geografía física mundial:</b> hipsometría y grandes relieves, red hidrográfica, geología Macrostrat, climas Köppen-Geiger, biomas, placas tectónicas, terremotos y volcanes.</li>
+          <li><b>Normales climatológicas de unas 8.700 estaciones (nuevo):</b> OMM (vía NOAA NCEI), AEMET y Meteostat, con climograma modelo PAU, Köppen y Miller razonados, comparación de periodos, exportación y variables climáticas en el Análisis geográfico.</li>
+          <li><b>Mapamundi de Miller y Köppen calculado (nuevo):</b> clasificaciones climáticas de todo el mundo para 1991–2020 y 1961–1990, calculadas por ANAMBRO con las normales de TerraClimate.</li>
           <li><b>Atlas Eurostat:</b> regiones NUTS 1, 2 y 3 de la UE, la AELC y los países candidatos, con datos oficiales de Eurostat (demografía, economía, trabajo, educación, salud y turismo) y límites GISCO (© EuroGeographics).</li>
            <li><b>Geografía humana:</b> atlas temático mundial con variables demográficas, sociales y económicas, consulta por país, series temporales y leyendas exportables.</li>
           <li><b>Historia Universal:</b> fronteras políticas históricas por año y acontecimientos históricos geolocalizados sincronizados con el tiempo.</li>
@@ -3388,7 +3392,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <label><b>Precisión de muestreo</b><select id="geoGeneralPrecision"><option value="5">Rápida</option><option value="7" selected>Alta</option><option value="10">Muy alta</option></select></label>
 <div class="row" style="margin-top:6px"><button class="action primary" id="geoGeneralRun" type="button">▶ Calcular</button><button class="action" id="geoGeneralStop" type="button" hidden>■ Detener</button><button class="action" id="geoGeneralPrepare" type="button" hidden title="Calcula el indicador para los 88 municipios con el método exacto y descarga el JSON para publicarlo en data/analisis/">⚙️ Preparar datos precalculados</button><button class="action" id="geoGeneralMeasured" type="button" hidden title="Muestra sobre el mapa la clasificación que ha medido ANAMBRO, para compararla con el mapa oficial">🔍 Ver lo medido</button><button class="action" id="geoGeneralClear" type="button">Limpiar</button></div>
 <small id="geoGeneralStatus" class="geoAnalysisStatus">Selecciona unidades e indicador.</small>
-<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-20 (r52: revisión de todas las animaciones de la biblioteca)</small>
+<small id="geoGeneralVersion" style="display:block;opacity:.6;font-size:10px;margin-top:2px">Análisis geográfico · versión 2026-10-20 (r53: normales climatológicas de estaciones, climograma modelo PAU, Köppen y Miller)</small>
 <div id="geoGeneralResult" class="geoAnalysisResult" hidden>
  <div id="geoGeneralSummary" class="geoAnalysisSummary"></div>
  <div id="geoGeneralCross" class="geoAnalysisSummary" style="background:#fffaf0;border-color:#e2cfa5"></div>
@@ -3681,6 +3685,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 
   <details open><summary>🇪🇸 Cartografía y datos de España</summary>
     <div class="sourceItem sourceOk"><b>IGN / CNIG</b> · MTN, PNOA, IGN Base, NGBE, CartoCiudad, límites, MDT25 y servicios IDEE de elevación.<br><small>ANAMBRO utiliza MDT25 / servicios de elevación IGN-CNIG para altitudes y perfiles en España y Canarias. Licencia de uso compatible con CC BY 4.0; los productos derivados mantienen la atribución al IGN/CNIG y no sugieren respaldo institucional.</small><br><a href="https://www.ign.es/web/politica-datos" target="_blank" rel="noopener">Política de datos IGN</a></div>
+    <div class="sourceItem sourceOk"><b>AEMET · Agencia Estatal de Meteorología</b> · valores climatológicos normales 1991–2020 de las estaciones de España y Canarias (AEMET OpenData): temperaturas, precipitación, días de lluvia, insolación y humedad.<br><small>© AEMET. Autorizado el uso de la información y su reproducción citando a AEMET como autora de la misma. ANAMBRO solo incluye las estaciones con los 12 meses de temperatura y precipitación calculados por AEMET.</small><br><a href="https://opendata.aemet.es" target="_blank" rel="noopener">AEMET OpenData</a> · <a href="https://www.aemet.es/es/nota_legal" target="_blank" rel="noopener">Nota legal</a></div>
     <div class="sourceItem sourceOk"><b>IGME-CSIC</b> · GEODE y cartografía geológica.<br><small>Reutilización comercial y no comercial permitida con cita de origen y conservación de los metadatos aplicables.</small><br><a href="https://info.igme.es/ISE/doc/LICENCIA_USO_IGME.pdf" target="_blank" rel="noopener">Licencia de uso IGME</a></div>
     <div class="sourceItem sourceOk"><b>MITECO</b> · Mapa Forestal de España y vegetación potencial.<br><small>Reutilización, modificación y combinación autorizadas citando el origen y la fecha de actualización cuando exista.</small><br><a href="https://www.datosabiertos.miteco.gob.es/es/aviso-legal.html" target="_blank" rel="noopener">Condiciones de reutilización MITECO</a></div>
     <div class="sourceItem sourceOk"><b>Gobierno de Canarias · Historia y Patrimonio de Canarias</b> · referencia historiográfica para la capa «Organización territorial indígena».<br><small>Los límites interiores se representan como reconstrucciones aproximadas; la costa procede de cartografía geográfica y no del croquis histórico.</small></div>
@@ -3702,6 +3707,10 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <div class="sourceItem sourceOk"><b>BRouter</b> · cálculo de rutas sobre datos de OpenStreetMap para el generador de tracks.<br><small>Servicio externo de enrutamiento; ANAMBRO permite continuar con tramos manuales si no está disponible.</small><br><a href="https://brouter.de/" target="_blank" rel="noopener">BRouter</a></div>
     <div class="sourceItem sourceOk"><b>OpenStreetMap</b> · referencia cartográfica y geocodificación Nominatim.<br><small>© OpenStreetMap contributors · ODbL. ANAMBRO aplica caché y una cola de consultas para respetar el servicio público.</small><br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Copyright / ODbL</a> · <a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noopener">Nominatim Usage Policy</a></div>
     <div class="sourceItem sourceOk"><b>OpenFreeMap / OpenMapTiles</b> · toponimia vectorial mundial.<br><small>Atribución: OpenFreeMap © OpenMapTiles · Data from OpenStreetMap.</small><br><a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a></div>
+    <div class="sourceItem sourceOk"><b>OMM · Organización Meteorológica Mundial · normales climatológicas 1991–2020 y 1961–1990</b> · capa «Estaciones climáticas · normales», fichas, climogramas y Análisis geográfico.<br><small>Normales de los servicios meteorológicos nacionales recopiladas por la OMM (WMO-No. 1203) y distribuidas por NOAA NCEI con acceso público. ANAMBRO conserva los valores de la fuente y aplica solo un control de calidad (descarta valores imposibles); Tm = (Tmáx + Tmín)/2 únicamente cuando falta la media.</small><br><a href="https://www.ncei.noaa.gov/products/wmo-climate-normals" target="_blank" rel="noopener">WMO Climate Normals · NOAA NCEI</a></div>
+    <div class="sourceItem sourceOk"><b>TerraClimate · Climatology Lab (Universidad de California, Merced / Universidad de Idaho)</b> · temperaturas máximas y mínimas y precipitación mensuales para calcular las normales 1991–2020 y 1961–1990 del mapamundi de Miller y Köppen-Geiger.<br><small>Abatzoglou, J. T., Dobrowski, S. Z., Parks, S. A. y Hegewisch, K. C. (2018): «TerraClimate, a high-resolution global dataset of monthly climate and climatic water balance from 1958–2015», <i>Scientific Data</i>, 5, 170191. Dominio público (CC0). ANAMBRO promedia los 30 años de cada periodo, agrega la malla a 1/6° y aplica las mismas reglas de clasificación que en las fichas de las estaciones. Datos interpolados: a escala local, mejor las estaciones.</small><br><a href="https://www.climatologylab.org/terraclimate.html" target="_blank" rel="noopener">climatologylab.org/terraclimate</a> · <a href="https://doi.org/10.1038/sdata.2017.191" target="_blank" rel="noopener">doi:10.1038/sdata.2017.191</a></div>
+    <div class="sourceItem sourceOk"><b>Meteostat</b> · normales climáticas de estaciones (fuente secundaria: solo donde no hay normal oficial de la OMM o de AEMET).<br><small>CC BY-NC 4.0 · uso no comercial con atribución. ANAMBRO solo acepta la normal si la serie mensual de la estación cubre al menos 24 de los 30 años; Tm = (Tmáx + Tmín)/2.</small><br><a href="https://meteostat.net" target="_blank" rel="noopener">meteostat.net</a> · <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.es" target="_blank" rel="noopener">CC BY-NC 4.0</a></div>
+    <div class="sourceItem sourceOk"><b>Clasificaciones climáticas de las estaciones</b> · Köppen-Geiger con los criterios de Beck et al. (2018) y Peel et al. (2007); Miller según A. A. Miller, <i>Climatology</i> (Methuen, 1931 y ediciones posteriores). Cálculo y razonamiento paso a paso: ANAMBRO.<br><small>El climograma sigue el modelo de la Subcomisión de Geografía de la PAU de Canarias (P = 2T); la gráfica la genera ANAMBRO.</small></div>
     <div class="sourceItem sourceOk"><b>Beck et al. (2018)</b> · clasificación climática Köppen-Geiger.<br><small>Dataset científico CC BY 4.0. ANAMBRO realiza una visualización/adaptación educativa; los rangos explicativos son orientativos.</small><br><a href="https://www.nature.com/articles/sdata2018214" target="_blank" rel="noopener">Scientific Data · Beck et al.</a></div>
     <div class="sourceItem sourceOk"><b>Acontecimientos históricos</b> · fechas, ubicaciones y nombres consultados en Wikidata y conservados en un catálogo local. Incluye todos los registros fechados encontrados dentro del intervalo del visor, con ficha original enlazada.<br><a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata · CC0</a></div>
     <div class="sourceItem sourceOk"><b>RESOLVE / Dinerstein et al. (2017)</b> · ecorregiones y grandes biomas terrestres.<br><small>CC BY 4.0.</small><br><a href="https://doi.org/10.1093/biosci/bix014" target="_blank" rel="noopener">Dinerstein et al. (2017)</a></div>
@@ -20500,6 +20509,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
    if(globeMeasureMode){globeMeasurePts.push(ll);redrawGlobeMeasure();return;}
    if(ent?.__anambroHistoricalEvent){showHistoricalEventGlobe(ent.event,ev.position);return;}
    if(ent?.__anambroRadioGarden){showRadioGardenGlobePlace(ent.place,ev.position);return;}
+   if(ent?.__anambroClima){window.anambroClima?.openFromGlobe(ent);return;}
    if(ent?.__anambroVolcano){showGlobeVolcanoEntity(ent,ev.position);return;}
    if(ent?.__anambroQuake){showGlobeQuakeEntity(ent,ev.position);return;}
    if(entityLayerId(ent)==='worldPlateBoundariesCheck'){showPlateGlobe(ent,ev.position);return;}
@@ -24341,7 +24351,7 @@ function gExtMeta(m){const ind=EXT()[m];if(!ind)return{label:m,unit:''};if(ind.m
 function gDemTxt(){const g=new Map(),extra=[];for(const x of window.__gaDemUsed||[]){const i=String(x).lastIndexOf('|');if(i<0){extra.push(String(x));continue}const l=x.slice(0,i),r=+x.slice(i+1);if(!g.has(l))g.set(l,[r,r]);const a=g.get(l);a[0]=Math.min(a[0],r);a[1]=Math.max(a[1],r)}const parts=[...g].map(([l,[a,b]])=>l+' ('+(a===b?'≈'+a:'≈'+a+'–'+b)+' m)');return [...parts,...extra].join(' + ')||'modelo digital de elevaciones'}
 function gSource(m){if(/^pop-/.test(m)){const p=lastUnits?.pop;return (p?p.source+(p.year?' ('+p.year+')':''):'población oficial')+(m!=='pop-total'?' · superficie geodésica calculada por ANAMBRO':'')+(m==='pop-density-free'?' · ENP: IDECanarias / GRAFCAN':'')}if(/^(elev-|slope-|aspect)/.test(m))return gDemTxt();const ind=EXT()[m];if(ind)return ind.meta.source;return m.startsWith('enp-')?'Espacios Naturales Protegidos · IDECanarias / Gobierno de Canarias / GRAFCAN':'superficie geodésica calculada por ANAMBRO'}
 function gVarTxt(m){const meta=metricMeta(m);return meta.label+(meta.unit?' ('+meta.unit+')':'')}
-function gMethodTxt(m){if(m==='area')return 'Superficie geodésica de cada polígono.';if(m.startsWith('enp-'))return 'Unidad y ENP rasterizados a ≈10 m; se cuentan todas las celdas; los solapes entre ENP cuentan una vez.';if(/^(elev-|slope-|aspect)/.test(m))return 'Todas las celdas del modelo de elevaciones dentro de cada unidad; pendiente y orientación por el método de Horn (ventana 3×3).';if(m==='pop-total')return 'Población oficial de cada unidad (suma de municipios en las unidades agregadas).';if(m==='pop-density')return 'Población / superficie geodésica de la unidad.';if(m==='pop-density-free')return 'Población / superficie de la unidad fuera de ENP.';return ''}
+function gMethodTxt(m){if(m==='area')return 'Superficie geodésica de cada polígono.';if(m.startsWith('enp-'))return 'Unidad y ENP rasterizados a ≈10 m; se cuentan todas las celdas; los solapes entre ENP cuentan una vez.';if(/^(elev-|slope-|aspect)/.test(m))return 'Todas las celdas del modelo de elevaciones dentro de cada unidad; pendiente y orientación por el método de Horn (ventana 3×3).';if(m==='pop-total')return 'Población oficial de cada unidad (suma de municipios en las unidades agregadas).';if(m==='pop-density')return 'Población / superficie geodésica de la unidad.';if(m==='pop-density-free')return 'Población / superficie de la unidad fuera de ENP.';return (window.anambroGaIndicators?.[m]?.meta?.method)||''}
 function gCrossHTML(m){const n=lastUnits?.fc?.features?.length||rows.length;return '<b>🔗 Datos cruzados</b><br><b>Unidades:</b> '+esc(gUnitsLabel())+(q('geoGeneralVisible')?.checked?' visibles en el mapa ('+n+' de '+(lastUnits?.total||n)+')':' ('+n+')')+' · '+esc(gUnitsSource())+'<br><b>Variable:</b> '+esc(gVarTxt(m))+' · '+esc(gSource(m))+'<br><b>Método:</b> '+esc(gMethodTxt(m))}
 function gCatDominant(){return !!(catInfo&&catInfo.metric===lastMetric&&catInfo.view==='dominant')}
 function gCatColor(c){const cl=catInfo?.classes?.find(x=>x.name===c);return cl?cl.color:'#c7cbcf'}
@@ -27158,5 +27168,737 @@ const n=p.querySelectorAll('.libCards .explainCard').length,c=document.getElemen
  try{if(!document.body.classList.contains('globe-mode')&&typeof toggleGlobe==='function')await toggleGlobe()}catch(e){console.warn(e)}
  const per=document.getElementById('worldQuakesPeriod');if(per&&per.value==='day'){per.value='week'}
  for(const id of ['worldPlateBoundariesCheck','worldQuakesCheck','worldVolcanoesCheck']){const el=document.getElementById(id);if(el&&!el.checked){el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}))}}};})();</script>
+<style id="anambro-r53-clima-css">
+/* ANAMBRO r53 · normales climatológicas: capa de estaciones, ficha con climograma PAU, Köppen y Miller */
+.anClimaBlock{margin-top:6px}
+.anClimaBlock .anClimaRow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0}
+.anClimaBlock select{max-width:100%}
+.anClimaBlock .anClimaCount{display:block;color:#536674;font-size:10.5px;margin-top:3px}
+.anClimaSearch{width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid #b9c6cf;border-radius:6px;font-size:12px}
+.anClimaLegend{margin-top:6px;padding:6px;border:1px solid #dfe5e9;border-radius:7px;background:#fff;max-height:210px;overflow:auto;font-size:10.5px;line-height:1.35}
+.anClimaLegend .sw{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid #0005;vertical-align:-2px;margin-right:4px}
+.anClimaLegend .it{display:inline-flex;align-items:center;margin:1px 9px 1px 0;white-space:nowrap}
+.anClimaLegend .grad{height:10px;border-radius:4px;border:1px solid #0003;margin:4px 0 2px}
+.anClimaLegend .gradTxt{display:flex;justify-content:space-between;color:#455}
+.anClimaSrcNote{display:block;font-size:10px;color:#5d666c;margin-top:4px;line-height:1.3}
+.anClimaSrcNote a{color:#1f5f8b}
+#anClimaFicha{position:fixed;z-index:9500;top:108px;left:50%;transform:translateX(-50%);width:min(860px,calc(100vw - 20px));max-height:calc(100vh - 118px);display:flex;flex-direction:column;background:#fff;border-radius:12px;box-shadow:0 6px 30px #0006;font:12.5px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1f2f38}
+#anClimaFicha.hidden{display:none}
+#anClimaFicha .acfHead{display:flex;gap:10px;align-items:flex-start;padding:10px 12px 8px;border-bottom:1px solid #e3e8ec;cursor:move;user-select:none;background:linear-gradient(#f7fafc,#fff);border-radius:12px 12px 0 0}
+#anClimaFicha .acfTitle{flex:1;min-width:0}
+#anClimaFicha .acfTitle b{font-size:16px;display:block;color:#17324d}
+#anClimaFicha .acfTitle small{display:block;color:#5a6a75;font-size:11px;margin-top:2px}
+#anClimaFicha .acfClose{border:1px solid #c2ccd3;background:#fff;border-radius:8px;width:32px;height:32px;font-size:18px;cursor:pointer;flex:none}
+#anClimaFicha .acfBar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:7px 12px;border-bottom:1px solid #eef1f3}
+#anClimaFicha .acfBar .grp{display:inline-flex;border:1px solid #b9c6cf;border-radius:8px;overflow:hidden}
+#anClimaFicha .acfBar .grp button{border:0;background:#fff;padding:5px 9px;font-weight:700;color:#17324d;cursor:pointer;font-size:11.5px}
+#anClimaFicha .acfBar .grp button+button{border-left:1px solid #d5dde2}
+#anClimaFicha .acfBar .grp button.on{background:#17324d;color:#fff}
+#anClimaFicha .acfBar .grp button:disabled{opacity:.35;cursor:not-allowed}
+#anClimaFicha .acfBar .sp{flex:1}
+#anClimaFicha .acfBar .exp button{border:1px solid #b9c6cf;background:#fff;border-radius:7px;padding:5px 8px;font-weight:700;color:#17324d;cursor:pointer;font-size:11.5px}
+#anClimaFicha .acfBar .exp button:hover{background:#edf5fa}
+#anClimaFicha .acfTabs{display:flex;gap:2px;padding:6px 12px 0;border-bottom:1px solid #dfe5e9;overflow-x:auto}
+#anClimaFicha .acfTabs button{border:1px solid transparent;border-bottom:0;background:none;padding:6px 10px;border-radius:8px 8px 0 0;font-weight:700;color:#4b5d69;cursor:pointer;white-space:nowrap;font-size:12px}
+#anClimaFicha .acfTabs button.on{background:#fff;border-color:#dfe5e9;color:#17324d;margin-bottom:-1px}
+#anClimaFicha .acfBody{overflow:auto;padding:10px 12px 14px}
+#anClimaFicha .acfChart{width:100%;height:auto;display:block;background:#fff}
+#anClimaFicha .acfNote{font-size:11px;color:#5a6a75;margin:6px 0}
+#anClimaFicha .acfWarn{font-size:11px;color:#7a4b00;background:#fff7e6;border:1px solid #f0d49b;border-radius:7px;padding:6px 8px;margin:6px 0}
+#anClimaFicha .acfGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:10px}
+#anClimaFicha .acfCard{border:1px solid #e1e7eb;border-radius:9px;padding:8px 10px;background:#fff}
+#anClimaFicha .acfCard h4{margin:0 0 6px;font-size:13px;color:#17324d}
+#anClimaFicha .acfKpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:4px 0 8px}
+#anClimaFicha .acfKpi div{background:#f4f7f9;border:1px solid #e1e7eb;border-radius:8px;padding:5px 7px}
+#anClimaFicha .acfKpi b{display:block;font-size:14px;color:#17324d}
+#anClimaFicha .acfKpi small{color:#5a6a75;font-size:10.5px}
+#anClimaFicha .acfClass{display:flex;gap:9px;align-items:center;margin:2px 0 8px}
+#anClimaFicha .acfCode{font:800 22px/1 system-ui;padding:7px 10px;border-radius:8px;border:1px solid #0002;min-width:54px;text-align:center}
+#anClimaFicha ol.acfSteps{margin:4px 0 0;padding-left:20px}
+#anClimaFicha ol.acfSteps li{margin:3px 0}
+#anClimaFicha ol.acfSteps li.res{list-style:none;margin-left:-20px;font-weight:700;color:#17324d;margin-top:6px}
+#anClimaFicha table.acfTable{border-collapse:collapse;width:100%;font-size:11px;margin:4px 0}
+#anClimaFicha table.acfTable th,#anClimaFicha table.acfTable td{border:1px solid #dfe5e9;padding:3px 4px;text-align:right;white-space:nowrap}
+#anClimaFicha table.acfTable th:first-child,#anClimaFicha table.acfTable td:first-child{text-align:left}
+#anClimaFicha table.acfTable thead th{background:#f1f5f8}
+#anClimaFicha .acfTableWrap{overflow-x:auto}
+#anClimaFicha .acfFoot{font-size:10.5px;color:#5a6a75;border-top:1px solid #eef1f3;padding:6px 12px;line-height:1.35}
+#anClimaFicha .acfFoot a{color:#1f5f8b}
+@media(max-width:760px){
+ #anClimaFicha{top:6px;left:6px;right:6px;transform:none;width:auto;max-height:calc(100vh - 12px)}
+ #anClimaFicha .acfHead{cursor:default}
+ #anClimaFicha .acfGrid{grid-template-columns:1fr}
+}
+@media print{#anClimaFicha{display:none!important}}
+</style>
+<script id="anambro-r53-clima-js">
+/* ANAMBRO r53 · Normales climatológicas de estaciones (OMM · AEMET · Meteostat)
+   - Capa de estaciones en Clima (Canarias, España y Mundo), periodo 1991–2020 por defecto y 1961–1990.
+   - Ficha: climograma ombrotérmico modelo PAU (P = 2T), otras variables, comparación de periodos,
+     clasificaciones de Köppen-Geiger y de Miller razonadas, tabla de datos y exportación JPG, PDF y Excel.
+   - Indicadores para el Análisis geográfico (media de las estaciones de cada unidad).
+   Datos: data/clima/normales.json (generado por ANAMBRO a partir de las fuentes citadas). */
+(function(){
+'use strict';
+const DATA_URL='data/clima/normales.json?v=2026-10-20';
+const PERIODS={'9120':'1991–2020','6190':'1961–1990'};
+const PKS=['9120','6190'];
+const MES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const COL={bar:'#2f5f80',line:'#e07b39',bar2:'#a9c8de',line2:'#f3b58c',grid:'#d9d9d9',axis:'#595959'};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- formato numérico español (1.563 · 13,0) ---------- */
+function fmt(v,d=1){
+ if(v===null||v===undefined||!Number.isFinite(+v))return '—';
+ const neg=v<0,a=Math.abs(+v).toFixed(d);let [i,f]=a.split('.');
+ if(i.length>3)i=i.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+ const s=i+(f?','+f:'');return (neg&&+a!==0?'−':'')+s;
+}
+const fmtP=v=>fmt(v,Math.abs(v)<10&&v!==0?1:0);
+const sum=a=>a.reduce((x,y)=>x+y,0),mean=a=>sum(a)/a.length;
+const r1=v=>Math.round(v*10)/10;
+
+/* ---------- datos ---------- */
+let DB=null,dbPromise=null;
+function load(){
+ if(DB)return Promise.resolve(DB);
+ if(!dbPromise)dbPromise=(async()=>{
+  const r=await (window.__anCachedFetch?window.__anCachedFetch(DATA_URL,'anambro-clima-normales-v1',30):fetch(DATA_URL));
+  if(!r.ok)throw Error('No se pudo cargar data/clima/normales.json ('+r.status+')');
+  const d=await r.json();
+  d.s.forEach((s,i)=>{s._i=i;for(const pk of Object.keys(s.p)){const p=s.p[pk];p._k=koppen(p.T,p.P,s.la);p._m=miller(p.T,p.P,s.la,s.z)}});
+  DB=d;return d;
+ })().catch(e=>{dbPromise=null;throw e});
+ return dbPromise;
+}
+
+/* ---------- climatología básica ---------- */
+function summerIdx(lat){return lat>=0?[3,4,5,6,7,8]:[9,10,11,0,1,2]}
+function seasons(lat){ // estaciones astronómicas aproximadas por trimestres
+ const N=[['Invierno',[11,0,1]],['Primavera',[2,3,4]],['Verano',[5,6,7]],['Otoño',[8,9,10]]];
+ return lat>=0?N:[['Invierno',[5,6,7]],['Primavera',[8,9,10]],['Verano',[11,0,1]],['Otoño',[2,3,4]]];
+}
+function basics(T,P,lat){
+ const MAT=mean(T),MAP=sum(P),Tw=Math.max(...T),Tc=Math.min(...T);
+ const iw=T.indexOf(Tw),ic=T.indexOf(Tc),ip=P.indexOf(Math.max(...P)),id=P.indexOf(Math.min(...P));
+ const arid=[];for(let m=0;m<12;m++)if(P[m]<2*T[m])arid.push(m);
+ const ss=seasons(lat).map(([n,ms])=>({n,v:sum(ms.map(m=>P[m]))}));
+ const reg=[...ss].sort((a,b)=>b.v-a.v).map(x=>x.n[0]).join('');
+ return {MAT,MAP,Tw,Tc,iw,ic,ip,id,amp:Tw-Tc,arid,ss,reg};
+}
+
+/* ---------- Köppen-Geiger (criterios de Beck et al., 2018, a partir de Peel et al., 2007) ---------- */
+const KNAME={Af:'Ecuatorial (tropical húmedo, sin estación seca)',Am:'Tropical monzónico',Aw:'Tropical de sabana (estación seca)',
+ BWh:'Desértico cálido',BWk:'Desértico frío',BSh:'Estepario (semiárido) cálido',BSk:'Estepario (semiárido) frío',
+ Csa:'Mediterráneo de verano cálido',Csb:'Mediterráneo de verano templado',Csc:'Mediterráneo de verano fresco',
+ Cwa:'Subtropical con invierno seco y verano cálido',Cwb:'Templado de altura con invierno seco',Cwc:'Templado frío de altura con invierno seco',
+ Cfa:'Subtropical húmedo',Cfb:'Oceánico (templado húmedo de verano templado)',Cfc:'Oceánico subpolar',
+ Dsa:'Continental de verano seco y cálido',Dsb:'Continental de verano seco y templado',Dsc:'Subártico de verano seco',Dsd:'Subártico de verano seco e invierno extremo',
+ Dwa:'Continental de invierno seco y verano cálido',Dwb:'Continental de invierno seco y verano templado',Dwc:'Subártico de invierno seco',Dwd:'Subártico de invierno seco y extremo',
+ Dfa:'Continental húmedo de verano cálido',Dfb:'Continental húmedo de verano templado',Dfc:'Subártico',Dfd:'Subártico de invierno extremo',
+ ET:'Polar de tundra',EF:'Polar de hielos perpetuos'};
+const KCOL={Af:'#0000ff',Am:'#0078ff',Aw:'#46aafa',BWh:'#ff0000',BWk:'#ff9696',BSh:'#f5a500',BSk:'#ffdc64',Csa:'#ffff00',Csb:'#c8c800',Csc:'#969600',
+ Cwa:'#96ff96',Cwb:'#64c864',Cwc:'#329632',Cfa:'#c8ff50',Cfb:'#64ff50',Cfc:'#32c800',Dsa:'#ff00ff',Dsb:'#c800c8',Dsc:'#963296',Dsd:'#966496',
+ Dwa:'#aaafff',Dwb:'#5a78dc',Dwc:'#4b50b4',Dwd:'#320087',Dfa:'#00ffff',Dfb:'#37c8ff',Dfc:'#007d7d',Dfd:'#00465f',ET:'#b2b2b2',EF:'#666666'};
+const KORDER=Object.keys(KCOL);
+function koppen(T,P,lat){
+ const b=basics(T,P,lat),S=summerIdx(lat),W=[0,1,2,3,4,5,6,7,8,9,10,11].filter(m=>!S.includes(m));
+ const Ps=sum(S.map(m=>P[m])),Pw=b.MAP-Ps;
+ const Psdry=Math.min(...S.map(m=>P[m])),Pswet=Math.max(...S.map(m=>P[m])),Pwdry=Math.min(...W.map(m=>P[m])),Pwwet=Math.max(...W.map(m=>P[m]));
+ const Pdry=Math.min(...P),Tmon10=T.filter(t=>t>=10).length;
+ let Pth,pthCase;
+ if(b.MAP>0&&Pw>=0.7*b.MAP){Pth=2*b.MAT;pthCase='w'}else if(b.MAP>0&&Ps>=0.7*b.MAP){Pth=2*b.MAT+28;pthCase='s'}else{Pth=2*b.MAT+14;pthCase='n'}
+ const st=[];let code='';
+ const sum1=`T media anual ${fmt(b.MAT)} °C · P anual ${fmt(b.MAP,0)} mm · mes más cálido ${MESL[b.iw]} (${fmt(b.Tw)} °C) · mes más frío ${MESL[b.ic]} (${fmt(b.Tc)} °C) · meses con T ≥ 10 °C: ${Tmon10}.`;
+ st.push(sum1);
+ if(b.Tw<10){
+  code=b.Tw>0?'ET':'EF';
+  st.push(`El mes más cálido no llega a 10 °C (${fmt(b.Tw)} °C) → grupo <b>E</b> (polar), que prevalece sobre la aridez.`);
+  st.push(b.Tw>0?`El mes más cálido supera 0 °C → <b>ET</b> (tundra).`:`Ningún mes supera 0 °C → <b>EF</b> (hielos perpetuos).`);
+  return {code,steps:st,name:KNAME[code],Pth,Tmon10};
+ }
+ const pthTxt=pthCase==='w'?`al menos el 70 % de la precipitación cae en el semestre frío → umbral = 2·Tm = ${fmt(Pth)} mm`:pthCase==='s'?`al menos el 70 % de la precipitación cae en el semestre cálido → umbral = 2·Tm + 28 = ${fmt(Pth)} mm`:`la precipitación no se concentra (≥ 70 %) en ningún semestre → umbral = 2·Tm + 14 = ${fmt(Pth)} mm`;
+ st.push(`Umbral de aridez: ${pthTxt} (semestre cálido ${lat>=0?'abril-septiembre':'octubre-marzo'}: ${fmt(Ps,0)} mm, ${fmt(b.MAP?Ps/b.MAP*100:0,0)} %).`);
+ if(b.MAP<10*Pth){
+  const BW=b.MAP<5*Pth;code=(BW?'BW':'BS')+(b.MAT>=18?'h':'k');
+  st.push(`P anual (${fmt(b.MAP,0)} mm) &lt; 10 × umbral (${fmt(10*Pth,0)} mm) → grupo <b>B</b> (seco).`);
+  st.push(BW?`P anual &lt; 5 × umbral (${fmt(5*Pth,0)} mm) → <b>W</b> (desierto).`:`P anual ≥ 5 × umbral (${fmt(5*Pth,0)} mm) → <b>S</b> (estepa).`);
+  st.push(b.MAT>=18?`T media anual ≥ 18 °C → <b>h</b> (cálido).`:`T media anual &lt; 18 °C → <b>k</b> (frío).`);
+  return {code,steps:st,name:KNAME[code],Pth,Tmon10};
+ }
+ st.push(`P anual (${fmt(b.MAP,0)} mm) ≥ 10 × umbral (${fmt(10*Pth,0)} mm) → no es un clima seco.`);
+ if(b.Tc>=18){
+  st.push(`Mes más frío ≥ 18 °C → grupo <b>A</b> (tropical).`);
+  if(Pdry>=60){code='Af';st.push(`Mes más seco ≥ 60 mm (${fmt(Pdry)} mm) → <b>f</b>: sin estación seca.`)}
+  else if(Pdry>=100-b.MAP/25){code='Am';st.push(`Mes más seco &lt; 60 mm (${fmt(Pdry)} mm) pero ≥ 100 − P/25 (${fmt(100-b.MAP/25)} mm) → <b>m</b>: monzónico.`)}
+  else{code='Aw';st.push(`Mes más seco &lt; 60 mm (${fmt(Pdry)} mm) y &lt; 100 − P/25 (${fmt(100-b.MAP/25)} mm) → <b>w</b>: estación seca marcada (sabana).`)}
+  return {code,steps:st,name:KNAME[code],Pth,Tmon10};
+ }
+ const G=b.Tc>0?'C':'D';
+ st.push(G==='C'?`Mes más frío entre 0 y 18 °C y mes más cálido &gt; 10 °C → grupo <b>C</b> (templado).`:`Mes más frío ≤ 0 °C y mes más cálido &gt; 10 °C → grupo <b>D</b> (continental o frío).`);
+ if(b.Tc>-3&&b.Tc<=0)st.push(`<i>Nota: con el umbral clásico de Köppen (−3 °C) esta estación sería del grupo C. ANAMBRO usa 0 °C, como Beck et al. (2018) y la capa Köppen-Geiger del visor.</i>`);
+ let L2;
+ if(Psdry<40&&Psdry<Pwwet/3){L2='s';st.push(`Mes más seco del verano ${fmt(Psdry)} mm &lt; 40 mm y &lt; 1/3 del mes más lluvioso del invierno (${fmt(Pwwet/3)} mm) → <b>s</b>: verano seco.`)}
+ else if(Pwdry<Pswet/10){L2='w';st.push(`Mes más seco del invierno ${fmt(Pwdry)} mm &lt; 1/10 del mes más lluvioso del verano (${fmt(Pswet/10)} mm) → <b>w</b>: invierno seco.`)}
+ else{L2='f';st.push(`No hay estación seca definida (verano: mín. ${fmt(Psdry)} mm; invierno: mín. ${fmt(Pwdry)} mm) → <b>f</b>: húmedo todo el año.`)}
+ let L3;
+ if(b.Tw>=22){L3='a';st.push(`Mes más cálido ≥ 22 °C → <b>a</b> (verano cálido).`)}
+ else if(Tmon10>=4){L3='b';st.push(`Mes más cálido &lt; 22 °C y ${Tmon10} meses ≥ 10 °C (≥ 4) → <b>b</b> (verano templado).`)}
+ else if(G==='D'&&b.Tc<-38){L3='d';st.push(`Mes más frío &lt; −38 °C → <b>d</b> (invierno extremo).`)}
+ else{L3='c';st.push(`Solo ${Tmon10} meses ≥ 10 °C (1 a 3) → <b>c</b> (verano corto y fresco).`)}
+ code=G+L2+L3;
+ return {code,steps:st,name:KNAME[code]||code,Pth,Tmon10};
+}
+
+/* ---------- Clasificación de Miller (A. Austin Miller, «Climatology») ---------- */
+const MNAME={A1:'Cálido · ecuatorial',A2:'Cálido · tropical marítimo',A3:'Cálido · tropical continental',
+ B1:'Templado cálido · mediterráneo (fachada occidental)',B2:'Templado cálido · subtropical (fachada oriental)',
+ C1:'Templado frío · marítimo',C2:'Templado frío · continental',D1:'Frío · marítimo',D2:'Frío · continental',
+ E:'Polar (tundra)',F1:'Desierto cálido',F2:'Desierto frío',G:'De montaña'};
+const MCOL={A1:'#1a7f37',A2:'#3fa34d',A3:'#a7c957',B1:'#f2c14e',B2:'#f78c40',C1:'#4ea8de',C2:'#5e60ce',D1:'#7b2cbf',D2:'#3c096c',E:'#adb5bd',F1:'#e63946',F2:'#f4a3a8',G:'#8d6e63'};
+const MORDER=Object.keys(MCOL);
+const MOUNTAIN_M=1500;
+function miller(T,P,lat,z){
+ const b=basics(T,P,lat),cold=T.filter(t=>t<6).length,S=summerIdx(lat),W=[0,1,2,3,4,5,6,7,8,9,10,11].filter(m=>!S.includes(m));
+ const Ps=sum(S.map(m=>P[m])),Psdry=Math.min(...S.map(m=>P[m])),Pwwet=Math.max(...W.map(m=>P[m])),Pdry=Math.min(...P);
+ const st=[`T media anual ${fmt(b.MAT)} °C · P anual ${fmt(b.MAP,0)} mm · mes más cálido ${fmt(b.Tw)} °C · meses con T media &lt; 6 °C: ${cold}.`];
+ let thermal,tTxt;
+ if(b.MAT>=21){thermal='A';tTxt=`T media anual ≥ 21 °C → <b>A</b> (cálido).`}
+ else if(cold===0){thermal='B';tTxt=`Ningún mes por debajo de 6 °C (sin estación fría) → <b>B</b> (templado cálido).`}
+ else if(cold<=5){thermal='C';tTxt=`Entre 1 y 5 meses por debajo de 6 °C (${cold}) → <b>C</b> (templado frío).`}
+ else{thermal='D';tTxt=`6 o más meses por debajo de 6 °C (${cold}) → <b>D</b> (frío).`}
+ const continental=(Ps/b.MAP>=0.6)||(b.amp>=25);
+ const regTxt=`semestre cálido con el ${fmt(b.MAP?Ps/b.MAP*100:0,0)} % de la lluvia y amplitud térmica de ${fmt(b.amp)} °C`;
+ function sub(g){
+  if(g==='A'){const dry=Pdry<60;if(!dry)return Math.abs(lat)<=10?['A1',`Llueve todo el año (mes más seco ${fmt(Pdry)} mm ≥ 60 mm) y latitud ≤ 10° → <b>A1</b> ecuatorial.`]:['A2',`Llueve todo el año (mes más seco ${fmt(Pdry)} mm) fuera de la franja ecuatorial → <b>A2</b> tropical marítimo (fachadas orientales batidas por los alisios).`];return ['A3',`Hay estación seca (mes más seco ${fmt(Pdry)} mm &lt; 60 mm) → <b>A3</b> tropical continental.`]}
+  if(g==='B'){const sdry=Psdry<40&&Psdry<Pwwet/3;return sdry?['B1',`Verano seco (mes más seco del verano ${fmt(Psdry)} mm) → <b>B1</b> mediterráneo.`]:['B2',`Sin verano seco: lluvias todo el año o máximo estival → <b>B2</b> subtropical.`]}
+  if(g==='C'||g==='D')return continental?[g+'2',`Régimen continental (${regTxt}) → <b>${g}2</b> continental.`]:[g+'1',`Régimen marítimo (${regTxt}) → <b>${g}1</b> marítimo.`];
+ }
+ let code,extra=null;
+ if(b.Tw<10){code='E';st.push(`Mes más cálido &lt; 10 °C (${fmt(b.Tw)} °C): límite térmico del bosque → <b>E</b> polar.`)}
+ else if(b.MAP<250&&cold<=5){code=cold===0?'F1':'F2';st.push(`P anual &lt; 250 mm → <b>F</b> desierto.`);st.push(cold===0?`Todos los meses ≥ 6 °C → <b>F1</b> desierto cálido.`:`Entre 1 y 5 meses &lt; 6 °C → <b>F2</b> desierto frío.`)}
+ else if(b.MAP<250){st.push(`P anual &lt; 250 mm, pero con ${cold} meses por debajo de 6 °C la evaporación es baja: Miller reserva los desiertos (F) para las zonas templadas y cálidas, así que se clasifica por la temperatura.`);st.push(tTxt);const [c,t]=sub(thermal);code=c;st.push(t)}
+ else{st.push(tTxt);const [c,t]=sub(thermal);code=c;st.push(t)}
+ if(Number.isFinite(z)&&z>=MOUNTAIN_M&&code!=='E'){extra=code;st.push(`Estación a ${fmt(z,0)} m de altitud: enclave altitudinal → <b>G</b> clima de montaña (por sus valores le correspondería ${extra}). <i>Miller no fija un umbral numérico para G; ANAMBRO aplica ${fmt(MOUNTAIN_M,0)} m como criterio operativo.</i>`);code='G'}
+ if(code&&/^[ABCD]/.test(code))st.push(`<i>Los subtipos (1, 2, 3) dependen también de la posición en el continente y de los vientos dominantes; ANAMBRO los propone a partir del régimen de lluvias y de la amplitud térmica.</i>`);
+ return {code,steps:st,name:MNAME[code],under:extra,cold};
+}
+
+/* ---------- climograma modelo PAU (SVG) ---------- */
+function axisSpec(T,P,Tb,Pb){
+ const allT=[...T,...(Tb||[])],allP=[...P,...(Pb||[])];
+ const maxT=Math.max(...allT),minT=Math.min(...allT),maxP=Math.max(...allP);
+ let step=10;const need=Math.max(maxP/2,maxT,80);
+ for(const s of [10,20,25,50,100,200,250,500])if(need/s<=10){step=s;break}
+ let tTop=Math.max(80,Math.ceil(need/step)*step);
+ const tBot=minT<0?Math.floor(minT/step)*step:0;
+ return {tTop,tBot,step,pTop:2*tTop,pBot:2*tBot,pStep:2*step};
+}
+function smoothPath(pts){
+ if(pts.length<2)return '';let d='M'+pts[0][0].toFixed(1)+','+pts[0][1].toFixed(1);
+ for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2,k=1/6;
+  const c1=[p1[0]+(p2[0]-p0[0])*k,p1[1]+(p2[1]-p0[1])*k],c2=[p2[0]-(p3[0]-p1[0])*k,p2[1]-(p3[1]-p1[1])*k];
+  d+=' C'+c1.map(v=>v.toFixed(1)).join(',')+' '+c2.map(v=>v.toFixed(1)).join(',')+' '+p2[0].toFixed(1)+','+p2[1].toFixed(1)}
+ return d;
+}
+function srcLine(s,per){
+ const src=DB?.src?.[per.src]||{};const yrs=per.y?' · años '+per.y:(per.n&&per.n<30?' · '+per.n+' años con datos':'');
+ const extra=per.src==='OMM'?'OMM vía NOAA NCEI':per.src==='AEMET'?'AEMET OpenData':'Meteostat';
+ return 'Fuente de los datos: '+extra+' · normales '+PERIODS[per._pk]+yrs+' · '+(src.u||'').replace(/^https?:\/\//,'');
+}
+function climogramSVG(s,pk,opt={}){
+ const per=s.p[pk];per._pk=pk;
+ const cmp=opt.compare&&s.p['6190']&&s.p['9120'];
+ const A=cmp?s.p['6190']:null;
+ const T=per.T,P=per.P,b=basics(T,P,s.la);
+ const ax=axisSpec(T,P,A?.T,A?.P);
+ const W=1000,H=cmp?610:550,x0=172,x1=880,y0=92,y1=372,cw=(x1-x0)/12;
+ const yT=t=>y1-(t-ax.tBot)/(ax.tTop-ax.tBot)*(y1-y0);
+ const yP=p=>yT(p/2);
+ const F='Calibri,Carlito,Arial,Helvetica,sans-serif';
+ let g='';
+ const title=(opt.title||('CLIMOGRAMA · '+s.n))+(s.cn?' ('+s.cn+')':'');
+ g+=`<text x="40" y="34" font-family="${F}" font-size="24" font-weight="700" fill="#000">${esc(title)}</text>`;
+ g+=`<text x="40" y="56" font-family="${F}" font-size="13" fill="#444">${esc((cmp?'Comparación 1961–1990 / 1991–2020':'Normales '+PERIODS[pk])+' · '+fmt(Math.abs(s.la),2)+'° '+(s.la>=0?'N':'S')+', '+fmt(Math.abs(s.lo),2)+'° '+(s.lo>=0?'E':'O')+(Number.isFinite(s.z)?' · '+fmt(s.z,0)+' m':''))}</text>`;
+ g+=`<rect x="30" y="66" width="${W-60}" height="${H-80}" fill="#fff" stroke="#d0d0d0" stroke-width="2"/>`;
+ for(let t=ax.tBot;t<=ax.tTop+1e-6;t+=ax.step){const y=yT(t);
+  g+=`<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="${COL.grid}" stroke-width="${t===0?1.6:1}"/>`;
+  g+=`<text x="${x0-12}" y="${y+5}" text-anchor="end" font-family="${F}" font-size="15" fill="${COL.axis}">${fmt(t,1)}</text>`;
+  const p=2*t;if(p>=0)g+=`<text x="${x1+14}" y="${y+5}" font-family="${F}" font-size="15" fill="${COL.axis}">${fmt(p,0)}</text>`;
+ }
+ g+=`<text transform="translate(${x0-74},${(y0+y1)/2}) rotate(-90)" text-anchor="middle" font-family="${F}" font-size="16" font-weight="700" fill="#000">Temperatura ºC</text>`;
+ g+=`<text transform="translate(${x1+74},${(y0+y1)/2}) rotate(-90)" text-anchor="middle" font-family="${F}" font-size="16" font-weight="700" fill="#000">Precipitación (mm)</text>`;
+ const bw=cmp?cw*0.3:cw*0.42;
+ for(let m=0;m<12;m++){const cx=x0+cw*(m+.5);
+  if(cmp){
+   g+=`<rect x="${cx-bw-1}" y="${yP(A.P[m])}" width="${bw}" height="${Math.max(0,yP(0)-yP(A.P[m]))}" fill="${COL.bar2}"/>`;
+   g+=`<rect x="${cx+1}" y="${yP(P[m])}" width="${bw}" height="${Math.max(0,yP(0)-yP(P[m]))}" fill="${COL.bar}"/>`;
+  }else g+=`<rect x="${cx-bw/2}" y="${yP(P[m])}" width="${bw}" height="${Math.max(0,yP(0)-yP(P[m]))}" fill="${COL.bar}"/>`;
+ }
+ if(cmp)g+=`<path d="${smoothPath(A.T.map((t,m)=>[x0+cw*(m+.5),yT(t)]))}" fill="none" stroke="${COL.line2}" stroke-width="4" stroke-dasharray="10 6" stroke-linecap="round"/>`;
+ g+=`<path d="${smoothPath(T.map((t,m)=>[x0+cw*(m+.5),yT(t)]))}" fill="none" stroke="${COL.line}" stroke-width="4" stroke-linecap="round"/>`;
+ // recuadro de valores anuales
+ const box=cmp?[`Tm anual: ${fmt(mean(A.T))} ºC → ${fmt(b.MAT)} ºC`,`P anual: ${fmt(sum(A.P),0)} mm → ${fmt(b.MAP,0)} mm`]:[`Temperatura media anual: ${fmt(b.MAT)} ºC`,`Precipitación media anual: ${fmt(b.MAP,0)} mm`];
+ const bwid=Math.max(...box.map(t=>t.length))*9.4+24,bx=(x0+x1)/2-bwid/2+60;
+ g+=`<rect x="${bx}" y="${y0-26}" width="${bwid}" height="56" fill="#fff"/>`;
+ box.forEach((t,i)=>g+=`<text x="${bx+12}" y="${y0-4+i*24}" font-family="${F}" font-size="17" font-weight="700" fill="#404040">${esc(t)}</text>`);
+ // tabla mensual
+ const ty=y1,rh=30,lx=x0-128;
+ const rows=cmp?[['P 1961–90',A.P,'bar2',fmtP],['P 1991–2020',P,'bar',fmtP],['T 1961–90',A.T,'line2',v=>fmt(v)],['T 1991–2020',T,'line',v=>fmt(v)]]:[['Precipitación',P,'bar',fmtP],['Temperatura',T,'line',v=>fmt(v)]];
+ g+=`<rect x="${x0}" y="${ty}" width="${x1-x0}" height="${rh}" fill="#fff" stroke="${COL.grid}"/>`;
+ for(let m=0;m<12;m++){const cx=x0+cw*(m+.5);g+=`<line x1="${x0+cw*m}" x2="${x0+cw*m}" y1="${ty}" y2="${ty+rh*(rows.length+1)}" stroke="${COL.grid}"/>`;g+=`<text x="${cx}" y="${ty+21}" text-anchor="middle" font-family="${F}" font-size="15" fill="${COL.axis}">${MES[m]}</text>`}
+ g+=`<line x1="${x1}" x2="${x1}" y1="${ty}" y2="${ty+rh*(rows.length+1)}" stroke="${COL.grid}"/>`;
+ rows.forEach(([lab,vals,ck,f],i)=>{const y=ty+rh*(i+1);
+  g+=`<rect x="${lx}" y="${y}" width="${x1-lx}" height="${rh}" fill="none" stroke="${COL.grid}"/>`;
+  if(/^bar/.test(ck))g+=`<rect x="${lx+8}" y="${y+10}" width="26" height="11" fill="${COL[ck]}"/>`;else g+=`<line x1="${lx+8}" x2="${lx+34}" y1="${y+15}" y2="${y+15}" stroke="${COL[ck]}" stroke-width="4" ${ck==='line2'?'stroke-dasharray="7 4"':''}/>`;
+  g+=`<text x="${lx+40}" y="${y+20}" font-family="${F}" font-size="${cmp?13:15}" fill="${COL.axis}">${esc(lab)}</text>`;
+  for(let m=0;m<12;m++)g+=`<text x="${x0+cw*(m+.5)}" y="${y+21}" text-anchor="middle" font-family="${F}" font-size="15" fill="${COL.axis}">${esc(f(vals[m]))}</text>`;
+ });
+ const fy=ty+rh*(rows.length+1)+28;
+ const srcTxt=cmp?srcLine(s,Object.assign(s.p['9120'],{_pk:'9120'}))+' · '+srcLine(s,Object.assign(s.p['6190'],{_pk:'6190'})).replace('Fuente de los datos: ',''):srcLine(s,per);
+ g+=`<text x="${lx}" y="${fy}" font-family="${F}" font-size="${srcTxt.length>130?12:14}" fill="#222">${esc(srcTxt)}</text>`;
+ g+=`<text x="${lx}" y="${fy+22}" font-family="${F}" font-size="14" fill="#222">La gráfica: ANAMBRO (anambro.es) · modelo de climograma de la Subcomisión de Geografía (PAU, Canarias)</text>`;
+ if(ax.tTop>80||ax.tBot<0)g+=`<text x="${W-40}" y="${fy+22}" text-anchor="end" font-family="${F}" font-size="12" fill="#666">Ejes ampliados manteniendo P = 2T</text>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" class="acfChart" role="img" aria-label="${esc(title)}">${g}</svg>`;
+}
+
+/* ---------- gráfico genérico de otras variables ---------- */
+function varChartSVG(s,title,unit,series,opts={}){
+ const W=1000,H=420,x0=90,x1=950,y0=70,y1=330,cw=(x1-x0)/12,F='Calibri,Carlito,Arial,Helvetica,sans-serif';
+ const all=series.flatMap(x=>x.values);let mn=Math.min(0,...all),mx=Math.max(...all);
+ if(opts.max!==undefined)mx=Math.max(mx,opts.max);if(opts.fixMax!==undefined)mx=opts.fixMax;
+ const span=mx-mn||1;let step=[1,2,5,10,20,25,50,100,200,500].find(s=>span/s<=8)||1000;
+ mx=Math.ceil(mx/step)*step;mn=Math.floor(mn/step)*step;
+ const y=v=>y1-(v-mn)/(mx-mn)*(y1-y0);
+ let g=`<rect width="${W}" height="${H}" fill="#fff"/><text x="30" y="34" font-family="${F}" font-size="21" font-weight="700">${esc(title)}</text><text x="30" y="55" font-family="${F}" font-size="13" fill="#444">${esc(s.n+(s.cn?' ('+s.cn+')':'')+' · '+(opts.sub||''))}</text>`;
+ for(let v=mn;v<=mx+1e-9;v+=step){g+=`<line x1="${x0}" x2="${x1}" y1="${y(v)}" y2="${y(v)}" stroke="${COL.grid}" stroke-width="${v===0?1.6:1}"/><text x="${x0-10}" y="${y(v)+5}" text-anchor="end" font-family="${F}" font-size="14" fill="${COL.axis}">${fmt(v,step<1?1:0)}</text>`}
+ g+=`<text transform="translate(28,${(y0+y1)/2}) rotate(-90)" text-anchor="middle" font-family="${F}" font-size="14" font-weight="700">${esc(unit)}</text>`;
+ const bars=series.filter(x=>x.type==='bar'),nb=bars.length,bw=cw*0.7/Math.max(1,nb);
+ bars.forEach((sr,k)=>{for(let m=0;m<12;m++){const cx=x0+cw*(m+.5)-cw*0.35+bw*k;const v=sr.values[m];g+=`<rect x="${cx}" y="${Math.min(y(v),y(0))}" width="${bw-2}" height="${Math.abs(y(0)-y(v))}" fill="${sr.color}"/>`}});
+ series.filter(x=>x.type==='line').forEach(sr=>{g+=`<path d="${smoothPath(sr.values.map((v,m)=>[x0+cw*(m+.5),y(v)]))}" fill="none" stroke="${sr.color}" stroke-width="3.5" ${sr.dash?'stroke-dasharray="9 6"':''}/>`;sr.values.forEach((v,m)=>g+=`<circle cx="${x0+cw*(m+.5)}" cy="${y(v)}" r="3.5" fill="${sr.color}"/>`)});
+ for(let m=0;m<12;m++)g+=`<text x="${x0+cw*(m+.5)}" y="${y1+22}" text-anchor="middle" font-family="${F}" font-size="14" fill="${COL.axis}">${MES[m]}</text>`;
+ let lx=x0;series.forEach(sr=>{g+=sr.type==='bar'?`<rect x="${lx}" y="${y1+38}" width="20" height="11" fill="${sr.color}"/>`:`<line x1="${lx}" x2="${lx+22}" y1="${y1+44}" y2="${y1+44}" stroke="${sr.color}" stroke-width="4" ${sr.dash?'stroke-dasharray="6 4"':''}/>`;g+=`<text x="${lx+28}" y="${y1+49}" font-family="${F}" font-size="13">${esc(sr.name)}</text>`;lx+=40+sr.name.length*7.2});
+ g+=`<text x="30" y="${H-12}" font-family="${F}" font-size="12" fill="#333">${esc(opts.src||'')} · La gráfica: ANAMBRO (anambro.es)</text>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" class="acfChart" role="img" aria-label="${esc(title)}">${g}</svg>`;
+}
+
+/* ---------- ficha ---------- */
+let cur=null; // {s,pk,tab}
+function ensureFicha(){
+ let el=$('anClimaFicha');if(el)return el;
+ el=document.createElement('div');el.id='anClimaFicha';el.className='hidden';el.setAttribute('role','dialog');el.setAttribute('aria-label','Ficha climática de la estación');
+ el.innerHTML='<div class="acfHead"><div class="acfTitle"></div><button class="acfClose" type="button" aria-label="Cerrar ficha" title="Cerrar">×</button></div><div class="acfBar"></div><div class="acfTabs" role="tablist"></div><div class="acfBody"></div><div class="acfFoot"></div>';
+ document.body.appendChild(el);
+ el.querySelector('.acfClose').onclick=()=>el.classList.add('hidden');
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!el.classList.contains('hidden'))el.classList.add('hidden')});
+ // arrastre
+ const h=el.querySelector('.acfHead');let drag=null;
+ h.addEventListener('pointerdown',e=>{if(e.target.closest('button')||innerWidth<760)return;const r=el.getBoundingClientRect();drag={dx:e.clientX-r.left,dy:e.clientY-r.top};h.setPointerCapture(e.pointerId)});
+ h.addEventListener('pointermove',e=>{if(!drag)return;el.style.transform='none';el.style.left=Math.max(0,Math.min(innerWidth-80,e.clientX-drag.dx))+'px';el.style.top=Math.max(0,Math.min(innerHeight-60,e.clientY-drag.dy))+'px'});
+ h.addEventListener('pointerup',()=>drag=null);
+ return el;
+}
+const TABS=[['clim','Climograma'],['vars','Otras variables'],['cmp','Comparar periodos'],['class','Clasificación climática'],['data','Datos']];
+function openStation(s,pk){
+ const el=ensureFicha();
+ pk=s.p[pk]?pk:(s.p['9120']?'9120':'6190');
+ cur={s,pk,tab:cur?.tab&&cur.tab!=='cmp'?cur.tab:'clim'};
+ render();el.classList.remove('hidden');
+}
+function idTxt(s){const a=[];if(s.w)a.push('Indicativo OMM '+s.w);if(s.a)a.push('AEMET '+s.a);if(s.ms&&!s.w)a.push('Meteostat '+s.ms);return a.join(' · ')}
+function render(){
+ const el=$('anClimaFicha'),{s,pk}=cur,per=s.p[pk];per._pk=pk;
+ el.querySelector('.acfTitle').innerHTML='<b>🌡️ '+esc(s.n)+'</b><small>'+esc([s.pr&&s.pr!==s.n?s.pr:'',s.cn].filter(Boolean).join(' · '))+' · '+fmt(Math.abs(s.la),3)+'° '+(s.la>=0?'N':'S')+', '+fmt(Math.abs(s.lo),3)+'° '+(s.lo>=0?'E':'O')+(Number.isFinite(s.z)?' · '+fmt(s.z,0)+' m':'')+(idTxt(s)?' · '+esc(idTxt(s)):'')+'</small>';
+ const both=s.p['9120']&&s.p['6190'];
+ el.querySelector('.acfBar').innerHTML='<span class="grp" role="group" aria-label="Periodo">'+PKS.map(k=>[k,PERIODS[k]]).map(([k,t])=>'<button type="button" data-per="'+k+'" class="'+(k===pk&&cur.tab!=='cmp'?'on':'')+'" '+(s.p[k]?'':'disabled title="Sin normales de este periodo en las fuentes"')+'>'+t+'</button>').join('')+'</span><span class="sp"></span><span class="exp"><button type="button" data-exp="jpg" title="Descargar el gráfico visible en JPG">🖼️ JPG</button> <button type="button" data-exp="pdf" title="Ficha completa en PDF">📄 PDF</button> <button type="button" data-exp="xlsx" title="Datos de la estación en Excel">📊 Excel</button></span>';
+ el.querySelector('.acfTabs').innerHTML=TABS.map(([k,t])=>'<button type="button" role="tab" data-tab="'+k+'" class="'+(cur.tab===k?'on':'')+'" '+(k==='cmp'&&!both?'disabled title="La estación no tiene los dos periodos completos" style="opacity:.4"':'')+'>'+t+'</button>').join('');
+ el.querySelector('.acfBar').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.per){cur.pk=b.dataset.per;if(cur.tab==='cmp')cur.tab='clim';render()}else if(b.dataset.exp)exportCur(b.dataset.exp,b)};
+ el.querySelector('.acfTabs').onclick=e=>{const b=e.target.closest('button[data-tab]');if(!b||b.disabled)return;cur.tab=b.dataset.tab;render()};
+ el.querySelector('.acfBody').innerHTML=bodyHtml();
+ const src=DB.src[per.src]||{};
+ el.querySelector('.acfFoot').innerHTML='<b>Fuente de los datos ('+PERIODS[pk]+'):</b> '+esc(src.t||per.src)+' · <a href="'+esc(src.u)+'" target="_blank" rel="noopener">'+esc((src.u||'').replace(/^https?:\/\//,''))+'</a>. '+esc(src.l||'')+(per.src==='MS'?' <b>Fuente secundaria</b>: se usa solo cuando no hay normal oficial de la OMM o de AEMET.':'')+'<br><b>La gráfica y las clasificaciones:</b> ANAMBRO. Datos procesados por ANAMBRO el 20/10/2026 sin alterar los valores de la fuente (solo se calcula Tm = (Tmáx + Tmín)/2 cuando la fuente no da la media).';
+}
+function availNote(per){
+ const miss=[['Tx','temperatura máxima media'],['Tn','temperatura mínima media'],['S','horas de sol'],['H','humedad relativa'],['D','días de precipitación']].filter(([k])=>!per[k]).map(x=>x[1]);
+ return miss.length?'<div class="acfNote">Sin dato en la fuente para este periodo: '+miss.join(', ')+'.</div>':'';
+}
+function bodyHtml(){
+ const {s,pk,tab}=cur,per=s.p[pk],b=basics(per.T,per.P,s.la);
+ let h='';
+ if(per.tc)h+='<div class="acfWarn">La fuente no da la temperatura media mensual: se calcula como (Tmáx + Tmín)/2.</div>';
+ if(per.n&&per.n<24)h+='<div class="acfWarn">Normal con menos de 24 años de datos ('+per.n+' años en algún mes): la OMM la consideraría provisional.</div>';
+ if(per.y&&tab!=='cmp')h+='<div class="acfNote">Años del cálculo según la fuente: '+esc(per.y)+'.</div>';
+ if(tab==='clim'){
+  h+=climogramSVG(s,pk);
+  const k=per._k,m=per._m;
+  h+='<div class="acfKpi"><div><small>Temperatura media anual</small><b>'+fmt(b.MAT)+' ºC</b></div><div><small>Precipitación anual</small><b>'+fmt(b.MAP,0)+' mm</b></div><div><small>Amplitud térmica anual</small><b>'+fmt(b.amp)+' ºC</b></div><div><small>Meses áridos (P &lt; 2T)</small><b>'+(b.arid.length?b.arid.length+' · '+b.arid.map(i=>MES[i]).join(', '):'ninguno')+'</b></div><div><small>Régimen estacional de lluvias</small><b>'+b.reg+'</b></div><div><small>Köppen-Geiger · Miller</small><b><span style="background:'+KCOL[k.code]+';padding:0 5px;border-radius:4px">'+k.code+'</span> · '+m.code+'</b></div></div>';
+  h+='<div class="acfNote">Meses áridos: aquellos en que la curva de temperatura queda por encima de las barras (criterio de Gaussen, P &lt; 2T), que en este climograma se leen directamente gracias a la escala P = 2T. Régimen: estaciones ordenadas de más a menos lluviosa (I invierno, P primavera, V verano, O otoño'+(s.la<0?'; hemisferio sur':'')+').</div>';
+ }
+ else if(tab==='vars'){
+  const src=srcLine(s,per),parts=[];
+  if(per.Tx&&per.Tn)parts.push(varChartSVG(s,'Temperaturas medias: máximas, medias y mínimas','ºC',[{type:'line',values:per.Tx,color:'#c0392b',name:'Media de las máximas'},{type:'line',values:per.T,color:COL.line,name:'Media'},{type:'line',values:per.Tn,color:'#2471a3',name:'Media de las mínimas'}],{sub:'Normales '+PERIODS[pk],src}));
+  if(per.S)parts.push(varChartSVG(s,'Insolación: horas de sol al mes','horas',[{type:'bar',values:per.S,color:'#f1c40f',name:'Horas de sol · total anual '+fmt(sum(per.S),0)+' h'}],{sub:'Normales '+PERIODS[pk],src}));
+  if(per.H)parts.push(varChartSVG(s,'Humedad relativa media','%',[{type:'line',values:per.H,color:'#16a085',name:'Humedad relativa · media anual '+fmt(mean(per.H),0)+' %'}],{sub:'Normales '+PERIODS[pk],src,fixMax:100}));
+  if(per.D)parts.push(varChartSVG(s,'Días de precipitación '+(per.dt==='0.1'?'(≥ 0,1 mm)':'(≥ 1 mm)'),'días',[{type:'bar',values:per.D,color:'#5dade2',name:'Días al mes · total anual '+fmt(sum(per.D),0)}],{sub:'Normales '+PERIODS[pk],src}));
+  h+=parts.length?parts.map(x=>'<div class="acfCard" style="margin-bottom:8px">'+x+'</div>').join(''):'<div class="acfWarn">La fuente no aporta otras variables para esta estación en '+PERIODS[pk]+'.</div>';
+  h+=availNote(per);
+ }
+ else if(tab==='cmp'){
+  const A=s.p['6190'],B=s.p['9120'];
+  h+=climogramSVG(s,'9120',{compare:true,title:'COMPARACIÓN · '+s.n});
+  const dT=mean(B.T)-mean(A.T),dP=sum(B.P)-sum(A.P);
+  h+='<div class="acfKpi"><div><small>Cambio de la T media anual</small><b>'+(dT>=0?'+':'')+fmt(dT)+' ºC</b></div><div><small>Cambio de la precipitación anual</small><b>'+(dP>=0?'+':'')+fmt(dP,0)+' mm ('+(dP>=0?'+':'')+fmt(dP/sum(A.P)*100,0)+' %)</b></div><div><small>Köppen 1961–90 → 1991–2020</small><b>'+A._k.code+' → '+B._k.code+'</b></div><div><small>Miller 1961–90 → 1991–2020</small><b>'+A._m.code+' → '+B._m.code+'</b></div></div>';
+  h+='<div class="acfTableWrap"><table class="acfTable"><thead><tr><th></th>'+MES.map(m=>'<th>'+m+'</th>').join('')+'<th>Año</th></tr></thead><tbody>'+
+   row('T 1961–1990 (ºC)',A.T,fmt,mean(A.T))+row('T 1991–2020 (ºC)',B.T,fmt,mean(B.T))+row('Diferencia (ºC)',B.T.map((v,i)=>v-A.T[i]),v=>(v>=0?'+':'')+fmt(v),dT)+
+   row('P 1961–1990 (mm)',A.P,fmtP,sum(A.P),0)+row('P 1991–2020 (mm)',B.P,fmtP,sum(B.P),0)+row('Diferencia (mm)',B.P.map((v,i)=>v-A.P[i]),v=>(v>=0?'+':'')+fmtP(v),dP,0)+'</tbody></table></div>';
+  if(A.src!==B.src)h+='<div class="acfWarn">Los dos periodos proceden de fuentes distintas ('+esc(DB.src[A.src]?.t||A.src)+' / '+esc(DB.src[B.src]?.t||B.src)+'): interpreta las diferencias con prudencia.</div>';
+  h+='<div class="acfNote">Las diferencias entre normales pueden deberse al cambio climático, pero también a cambios de emplazamiento, instrumental o del entorno de la estación (por ejemplo, la urbanización).</div>';
+ }
+ else if(tab==='class'){
+  const k=per._k,m=per._m;
+  h+='<div class="acfGrid"><div class="acfCard"><h4>Köppen-Geiger</h4><div class="acfClass"><span class="acfCode" style="background:'+KCOL[k.code]+';color:'+(/^(Af|Am|Dwd|Dfd|EF|Dsc|Dwc|Dsb)$/.test(k.code)?'#fff':'#000')+'">'+k.code+'</span><div><b>'+esc(k.name)+'</b><br><small>Criterios de Beck et al. (2018)</small></div></div><ol class="acfSteps">'+k.steps.map(x=>'<li>'+x+'</li>').join('')+'<li class="res">Resultado: '+k.code+' · '+esc(k.name)+'</li></ol></div>';
+  h+='<div class="acfCard"><h4>Miller</h4><div class="acfClass"><span class="acfCode" style="background:'+MCOL[m.code]+';color:#fff">'+m.code+'</span><div><b>'+esc(m.name)+'</b>'+(m.under?'<br><small>Valores térmicos de '+esc(MNAME[m.under]||m.under)+'</small>':'')+'<br><small>A. A. Miller, <i>Climatology</i></small></div></div><ol class="acfSteps">'+m.steps.map(x=>'<li>'+x+'</li>').join('')+'<li class="res">Resultado: '+m.code+' · '+esc(m.name)+'</li></ol></div></div>';
+  h+='<div class="acfNote"><b>Köppen-Geiger:</b> semestre cálido = abril-septiembre en el hemisferio norte y octubre-marzo en el sur. Grupos y umbrales de Peel et al. (2007) y Beck et al. (2018), los mismos de la capa «Climas Köppen-Geiger» de ANAMBRO. <b>Miller:</b> grupos térmicos por la T media anual (21 °C), los meses por debajo de 6 °C y el mes más cálido (10 °C); desiertos por debajo de 250 mm anuales (A. A. Miller, <i>Climatology</i>, Methuen, 1931, y ediciones posteriores; síntesis en A. Díaz San Andrés, <i>Biogeografía</i>, biogeografia.net).</div>';
+ }
+ else if(tab==='data'){
+  h+='<div class="acfTableWrap"><table class="acfTable"><thead><tr><th>'+PERIODS[pk]+'</th>'+MES.map(m=>'<th>'+m+'</th>').join('')+'<th>Año</th></tr></thead><tbody>';
+  h+=row('Temperatura media (ºC)',per.T,fmt,mean(per.T))+(per.Tx?row('Media de las máximas (ºC)',per.Tx,fmt,mean(per.Tx)):'')+(per.Tn?row('Media de las mínimas (ºC)',per.Tn,fmt,mean(per.Tn)):'')+row('Precipitación (mm)',per.P,fmtP,sum(per.P),0)+(per.D?row('Días de precipitación '+(per.dt==='0.1'?'≥ 0,1':'≥ 1')+' mm',per.D,fmt,sum(per.D)):'')+(per.S?row('Horas de sol',per.S,v=>fmt(v,0),sum(per.S),0):'')+(per.H?row('Humedad relativa (%)',per.H,v=>fmt(v,0),mean(per.H),0):'');
+  h+='</tbody></table></div>'+availNote(per);
+ }
+ return h;
+}
+function row(lab,vals,f,annual,dAnn){return '<tr><td>'+esc(lab)+'</td>'+vals.map(v=>'<td>'+f(v)+'</td>').join('')+'<td><b>'+(dAnn===0?fmt(annual,0):(lab.startsWith('Diferencia (mm')?((annual>=0?'+':'')+fmt(annual,0)):f(annual)))+'</b></td></tr>'}
+
+/* ---------- exportación ---------- */
+function fileBase(){const {s,pk}=cur;return ('ANAMBRO_clima_'+s.n+'_'+(cur.tab==='cmp'?'comparacion':PERIODS[pk])).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w\-]+/g,'_').replace(/_+/g,'_')}
+function svgToCanvas(svg,scale=2){return new Promise((ok,ko)=>{const vb=svg.match(/viewBox="0 0 (\d+) (\d+)"/),w=+vb[1],h=+vb[2];const img=new Image();const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));img.onload=()=>{const c=document.createElement('canvas');c.width=w*scale;c.height=h*scale;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);ok(c)};img.onerror=e=>{URL.revokeObjectURL(url);ko(Error('No se pudo rasterizar el gráfico'))};img.src=url})}
+function dl(href,name){const a=document.createElement('a');a.href=href;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}
+const pdfTxt=t=>String(t).replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/−/g,'-').replace(/→/g,'->').replace(/[  ]/g,' ');
+async function exportCur(kind,btn){
+ const old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='…'}
+ try{
+  const {s,pk}=cur;
+  if(kind==='jpg'){
+   const svgs=[...$('anClimaFicha').querySelectorAll('.acfBody svg')];if(!svgs.length)throw Error('No hay ningún gráfico en esta pestaña. Abre «Climograma», «Otras variables» o «Comparar periodos».');
+   for(let i=0;i<svgs.length;i++){const c=await svgToCanvas(svgs[i].outerHTML);dl(c.toDataURL('image/jpeg',.93),fileBase()+(svgs.length>1?'_'+(i+1):'')+'.jpg')}
+  }else if(kind==='xlsx')exportXlsx();
+  else if(kind==='pdf')await exportPdf();
+ }catch(e){console.error(e);alert(e.message||String(e))}
+ finally{if(btn){btn.disabled=false;btn.textContent=old}}
+}
+function exportXlsx(){
+ const {s}=cur,sheets=[];
+ for(const pk of ['9120','6190']){const p=s.p[pk];if(!p)continue;
+  const R=[['Temperatura media (ºC)',...p.T,r1(mean(p.T))],p.Tx&&['Media de las máximas (ºC)',...p.Tx,r1(mean(p.Tx))],p.Tn&&['Media de las mínimas (ºC)',...p.Tn,r1(mean(p.Tn))],['Precipitación (mm)',...p.P,r1(sum(p.P))],p.D&&['Días de precipitación '+(p.dt==='0.1'?'>= 0,1':'>= 1')+' mm',...p.D,r1(sum(p.D))],p.S&&['Horas de sol',...p.S,r1(sum(p.S))],p.H&&['Humedad relativa (%)',...p.H,r1(mean(p.H))]].filter(Boolean);
+  sheets.push({name:'Normales '+PERIODS[pk],header:['Variable',...MESL.map(m=>m[0].toUpperCase()+m.slice(1)),'Año'],rows:R,widths:[34,...Array(12).fill(10),10],numFormats:['',...Array(13).fill('')]});
+ }
+ const cl=[];for(const pk of ['9120','6190']){const p=s.p[pk];if(!p)continue;cl.push([PERIODS[pk],'Köppen-Geiger',p._k.code,p._k.name,p._k.steps.map(pdfTxt).join(' | ')]);cl.push([PERIODS[pk],'Miller',p._m.code,p._m.name,p._m.steps.map(pdfTxt).join(' | ')])}
+ sheets.push({name:'Clasificación',header:['Periodo','Clasificación','Tipo','Nombre','Razonamiento'],rows:cl,widths:[12,16,8,44,160]});
+ const st=[['Estación',s.n],['País',s.cn||''],['Provincia',s.pr||''],['Latitud',s.la],['Longitud',s.lo],['Altitud (m)',s.z??''],['Indicativo OMM',s.w||''],['Indicativo AEMET',s.a||''],['Identificador Meteostat',s.ms||'']];
+ sheets.unshift({name:'Estación',header:['Campo','Valor'],rows:st,widths:[24,60]});
+ const info={};for(const pk of ['9120','6190']){const p=s.p[pk];if(!p)continue;const src=DB.src[p.src]||{};info['Fuente '+PERIODS[pk]]=src.t+' · '+src.u+' · '+src.l+(p.y?' · años '+p.y:'')}
+ info['Clasificaciones']='Köppen-Geiger según Beck et al. (2018); Miller según A. A. Miller, Climatology. Cálculo: ANAMBRO.';
+ window.anambroXlsx.download(fileBase().replace(/_(1991|1961).*$/,'')+'.xlsx',[...sheets,window.anambroXlsx.metaSheet(info)]);
+}
+async function exportPdf(){
+ const {s,pk}=cur,per=s.p[pk];
+ await window.__anLib('jspdf');const {jsPDF}=window.jspdf;
+ const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+ const M=12,PW=210,CW=PW-2*M;let y=M;
+ const foot=()=>{pdf.setFontSize(7.5);pdf.setTextColor(90);pdf.text(pdfTxt('ANAMBRO · anambro.es · Ficha climática generada el '+new Date().toLocaleDateString('es-ES')+' · Datos: '+(DB.src[per.src]?.t||per.src)),M,290,{maxWidth:CW});pdf.setTextColor(0)};
+ const need=h=>{if(y+h>282){foot();pdf.addPage();y=M}};
+ const text=(t,size=9.5,bold=false,gap=1.5)=>{pdf.setFont('helvetica',bold?'bold':'normal');pdf.setFontSize(size);const L=pdf.splitTextToSize(pdfTxt(t),CW);for(const l of L){need(size*.42+gap);pdf.text(l,M,y+size*.35);y+=size*.42+gap*.6}};
+ const img=async(svg)=>{const c=await svgToCanvas(svg,2),h=CW*c.height/c.width;need(h+2);pdf.addImage(c.toDataURL('image/jpeg',.92),'JPEG',M,y,CW,h);y+=h+3};
+ text(s.n+(s.cn?' ('+s.cn+')':''),15,true,2);
+ text([s.pr,'Lat. '+fmt(s.la,3)+'°, long. '+fmt(s.lo,3)+'°',Number.isFinite(s.z)?'altitud '+fmt(s.z,0)+' m':'',idTxt(s)].filter(Boolean).join(' · '),9);
+ y+=1;await img(climogramSVG(s,pk));
+ const b=basics(per.T,per.P,s.la);
+ text('Temperatura media anual: '+fmt(b.MAT)+' ºC · Precipitación anual: '+fmt(b.MAP,0)+' mm · Amplitud térmica: '+fmt(b.amp)+' ºC · Meses áridos (P < 2T): '+(b.arid.map(i=>MES[i]).join(', ')||'ninguno')+' · Régimen estacional: '+b.reg,9);
+ y+=2;text('Clasificación de Köppen-Geiger: '+per._k.code+' · '+per._k.name,11,true);
+ per._k.steps.forEach((t,i)=>text((i+1)+'. '+t,8.6));
+ y+=1.5;text('Clasificación de Miller: '+per._m.code+' · '+per._m.name,11,true);
+ per._m.steps.forEach((t,i)=>text((i+1)+'. '+t,8.6));
+ const vs=[];const src=srcLine(s,per);
+ if(per.Tx&&per.Tn)vs.push(varChartSVG(s,'Temperaturas medias: máximas, medias y mínimas','ºC',[{type:'line',values:per.Tx,color:'#c0392b',name:'Media de las máximas'},{type:'line',values:per.T,color:COL.line,name:'Media'},{type:'line',values:per.Tn,color:'#2471a3',name:'Media de las mínimas'}],{sub:'Normales '+PERIODS[pk],src}));
+ if(per.S)vs.push(varChartSVG(s,'Insolación: horas de sol al mes','horas',[{type:'bar',values:per.S,color:'#f1c40f',name:'Horas de sol · total anual '+fmt(sum(per.S),0)+' h'}],{sub:'Normales '+PERIODS[pk],src}));
+ if(per.H)vs.push(varChartSVG(s,'Humedad relativa media','%',[{type:'line',values:per.H,color:'#16a085',name:'Humedad relativa'}],{sub:'Normales '+PERIODS[pk],src,fixMax:100}));
+ if(per.D)vs.push(varChartSVG(s,'Días de precipitación '+(per.dt==='0.1'?'(≥ 0,1 mm)':'(≥ 1 mm)'),'días',[{type:'bar',values:per.D,color:'#5dade2',name:'Días al mes'}],{sub:'Normales '+PERIODS[pk],src}));
+ if(vs.length){foot();pdf.addPage();y=M;text('Otras variables · '+PERIODS[pk],12,true);
+  for(let i=0;i<vs.length;i+=2){const cs=await Promise.all(vs.slice(i,i+2).map(v=>svgToCanvas(v,2)));const w=(CW-4)/2,h=w*cs[0].height/cs[0].width;need(h+3);cs.forEach((c,j)=>pdf.addImage(c.toDataURL('image/jpeg',.92),'JPEG',M+j*(w+4),y,w,h));y+=h+4}}
+ if(s.p['6190']&&s.p['9120']){need(120);if(y>M+5){foot();pdf.addPage();y=M}text('Comparación de periodos 1961–1990 / 1991–2020',12,true);await img(climogramSVG(s,'9120',{compare:true,title:'COMPARACIÓN · '+s.n}));const A=s.p['6190'],B=s.p['9120'];text('Cambio de la T media anual: '+fmt(mean(B.T)-mean(A.T))+' ºC · Cambio de la precipitación anual: '+fmt(sum(B.P)-sum(A.P),0)+' mm · Köppen: '+A._k.code+' -> '+B._k.code+' · Miller: '+A._m.code+' -> '+B._m.code,9)}
+ y+=2;const sr=DB.src[per.src]||{};text('Fuente de los datos: '+sr.t+' ('+sr.u+'). '+sr.l,8);text('La gráfica y las clasificaciones: ANAMBRO (anambro.es), modelo de climograma de la Subcomisión de Geografía (PAU, Canarias). Köppen-Geiger: Beck et al. (2018), Scientific Data 5:180214. Miller: A. A. Miller, Climatology (Methuen).',8);
+ foot();pdf.save(fileBase()+'.pdf');
+}
+
+/* ---------- capa de estaciones (2D y 3D) ---------- */
+const SCOPES={canary:'anClimaCanaryCheck',spain:'anClimaSpainCheck',world:'anClimaWorldCheck'};
+const state={pk:'9120',sym:'koppen'};
+let layer=null,renderer=null,globePts=null;
+const isCanary=s=>s.la>27.5&&s.la<29.6&&s.lo>-18.4&&s.lo<-13.3;
+function inScope(s){
+ if($(SCOPES.world)?.checked)return true;
+ if($(SCOPES.canary)?.checked&&isCanary(s))return true;
+ if($(SCOPES.spain)?.checked&&s.c==='ES'&&!isCanary(s))return true;
+ return false;
+}
+const anyOn=()=>Object.values(SCOPES).some(id=>$(id)?.checked);
+function ramp(stops,t){t=Math.max(0,Math.min(1,t));const n=stops.length-1,i=Math.min(n-1,Math.floor(t*n)),f=t*n-i,a=stops[i],b=stops[i+1];const h=x=>parseInt(x,16);const c=[1,3,5].map(k=>Math.round(h(a.substr(k,2))*(1-f)+h(b.substr(k,2))*f));return '#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')}
+const SYM={
+ koppen:{label:'Köppen-Geiger',color:p=>KCOL[p._k.code]||'#888',cls:p=>p._k.code},
+ miller:{label:'Miller',color:p=>MCOL[p._m.code]||'#888',cls:p=>p._m.code},
+ tm:{label:'Temperatura media anual (ºC)',val:p=>mean(p.T),min:-20,max:30,stops:['#313695','#4575b4','#74add1','#abd9e9','#ffffbf','#fdae61','#f46d43','#d73027','#a50026']},
+ p:{label:'Precipitación anual (mm)',val:p=>sum(p.P),min:0,max:3000,log:true,stops:['#8c510a','#d8b365','#f6e8c3','#c7eae5','#5ab4ac','#01665e','#003c30']},
+ amp:{label:'Amplitud térmica anual (ºC)',val:p=>Math.max(...p.T)-Math.min(...p.T),min:0,max:50,stops:['#1a9850','#91cf60','#d9ef8b','#fee08b','#fc8d59','#d73027']},
+ src:{label:'Fuente de los datos',color:p=>({OMM:'#1f77b4',AEMET:'#d62728',MS:'#9467bd'})[p.src]||'#888',cls:p=>({OMM:'OMM (NOAA)',AEMET:'AEMET',MS:'Meteostat (secundaria)'})[p.src]}
+};
+function colorOf(p){const S=SYM[state.sym];if(S.color)return S.color(p);let v=S.val(p);let t=S.log?Math.log10(Math.max(10,v)/10)/Math.log10(S.max/10):(v-S.min)/(S.max-S.min);return ramp(S.stops,t)}
+async function refresh(){
+ const on=anyOn();
+ document.querySelectorAll('.anClimaBlock .anClimaOpts').forEach(o=>o.style.display=on?'block':'none');
+ if(!on){if(layer&&typeof map!=='undefined')map.removeLayer(layer);clearGlobe();legend();try{renderActiveSources()}catch(_){}return}
+ setCount('Cargando normales climatológicas…');
+ try{await load()}catch(e){setCount('⚠️ '+e.message);return}
+ if(!renderer)renderer=L.canvas({padding:.3});
+ if(!map.getPane('anClimaPane')){const p=map.createPane('anClimaPane');p.style.zIndex=645}
+ if(layer)layer.clearLayers();else layer=L.layerGroup();
+ let n=0;const pk=state.pk,list=[];
+ for(const s of DB.s){const p=s.p[pk];if(!p||!inScope(s))continue;list.push(s);
+  const mk=L.circleMarker([s.la,s.lo],{renderer,pane:'anClimaPane',radius:map.getZoom()>=7?7:5,weight:1,color:'#1b1b1b',fillColor:colorOf(p),fillOpacity:.92,bubblingMouseEvents:false});
+  mk.bindTooltip(()=>'<b>'+esc(s.n)+'</b>'+(s.cn?' · '+esc(s.cn):'')+'<br>'+fmt(mean(p.T))+' ºC · '+fmt(sum(p.P),0)+' mm · '+p._k.code+' · Miller '+p._m.code+'<br><small>'+PERIODS[pk]+' · '+({OMM:'OMM',AEMET:'AEMET',MS:'Meteostat'})[p.src]+' · pulsa para ver la ficha</small>',{direction:'top',sticky:false,opacity:.95});
+  mk.on('click',e=>{L.DomEvent.stopPropagation(e);openStation(s,pk)});
+  layer.addLayer(mk);n++}
+ if(!map.hasLayer(layer))layer.addTo(map);
+ setCount(fmt(n,0)+' estaciones con normales '+PERIODS[pk]+' en el ámbito activo.');
+ legend(list);syncGlobe(list);try{renderActiveSources()}catch(_){}
+}
+function setCount(t){document.querySelectorAll('.anClimaCount').forEach(e=>e.textContent=t)}
+function legend(list){
+ const S=SYM[state.sym];let h='<b>Estaciones · '+esc(S.label)+' · '+PERIODS[state.pk]+'</b><br>';
+ if(list&&list.length){
+  if(S.cls){const cnt=new Map();for(const s of list){const p=s.p[state.pk];const c=S.cls(p);cnt.set(c,(cnt.get(c)||0)+1)}
+   const order=state.sym==='koppen'?KORDER:state.sym==='miller'?MORDER:[...cnt.keys()];
+   h+=order.filter(c=>cnt.has(c)).map(c=>{const col=state.sym==='koppen'?KCOL[c]:state.sym==='miller'?MCOL[c]:SYM.src.color({src:{'OMM (NOAA)':'OMM','AEMET':'AEMET','Meteostat (secundaria)':'MS'}[c]});const nm=state.sym==='koppen'?KNAME[c]:state.sym==='miller'?MNAME[c]:'';return '<span class="it" title="'+esc(nm)+'"><span class="sw" style="background:'+col+'"></span>'+esc(c)+(nm?' · '+esc(nm):'')+' ('+cnt.get(c)+')</span>'}).join('<br>');
+  }else{h+='<div class="grad" style="background:linear-gradient(90deg,'+S.stops.join(',')+')"></div><div class="gradTxt"><span>'+fmt(S.min,0)+'</span><span>'+(S.log?'escala logarítmica':'')+'</span><span>'+fmt(S.max,0)+(S.max===3000?'+':'')+'</span></div>'}
+ }
+ h+='<small class="anClimaSrcNote">Fuentes: <a href="https://www.ncei.noaa.gov/products/wmo-climate-normals" target="_blank" rel="noopener">OMM · normales climatológicas (NOAA NCEI)</a> · <a href="https://opendata.aemet.es" target="_blank" rel="noopener">© AEMET (OpenData)</a> · <a href="https://meteostat.net" target="_blank" rel="noopener">Meteostat (CC BY-NC 4.0, secundaria)</a>. Clasificaciones, ficha y gráficos: ANAMBRO.</small>';
+ document.querySelectorAll('.anClimaLegend').forEach(e=>{e.innerHTML=h;e.style.display=list?'block':'none'});
+}
+function clearGlobe(){try{if(globePts&&typeof globeViewer!=='undefined'&&globeViewer){globeViewer.scene.primitives.remove(globePts);globeViewer.scene.requestRender()}}catch(_){}globePts=null}
+function syncGlobe(list){
+ clearGlobe();
+ try{
+  if(typeof globeViewer==='undefined'||!globeViewer||!window.Cesium||!list)return;
+  const pc=new Cesium.PointPrimitiveCollection();
+  for(const s of list){const p=s.p[state.pk];pc.add({position:Cesium.Cartesian3.fromDegrees(s.lo,s.la,(s.z||0)+1200),pixelSize:7,color:Cesium.Color.fromCssColorString(colorOf(p)),outlineColor:Cesium.Color.fromCssColorString('#1b1b1b'),outlineWidth:1,id:{__anambroClima:true,idx:s._i}})}
+  globePts=globeViewer.scene.primitives.add(pc);globeViewer.scene.requestRender();
+ }catch(e){console.warn('ANAMBRO · estaciones climáticas en el globo',e)}
+}
+function lastList(){if(!DB)return null;return DB.s.filter(s=>s.p[state.pk]&&inScope(s))}
+
+/* ---------- interfaz en el panel de Capas ---------- */
+const SCOPE_TXT={canary:['Estaciones climáticas · normales · Canarias','Climogramas y clasificaciones de las estaciones de Canarias (AEMET y OMM).'],spain:['Estaciones climáticas · normales · España','Península, Baleares, Ceuta y Melilla (AEMET y OMM).'],world:['Estaciones climáticas · normales · mundo','Unas 8.700 estaciones de todo el mundo (OMM, AEMET y Meteostat).']};
+function blockHtml(k){
+ return '<label><input id="'+SCOPES[k]+'" type="checkbox"/> <b>'+SCOPE_TXT[k][0]+'</b></label><div class="layerSubBlock anClimaBlock" data-scope="'+k+'"><small>'+SCOPE_TXT[k][1]+' Pulsa una estación para abrir su ficha con el climograma.</small><div class="anClimaOpts" style="display:none">'+
+ '<div class="anClimaRow"><small><b>Periodo</b></small><select class="anClimaPer"><option value="9120">1991–2020 (normal vigente)</option><option value="6190">1961–1990</option></select></div>'+
+ '<div class="anClimaRow"><small><b>Color</b></small><select class="anClimaSym"><option value="koppen">Clasificación de Köppen-Geiger</option><option value="miller">Clasificación de Miller</option><option value="tm">Temperatura media anual</option><option value="p">Precipitación anual</option><option value="amp">Amplitud térmica anual</option><option value="src">Fuente de los datos</option></select></div>'+
+ '<input class="anClimaSearch" type="search" placeholder="Buscar estación… (p. ej., Izaña)" list="anClimaList" autocomplete="off"/>'+
+ '<small class="anClimaCount"></small><div class="anClimaLegend" style="display:none"></div></div></div>';
+}
+function install(){
+ const subs=[...document.querySelectorAll('#layersPanel details.layerSubcategory')].filter(d=>/Clima/.test(d.querySelector('summary')?.textContent||''));
+ const targets={canary:$('canaryClimateCheck'),spain:$('spainClimateCheck'),world:$('worldClimateCheck')};
+ for(const [k,cb] of Object.entries(targets)){
+  if(!cb||$(SCOPES[k]))continue;const det=cb.closest('details.layerSubcategory');if(!det)continue;
+  const wrap=document.createElement('div');wrap.className='anClimaScope';wrap.style.cssText='margin-top:8px;padding-top:7px;border-top:1px solid #dde4e8';wrap.innerHTML=blockHtml(k);det.appendChild(wrap);
+ }
+ if(!$('anClimaList')){const dlst=document.createElement('datalist');dlst.id='anClimaList';document.body.appendChild(dlst)}
+ Object.values(SCOPES).forEach(id=>$(id)?.addEventListener('change',refresh));
+ document.querySelectorAll('.anClimaPer').forEach(sel=>sel.addEventListener('change',e=>{state.pk=e.target.value;document.querySelectorAll('.anClimaPer').forEach(x=>x.value=state.pk);refresh()}));
+ document.querySelectorAll('.anClimaSym').forEach(sel=>sel.addEventListener('change',e=>{state.sym=e.target.value;document.querySelectorAll('.anClimaSym').forEach(x=>x.value=state.sym);refresh()}));
+ document.querySelectorAll('.anClimaSearch').forEach(inp=>{
+  inp.addEventListener('focus',fillList);
+  inp.addEventListener('input',fillList);
+  inp.addEventListener('change',()=>{const v=inp.value.trim();if(!DB||!v)return;const s=DB.s.find(x=>label(x)===v)||DB.s.find(x=>x.n.toLowerCase()===v.toLowerCase());if(!s)return;try{if(document.body.classList.contains('globe-mode')&&typeof globeViewer!=='undefined'&&globeViewer)globeViewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(s.lo,s.la,600000)});else map.setView([s.la,s.lo],Math.max(map.getZoom(),9))}catch(_){}openStation(s,state.pk);inp.value=''});
+ });
+ if(typeof map!=='undefined')map.on('zoomend',()=>{if(layer&&map.hasLayer(layer)){const r=map.getZoom()>=7?7:5;layer.eachLayer(m=>m.setRadius&&m.setRadius(r))}});
+}
+const label=s=>s.n+(s.cn?' · '+s.cn:'')+(s.w?' ('+s.w+')':s.a?' ('+s.a+')':'');
+let listTimer=null;
+async function fillList(e){
+ clearTimeout(listTimer);listTimer=setTimeout(async()=>{try{await load()}catch(_){return}
+  const q=(e?.target?.value||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');const dl=$('anClimaList');if(!dl)return;
+  const out=[];for(const s of DB.s){if(!s.p[state.pk])continue;const n=label(s);if(!q||n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(q)){out.push(n);if(out.length>=60)break}}
+  dl.innerHTML=out.map(n=>'<option value="'+esc(n)+'"></option>').join('');
+ },120);
+}
+
+/* ---------- fuentes del visor ---------- */
+function installSources(){
+ try{
+  if(typeof ANAMBRO_SOURCES!=='undefined'){
+   ANAMBRO_SOURCES.clima_omm={short:'OMM · normales climatológicas 1991–2020 y 1961–1990 (NOAA NCEI)'};
+   ANAMBRO_SOURCES.clima_aemet={short:'© AEMET · valores normales 1991–2020 (AEMET OpenData)'};
+   ANAMBRO_SOURCES.clima_ms={short:'Meteostat · normales climáticas · CC BY-NC 4.0 (fuente secundaria)'};
+  }
+  if(typeof activeSourceKeys==='function'&&!activeSourceKeys.__anClima){
+   const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if(anyOn()){const L=lastList()||[];const used=new Set(L.map(s=>s.p[state.pk].src));if(used.has('OMM')||!DB)r.push('clima_omm');if(used.has('AEMET'))r.push('clima_aemet');if(used.has('MS'))r.push('clima_ms')}if(cur&&!$('anClimaFicha')?.classList.contains('hidden')){}return [...new Set(r)]};f.__anClima=true;activeSourceKeys=f;
+  }
+ }catch(e){console.warn('ANAMBRO · fuentes de normales climatológicas',e)}
+}
+
+/* ---------- clic en el globo 3D ---------- */
+function openFromGlobe(ent){if(!DB||!Number.isInteger(ent?.idx))return;const s=DB.s[ent.idx];if(s)openStation(s,state.pk)}
+function hookGlobe(){
+ try{if(typeof ensureGlobe==='function'&&!ensureGlobe.__anClima){const old=ensureGlobe;const f=async function(){const r=await old.apply(this,arguments);setTimeout(()=>{if(anyOn())syncGlobe(lastList())},50);return r};f.__anClima=true;ensureGlobe=f}}catch(e){console.warn(e)}
+}
+
+/* ---------- Análisis geográfico: indicadores por unidad territorial ---------- */
+function pip(x,y,ring){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/((yj-yi)||1e-12)+xi))inside=!inside}return inside}
+function inGeom(x,y,g){if(!g)return false;const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];for(const poly of polys){if(!poly.length||!pip(x,y,poly[0]))continue;let hole=false;for(let k=1;k<poly.length;k++)if(pip(x,y,poly[k])){hole=true;break}if(!hole)return true}return false}
+function gbbox(g){let a=[180,90,-180,-90];const walk=c=>{if(typeof c[0]==='number'){if(c[0]<a[0])a[0]=c[0];if(c[1]<a[1])a[1]=c[1];if(c[0]>a[2])a[2]=c[0];if(c[1]>a[3])a[3]=c[1]}else c.forEach(walk)};walk(g.coordinates);return a}
+function stationsIn(f,pk){const g=f?.geometry;if(!g)return[];const b=gbbox(g);return DB.s.filter(s=>s.p[pk]&&s.lo>=b[0]&&s.lo<=b[2]&&s.la>=b[1]&&s.la<=b[3]&&inGeom(s.lo,s.la,g))}
+const GA_SRC='Normales climatológicas de estaciones · OMM (NOAA NCEI), © AEMET (OpenData) y Meteostat (secundaria) · elaboración ANAMBRO';
+const GA_METHOD='Media aritmética de las estaciones con normales situadas dentro de cada unidad (sin ponderar por altitud ni superficie); las unidades sin estación quedan sin dato. Úsalo como aproximación: una o pocas estaciones no representan todo el territorio, sobre todo con relieve.';
+const GA=[
+ ['clima-tm','Temperatura media anual (estaciones, 1991–2020)','ºC','9120',p=>mean(p.T)],
+ ['clima-p','Precipitación anual (estaciones, 1991–2020)','mm','9120',p=>sum(p.P)],
+ ['clima-amp','Amplitud térmica anual (estaciones, 1991–2020)','ºC','9120',p=>Math.max(...p.T)-Math.min(...p.T)],
+ ['clima-tc','Temperatura del mes más frío (estaciones, 1991–2020)','ºC','9120',p=>Math.min(...p.T)],
+ ['clima-tw','Temperatura del mes más cálido (estaciones, 1991–2020)','ºC','9120',p=>Math.max(...p.T)],
+ ['clima-arid','Meses áridos, P < 2T (estaciones, 1991–2020)','meses','9120',p=>p.T.filter((t,i)=>p.P[i]<2*t).length],
+ ['clima-sun','Horas de sol anuales (estaciones, 1991–2020)','h','9120',p=>p.S?sum(p.S):null],
+ ['clima-hr','Humedad relativa media (estaciones, 1991–2020)','%','9120',p=>p.H?mean(p.H):null],
+ ['clima-days','Días de precipitación ≥ 1 mm (estaciones, 1991–2020)','días','9120',p=>p.D&&p.dt!=='0.1'?sum(p.D):null],
+ ['clima-tm6190','Temperatura media anual (estaciones, 1961–1990)','ºC','6190',p=>mean(p.T)],
+ ['clima-p6190','Precipitación anual (estaciones, 1961–1990)','mm','6190',p=>sum(p.P)],
+ ['clima-dtm','Cambio de la temperatura media anual (1961–1990 → 1991–2020)','ºC','both',(a,b)=>mean(b.T)-mean(a.T)],
+ ['clima-dp','Cambio de la precipitación anual (1961–1990 → 1991–2020)','%','both',(a,b)=>(sum(b.P)-sum(a.P))/sum(a.P)*100],
+ ['clima-n','Número de estaciones con normales 1991–2020','estaciones','count',null]
+];
+function installGa(){
+ const I=window.anambroGaIndicators||(window.anambroGaIndicators={});
+ for(const [id,lab,unit,pk,fn] of GA){
+  I[id]={meta:{label:lab,unit,group:'Clima',source:GA_SRC,method:id==='clima-n'?'Número de estaciones con normales 1991–2020 completas (12 meses de T y P) dentro de cada unidad.':GA_METHOD,dec:unit==='mm'||unit==='h'||unit==='estaciones'||unit==='días'||unit==='meses'?0:1},
+   async compute(f,c){await load();
+    if(pk==='count'){return {value:stationsIn(f,'9120').length}}
+    if(pk==='both'){const L=stationsIn(f,'9120').filter(s=>s.p['6190']);const v=L.map(s=>fn(s.p['6190'],s.p['9120'])).filter(Number.isFinite);return v.length?{value:mean(v),stations:v.length}:null}
+    const L=stationsIn(f,pk);const v=L.map(s=>fn(s.p[pk])).filter(x=>x!==null&&Number.isFinite(x));return v.length?{value:mean(v),stations:v.length}:null}};
+ }
+ const ms=$('geoGeneralMetric');
+ if(ms&&!ms.querySelector('option[value="clima-tm"]')){const g=document.createElement('optgroup');g.label='Clima · normales climatológicas de estaciones (OMM · AEMET · Meteostat)';g.innerHTML=GA.map(([id,lab,unit])=>'<option value="'+id+'">'+esc(lab)+' · '+esc(unit)+'</option>').join('');const pop=[...ms.querySelectorAll('optgroup')].find(x=>/Población/.test(x.label));ms.insertBefore(g,pop?pop.nextSibling:null)}
+}
+
+/* ---------- arranque ---------- */
+function boot(){
+ try{install()}catch(e){console.error('ANAMBRO · capa de normales climatológicas',e)}
+ try{installSources()}catch(e){console.warn(e)}
+ try{installGa()}catch(e){console.warn('ANAMBRO · Análisis geográfico (clima)',e)}
+ hookGlobe();
+}
+window.anambroClima={load,openStation,openFromGlobe,koppen,miller,basics,climogramSVG,refresh,state,get db(){return DB},_test:{axisSpec,fmt,inGeom}};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+
+</script>
+<script id="anambro-r53-clima-extra-js">
+/* ANAMBRO r53 · Mapamundi climático calculado: Miller y Köppen-Geiger a partir de las normales TerraClimate
+   (1991–2020 y 1961–1990). Imagen en Web Mercator precalculada por ANAMBRO (data/clima/*.png). */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const KORDER=['Af','Am','Aw','BWh','BWk','BSh','BSk','Csa','Csb','Csc','Cwa','Cwb','Cwc','Cfa','Cfb','Cfc','Dsa','Dsb','Dsc','Dsd','Dwa','Dwb','Dwc','Dwd','Dfa','Dfb','Dfc','Dfd','ET','EF'];
+const MORDER=['A1','A2','A3','B1','B2','C1','C2','D1','D2','E','F1','F2','G'];
+const KCOL={Af:'#0000ff',Am:'#0078ff',Aw:'#46aafa',BWh:'#ff0000',BWk:'#ff9696',BSh:'#f5a500',BSk:'#ffdc64',Csa:'#ffff00',Csb:'#c8c800',Csc:'#969600',Cwa:'#96ff96',Cwb:'#64c864',Cwc:'#329632',Cfa:'#c8ff50',Cfb:'#64ff50',Cfc:'#32c800',Dsa:'#ff00ff',Dsb:'#c800c8',Dsc:'#963296',Dsd:'#966496',Dwa:'#aaafff',Dwb:'#5a78dc',Dwc:'#4b50b4',Dwd:'#320087',Dfa:'#00ffff',Dfb:'#37c8ff',Dfc:'#007d7d',Dfd:'#00465f',ET:'#b2b2b2',EF:'#666666'};
+const MCOL={A1:'#1a7f37',A2:'#3fa34d',A3:'#a7c957',B1:'#f2c14e',B2:'#f78c40',C1:'#4ea8de',C2:'#5e60ce',D1:'#7b2cbf',D2:'#3c096c',E:'#adb5bd',F1:'#e63946',F2:'#f4a3a8',G:'#8d6e63'};
+const MDESC={A1:'Cálido · ecuatorial: T media anual ≥ 21 °C y lluvias todo el año cerca del ecuador',A2:'Cálido · tropical marítimo: lluvias todo el año (alisios)',A3:'Cálido · tropical continental: con estación seca',B1:'Templado cálido · mediterráneo: ningún mes < 6 °C y verano seco',B2:'Templado cálido · subtropical: ningún mes < 6 °C, sin verano seco',C1:'Templado frío · marítimo: 1 a 5 meses < 6 °C, régimen oceánico',C2:'Templado frío · continental: 1 a 5 meses < 6 °C, máximo estival o gran amplitud',D1:'Frío · marítimo: 6 o más meses < 6 °C',D2:'Frío · continental: 6 o más meses < 6 °C, gran amplitud',E:'Polar: mes más cálido < 10 °C',F1:'Desierto cálido: P < 250 mm, ningún mes < 6 °C',F2:'Desierto frío: P < 250 mm, algún mes < 6 °C',G:'De montaña: enclave altitudinal'};
+const KNAME={Af:'Ecuatorial',Am:'Tropical monzónico',Aw:'Tropical de sabana',BWh:'Desértico cálido',BWk:'Desértico frío',BSh:'Estepario cálido',BSk:'Estepario frío',Csa:'Mediterráneo de verano cálido',Csb:'Mediterráneo de verano templado',Csc:'Mediterráneo de verano fresco',Cwa:'Subtropical con invierno seco',Cwb:'Templado de altura con invierno seco',Cwc:'Templado frío de altura con invierno seco',Cfa:'Subtropical húmedo',Cfb:'Oceánico',Cfc:'Oceánico subpolar',Dsa:'Continental de verano seco y cálido',Dsb:'Continental de verano seco y templado',Dsc:'Subártico de verano seco',Dsd:'Subártico de verano seco e invierno extremo',Dwa:'Continental de invierno seco y verano cálido',Dwb:'Continental de invierno seco y verano templado',Dwc:'Subártico de invierno seco',Dwd:'Subártico de invierno seco y extremo',Dfa:'Continental húmedo de verano cálido',Dfb:'Continental húmedo de verano templado',Dfc:'Subártico',Dfd:'Subártico de invierno extremo',ET:'Tundra',EF:'Hielos perpetuos'};
+const PER={'9120':'1991–2020','6190':'1961–1990'};
+const B=[[-85.0511,-180],[85.0511,180]];
+const st={cls:'miller',pk:'9120',op:.75};
+let overlay=null,meta=null;const pix={};
+const url=()=>'data/clima/'+st.cls+'_'+st.pk+'_terraclimate.png?v=2026-10-20';
+function loadPixels(u){
+ if(pix[u])return pix[u];
+ pix[u]=new Promise((ok,ko)=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);ok({w:c.width,h:c.height,d:x.getImageData(0,0,c.width,c.height).data})};im.onerror=()=>{delete pix[u];ko(Error('No se pudo cargar '+u))};im.src=u});
+ return pix[u];
+}
+let cache=null;
+function classAt(lat,lon){
+ if(!cache||Math.abs(lat)>85.05)return null;
+ const {w,h,d}=cache,x=Math.min(w-1,Math.max(0,Math.floor((lon+180)/360*w)));
+ const r=lat*Math.PI/180,y=Math.min(h-1,Math.max(0,Math.floor((1-Math.log(Math.tan(Math.PI/4+r/2))/Math.PI)/2*h)));
+ const i=(y*w+x)*4;if(d[i+3]<128)return null;
+ const hex='#'+[d[i],d[i+1],d[i+2]].map(v=>v.toString(16).padStart(2,'0')).join('');
+ const cols=st.cls==='miller'?MCOL:KCOL;let best=null,bd=1e9;
+ for(const [k,c] of Object.entries(cols)){const e=[1,3,5].map(j=>parseInt(c.substr(j,2),16));const dd=Math.abs(e[0]-d[i])+Math.abs(e[1]-d[i+1])+Math.abs(e[2]-d[i+2]);if(dd<bd){bd=dd;best=k}}
+ return bd<=12?best:null;
+}
+async function refresh(){
+ const on=$('anClimaMapCheck')?.checked;
+ const opts=document.querySelector('.anClimaMapOpts');if(opts)opts.style.display=on?'block':'none';
+ if(!on){if(overlay)map.removeLayer(overlay);overlay=null;cache=null;legend(false);try{renderActiveSources()}catch(_){}return}
+ if(!map.getPane('anClimaMapPane')){const p=map.createPane('anClimaMapPane');p.style.zIndex=420;p.style.pointerEvents='none'}
+ const u=url();
+ if(overlay){overlay.setUrl(u);overlay.setOpacity(st.op)}else overlay=L.imageOverlay(u,B,{opacity:st.op,pane:'anClimaMapPane',interactive:false,className:'anClimaMapImg'}).addTo(map);
+ try{cache=await loadPixels(u)}catch(e){cache=null;console.warn(e)}
+ if(!meta){try{meta=await (await fetch('data/clima/mapas_clima_meta.json?v=2026-10-20')).json()}catch(_){}}
+ legend(true);try{renderActiveSources()}catch(_){}
+ syncGlobe();
+}
+function legend(show){
+ const el=$('anClimaMapLegend');if(!el)return;if(!show){el.style.display='none';return}
+ const order=st.cls==='miller'?MORDER.filter(k=>k!=='G'):KORDER,cols=st.cls==='miller'?MCOL:KCOL,stats=meta?.stats?.[st.cls+'_'+st.pk]||{};
+ el.innerHTML='<b>'+(st.cls==='miller'?'Miller':'Köppen-Geiger')+' · '+PER[st.pk]+'</b><br>'+order.filter(k=>!meta||stats[k]).map(k=>'<span class="it" title="'+esc(st.cls==='miller'?MDESC[k]:KNAME[k])+'"><span class="sw" style="border-radius:2px;background:'+cols[k]+'"></span>'+k+' · '+esc(st.cls==='miller'?MDESC[k].split(':')[0]:KNAME[k])+'</span>').join('<br>')+
+ (st.cls==='miller'?'<small class="anClimaSrcNote"><b>G (montaña)</b> no se pinta: Miller no fija un umbral numérico y la malla no incluye la altitud. Al pulsar en el mapa, ANAMBRO lo valora con la altitud del punto (≥ 1.500 m).</small>':'')+
+ '<small class="anClimaSrcNote">Cálculo de ANAMBRO con las normales de <a href="https://www.climatologylab.org/terraclimate.html" target="_blank" rel="noopener">TerraClimate</a> (Abatzoglou et al., 2018; dominio público) agregadas a 1/6° (≈ 18 km). Son datos interpolados: a escala insular (Canarias) usa mejor las estaciones de AEMET.</small>';
+ el.style.display='block';
+}
+let globeLayer=null;
+function syncGlobe(){
+ try{
+  if(typeof globeViewer==='undefined'||!globeViewer||!window.Cesium)return;
+  if(globeLayer){globeViewer.imageryLayers.remove(globeLayer,true);globeLayer=null}
+  if(!$('anClimaMapCheck')?.checked)return;
+  const prov=new Cesium.SingleTileImageryProvider({url:url(),rectangle:Cesium.Rectangle.fromDegrees(-180,-85.0511,180,85.0511),tilingScheme:new Cesium.WebMercatorTilingScheme(),tileWidth:2160,tileHeight:2160});
+  globeLayer=globeViewer.imageryLayers.addImageryProvider(prov);globeLayer.alpha=st.op;globeViewer.scene.requestRender();
+ }catch(e){console.warn('ANAMBRO · mapamundi climático en el globo',e)}
+}
+/* ficha del punto: se añade al final de la ficha geográfica habitual */
+function pointExtra(lat,lon,altText){
+ if(!$('anClimaMapCheck')?.checked||!cache)return '';
+ let k=classAt(lat,lon);if(!k)return '<hr><b>🗺️ '+(st.cls==='miller'?'Miller':'Köppen-Geiger')+' (TerraClimate '+PER[st.pk]+'):</b> sin dato en este punto';
+ let h='<hr><b>🗺️ Clima de '+(st.cls==='miller'?'Miller':'Köppen-Geiger')+' · '+PER[st.pk]+':</b> <span style="display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;background:'+(st.cls==='miller'?MCOL:KCOL)[k]+';border:1px solid #0004"></span> <b>'+k+'</b> · '+esc(st.cls==='miller'?MDESC[k]:KNAME[k]);
+ if(st.cls==='miller'){const z=parseInt(String(altText||'').replace(/\./g,''),10);if(Number.isFinite(z)&&z>=1500&&k!=='E')h+='<br><small>A '+z.toLocaleString('es-ES')+' m: por su altitud, Miller lo situaría en <b>G · clima de montaña</b> (criterio operativo de ANAMBRO: ≥ 1.500 m).</small>'}
+ h+='<br><small style="color:#556">Cálculo de ANAMBRO · TerraClimate (malla de ≈ 18 km, datos interpolados).</small>';
+ try{const db=window.anambroClima?.db;if(db){let best=null,bd=1e9;const cl=Math.cos(lat*Math.PI/180);for(const s of db.s){if(!s.p['9120'])continue;const dx=(s.lo-lon)*cl,dy=s.la-lat,d=dx*dx+dy*dy;if(d<bd){bd=d;best=s}}if(best){const km=Math.sqrt(bd)*111.2;if(km<300)h+='<br><small>Estación con normales más próxima: <a href="#" onclick="window.anambroClima.openStation(window.anambroClima.db.s['+best._i+'],\'9120\');return false">'+esc(best.n)+'</a> ('+Math.round(km)+' km)</small>'}}}catch(_){}
+ return h;
+}
+function install(){
+ const cb=$('worldClimateCheck');if(!cb||$('anClimaMapCheck'))return;
+ const det=cb.closest('details.layerSubcategory');if(!det)return;
+ const w=document.createElement('div');w.style.cssText='margin-top:8px;padding-top:7px;border-top:1px solid #dde4e8';
+ w.innerHTML='<label><input id="anClimaMapCheck" type="checkbox"/> <b>Climas del mundo · Miller y Köppen calculados (TerraClimate)</b></label><div class="layerSubBlock anClimaBlock"><small>Mapamundi calculado por ANAMBRO con las mismas reglas que las fichas de las estaciones, para los dos periodos de referencia.</small><div class="anClimaMapOpts" style="display:none">'+
+ '<div class="anClimaRow"><small><b>Clasificación</b></small><select id="anClimaMapCls"><option value="miller">Miller</option><option value="koppen">Köppen-Geiger</option></select></div>'+
+ '<div class="anClimaRow"><small><b>Periodo</b></small><select id="anClimaMapPer"><option value="9120">1991–2020</option><option value="6190">1961–1990</option></select></div>'+
+ '<small><b>Opacidad</b> <span id="anClimaMapOpVal">75 %</span></small><input id="anClimaMapOp" type="range" min="0" max="1" step="0.05" value="0.75" style="width:100%"/>'+
+ '<div class="anClimaLegend" id="anClimaMapLegend" style="display:none"></div></div></div>';
+ const anchor=det.querySelector('.anClimaScope');det.insertBefore(w,anchor||null);
+ $('anClimaMapCheck').addEventListener('change',refresh);
+ $('anClimaMapCls').addEventListener('change',e=>{st.cls=e.target.value;refresh()});
+ $('anClimaMapPer').addEventListener('change',e=>{st.pk=e.target.value;refresh()});
+ $('anClimaMapOp').addEventListener('input',e=>{st.op=+e.target.value;$('anClimaMapOpVal').textContent=Math.round(st.op*100)+' %';overlay?.setOpacity(st.op);if(globeLayer){globeLayer.alpha=st.op;globeViewer.scene.requestRender()}});
+ try{if(typeof pointHtml==='function'&&!pointHtml.__anClima){const old=pointHtml;const f=function(lat,lon,title,altText){return old.apply(this,arguments)+pointExtra(lat,lon,altText)};f.__anClima=true;pointHtml=f}}catch(e){console.warn(e)}
+ try{if(typeof ANAMBRO_SOURCES!=='undefined')ANAMBRO_SOURCES.terraclimate={short:'TerraClimate (Abatzoglou et al., 2018) · dominio público · Miller y Köppen calculados por ANAMBRO'};
+  if(typeof activeSourceKeys==='function'&&!activeSourceKeys.__anClimaMap){const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if($('anClimaMapCheck')?.checked)r.push('terraclimate');return [...new Set(r)]};f.__anClimaMap=true;f.__anClima=old.__anClima;activeSourceKeys=f}}catch(e){console.warn(e)}
+ try{if(typeof ensureGlobe==='function'&&!ensureGlobe.__anClimaMap){const old=ensureGlobe;const f=async function(){const r=await old.apply(this,arguments);setTimeout(syncGlobe,60);return r};f.__anClimaMap=true;f.__anClima=old.__anClima;ensureGlobe=f}}catch(e){console.warn(e)}
+}
+window.anambroClimaMap={refresh,classAt,state:st};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+
+</script>
 </body>
 </html>
