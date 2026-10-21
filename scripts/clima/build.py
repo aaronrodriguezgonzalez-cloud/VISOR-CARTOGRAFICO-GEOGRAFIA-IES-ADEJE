@@ -14,14 +14,28 @@ WMO_CC = {
  'guinea_bissau':'GW','hong_kong_china':'HK','macau_china':'MO','rep._korea':'KR','russian_federation_(in_asia)':'RU','russian_federation_(in_europe)':'RU',
  'st._kitts_and_nevis':'KN','turkiye':'TR','iran':'IR','laos':'LA','syria':'SY','tanzania':'TZ','venezuela':'VE','moldova':'MD','czech_republic':'CZ',
  'united_states':'US','united_kingdom':'GB','myanmar':'MM','saint_lucia':'LC','cayman_islands':'KY','bermuda':'BM'}
+import re as _re
+_L=lambda x:_re.sub(r'[^a-z]','',unicodedata.normalize('NFKD',str(x)).encode('ascii','ignore').decode().lower())
+EN_L={_L(v):k for k,v in EN.items() if len(k)==2}
+MAN={'bosniaandherzegovina':'BA','trinidadandtobago':'TT','antiguaandbarbuda':'AG','stvincentandthegrenadines':'VC','saotomeandprincipe':'ST','korea':'KR','repkorea':'KR','republicofkorea':'KR','uae':'AE','unitedarabemirates':'AE','russianfederation':'RU','russianfederationinasia':'RU','russianfederationineurope':'RU','iran':'IR','iranislamicrepublicof':'IR','laos':'LA','syria':'SY','syrianarabrepublic':'SY','caboverde':'CV','caboverderepublic':'CV','capeverde':'CV','cotedivoire':'CI','hongkongchina':'HK','hongkong':'HK','macaochina':'MO','macauchina':'MO','republicofcongo':'CG','congo':'CG','curacaoandsintmaarten':'CW','curacaoasmaarten':'CW','turkiye':'TR','turkey':'TR','stkittsandnevis':'KN','bruneidarussalam':'BN','czechrepublic':'CZ','moldova':'MD','republicofmoldova':'MD','tanzania':'TZ','unitedrepublicoftanzania':'TZ','venezuela':'VE','bosniaandherzegovinarepublicofsrpska':'BA','bosniaandherzegovinasrpska':'BA','denmarkfaroeislands':'FO','denmarkgreenland':'GL','unitedstates':'US','unitedstatesofamerica':'US','unitedkingdom':'GB','demrepcongo':'CD','democraticrepublicofthecongo':'CD','frpolynesia':'PF','frenchpolynesia':'PF','guineabissau':'GW','myanmar':'MM','vietnam':'VN','libyanarabjamahiriya':'LY','libya':'LY','afghanistanislamicstateof':'AF','koreademocraticpeoplesrepublicof':'KP','laopeoplesdemocraticrepublic':'LA','russia':'RU','gambia':'GM','bahamas':'BS','micronesia':'FM','macedonia':'MK','yugoslavia':'RS','serbiaandmontenegro':'RS','czechoslovakia':'CZ','ussr':'RU','vietnamsocialistrepublicof':'VN','unitedrepublicoftanzania':'TZ','saintlucia':'LC','eswatini':'SZ','swaziland':'SZ'}
 def cc_from_name(n):
-    k = n.strip().lower().replace(' ', '_')
-    if k in WMO_CC: return WMO_CC[k]
-    k2 = k.replace('_', ' ')
-    if k2 in EN_REV: return EN_REV[k2]
-    for name, code in EN_REV.items():
-        if name.startswith(k2): return code
+    if not n: return None
+    raw=str(n)
+    if 'ANTARCTIC' in raw.upper(): return 'AQ'
+    base=_re.sub(r'\(.*?\)','',raw)
+    for cand in (raw,base,base.split(',')[0]):
+        k=_L(cand)
+        if not k: continue
+        if k in MAN: return MAN[k]
+        if k in EN_L: return EN_L[k]
+    k=_L(base.split(',')[0])
+    for name,code in EN_L.items():
+        if k and (name.startswith(k) or k.startswith(name)) and len(name)>3: return code
     return None
+NCDC={}
+for _l in open(R+'/n6190/CTRYCOD1.TXT',encoding='latin1'):
+    _m=_re.match(r'\s+([A-Z0-9]{2})\s{2,}(.+?)\s*$',_l)
+    if _m: NCDC[_m[1]]=_m[2]
 
 SMALL = {'de','del','la','las','los','el','y','e','en','da','do','dos','das','di','du','des','le','les','van','von','der','den','al','a','und','sur','sul'}
 def nice(s):
@@ -245,7 +259,7 @@ for k, r in recs.items():
         if not m.get('ll'): cnt['sin coord'] += 1; continue
         ccn = m.get('cty', '')
         msn = MS.get(wmo, {}).get('name', {}).get('en')
-        station(key, n=msn or nice(m.get('name') or wmo), c=MS.get(wmo, {}).get('country') or cc_from_name(ccn.title()) , la=round(m['ll'][0], 4), lo=round(m['ll'][1], 4), z=m.get('z'), w=wmo)
+        station(key, n=msn or nice(m.get('name') or wmo), c=MS.get(wmo, {}).get('country') or cc_from_name(NCDC.get(k[1:3], ccn)) , la=round(m['ll'][0], 4), lo=round(m['ll'][1], 4), z=m.get('z'), w=wmo)
         cnt['nueva'] += 1
     stations[key]['p']['6190'] = per
     cnt['ok'] += 1
