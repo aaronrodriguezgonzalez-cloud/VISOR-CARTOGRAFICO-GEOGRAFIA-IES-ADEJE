@@ -1,0 +1,59 @@
+# ANAMBRO · Tiempo en directo
+# Cada 30 minutos descarga las observaciones y productos meteorológicos (AEMET, NOAA, NHC, GDACS)
+# y publica la web en GitHub Pages con los datos frescos en data/tiempo/.
+# También publica la web cada vez que se sube un cambio al repositorio.
+# Requisitos (una sola vez): secreto AEMET_API_KEY y Settings → Pages → Source: «GitHub Actions».
+name: Tiempo en directo
+
+on:
+  schedule:
+    - cron: '8,38 * * * *'
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: scripts/tiempo/requirements.txt
+      - name: Instalar dependencias
+        run: pip install -r scripts/tiempo/requirements.txt
+      - name: Preparar la web
+        run: |
+          mkdir -p _site
+          rsync -a --exclude '.git' --exclude '.github' --exclude '_site' ./ _site/
+      - name: Descargar el tiempo en directo
+        env:
+          AEMET_API_KEY: ${{ secrets.AEMET_API_KEY }}
+          OUT: _site/data/tiempo
+          SITE_URL: https://anambro.es
+        run: python scripts/tiempo/actualizar.py
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
