@@ -2871,6 +2871,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
           <li><b>Territorio:</b> municipios, Espacios Naturales Protegidos y consulta territorial interactiva.</li>
           <li><b>Patrimonio:</b> BIC, zonas arqueológicas, paleontología, esculturas y espacios culturales. Además, el inventario arqueológico de La Palma (Cabildo Insular) y, en Gran Canaria, las capas del Paisaje Cultural de Risco Caído y los Espacios Sagrados de Montaña (manifestaciones rupestres, arqueoastronomía y poblamiento), con información al pulsar sobre los elementos.</li>
           <li><b>Geografía física:</b> geología GEODE, climas Köppen-Geiger, vegetación actual y potencial GRAFCAN, altimetría y perfiles.</li>
+          <li><b>Atlas Climático de Canarias (nuevo):</b> temperatura, precipitación, humedad y Köppen oficial 1991–2020 de las siete islas a 100 m (ULPGC / Gobierno de Canarias), con consulta de valores en cualquier punto.</li>
           <li><b>Clima de las estaciones (nuevo):</b> normales 1991–2020 y 1961–1990 de AEMET y la OMM con <b>climograma modelo PAU</b> (P = 2T), temperaturas máximas y mínimas, horas de sol, humedad y días de lluvia, <b>clasificación de Köppen y de Miller razonada</b>, comparación de periodos y exportación a JPG, PDF y Excel.</li>
           <li><b>Atlas ISTAC:</b> cartografía estadística por municipios y secciones censales, con indicadores, años, leyenda y consulta espacial.</li>
           <li><b>Trabajo de campo y aula:</b> GPS, coordenadas, topónimos, mediciones, perfiles, tracks GPX/KML, creación de tracks y exportación.</li>
@@ -3686,6 +3687,8 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
   <details open><summary>🇪🇸 Cartografía y datos de España</summary>
     <div class="sourceItem sourceOk"><b>IGN / CNIG</b> · MTN, PNOA, IGN Base, NGBE, CartoCiudad, límites, MDT25 y servicios IDEE de elevación.<br><small>ANAMBRO utiliza MDT25 / servicios de elevación IGN-CNIG para altitudes y perfiles en España y Canarias. Licencia de uso compatible con CC BY 4.0; los productos derivados mantienen la atribución al IGN/CNIG y no sugieren respaldo institucional.</small><br><a href="https://www.ign.es/web/politica-datos" target="_blank" rel="noopener">Política de datos IGN</a></div>
     <div class="sourceItem sourceOk"><b>AEMET · Agencia Estatal de Meteorología</b> · valores climatológicos normales 1991–2020 de las estaciones de España y Canarias (AEMET OpenData): temperaturas, precipitación, días de lluvia, insolación y humedad.<br><small>© AEMET. Autorizado el uso de la información y su reproducción citando a AEMET como autora de la misma. ANAMBRO solo incluye las estaciones con los 12 meses de temperatura y precipitación calculados por AEMET.</small><br><a href="https://opendata.aemet.es" target="_blank" rel="noopener">AEMET OpenData</a> · <a href="https://www.aemet.es/es/nota_legal" target="_blank" rel="noopener">Nota legal</a></div>
+    <div class="sourceItem sourceOk"><b>Cabildo de Tenerife · red agrometeorológica AgroCabildo</b> · datos diarios de temperatura, precipitación y humedad de sus estaciones de Tenerife, con los que ANAMBRO calcula normales provisionales 1991–2020 (solo con los años disponibles dentro del periodo).<br><small>Datos abiertos del Cabildo de Tenerife, CC BY 4.0.</small><br><a href="https://datos.tenerife.es" target="_blank" rel="noopener">datos.tenerife.es</a></div>
+    <div class="sourceItem sourceOk"><b>Atlas Climático Interactivo de Canarias</b> · temperatura media, máxima y mínima, precipitación, humedad relativa y clasificación de Köppen-Geiger 1991–2020 de las siete islas a 100 m (capa «Atlas Climático de Canarias» y consulta por punto).<br><small>P. L. Mayer Suárez, Á. L. de Luque Söllheim y F. García Hernández · Grupo de Geografía Física y Medio Ambiente, Universidad de Las Palmas de Gran Canaria, para la Consejería de Transición Ecológica del Gobierno de Canarias (2022). Datos abiertos del SITCAN, reutilizables citando la fuente. ANAMBRO agrega los mapas a ~200 m para el visor.</small><br><a href="https://opendata.sitcan.es/dataset/atlas-climatico-de-canarias-canarias" target="_blank" rel="noopener">SITCAN · Atlas Climático de Canarias</a> · <a href="https://www.idecanarias.es/resources/_ATLAS_CLIMA/Informe-atlas-metodologia_15_12_2022.pdf" target="_blank" rel="noopener">Metodología</a></div>
     <div class="sourceItem sourceOk"><b>IGME-CSIC</b> · GEODE y cartografía geológica.<br><small>Reutilización comercial y no comercial permitida con cita de origen y conservación de los metadatos aplicables.</small><br><a href="https://info.igme.es/ISE/doc/LICENCIA_USO_IGME.pdf" target="_blank" rel="noopener">Licencia de uso IGME</a></div>
     <div class="sourceItem sourceOk"><b>MITECO</b> · Mapa Forestal de España y vegetación potencial.<br><small>Reutilización, modificación y combinación autorizadas citando el origen y la fecha de actualización cuando exista.</small><br><a href="https://www.datosabiertos.miteco.gob.es/es/aviso-legal.html" target="_blank" rel="noopener">Condiciones de reutilización MITECO</a></div>
     <div class="sourceItem sourceOk"><b>Gobierno de Canarias · Historia y Patrimonio de Canarias</b> · referencia historiográfica para la capa «Organización territorial indígena».<br><small>Los límites interiores se representan como reconstrucciones aproximadas; la costa procede de cartografía geográfica y no del croquis histórico.</small></div>
@@ -27468,7 +27471,7 @@ function smoothPath(pts){
 }
 function srcLine(s,per){
  const src=DB?.src?.[per.src]||{};const yrs=per.y?' · años '+per.y:(per.n&&per.n<30?' · '+per.n+' años con datos':'');
- const extra=per.src==='OMM'?'OMM vía NOAA NCEI':per.src==='AEMET'?'AEMET OpenData':'Meteostat';
+ const extra={OMM:'OMM vía NOAA NCEI',AEMET:'AEMET OpenData',AEMETc:'series de AEMET OpenData (normal calculada por ANAMBRO)',CAB:'AgroCabildo · Cabildo de Tenerife (normal provisional calculada por ANAMBRO)',MS:'Meteostat'}[per.src]||per.src;
  return 'Fuente de los datos: '+extra+' · normales '+PERIODS[per._pk]+yrs+' · '+(src.u||'').replace(/^https?:\/\//,'');
 }
 function climogramSVG(s,pk,opt={}){
@@ -27734,7 +27737,7 @@ const SYM={
  tm:{label:'Temperatura media anual (ºC)',val:p=>mean(p.T),min:-20,max:30,stops:['#313695','#4575b4','#74add1','#abd9e9','#ffffbf','#fdae61','#f46d43','#d73027','#a50026']},
  p:{label:'Precipitación anual (mm)',val:p=>sum(p.P),min:0,max:3000,log:true,stops:['#8c510a','#d8b365','#f6e8c3','#c7eae5','#5ab4ac','#01665e','#003c30']},
  amp:{label:'Amplitud térmica anual (ºC)',val:p=>Math.max(...p.T)-Math.min(...p.T),min:0,max:50,stops:['#1a9850','#91cf60','#d9ef8b','#fee08b','#fc8d59','#d73027']},
- src:{label:'Fuente de los datos',color:p=>({OMM:'#1f77b4',AEMET:'#d62728',MS:'#9467bd'})[p.src]||'#888',cls:p=>({OMM:'OMM (NOAA)',AEMET:'AEMET',MS:'Meteostat (secundaria)'})[p.src]}
+ src:{label:'Fuente de los datos',color:p=>({OMM:'#1f77b4',AEMET:'#d62728',AEMETc:'#ff7f0e',CAB:'#2ca02c',MS:'#9467bd'})[p.src]||'#888',cls:p=>({OMM:'OMM (NOAA)',AEMET:'AEMET',AEMETc:'AEMET · calculada por ANAMBRO',CAB:'AgroCabildo (Tenerife)',MS:'Meteostat (secundaria)'})[p.src]}
 };
 function colorOf(p){const S=SYM[state.sym];if(S.color)return S.color(p);let v=S.val(p);let t=S.log?Math.log10(Math.max(10,v)/10)/Math.log10(S.max/10):(v-S.min)/(S.max-S.min);return ramp(S.stops,t)}
 async function refresh(){
@@ -27748,8 +27751,8 @@ async function refresh(){
  if(layer)layer.clearLayers();else layer=L.layerGroup();
  let n=0;const pk=state.pk,list=[];
  for(const s of DB.s){const p=s.p[pk];if(!p||!inScope(s))continue;list.push(s);
-  const mk=L.circleMarker([s.la,s.lo],{renderer,pane:'anClimaPane',radius:map.getZoom()>=7?7:5,weight:1,color:'#1b1b1b',fillColor:colorOf(p),fillOpacity:.92,bubblingMouseEvents:false});
-  mk.bindTooltip(()=>'<b>'+esc(s.n)+'</b>'+(s.cn?' · '+esc(s.cn):'')+'<br>'+fmt(mean(p.T))+' ºC · '+fmt(sum(p.P),0)+' mm · '+p._k.code+' · Miller '+p._m.code+(p._pau?' · PAU: '+p._pau.code:'')+(p._bio?' · '+p._bio.name:'')+'<br><small>'+PERIODS[pk]+' · '+({OMM:'OMM',AEMET:'AEMET',MS:'Meteostat'})[p.src]+' · pulsa para ver la ficha</small>',{direction:'top',sticky:false,opacity:.95});
+  const mk=L.circleMarker([s.la,s.lo],{renderer,pane:'anClimaPane',radius:map.getZoom()>=7?7:5,weight:p.n&&p.n<24?2.2:1,color:p.n&&p.n<24?'#555':'#1b1b1b',dashArray:p.n&&p.n<24?'2 2':null,fillColor:colorOf(p),fillOpacity:p.n&&p.n<24?.6:.92,bubblingMouseEvents:false});
+  mk.bindTooltip(()=>'<b>'+esc(s.n)+'</b>'+(s.cn?' · '+esc(s.cn):'')+'<br>'+fmt(mean(p.T))+' ºC · '+fmt(sum(p.P),0)+' mm · '+p._k.code+' · Miller '+p._m.code+(p._pau?' · PAU: '+p._pau.code:'')+(p._bio?' · '+p._bio.name:'')+'<br><small>'+PERIODS[pk]+' · '+({OMM:'OMM',AEMET:'AEMET',AEMETc:'AEMET (calc. ANAMBRO)',CAB:'AgroCabildo',MS:'Meteostat'})[p.src]+(p.n&&p.n<24?' · provisional ('+p.n+' años)':'')+' · pulsa para ver la ficha</small>',{direction:'top',sticky:false,opacity:.95});
   mk.on('click',e=>{L.DomEvent.stopPropagation(e);openStation(s,pk)});
   layer.addLayer(mk);n++}
  if(!map.hasLayer(layer))layer.addTo(map);
@@ -27762,12 +27765,13 @@ function legend(list){
  if(list&&list.length){
   if(S.cls){const cnt=new Map();for(const s of list){const p=s.p[state.pk];const c=S.cls(p);cnt.set(c,(cnt.get(c)||0)+1)}
    const order=state.sym==='koppen'?KORDER:state.sym==='miller'?MORDER:state.sym==='pau'?[...PAU_TYPES.map(t=>t.k),'Fuera del ámbito']:state.sym==='bio'?[...BIO_T.map(t=>t[0]),'Sin máximas y mínimas','Fuera del ámbito']:[...cnt.keys()];
-   h+=order.filter(c=>cnt.has(c)).map(c=>{const col=c==='Fuera del ámbito'||c==='Sin máximas y mínimas'?'#c9ced3':state.sym==='pau'?PAU_COL[c]:state.sym==='bio'?BIO_COL[c]:state.sym==='koppen'?KCOL[c]:state.sym==='miller'?MCOL[c]:SYM.src.color({src:{'OMM (NOAA)':'OMM','AEMET':'AEMET','Meteostat (secundaria)':'MS'}[c]});const nm=state.sym==='koppen'?KNAME[c]:state.sym==='miller'?MNAME[c]:state.sym==='pau'?(PAU_TYPES.find(t=>t.k===c)?.geo||''):'';return '<span class="it" title="'+esc(nm)+'"><span class="sw" style="background:'+col+'"></span>'+esc(c)+(nm?' · '+esc(nm):'')+' ('+cnt.get(c)+')</span>'}).join('<br>');
+   h+=order.filter(c=>cnt.has(c)).map(c=>{const col=c==='Fuera del ámbito'||c==='Sin máximas y mínimas'?'#c9ced3':state.sym==='pau'?PAU_COL[c]:state.sym==='bio'?BIO_COL[c]:state.sym==='koppen'?KCOL[c]:state.sym==='miller'?MCOL[c]:SYM.src.color({src:{'OMM (NOAA)':'OMM','AEMET':'AEMET','Meteostat (secundaria)':'MS','AEMET · calculada por ANAMBRO':'AEMETc','AgroCabildo (Tenerife)':'CAB'}[c]});const nm=state.sym==='koppen'?KNAME[c]:state.sym==='miller'?MNAME[c]:state.sym==='pau'?(PAU_TYPES.find(t=>t.k===c)?.geo||''):'';return '<span class="it" title="'+esc(nm)+'"><span class="sw" style="background:'+col+'"></span>'+esc(c)+(nm?' · '+esc(nm):'')+' ('+cnt.get(c)+')</span>'}).join('<br>');
   }else{h+='<div class="grad" style="background:linear-gradient(90deg,'+S.stops.join(',')+')"></div><div class="gradTxt"><span>'+fmt(S.min,0)+'</span><span>'+(S.log?'escala logarítmica':'')+'</span><span>'+fmt(S.max,0)+(S.max===3000?'+':'')+'</span></div>'}
  }
  if(state.sym==='pau')h+='<small class="anClimaSrcNote">Tabla «Climas de la España peninsular» de la Comisión PAU 2025 de Geografía (Distrito Universitario de Canarias), aplicada también a Baleares, Ceuta y Melilla. Fuera de España, en gris.</small>';
  if(state.sym==='bio')h+='<small class="anClimaSrcNote">Pisos bioclimáticos de Rivas-Martínez (índices de termicidad y ombrotérmico), con la correspondencia con los pisos de vegetación de Canarias de del Arco Aguilar et al. Solo Canarias; requiere máximas y mínimas.</small>';
- h+='<small class="anClimaSrcNote">Fuentes: <a href="https://www.ncei.noaa.gov/products/wmo-climate-normals" target="_blank" rel="noopener">OMM · normales climatológicas (NOAA NCEI)</a> · <a href="https://opendata.aemet.es" target="_blank" rel="noopener">© AEMET (OpenData)</a> · <a href="https://meteostat.net" target="_blank" rel="noopener">Meteostat (CC BY-NC 4.0, secundaria)</a>. Clasificaciones, ficha y gráficos: ANAMBRO.</small>';
+ h+='<small class="anClimaSrcNote">Borde discontinuo: normal provisional (menos de 24 años de datos).</small>';
+ h+='<small class="anClimaSrcNote">Fuentes: <a href="https://www.ncei.noaa.gov/products/wmo-climate-normals" target="_blank" rel="noopener">OMM · normales climatológicas (NOAA NCEI)</a> · <a href="https://opendata.aemet.es" target="_blank" rel="noopener">© AEMET (OpenData)</a> · <a href="https://meteostat.net" target="_blank" rel="noopener">Meteostat (CC BY-NC 4.0, secundaria)</a> · <a href="https://datos.tenerife.es" target="_blank" rel="noopener">Cabildo de Tenerife · AgroCabildo (CC BY 4.0)</a>. Clasificaciones, ficha y gráficos: ANAMBRO.</small>';
  document.querySelectorAll('.anClimaLegend').forEach(e=>{e.innerHTML=h;e.style.display=list?'block':'none'});
 }
 function clearGlobe(){try{if(globePts&&typeof globeViewer!=='undefined'&&globeViewer){globeViewer.scene.primitives.remove(globePts);globeViewer.scene.requestRender()}}catch(_){}globePts=null}
@@ -27825,10 +27829,11 @@ function installSources(){
   if(typeof ANAMBRO_SOURCES!=='undefined'){
    ANAMBRO_SOURCES.clima_omm={short:'OMM · normales climatológicas 1991–2020 y 1961–1990 (NOAA NCEI)'};
    ANAMBRO_SOURCES.clima_aemet={short:'© AEMET · valores normales 1991–2020 (AEMET OpenData)'};
+   ANAMBRO_SOURCES.clima_cab={short:'Cabildo de Tenerife · AgroCabildo · datos abiertos CC BY 4.0'};
    ANAMBRO_SOURCES.clima_ms={short:'Meteostat · normales climáticas · CC BY-NC 4.0 (fuente secundaria)'};
   }
   if(typeof activeSourceKeys==='function'&&!activeSourceKeys.__anClima){
-   const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if(anyOn()){const L=lastList()||[];const used=new Set(L.map(s=>s.p[state.pk].src));if(used.has('OMM')||!DB)r.push('clima_omm');if(used.has('AEMET'))r.push('clima_aemet');if(used.has('MS'))r.push('clima_ms')}if(cur&&!$('anClimaFicha')?.classList.contains('hidden')){}return [...new Set(r)]};f.__anClima=true;activeSourceKeys=f;
+   const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if(anyOn()){const L=lastList()||[];const used=new Set(L.map(s=>s.p[state.pk].src));if(used.has('OMM')||!DB)r.push('clima_omm');if(used.has('AEMET')||used.has('AEMETc'))r.push('clima_aemet');if(used.has('CAB'))r.push('clima_cab');if(used.has('MS'))r.push('clima_ms')}if(cur&&!$('anClimaFicha')?.classList.contains('hidden')){}return [...new Set(r)]};f.__anClima=true;activeSourceKeys=f;
   }
  }catch(e){console.warn('ANAMBRO · fuentes de normales climatológicas',e)}
 }
@@ -27982,6 +27987,77 @@ function install(){
  try{if(typeof ensureGlobe==='function'&&!ensureGlobe.__anClimaMap){const old=ensureGlobe;const f=async function(){const r=await old.apply(this,arguments);setTimeout(syncGlobe,60);return r};f.__anClimaMap=true;f.__anClima=old.__anClima;ensureGlobe=f}}catch(e){console.warn(e)}
 }
 window.anambroClimaMap={refresh,classAt,state:st};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+
+</script>
+<script id="anambro-r53-atlas-canarias-js">
+/* ANAMBRO r53 · Atlas Climático de Canarias (ULPGC / Gobierno de Canarias, 2022): capas 1991–2020 a ~200 m
+   y consulta de valores al pulsar en cualquier punto de Canarias. Datos abiertos SITCAN, procesados por ANAMBRO. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const V='?v=2026-10-21b',BASE='data/clima/canarias/';
+const KN={BSh:'Estepario cálido',BSk:'Estepario frío',BWh:'Desértico cálido',Csa:'Templado con verano seco y cálido',Csb:'Templado con verano seco y templado',Dsc:'Continental con verano seco y frío'};
+const st={v:'tm',op:.75};let meta=null,ov=null;const data={};
+const fmt=(v,d)=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+async function getMeta(){if(!meta)meta=await (await fetch(BASE+'atlas_meta.json'+V)).json();return meta}
+function loadData(k){
+ if(data[k])return data[k];
+ data[k]=new Promise((ok,ko)=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);ok({w:c.width,h:c.height,d:x.getImageData(0,0,c.width,c.height).data})};im.onerror=()=>{delete data[k];ko(Error('atlas '+k))};im.src=BASE+'atlas_dato_'+k+'.png'+V});
+ return data[k];
+}
+const ready={};
+function valueAt(k,lat,lon){
+ const g=ready[k],m=meta;if(!g||!m)return null;
+ const [W0,S0,E0,N0]=m.bbox;if(lon<W0||lon>E0||lat<S0||lat>N0)return null;
+ const x=Math.floor((lon-W0)/m.res),y=Math.floor((N0-lat)/m.res);if(x<0||y<0||x>=g.w||y>=g.h)return null;
+ const i=(y*g.w+x)*4;if(g.d[i+2]<128)return null;
+ return ((g.d[i]<<8)|g.d[i+1])-32768;
+}
+function legend(){
+ const el=$('anAtlasLegend');if(!el||!meta)return;const v=meta.vars[st.v];
+ let h='<b>'+esc(v.label)+'</b><br>';
+ if(st.v==='kp')h+=v.classes.map(c=>'<span class="it"><span class="sw" style="border-radius:2px;background:'+v.colors[c]+'"></span>'+c+' · '+esc(KN[c])+'</span>').join('<br>');
+ else h+='<div class="grad" style="background:linear-gradient(90deg,'+v.stops.join(',')+')"></div><div class="gradTxt"><span>'+fmt(v.lo,0)+' '+v.unit+'</span><span>'+(v.log?'escala logarítmica':'')+'</span><span>'+fmt(v.hi,0)+' '+v.unit+'</span></div>';
+ const per=meta.periods?.[st.v];if(per)h+='<small class="anClimaSrcNote">Periodo de cálculo: '+esc([...new Set(Object.values(per))].join(' · '))+'.</small>';
+ h+='<small class="anClimaSrcNote">Fuente: <a href="'+esc(meta.u)+'" target="_blank" rel="noopener">Atlas Climático Interactivo de Canarias</a> (Mayer Suárez, de Luque Söllheim y García Hernández, ULPGC, para el Gobierno de Canarias, 2022). Mapas interpolados a 100 m, agregados por ANAMBRO a ~200 m. Pulsa en el mapa para ver los valores de un punto.</small>';
+ el.innerHTML=h;el.style.display='block';
+}
+async function refresh(){
+ const on=$('anAtlasCheck')?.checked,opt=document.querySelector('.anAtlasOpts');if(opt)opt.style.display=on?'block':'none';
+ if(!on){if(ov)map.removeLayer(ov);ov=null;const el=$('anAtlasLegend');if(el)el.style.display='none';try{renderActiveSources()}catch(_){}return}
+ try{await getMeta()}catch(e){console.warn(e);return}
+ const [W0,S0,E0,N0]=meta.bbox,u=BASE+'atlas_'+st.v+'.png'+V;
+ if(!map.getPane('anAtlasPane')){const p=map.createPane('anAtlasPane');p.style.zIndex=425;p.style.pointerEvents='none'}
+ if(ov){ov.setUrl(u);ov.setOpacity(st.op)}else ov=L.imageOverlay(u,[[S0,W0],[N0,E0]],{opacity:st.op,pane:'anAtlasPane',interactive:false}).addTo(map);
+ legend();try{renderActiveSources()}catch(_){}
+ for(const k of ['tm','tx','tn','p','hr','kp'])loadData(k).then(g=>ready[k]=g).catch(()=>{});
+}
+function pointExtra(lat,lon){
+ if(!$('anAtlasCheck')?.checked||!meta)return '';
+ const tm=valueAt('tm',lat,lon);if(tm==null)return '';
+ const g=k=>valueAt(k,lat,lon),kp=g('kp'),kc=kp?meta.vars.kp.classes[kp-1]:null;
+ return '<hr><b>🌡️ Atlas Climático de Canarias (1991–2020)</b><br>T media anual: <b>'+fmt(tm/10,1)+' ºC</b> (máx. '+fmt(g('tx')/10,1)+' · mín. '+fmt(g('tn')/10,1)+')<br>Precipitación anual: <b>'+fmt(g('p'),0)+' mm</b> · Humedad relativa: '+fmt(g('hr'),0)+' %'+(kc?'<br>Köppen (Atlas): <b>'+kc+'</b> · '+esc(KN[kc]):'')+'<br><small style="color:#556">Valores interpolados del Atlas (ULPGC, 2022) en una celda de ~200 m.</small>';
+}
+function install(){
+ const cb=$('canaryClimateCheck');if(!cb||$('anAtlasCheck'))return;
+ const det=cb.closest('details.layerSubcategory');if(!det)return;
+ const w=document.createElement('div');w.style.cssText='margin-top:8px;padding-top:7px;border-top:1px solid #dde4e8';
+ w.innerHTML='<label><input id="anAtlasCheck" type="checkbox"/> <b>Atlas Climático de Canarias · 1991–2020 (ULPGC)</b></label><div class="layerSubBlock anClimaBlock"><small>Mapas climáticos oficiales de las siete islas a 100 m. Pulsa en el mapa para ver los valores de cualquier punto.</small><div class="anAtlasOpts" style="display:none">'+
+ '<div class="anClimaRow"><small><b>Variable</b></small><select id="anAtlasVar"><option value="tm">Temperatura media anual</option><option value="p">Precipitación anual</option><option value="hr">Humedad relativa media</option><option value="kp">Köppen-Geiger oficial de Canarias</option></select></div>'+
+ '<small><b>Opacidad</b> <span id="anAtlasOpVal">75 %</span></small><input id="anAtlasOp" type="range" min="0" max="1" step="0.05" value="0.75" style="width:100%"/>'+
+ '<div class="anClimaLegend" id="anAtlasLegend" style="display:none"></div></div></div>';
+ const anchor=det.querySelector('.anClimaScope');det.insertBefore(w,anchor||null);
+ $('anAtlasCheck').addEventListener('change',refresh);
+ $('anAtlasVar').addEventListener('change',e=>{st.v=e.target.value;refresh()});
+ $('anAtlasOp').addEventListener('input',e=>{st.op=+e.target.value;$('anAtlasOpVal').textContent=Math.round(st.op*100)+' %';ov?.setOpacity(st.op)});
+ try{if(typeof pointHtml==='function'&&!pointHtml.__anAtlas){const old=pointHtml;const f=function(lat,lon){return old.apply(this,arguments)+pointExtra(lat,lon)};f.__anAtlas=true;f.__anClima=old.__anClima;pointHtml=f}}catch(e){console.warn(e)}
+ try{if(typeof ANAMBRO_SOURCES!=='undefined')ANAMBRO_SOURCES.atlascan={short:'Atlas Climático Interactivo de Canarias · ULPGC / Gobierno de Canarias (2022) · datos abiertos SITCAN'};
+  if(typeof activeSourceKeys==='function'&&!activeSourceKeys.__anAtlas){const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if($('anAtlasCheck')?.checked)r.push('atlascan');return [...new Set(r)]};f.__anAtlas=true;f.__anClima=old.__anClima;f.__anClimaMap=old.__anClimaMap;activeSourceKeys=f}}catch(e){console.warn(e)}
+}
+window.anambroAtlasCanarias={refresh,valueAt,state:st};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 

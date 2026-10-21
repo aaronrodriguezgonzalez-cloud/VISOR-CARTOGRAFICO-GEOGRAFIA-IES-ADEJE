@@ -265,6 +265,34 @@ for k, r in recs.items():
     cnt['ok'] += 1
 print('OMM 6190', cnt)
 
+# ---------- Canarias: normales calculadas por ANAMBRO (series AEMET) y AgroCabildo ----------
+CN = json.load(open(R + '/canarias_normales.json')) if os.path.exists(R + '/canarias_normales.json') else {}
+cnt = collections.Counter()
+for k, c in CN.items():
+    pers = {}
+    for pk, per in c['p'].items():
+        d = mkper(per['src'], T=per.get('T'), Tx=per.get('Tx'), Tn=per.get('Tn'), P=per.get('P'), D=per.get('D'), S=per.get('S'), H=per.get('H'), dthr=per.get('dt'))
+        if d: d['n'] = per['n']; d['y'] = per.get('y'); d['prov'] = per.get('prov', 0); pers[pk] = d
+    if not pers: continue
+    if k.startswith('A'):
+        ind = c['a']; wmo = (c.get('wmo') or '').strip()
+        key = 'W' + wmo.zfill(5) if wmo and ('W' + wmo.zfill(5)) in stations else 'A' + ind
+        s = stations.get(key)
+        lat, lon = dms(c.get('lat') or ''), dms(c.get('lon') or '')
+        if s is None:
+            if lat is None: continue
+            s = station(key, n=nice(c.get('name') or ind), c='ES', la=round(lat, 4), lo=round(lon, 4), z=int(float(c.get('z') or 0)), w=wmo.zfill(5) if wmo else None)
+            s['a'] = ind; s['pr'] = inv.get(ind, {}).get('provincia')
+        for pk, d in pers.items():
+            old = s['p'].get(pk)
+            # la normal oficial de AEMET u OMM se conserva; la calculada por ANAMBRO solo rellena huecos o sustituye a Meteostat
+            if old is None or old.get('src') == 'MS': s['p'][pk] = d; cnt['AEMETc ' + pk] += 1
+    else:
+        key = 'T' + c['cab']
+        s = station(key, n=nice(c['name'].replace('_', ' ')) + (' (' + c['muni'] + ')' if c.get('muni') else ''), c='ES', la=round(c['lat'], 4), lo=round(c['lon'], 4), z=int(c['z']) if c.get('z') is not None else None)
+        s['cab'] = c['cab']; s['pr'] = 'SANTA CRUZ DE TENERIFE'; s['p'].update(pers); cnt['CAB'] += 1
+print('Canarias', cnt)
+
 # ---------- Meteostat (secundaria): rellena periodos que faltan ----------
 cnt = collections.Counter()
 by_wmo = {s.get('w'): k for k, s in stations.items() if s.get('w')}
@@ -308,6 +336,8 @@ out.sort(key=lambda s: (s.get('cn') or '', s['n']))
 src = {
  'OMM': {'t': 'Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI', 'u': 'https://www.ncei.noaa.gov/products/wmo-climate-normals', 'l': 'Datos de los servicios meteorológicos nacionales recopilados por la OMM (WMO-No. 1203); acceso público NOAA NCEI.'},
  'AEMET': {'t': 'AEMET · Agencia Estatal de Meteorología · valores normales 1991-2020 (AEMET OpenData)', 'u': 'https://opendata.aemet.es', 'l': '© AEMET. Autorizado el uso de la información y su reproducción citando a AEMET como autora de la misma.'},
+ 'AEMETc': {'t': 'AEMET · series mensuales (AEMET OpenData); normal calculada por ANAMBRO con los criterios de la OMM', 'u': 'https://opendata.aemet.es', 'l': '© AEMET. Autorizado el uso de la información y su reproducción citando a AEMET como autora de la misma. Normal estándar con ≥ 24 años válidos por mes; provisional con 10–23.'},
+ 'CAB': {'t': 'Cabildo de Tenerife · red agrometeorológica AgroCabildo (datos abiertos)', 'u': 'https://datos.tenerife.es', 'l': 'CC BY 4.0. Normal provisional 1991–2020 calculada por ANAMBRO solo con los años disponibles dentro del periodo (meses con datos completos; regla 11/5 de la OMM para la temperatura).'},
  'MS': {'t': 'Meteostat · normales climáticas (fuente secundaria)', 'u': 'https://meteostat.net', 'l': 'CC BY-NC 4.0. Normales calculadas por Meteostat a partir de datos de NOAA, DWD y otros servicios; Tm = (Tmáx + Tmín)/2.'}}
 data = {'v': '2026-10-20', 'src': src, 's': out}
 json.dump(data, open(OUT + '/normales.json', 'w'), ensure_ascii=False, separators=(',', ':'))
