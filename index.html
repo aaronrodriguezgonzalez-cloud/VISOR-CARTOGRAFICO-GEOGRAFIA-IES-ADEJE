@@ -27243,7 +27243,7 @@ const n=p.querySelectorAll('.libCards .explainCard').length,c=document.getElemen
    Datos: data/clima/normales.json (generado por ANAMBRO a partir de las fuentes citadas). */
 (function(){
 'use strict';
-const DATA_URL='data/clima/normales.json?v=2026-10-21b';
+const DATA_VER='2026-10-21c',DATA_URL='data/clima/normales.json?v='+DATA_VER;
 const PERIODS={'9120':'1991–2020','6190':'1961–1990'};
 const PKS=['9120','6190'];
 const MES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
@@ -27268,7 +27268,7 @@ let DB=null,dbPromise=null;
 function load(){
  if(DB)return Promise.resolve(DB);
  if(!dbPromise)dbPromise=(async()=>{
-  const r=await (window.__anCachedFetch?window.__anCachedFetch(DATA_URL,'anambro-clima-normales-v2',30):fetch(DATA_URL));
+  const r=await (window.__anCachedFetch?window.__anCachedFetch(DATA_URL,'anambro-clima-normales-'+DATA_VER,30):fetch(DATA_URL));
   if(!r.ok)throw Error('No se pudo cargar data/clima/normales.json ('+r.status+')');
   const d=await r.json();
   d.s.forEach((s,i)=>{s._i=i;for(const pk of Object.keys(s.p)){const p=s.p[pk];p._k=koppen(p.T,p.P,s.la);p._m=miller(p.T,p.P,s.la,s.z,s.fw===undefined?NaN:s.fw,s.fe===undefined?NaN:s.fe);p._pau=inPAU(s)?pauClass(p.T,p.P):null;p._bio=isCan(s)?bioclim(p):null;if(isCan(s)&&!p._bio)p._bioNo='Sin máximas y mínimas'}});
