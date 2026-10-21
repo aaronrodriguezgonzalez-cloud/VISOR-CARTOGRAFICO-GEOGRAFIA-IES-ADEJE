@@ -31,18 +31,25 @@ def koppen(T,P,lat):
     res[CD]=np.char.add(np.char.add(G[CD],L2[CD]),L3[CD])
     for k,i in idx.items(): out[res==k]=i
     return out
-def miller(T,P,lat,z=None):
+SUMMER_N=np.array([0,0,0,1,1,1,1,1,1,0,0,0],bool)
+def miller(T,P,lat,z=None,dW=None,dE=None,detail=False):
+    """Miller con base geográfica (ANAMBRO r53b). T,P (12,N); lat (N,); z altitud; dW,dE distancia (km) al océano
+    abierto hacia el oeste y el este a lo largo del paralelo."""
+    N=T.shape[1]
+    if dW is None: dW=np.full(N,np.inf)
+    if dE is None: dE=np.full(N,np.inf)
     S=_halves(lat)
     MAT=T.mean(0);MAP=P.sum(0);Tw=T.max(0);Tc=T.min(0);cold=(T<6).sum(0);amp=Tw-Tc
-    Ps=(P*S).sum(0);big=1e9
-    Psdry=np.where(S,P,big).min(0);Pwwet=np.where(~S,P,-big).max(0);Pdry=P.min(0)
+    aridS=((P<2*T)&S).sum(0); dry60=(P<60).sum(0)
+    west=(dW<=600)&(np.abs(lat)>=25); east=(dE<=600)&(np.abs(lat)<=30)
     thermal=np.where(MAT>=21,'A',np.where(cold==0,'B',np.where(cold<=5,'C','D')))
-    cont=(np.where(MAP>0,Ps/np.maximum(MAP,1e-9),0)>=0.6)|(amp>=25)
-    sub=np.where(thermal=='A',np.where(Pdry>=60,np.where(np.abs(lat)<=10,'A1','A2'),'A3'),
-        np.where(thermal=='B',np.where((Psdry<40)&(Psdry<Pwwet/3),'B1','B2'),
-        np.char.add(thermal,np.where(cont,'2','1'))))
+    A=np.where((np.abs(lat)<=12)&(dry60<=2),'A1',np.where(east&(dry60<=5),'A2','A3'))
+    B=np.where(aridS>=2,'B1',np.where(west&(np.abs(lat)>=35),'C1','B2'))
+    Cc=np.where(west&(amp<18)&((aridS==0)|(MAP>=800)),'C1','C2')
+    D=np.where(west&(amp<25),'D1','D2')
+    sub=np.where(thermal=='A',A,np.where(thermal=='B',B,np.where(thermal=='C',Cc,D)))
     res=np.where(Tw<10,'E',np.where((MAP<250)&(cold<=5),np.where(cold==0,'F1','F2'),sub))
-    if z is not None: res=np.where((z>=1500)&(res!='E'),'G',res)
+    if z is not None: res=np.where((np.asarray(z)>=1500)&(res!='E'),'G',res)
     out=np.full(MAT.shape,-1,np.int16)
     for i,k in enumerate(MORDER): out[res==k]=i
     return out

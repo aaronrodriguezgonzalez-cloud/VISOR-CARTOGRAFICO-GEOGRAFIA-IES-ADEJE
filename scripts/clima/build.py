@@ -299,6 +299,11 @@ for k, s in stations.items():
     c = s.get('c')
     s['cn'] = ES.get(c, c) if c else ''
     out.append(s)
+import sys as _s; _s.path.insert(0,'/home/claude/clima/scripts'); import facades as _FA
+_DW,_DE,_=_FA.load()
+for s in out:
+    w,e=_FA.at(s['la'],s['lo'],_DW,_DE); w=float(w); e=float(e)
+    s['fw']=None if not math.isfinite(w) else int(round(w)); s['fe']=None if not math.isfinite(e) else int(round(e))
 out.sort(key=lambda s: (s.get('cn') or '', s['n']))
 src = {
  'OMM': {'t': 'Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI', 'u': 'https://www.ncei.noaa.gov/products/wmo-climate-normals', 'l': 'Datos de los servicios meteorológicos nacionales recopilados por la OMM (WMO-No. 1203); acceso público NOAA NCEI.'},

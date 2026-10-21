@@ -1,7 +1,8 @@
 # Mapamundis de Miller y Köppen-Geiger a partir de las normales TerraClimate (1/6°), reproyectados a Web Mercator
 import numpy as np, sys, os, json
 from PIL import Image
-sys.path.insert(0, '/home/claude/clima/scripts'); import classify as C
+sys.path.insert(0, '/home/claude/clima/scripts'); import classify as C, facades as FA
+DW, DE, _ = FA.load()
 R = '/home/claude/clima/raw/terraclimate'; OUT = '/home/claude/clima/out/data/clima'
 KCOL = {'Af':'#0000ff','Am':'#0078ff','Aw':'#46aafa','BWh':'#ff0000','BWk':'#ff9696','BSh':'#f5a500','BSk':'#ffdc64','Csa':'#ffff00','Csb':'#c8c800','Csc':'#969600','Cwa':'#96ff96','Cwb':'#64c864','Cwc':'#329632','Cfa':'#c8ff50','Cfb':'#64ff50','Cfc':'#32c800','Dsa':'#ff00ff','Dsb':'#c800c8','Dsc':'#963296','Dsd':'#966496','Dwa':'#aaafff','Dwb':'#5a78dc','Dwc':'#4b50b4','Dwd':'#320087','Dfa':'#00ffff','Dfb':'#37c8ff','Dfc':'#007d7d','Dfd':'#00465f','ET':'#b2b2b2','EF':'#666666'}
 MCOL = {'A1':'#1a7f37','A2':'#3fa34d','A3':'#a7c957','B1':'#f2c14e','B2':'#f78c40','C1':'#4ea8de','C2':'#5e60ce','D1':'#7b2cbf','D2':'#3c096c','E':'#adb5bd','F1':'#e63946','F2':'#f4a3a8','G':'#8d6e63'}
@@ -15,7 +16,7 @@ for pk, (a, b) in {'9120': (1991, 2020), '6190': (1961, 1990)}.items():
     iy, ix = np.nonzero(valid)
     Tv = T[:, iy, ix]; Pv = P[:, iy, ix]; lat = lat_c[iy]
     for name, fn, order, cols in (('koppen', C.koppen, C.KORDER, KCOL), ('miller', C.miller, C.MORDER, MCOL)):
-        cls = fn(Tv, Pv, lat)
+        cls = fn(Tv, Pv, lat) if name == 'koppen' else fn(Tv, Pv, lat, None, DW[iy, ix], DE[iy, ix])
         grid = np.full((H0, W0), 255, np.uint8); grid[iy, ix] = np.where(cls >= 0, cls, 255)
         # Web Mercator (EPSG:3857) entre ±85,0511°
         Hm = 2160; ym = (np.arange(Hm) + .5) / Hm
