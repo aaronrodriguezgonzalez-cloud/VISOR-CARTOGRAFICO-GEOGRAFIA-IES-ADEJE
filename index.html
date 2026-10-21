@@ -27240,7 +27240,7 @@ const n=p.querySelectorAll('.libCards .explainCard').length,c=document.getElemen
    Datos: data/clima/normales.json (generado por ANAMBRO a partir de las fuentes citadas). */
 (function(){
 'use strict';
-const DATA_URL='data/clima/normales.json?v=2026-10-20';
+const DATA_URL='data/clima/normales.json?v=2026-10-21b';
 const PERIODS={'9120':'1991–2020','6190':'1961–1990'};
 const PKS=['9120','6190'];
 const MES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
@@ -27265,10 +27265,10 @@ let DB=null,dbPromise=null;
 function load(){
  if(DB)return Promise.resolve(DB);
  if(!dbPromise)dbPromise=(async()=>{
-  const r=await (window.__anCachedFetch?window.__anCachedFetch(DATA_URL,'anambro-clima-normales-v1',30):fetch(DATA_URL));
+  const r=await (window.__anCachedFetch?window.__anCachedFetch(DATA_URL,'anambro-clima-normales-v2',30):fetch(DATA_URL));
   if(!r.ok)throw Error('No se pudo cargar data/clima/normales.json ('+r.status+')');
   const d=await r.json();
-  d.s.forEach((s,i)=>{s._i=i;for(const pk of Object.keys(s.p)){const p=s.p[pk];p._k=koppen(p.T,p.P,s.la);p._m=miller(p.T,p.P,s.la,s.z,s.fw,s.fe);p._pau=inPAU(s)?pauClass(p.T,p.P):null;p._bio=isCan(s)?bioclim(p):null;if(isCan(s)&&!p._bio)p._bioNo='Sin máximas y mínimas'}});
+  d.s.forEach((s,i)=>{s._i=i;for(const pk of Object.keys(s.p)){const p=s.p[pk];p._k=koppen(p.T,p.P,s.la);p._m=miller(p.T,p.P,s.la,s.z,s.fw===undefined?NaN:s.fw,s.fe===undefined?NaN:s.fe);p._pau=inPAU(s)?pauClass(p.T,p.P):null;p._bio=isCan(s)?bioclim(p):null;if(isCan(s)&&!p._bio)p._bioNo='Sin máximas y mínimas'}});
   DB=d;return d;
  })().catch(e=>{dbPromise=null;throw e});
  return dbPromise;
@@ -27368,7 +27368,7 @@ function miller(T,P,lat,z,fw,fe){
  const aridS=S.filter(m=>P[m]<2*T[m]).length,dry60=P.filter(p=>p<60).length;
  const W=Number.isFinite(fw)?fw:Infinity,E=Number.isFinite(fe)?fe:Infinity;
  const west=W<=FACADE_KM&&alat>=25,east=E<=FACADE_KM&&alat<=30;
- const posTxt=`Posición: ${W===0&&E===0?'en la costa o isla':''}${W===0&&E===0?'':`océano abierto a ${Number.isFinite(W)?fmt(W,0)+' km':'más de 10.000 km'} hacia el oeste y a ${Number.isFinite(E)?fmt(E,0)+' km':'más de 10.000 km'} hacia el este por el paralelo`} · latitud ${fmt(alat,0)}°.`;
+ const posTxt=`Posición: ${W===0&&E===0?'en la costa o isla':''}${W===0&&E===0?'':`océano abierto a ${Number.isFinite(W)?fmt(W,0)+' km':'más de 10.000 km'} hacia el oeste y a ${Number.isFinite(E)?fmt(E,0)+' km':'más de 10.000 km'} hacia el este (sector de ±45°)`} · latitud ${fmt(alat,0)}°.`;
  const st=[`T media anual ${fmt(b.MAT)} °C · P anual ${fmt(b.MAP,0)} mm · mes más cálido ${fmt(b.Tw)} °C · meses con T media &lt; 6 °C: ${cold} · amplitud ${fmt(b.amp)} °C · meses áridos en verano (P &lt; 2T): ${aridS}.`,posTxt];
  let code,extra=null;
  if(b.Tw<10){code='E';st.push(`Mes más cálido &lt; 10 °C (${fmt(b.Tw)} °C): límite térmico del bosque → <b>E</b> polar.`)}
@@ -27378,7 +27378,7 @@ function miller(T,P,lat,z,fw,fe){
   if(b.MAT>=21){
    st.push(`T media anual ≥ 21 °C → <b>A</b> (cálido).`);
    if(alat<=12&&dry60<=2){code='A1';st.push(`Franja ecuatorial (${fmt(alat,0)}° de latitud) y lluvias todo el año (${dry60} meses con menos de 60 mm) → <b>A1</b> ecuatorial.`)}
-   else if(east&&dry60<=5){code='A2';st.push(`Fachada oriental en la zona de los alisios (océano a ${fmt(E,0)} km al este), con estación seca corta (${dry60} meses &lt; 60 mm) → <b>A2</b> tropical marítimo.`)}
+   else if(east&&dry60<=4){code='A2';st.push(`Fachada oriental en la zona de los alisios (océano a ${fmt(E,0)} km al este), con estación seca corta (${dry60} meses &lt; 60 mm) → <b>A2</b> tropical marítimo.`)}
    else{code='A3';st.push(`Estación seca marcada (${dry60} meses &lt; 60 mm)${east?'':' y sin fachada oriental de alisios'} → <b>A3</b> tropical continental (sabana, tipo sudanés).`)}
   }else if(cold===0){
    st.push(`Ningún mes por debajo de 6 °C (sin estación fría) → grupo térmico <b>B</b> (templado cálido).`);
@@ -27395,7 +27395,8 @@ function miller(T,P,lat,z,fw,fe){
    else{code='D2';st.push(`Interior o fachada oriental, con amplitud de ${fmt(b.amp)} °C → <b>D2</b> continental.`)}
   }
  }
- if(Number.isFinite(z)&&z>=MOUNTAIN_M&&code!=='E'){extra=code;st.push(`Estación a ${fmt(z,0)} m de altitud: enclave altitudinal → <b>G</b> clima de montaña (por sus valores le correspondería ${extra}).`);code='G'}
+ if(alat<23.5&&b.MAT<21&&code!=='E'&&code!=='F1'&&code!=='F2'&&!(Number.isFinite(z)&&z>=MOUNTAIN_M)){extra=code;st.push(`Estación en la zona intertropical (${fmt(alat,0)}°) con T media anual de ${fmt(b.MAT)} °C (&lt; 21 °C): a estas latitudes solo la altitud explica un clima templado → <b>G</b> clima de montaña tropical (por sus valores le correspondería ${extra}).`);code='G'}
+ else if(Number.isFinite(z)&&z>=MOUNTAIN_M&&code!=='E'){extra=code;st.push(`Estación a ${fmt(z,0)} m de altitud: enclave altitudinal → <b>G</b> clima de montaña (por sus valores le correspondería ${extra}).`);code='G'}
  st.push(`<i>Criterios de ANAMBRO para automatizar a Miller: grupos térmicos de Miller (21 °C de media anual; meses por debajo de 6 °C; 10 °C en el mes más cálido; 250 mm para los desiertos) y subtipos según la posición geográfica (fachada occidental u oriental a menos de ${fmt(FACADE_KM,0)} km del océano abierto por el paralelo), los vientos dominantes y el régimen climático (meses áridos de Gaussen, amplitud térmica). Montaña: ≥ ${fmt(MOUNTAIN_M,0)} m.</i>`);
  return {code,steps:st,name:MNAME[code],under:extra,cold};
 }
@@ -27897,13 +27898,13 @@ const KORDER=['Af','Am','Aw','BWh','BWk','BSh','BSk','Csa','Csb','Csc','Cwa','Cw
 const MORDER=['A1','A2','A3','B1','B2','C1','C2','D1','D2','E','F1','F2','G'];
 const KCOL={Af:'#0000ff',Am:'#0078ff',Aw:'#46aafa',BWh:'#ff0000',BWk:'#ff9696',BSh:'#f5a500',BSk:'#ffdc64',Csa:'#ffff00',Csb:'#c8c800',Csc:'#969600',Cwa:'#96ff96',Cwb:'#64c864',Cwc:'#329632',Cfa:'#c8ff50',Cfb:'#64ff50',Cfc:'#32c800',Dsa:'#ff00ff',Dsb:'#c800c8',Dsc:'#963296',Dsd:'#966496',Dwa:'#aaafff',Dwb:'#5a78dc',Dwc:'#4b50b4',Dwd:'#320087',Dfa:'#00ffff',Dfb:'#37c8ff',Dfc:'#007d7d',Dfd:'#00465f',ET:'#b2b2b2',EF:'#666666'};
 const MCOL={A1:'#1a7f37',A2:'#3fa34d',A3:'#a7c957',B1:'#f2c14e',B2:'#f78c40',C1:'#4ea8de',C2:'#5e60ce',D1:'#7b2cbf',D2:'#3c096c',E:'#adb5bd',F1:'#e63946',F2:'#f4a3a8',G:'#8d6e63'};
-const MDESC={A1:'Cálido · ecuatorial: T media anual ≥ 21 °C, franja ecuatorial y lluvias todo el año',A2:'Cálido · tropical marítimo: fachada oriental batida por los alisios, estación seca corta',A3:'Cálido · tropical continental: estación seca marcada (sabana)',B1:'Templado cálido · mediterráneo: ningún mes < 6 °C y sequía estival (≥ 2 meses P < 2T)',B2:'Templado cálido · fachada oriental (tipo chino): ningún mes < 6 °C, sin sequía estival',C1:'Templado frío · marítimo: fachada occidental con vientos del oeste y régimen oceánico',C2:'Templado frío · continental: interior o fachada oriental, 1 a 5 meses < 6 °C',D1:'Frío · marítimo: fachada occidental, 6 o más meses < 6 °C',D2:'Frío · continental: interior o fachada oriental, 6 o más meses < 6 °C',E:'Polar: mes más cálido < 10 °C',F1:'Desierto cálido: P < 250 mm, ningún mes < 6 °C',F2:'Desierto frío: P < 250 mm, algún mes < 6 °C',G:'De montaña: enclave altitudinal'};
+const MDESC={A1:'Cálido · ecuatorial: T media anual ≥ 21 °C, franja ecuatorial y lluvias todo el año',A2:'Cálido · tropical marítimo: fachada oriental batida por los alisios, estación seca corta',A3:'Cálido · tropical continental: estación seca marcada (sabana)',B1:'Templado cálido · mediterráneo: ningún mes < 6 °C y sequía estival (≥ 2 meses P < 2T)',B2:'Templado cálido · fachada oriental (tipo chino): ningún mes < 6 °C, sin sequía estival',C1:'Templado frío · marítimo: fachada occidental con vientos del oeste y régimen oceánico',C2:'Templado frío · continental: interior o fachada oriental, 1 a 5 meses < 6 °C',D1:'Frío · marítimo: fachada occidental, 6 o más meses < 6 °C',D2:'Frío · continental: interior o fachada oriental, 6 o más meses < 6 °C',E:'Polar: mes más cálido < 10 °C',F1:'Desierto cálido: P < 250 mm, ningún mes < 6 °C',F2:'Desierto frío: P < 250 mm, algún mes < 6 °C',G:'De montaña: enclave altitudinal (en la zona intertropical, T media anual < 21 °C)'};
 const KNAME={Af:'Ecuatorial',Am:'Tropical monzónico',Aw:'Tropical de sabana',BWh:'Desértico cálido',BWk:'Desértico frío',BSh:'Estepario cálido',BSk:'Estepario frío',Csa:'Mediterráneo de verano cálido',Csb:'Mediterráneo de verano templado',Csc:'Mediterráneo de verano fresco',Cwa:'Subtropical con invierno seco',Cwb:'Templado de altura con invierno seco',Cwc:'Templado frío de altura con invierno seco',Cfa:'Subtropical húmedo',Cfb:'Oceánico',Cfc:'Oceánico subpolar',Dsa:'Continental de verano seco y cálido',Dsb:'Continental de verano seco y templado',Dsc:'Subártico de verano seco',Dsd:'Subártico de verano seco e invierno extremo',Dwa:'Continental de invierno seco y verano cálido',Dwb:'Continental de invierno seco y verano templado',Dwc:'Subártico de invierno seco',Dwd:'Subártico de invierno seco y extremo',Dfa:'Continental húmedo de verano cálido',Dfb:'Continental húmedo de verano templado',Dfc:'Subártico',Dfd:'Subártico de invierno extremo',ET:'Tundra',EF:'Hielos perpetuos'};
 const PER={'9120':'1991–2020','6190':'1961–1990'};
 const B=[[-85.0511,-180],[85.0511,180]];
 const st={cls:'miller',pk:'9120',op:.75};
 let overlay=null,meta=null;const pix={};
-const url=()=>'data/clima/'+st.cls+'_'+st.pk+'_terraclimate.png?v=2026-10-20';
+const url=()=>'data/clima/'+st.cls+'_'+st.pk+'_terraclimate.png?v=2026-10-21b';
 function loadPixels(u){
  if(pix[u])return pix[u];
  pix[u]=new Promise((ok,ko)=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);ok({w:c.width,h:c.height,d:x.getImageData(0,0,c.width,c.height).data})};im.onerror=()=>{delete pix[u];ko(Error('No se pudo cargar '+u))};im.src=u});
@@ -27929,16 +27930,16 @@ async function refresh(){
  if(overlay){overlay.setUrl(u);overlay.setOpacity(st.op)}else overlay=L.imageOverlay(u,B,{opacity:st.op,pane:'anClimaMapPane',interactive:false,className:'anClimaMapImg'}).addTo(map);
  try{window.anambroClima?.load?.().catch(()=>{})}catch(_){}
  try{cache=await loadPixels(u)}catch(e){cache=null;console.warn(e)}
- if(!meta){try{meta=await (await fetch('data/clima/mapas_clima_meta.json?v=2026-10-20')).json()}catch(_){}}
+ if(!meta){try{meta=await (await fetch('data/clima/mapas_clima_meta.json?v=2026-10-21b')).json()}catch(_){}}
  legend(true);try{renderActiveSources()}catch(_){}
  syncGlobe();
 }
 function legend(show){
  const el=$('anClimaMapLegend');if(!el)return;if(!show){el.style.display='none';return}
- const order=st.cls==='miller'?MORDER.filter(k=>k!=='G'):KORDER,cols=st.cls==='miller'?MCOL:KCOL,stats=meta?.stats?.[st.cls+'_'+st.pk]||{};
+ const order=st.cls==='miller'?MORDER:KORDER,cols=st.cls==='miller'?MCOL:KCOL,stats=meta?.stats?.[st.cls+'_'+st.pk]||{};
  el.innerHTML='<b>'+(st.cls==='miller'?'Miller':'Köppen-Geiger')+' · '+PER[st.pk]+'</b><br>'+order.filter(k=>!meta||stats[k]).map(k=>'<span class="it" title="'+esc(st.cls==='miller'?MDESC[k]:KNAME[k])+'"><span class="sw" style="border-radius:2px;background:'+cols[k]+'"></span>'+k+' · '+esc(st.cls==='miller'?MDESC[k].split(':')[0]:KNAME[k])+'</span>').join('<br>')+
- (st.cls==='miller'?'<small class="anClimaSrcNote"><b>G (montaña)</b> no se pinta: Miller no fija un umbral numérico y la malla no incluye la altitud. Al pulsar en el mapa, ANAMBRO lo valora con la altitud del punto (≥ 1.500 m).</small>':'')+
- '<small class="anClimaSrcNote">'+(st.cls==='miller'?'Miller: grupos térmicos de Miller y subtipos según la posición en el continente (fachada occidental u oriental a menos de 600 km del océano abierto por el paralelo), los vientos dominantes y el régimen (meses áridos de Gaussen, amplitud). Mismas reglas que las fichas de las estaciones. ':'')+'Cálculo de ANAMBRO con las normales de <a href="https://www.climatologylab.org/terraclimate.html" target="_blank" rel="noopener">TerraClimate</a> (Abatzoglou et al., 2018; dominio público) agregadas a 1/6° (≈ 18 km). Son datos interpolados: a escala insular (Canarias) usa mejor las estaciones de AEMET.</small>';
+ (st.cls==='miller'?'<small class="anClimaSrcNote"><b>G (montaña)</b>: en el mapa se pintan las montañas intertropicales (T media anual &lt; 21 °C entre los trópicos). Fuera de los trópicos la malla no incluye la altitud: al pulsar en el mapa, ANAMBRO lo valora con la altitud del punto (≥ 1.500 m).</small>':'')+
+ '<small class="anClimaSrcNote">'+(st.cls==='miller'?'Miller: grupos térmicos de Miller y subtipos según la posición en el continente (fachada occidental u oriental a menos de 600 km del océano abierto, hacia el oeste o el este en un sector de ±45°), los vientos dominantes y el régimen (meses áridos de Gaussen, amplitud). Mismas reglas que las fichas de las estaciones. ':'')+'Cálculo de ANAMBRO con las normales de <a href="https://www.climatologylab.org/terraclimate.html" target="_blank" rel="noopener">TerraClimate</a> (Abatzoglou et al., 2018; dominio público) agregadas a 1/6° (≈ 18 km). Son datos interpolados: a escala insular (Canarias) usa mejor las estaciones de AEMET.</small>';
  el.style.display='block';
 }
 let globeLayer=null;

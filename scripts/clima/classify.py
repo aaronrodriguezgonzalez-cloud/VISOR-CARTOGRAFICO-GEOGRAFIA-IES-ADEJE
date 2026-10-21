@@ -43,12 +43,14 @@ def miller(T,P,lat,z=None,dW=None,dE=None,detail=False):
     aridS=((P<2*T)&S).sum(0); dry60=(P<60).sum(0)
     west=(dW<=600)&(np.abs(lat)>=25); east=(dE<=600)&(np.abs(lat)<=30)
     thermal=np.where(MAT>=21,'A',np.where(cold==0,'B',np.where(cold<=5,'C','D')))
-    A=np.where((np.abs(lat)<=12)&(dry60<=2),'A1',np.where(east&(dry60<=5),'A2','A3'))
+    A=np.where((np.abs(lat)<=12)&(dry60<=2),'A1',np.where(east&(dry60<=4),'A2','A3'))
     B=np.where(aridS>=2,'B1',np.where(west&(np.abs(lat)>=35),'C1','B2'))
     Cc=np.where(west&(amp<18)&((aridS==0)|(MAP>=800)),'C1','C2')
     D=np.where(west&(amp<25),'D1','D2')
     sub=np.where(thermal=='A',A,np.where(thermal=='B',B,np.where(thermal=='C',Cc,D)))
     res=np.where(Tw<10,'E',np.where((MAP<250)&(cold<=5),np.where(cold==0,'F1','F2'),sub))
+    # zona intertropical: un clima templado (T media anual < 21 °C) solo se explica por la altitud → montaña tropical
+    res=np.where((np.abs(lat)<23.5)&(MAT<21)&(res!='E')&(res!='F1')&(res!='F2'),'G',res)
     if z is not None: res=np.where((np.asarray(z)>=1500)&(res!='E'),'G',res)
     out=np.full(MAT.shape,-1,np.int16)
     for i,k in enumerate(MORDER): out[res==k]=i

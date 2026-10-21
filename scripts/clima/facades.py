@@ -30,6 +30,19 @@ def build():
         west=cols-ext[pos-1]; east=ext[np.minimum(pos,len(ext)-1)]-cols
         west[o]=0; east[o]=0
         dW[i]=west*km[i,0]; dE[i]=east*km[i,0]
+    # distancia «por el sector» oeste/este: también en diagonal (hasta ±3° de latitud), para que las costas
+    # orientadas al noroeste o al suroeste (p. ej., el Cantábrico occidental) cuenten como fachada atlántica; sector de ±45°
+    kmlat=RES*111.32
+    bw=dW.copy(); be=dE.copy()
+    for k in range(1,19):
+        dy=k*kmlat
+        for sh in (k,-k):
+            w=np.roll(dW,sh,axis=0); e=np.roll(dE,sh,axis=0)
+            if sh>0: w[:sh]=np.inf; e[:sh]=np.inf
+            else: w[sh:]=np.inf; e[sh:]=np.inf
+            # solo direcciones a menos de 45° del oeste (o del este): componente horizontal ≥ vertical
+            bw=np.minimum(bw,np.where(w>=dy,np.sqrt(w**2+dy**2),np.inf)); be=np.minimum(be,np.where(e>=dy,np.sqrt(e**2+dy**2),np.inf))
+    dW,dE=bw.astype(np.float32),be.astype(np.float32)
     np.savez_compressed(OUT,dW=dW,dE=dE,ocean=ocean)
     return dW,dE,ocean
 def load():
