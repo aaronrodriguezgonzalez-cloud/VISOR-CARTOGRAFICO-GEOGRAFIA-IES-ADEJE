@@ -20525,7 +20525,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
    if(ent?.__anambroHistoricalEvent){showHistoricalEventGlobe(ent.event,ev.position);return;}
    if(ent?.__anambroRadioGarden){showRadioGardenGlobePlace(ent.place,ev.position);return;}
    if(ent?.__anambroClima){window.anambroClima?.openFromGlobe(ent);return;}
-   if(ent?.__anambroTiempo){window.anambroTiempo?.openFromGlobe(ent);return;}
+   if(ent?.__anambroTiempo){window.anambroTiempo?.openFromGlobe(ent,ev.position);return;}
    if(ent?.__anambroVolcano){showGlobeVolcanoEntity(ent,ev.position);return;}
    if(ent?.__anambroQuake){showGlobeQuakeEntity(ent,ev.position);return;}
    if(entityLayerId(ent)==='worldPlateBoundariesCheck'){showPlateGlobe(ent,ev.position);return;}
@@ -27256,7 +27256,7 @@ const n=p.querySelectorAll('.libCards .explainCard').length,c=document.getElemen
    Datos: data/clima/normales.json (generado por ANAMBRO a partir de las fuentes citadas). */
 (function(){
 'use strict';
-const DATA_VER='2026-10-21d',DATA_URL='data/clima/normales.json?v='+DATA_VER;
+const DATA_VER='2026-10-21e',DATA_URL='data/clima/normales.json?v='+DATA_VER;
 const PERIODS={'9120':'1991–2020','6190':'1961–1990'};
 const PKS=['9120','6190'];
 const MES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
@@ -28286,7 +28286,7 @@ async function refreshObs(){
  setCount('Cargando observaciones…');
  const need=[];if(st.obs.canary||st.obs.spain)need.push(loadAemet().catch(e=>(console.warn(e),null)));if(st.obs.world)need.push(loadMetar().catch(e=>(console.warn(e),null)));await Promise.all(need);
  fillHours();
- if(!renderer)renderer=L.canvas({padding:.3});pane('anTmObsPane',646,true);
+ pane('anTmObsPane',646,true);if(!renderer)renderer=L.canvas({padding:.3,pane:'anTmObsPane'}); // lienzo propio, por encima de las demás capas: el clic llega a la estación
  if(obsLayer)obsLayer.clearLayers();else obsLayer=L.layerGroup();
  obsItems=[];const h=hourIdx(),V=VARS[st.v],r=map.getZoom()>=7?6:4.5;let n=0,miss=0;
  const add=(s,vals)=>{const v=vals[st.v];const col=colorFor(st.v,v);
@@ -28552,7 +28552,7 @@ function openPoint(la,lo,name){
   title:'🌦️ El tiempo en '+esc(P.name),sub:fmt(P.la,3)+'°, '+fmt(P.lo,3)+'° · datos de modelos meteorológicos (no de una estación)',
   bar:()=>W.tab==='hist'?'<label><small><b>Día</b></small> <input type="date" class="anTmDay" min="1940-01-01" max="'+yd+'" value="'+W.day+'"></label> <button type="button" data-act="go">Ver</button>':'',
   exp:[['jpg','🖼️ JPG'],['xlsx','📊 Excel']],
-  body:()=>pointBody(),foot:'<b>Fuente:</b> '+esc(SRC.om)+' Pronóstico: combinación de los mejores modelos disponibles para cada zona (ECMWF, GFS, ICON, AROME-HARMONIE…). Histórico: reanálisis ERA5 / ERA5-Land (Copernicus · ECMWF), una reconstrucción del tiempo pasado a partir de observaciones; en islas y montañas puede diferir de las estaciones.<br><b>La gráfica:</b> ANAMBRO.',
+  body:()=>pointBody(),foot:'<b>Fuente:</b> '+esc(SRC.om)+' Pronóstico: en cada lugar, el modelo de más resolución disponible («Best Match»): en Europa, Canarias incluida, normalmente ICON-EU del servicio alemán DWD (~7 km); donde no llega, ECMWF IFS (~9 km) y otros globales. La temperatura se ajusta a la altitud real del punto con un modelo del terreno de 90 m. Histórico: reanálisis ERA5 / ERA5-Land (Copernicus · ECMWF), una reconstrucción del tiempo pasado a partir de observaciones; en islas y montañas puede diferir de las estaciones.<br><b>La gráfica:</b> ANAMBRO.',
   onBar:(b)=>{if(b.dataset.act==='go'){const v=document.querySelector('#anTiempoWin .anTmDay')?.value;if(v){W.day=v;W.hi=null;loadHist()}}},
   onExp:(k)=>pointExport(k),
   after:()=>{if(W.tab==='now'&&!W.fc&&!W.err)loadFc();if(W.tab==='hist'&&!W.hi&&!W.err)loadHist()}};
@@ -28576,7 +28576,7 @@ function pointBody(){
   return '<div class="acfKpi"><div><small>Ahora ('+esc(c.time.slice(11,16))+' hora local)</small><b>'+ic+' '+esc(tx)+'</b></div><div><small>Temperatura</small><b>'+fmt(c.temperature_2m)+' ºC</b> <small>sensación '+fmt(c.apparent_temperature)+'</small></div><div><small>Humedad</small><b>'+fmt(c.relative_humidity_2m,0)+' %</b></div><div><small>Viento</small><b>'+fmt(c.wind_speed_10m,0)+' km/h · '+dirTxt(c.wind_direction_10m)+'</b></div><div><small>Rachas</small><b>'+fmt(c.wind_gusts_10m,0)+' km/h</b></div><div><small>Presión</small><b>'+fmt(c.pressure_msl)+' hPa</b></div></div>'+
    '<div class="acfTableWrap"><table class="acfTable"><thead><tr><th>Día</th><th></th><th>Máx.</th><th>Mín.</th><th>Precip.</th><th>Viento máx.</th><th>Rachas</th><th>Dirección</th><th>Orto / ocaso</th></tr></thead><tbody>'+
    d.time.map((t,i)=>{const [a,b]=wmo(d.weather_code[i]);return '<tr><td>'+esc(new Date(t+'T12:00').toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'}))+'</td><td title="'+esc(b)+'">'+a+' '+esc(b)+'</td><td><b style="color:#b2182b">'+fmt(d.temperature_2m_max[i])+'</b></td><td><b style="color:#2166ac">'+fmt(d.temperature_2m_min[i])+'</b></td><td>'+fmt(d.precipitation_sum[i])+' mm</td><td>'+fmt(d.wind_speed_10m_max[i],0)+' km/h</td><td>'+fmt(d.wind_gusts_10m_max[i],0)+' km/h</td><td>'+dirTxt(d.wind_direction_10m_dominant[i])+'</td><td>'+esc((d.sunrise[i]||'').slice(11,16)+' / '+(d.sunset[i]||'').slice(11,16))+'</td></tr>'}).join('')+'</tbody></table></div>'+C.t+C.v+C.p+
-   '<div class="acfNote">Pronóstico calculado con modelos numéricos para la celda que contiene este punto. En relieves abruptos, como las islas, la altitud del modelo puede diferir de la real ('+fmt(W.fc.elevation,0)+' m en el modelo).</div>'}
+   '<div class="acfNote">Pronóstico calculado con modelos numéricos para la celda que contiene este punto. La temperatura está ajustada a la altitud del punto ('+fmt(W.fc.elevation,0)+' m, modelo del terreno de 90 m); el viento, las nubes y la lluvia son los de la celda del modelo (varios kilómetros), así que en cumbres y barrancos pueden diferir mucho de la realidad.</div>'}
  if(!W.hi)return '<div class="acfNote">Cargando el día '+esc(W.day)+'…</div>';
  const d=W.hi.daily,[ic,tx]=wmo(d.weather_code[0]),C=histCharts();W._charts=C;
  return '<div class="acfKpi"><div><small>Tiempo del día</small><b>'+ic+' '+esc(tx)+'</b></div><div><small>Máx. / mín.</small><b>'+fmt(d.temperature_2m_max[0])+' / '+fmt(d.temperature_2m_min[0])+' ºC</b></div><div><small>Precipitación</small><b>'+fmt(d.precipitation_sum[0])+' mm</b></div><div><small>Viento máx. / rachas</small><b>'+fmt(d.wind_speed_10m_max[0],0)+' / '+fmt(d.wind_gusts_10m_max[0],0)+' km/h</b></div></div>'+C.t+C.v+C.p+
@@ -28632,7 +28632,14 @@ function gCyc(d){const v=GV();if(v&&G.cyc)try{v.dataSources.remove(G.cyc,true)}c
    else if(p.tipo==='actual'&&g.type==='Point')ds.entities.add({position:C.Cartesian3.fromDegrees(g.coordinates[0],g.coordinates[1],5000),label:{text:'🌀 '+(p.nombre||''),font:'700 15px system-ui,Arial',fillColor:C.Color.BLACK,outlineColor:C.Color.WHITE,outlineWidth:4,style:C.LabelStyle.FILL_AND_OUTLINE}})}
   v.dataSources.add(ds);G.cyc=ds}catch(e){console.warn(e)}gReq()}
 function gSyncAll(){gObs();gRadar();gSat();gStorm(G._storm||[]);gIso(st.iso?G._iso:null);gCyc(st.cyc?G._cyc:null)}
-function openFromGlobe(ent){const o=obsItems[ent?.k];if(o)openStation(o.s)}
+function globeBox(html,la,lo,pos){const box=$('globeInfo');if(!box)return false;try{globeInfoCartesian=Cesium.Cartesian3.fromDegrees(lo,la,500)}catch(_){}box.classList.remove('empty','historyWide','searchedPlaceCompact');
+ box.innerHTML='<button class="globeInfoClose" onclick="globeInfoCartesian=null;this.parentElement.classList.add(\'empty\')">×</button>'+html;
+ requestAnimationFrame(()=>{try{if(pos&&typeof placeGlobeInfoAtCanvasPoint==='function')placeGlobeInfoAtCanvasPoint(pos);else if(typeof positionGlobeInfo==='function')positionGlobeInfo()}catch(_){}});return true}
+function openFromGlobe(ent,pos){const o=obsItems[ent?.k];if(!o)return;if(!globeBox(stationPopup(o.s),o.la,o.lo,pos))openStation(o.s)}
+// El tiempo en cualquier punto también en el globo: se añade a la ficha del punto consultado
+function hookGlobePoint(){try{if(typeof showGlobePoint!=='function'||showGlobePoint.__anTiempo)return;const old=showGlobePoint;
+ const f=async function(ll,pos){const r=await old.apply(this,arguments);try{if(st.punto&&ll){const box=$('globeInfo');if(box&&!box.classList.contains('empty')&&!box.querySelector('.anTmPop')){box.insertAdjacentHTML('beforeend','<hr>'+ptPopup(+ll.lat,+(ll.lng??ll.lon)));try{positionGlobeInfo()}catch(_){}}}}catch(e){console.warn(e)}return r};
+ for(const k of Object.keys(old))try{f[k]=old[k]}catch(_){};f.__anTiempo=true;showGlobePoint=f}catch(e){console.warn(e)}}
 
 
 /* ---------------- Menú ANAMBRO: tarjeta «Clima y tiempo» ---------------- */
@@ -28663,7 +28670,7 @@ function installHub(){
 /* ---------------- ventanas emergentes (el tiempo al pulsar) ---------------- */
 const PTC=new Map();let ptSeq=0;
 const row=(k,v)=>'<tr><td>'+k+'</td><td><b>'+v+'</b></td></tr>';
-function popUpdate(){try{map._popup?.update()}catch(_){}}
+function popUpdate(){try{map._popup?.update()}catch(_){}try{if(document.body.classList.contains('globe-mode')&&typeof positionGlobeInfo==='function')positionGlobeInfo()}catch(_){}}
 function ptPopup(la,lo){
  const k=la.toFixed(2)+','+lo.toFixed(2);let c=PTC.get(k);
  if(c&&c.html&&Date.now()-c.t<600000)return '<div class="anTmPop">'+c.html+'</div>';
@@ -28740,6 +28747,7 @@ function install(){
  try{if(typeof pointHtml==='function'&&!pointHtml.__anTiempo){const old=pointHtml;const f=function(lat,lon){const h=old.apply(this,arguments);if(!st.punto)return h;return h+'<hr>'+ptPopup(+lat,+lon)};f.__anTiempo=true;for(const k of ['__anClima','__anClimaMap','__anAtlas'])f[k]=old[k];pointHtml=f}}catch(e){console.warn(e)}
  installSources();
  installHub();
+ hookGlobePoint();setTimeout(hookGlobePoint,2000);
  try{if(typeof ensureGlobe==='function'&&!ensureGlobe.__anTiempo){const old=ensureGlobe;const f=async function(){const r=await old.apply(this,arguments);setTimeout(gSyncAll,80);return r};for(const k of ['__anClima','__anClimaMap'])f[k]=old[k];f.__anTiempo=true;ensureGlobe=f}}catch(e){console.warn(e)}
  // datos vivos: refresco automático cada 10 min de lo que esté activo
  setInterval(()=>{if(document.hidden)return;refreshData();AEM=null;MET=null;if(Object.values(st.obs).some(Boolean))refreshObs();if(st.iso)refreshIso();if(st.cyc)refreshCyc();if(st.radar){refreshRadarReset()}if(st.sat)refreshSat();if(st.storm)refreshStorm();status()},600000);
