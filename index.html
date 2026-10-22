@@ -8638,7 +8638,7 @@ async function refreshLayoutSnapshot(){
   }else{
    syncLayoutThematicAppearance(false);
    if(typeof window.anambroRefreshHistoryLabelsForExport==='function')await window.anambroRefreshHistoryLabelsForExport();
-   const statisticalExport=!!window.anambroIstacActive?.()||!!window.anambroIneActive?.()||!!window.anambroGeoAnalysisActive?.();
+   const statisticalExport=!!window.anambroUrbanoActive?.()||!!window.anambroIstacActive?.()||!!window.anambroIneActive?.()||!!window.anambroGeoAnalysisActive?.();
    let canvas;
    if(statisticalExport){try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){typeof __anLog=='function'&&__anLog(_,'L8490');}await new Promise(r=>setTimeout(r,220));}
    // En los atlas estadísticos se exporta exactamente el fondo batimétrico GEBCO
@@ -14128,7 +14128,7 @@ html body.istac-export-clean #map{background:#d9eef6!important;}
  let syncing=false;
  function humanOn(){try{return typeof activeHumanIndicators==='function'&&activeHumanIndicators().length>0;}catch(e){return false;}}
  function historyOn(){return !!document.getElementById('worldHistoryCheck')?.checked&&((document.getElementById('worldHistoryBackground')?.value||'atlas')==='atlas');}
- function istacOn(){try{return !!window.anambroIstacActive?.()||!!window.anambroIneActive?.()||!!window.anambroGeoAnalysisActive?.();}catch(e){return false;}}
+ function istacOn(){try{return !!window.anambroUrbanoActive?.()||!!window.anambroIstacActive?.()||!!window.anambroIneActive?.()||!!window.anambroGeoAnalysisActive?.();}catch(e){return false;}}
  function atlasOn(){return humanOn()||historyOn();}
  function atlas2DOn(){return atlasOn()||istacOn();}
  function ensurePanes(){
@@ -28258,7 +28258,7 @@ const Lbl=L.Layer.extend({options:{pane:'anUrbLblPane'},
 });
 async function refresh(){
  document.querySelectorAll('.anUrbOpts').forEach(o=>o.style.display=st.on?'block':'none');
- if(!st.on){if(layer)map.removeLayer(layer);if(lbl)map.removeLayer(lbl);legend(false);gSync();try{renderActiveSources()}catch(_){}return}
+ if(!st.on){if(layer)map.removeLayer(layer);if(lbl)map.removeLayer(lbl);legend(false);gSync();thematic();try{renderActiveSources()}catch(_){}return}
  await load();const i=yi();
  pane('anUrbPane',643,true);if(!renderer)renderer=L.canvas({padding:.3,pane:'anUrbPane'});
  if(layer)layer.clearLayers();else layer=L.layerGroup();
@@ -28272,7 +28272,7 @@ async function refresh(){
  if(!map.hasLayer(layer))layer.addTo(map);if(!lbl)lbl=new Lbl();lbl.setItems(items);if(!map.hasLayer(lbl))lbl.addTo(map);
  const tot=list.reduce((a,r)=>a+r[6][i],0);
  document.querySelectorAll('.anUrbCount').forEach(e=>e.textContent=fmt(list.length)+' ciudades · '+fmt(tot/1000,1)+' millones de habitantes en '+st.year+(st.year>2025?' (proyección)':''));
- legend(true);gSync(list);try{renderActiveSources()}catch(_){}
+ legend(false);gSync(list);thematic();try{renderActiveSources()}catch(_){}
 }
 function legend(on){document.querySelectorAll('.anUrbLegend').forEach(el=>{if(!on){el.style.display='none';return}
  el.innerHTML='<b>Población de la ciudad ('+st.year+')</b><br>'+CLS.map(c=>'<span class="it"><span class="sw" style="background:'+c[1]+'"></span>'+c[2]+'</span>').join('<br>')+'<br><span class="it"><span class="sw" style="background:#fff;border:2.2px solid #000"></span>★ Capital de Estado</span><small class="anClimaSrcNote">Tamaño del círculo proporcional a la población. Ciudad = zona continua con al menos 1.500 hab./km² y 50.000 habitantes, delimitada con el mismo criterio en todo el mundo (no coincide con los límites municipales). Fuente: '+esc(SRC_W)+'</small>';el.style.display='block'})}
@@ -28352,10 +28352,10 @@ async function refreshE(){
   if(!map.hasLayer(S.layer))S.layer.addTo(map);all.push(...list);
   const tot=list.reduce((a,r)=>a+r[5][y],0);
   document.querySelectorAll('.anUrbCountE[data-sc="'+k+'"]').forEach(e=>e.textContent=fmt(list.length)+' municipios · '+fmt(tot)+' habitantes en '+E.D.years[y]);
-  document.querySelectorAll('.anUrbLegendE[data-sc="'+k+'"]').forEach(el=>{el.innerHTML='<b>Población del municipio ('+E.D.years[y]+')</b><br>'+CLE.map(c=>'<span class="it"><span class="sw" style="background:'+c[1]+'"></span>'+c[2]+'</span>').join('<br>')+'<br><span class="it"><span class="sw" style="background:#fff;border:2px solid #000"></span>★ Capital de provincia o de comunidad</span><small class="anClimaSrcNote">Círculo proporcional a la población, situado en el núcleo principal del municipio. Ojo: es la población de todo el término municipal, no la de la ciudad ni la de su área metropolitana. Fuente: '+esc(SRC_E)+'</small>'})}
+  if(0)document.querySelectorAll('.anUrbLegendE[data-sc="'+k+'"]').forEach(el=>{el.innerHTML='<b>Población del municipio ('+E.D.years[y]+')</b><br>'+CLE.map(c=>'<span class="it"><span class="sw" style="background:'+c[1]+'"></span>'+c[2]+'</span>').join('<br>')+'<br><span class="it"><span class="sw" style="background:#fff;border:2px solid #000"></span>★ Capital de provincia o de comunidad</span><small class="anClimaSrcNote">Círculo proporcional a la población, situado en el núcleo principal del municipio. Ojo: es la población de todo el término municipal, no la de la ciudad ni la de su área metropolitana. Fuente: '+esc(SRC_E)+'</small>'})}
  all.sort((a,b)=>b[5][y]-a[5][y]);for(const r of all)items.push({la:r[2],lo:r[3],t:(r[4]?'★ ':'')+nE(r[1]),p:r[5][y]/1000,r:radE(r[5][y]),cap:r[4]});
  if(all.length){if(!E.lbl)E.lbl=new Lbl({pane:'anUrbLblPane'});E.lbl.setItems(items);if(!map.hasLayer(E.lbl))E.lbl.addTo(map)}else if(E.lbl)map.removeLayer(E.lbl);
- gSyncE(all);try{renderActiveSources()}catch(_){}
+ gSyncE(all);thematic();try{renderActiveSources()}catch(_){}
 }
 function gSyncE(list){const v=GV();if(!v)return;try{if(E.gp){v.scene.primitives.remove(E.gp);E.gp=null}if(!list.length)return v.scene.requestRender();const pc=new Cesium.PointPrimitiveCollection(),y=E.yk;
  for(const r of list)pc.add({position:Cesium.Cartesian3.fromDegrees(r[3],r[2],1500),pixelSize:Math.max(4,radE(r[5][y])*1.5),color:Cesium.Color.fromCssColorString(clE(r[5][y])[1]),outlineColor:Cesium.Color.fromCssColorString(r[4]?'#000':'#5a3a2a'),outlineWidth:r[4]?2:1,id:{__anambroUrb:true,es:r[0],sc:isCan(r)&&E.can.on?'can':'es'}});
@@ -28400,6 +28400,43 @@ function blockHtmlE(sc){const can=sc==='can';return '<label><input type="checkbo
  '<div class="anClimaRow"><small><b>Mostrar</b></small><select class="anUrbMinE" data-sc="'+sc+'">'+[[0,'Todos los municipios'],[1000,'Más de 1.000 hab.'],[5000,'Más de 5.000'],[10000,'Más de 10.000 (municipios urbanos)'],[20000,'Más de 20.000'],[50000,'Más de 50.000'],[100000,'Más de 100.000']].map(([v,t])=>'<option value="'+v+'"'+(v===E[sc].min?' selected':'')+'>'+t+'</option>').join('')+'</select></div>'+
  '<small class="anUrbCountE anTmCountTxt" data-sc="'+sc+'"></small><div class="anUrbLegendE anClimaLegend" data-sc="'+sc+'"></div></div>'}
 function setYearE(k){E.yk=k;sync('.anUrbYearE',String(k));if(E.es.on||E.can.on)refreshE();if(curE&&cur?.isE&&!$('anUrbWin')?.classList.contains('hidden'))renderE()}
+/* ---------- como los mapas estadísticos: fondo temático y leyenda sobre el mapa (también al exportar) ---------- */
+const active=()=>st.on||E.es.on||E.can.on;
+let prevBase=null;
+function otherThematic(){try{return !!(window.anambroIstacActive?.()||window.anambroIneActive?.()||window.anambroGeoAnalysisActive?.()||(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length))}catch(_){return false}}
+function thematic(){const on=active();
+ if(on&&prevBase===null)prevBase=document.querySelector('input[data-base-choice]:checked')?.dataset?.baseChoice||'';
+ try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}
+ if(on){const dyn=$('dynamicLegend'),btn=$('legendToggle');if(dyn){dyn.classList.remove('hidden');if(btn){btn.innerHTML='<span>✕</span> Ocultar leyenda';btn.setAttribute('aria-expanded','true')}}}
+ else if(prevBase!==null){const k=prevBase;prevBase=null;if(k&&!otherThematic()){try{const r=document.querySelector('input[data-base-choice="'+CSS.escape(k)+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}catch(_){}}}
+ try{updateLegend()}catch(_){}}
+function circlesSVG(vals,rf,lab){const R=vals.map(rf),M=Math.max(...R),cx=M+4,by=M*2+8;let ly=-1e9;const Ys=R.map(r=>by-2*r).map(y=>{const yy=Math.max(y,ly+13);ly=yy;return yy}),H=Math.max(by,ly+6)+2,W=M*2+160;
+ return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="display:block;margin:4px 0">'+vals.map((v,i)=>{const r=R[i],y=by-2*r,ty=Ys[i];return '<circle cx="'+cx+'" cy="'+(by-r)+'" r="'+r+'" fill="none" stroke="#33475b" stroke-width="1"/><polyline points="'+cx+','+y+' '+(cx+M+8)+','+y+' '+(cx+M+14)+','+ty+'" fill="none" stroke="#33475b" stroke-width=".6" stroke-dasharray="2 2"/><text x="'+(cx+M+17)+'" y="'+(ty+4)+'" font-size="11" font-family="system-ui,Arial" fill="#1d2b36">'+lab(v)+'</text>'}).join('')+'</svg>'}
+function legendHTML(){let h='';
+ if(st.on)h+='<div style="margin-bottom:8px"><b>Red urbana mundial · población de las ciudades · '+st.year+(st.year>2025?' (proyección)':'')+'</b><br><small>Círculos proporcionales · ciudades de más de '+fmt(st.min*1000)+' hab.'+(st.cap?' · solo capitales':'')+' · ONU, World Urbanization Prospects 2025</small>'+
+  circlesSVG([30000,10000,1000],radius,v=>v===1000?'1 millón':fmt(v/1000)+' millones')+CLS.map(c=>'<div><span class="sw" style="background:'+c[1]+'"></span>'+c[2]+'</div>').join('')+'<div><span class="sw" style="background:#fff;border:2px solid #000;box-sizing:border-box"></span>★ Capital de Estado</div></div>';
+ for(const k of ['can','es'])if(E[k].on&&E.D){const yr=E.D.years[E.yk];
+  h+='<div style="margin-bottom:8px"><b>Red urbana de '+(k==='can'?'Canarias':'España')+' · población de los municipios · '+yr+'</b><br><small>Círculos proporcionales'+(E[k].min?' · municipios de más de '+fmt(E[k].min)+' hab.':' · todos los municipios')+' · INE, Revisión del Padrón Municipal</small>'+
+   circlesSVG(k==='can'?[300000,100000,20000]:[3000000,1000000,100000],radE,v=>v===1e6?'1 millón':v>=1e6?fmt(v/1e6)+' millones':fmt(v)+' hab.')+CLE.map(c=>'<div><span class="sw" style="background:'+c[1]+'"></span>'+c[2]+'</div>').join('')+'<div><span class="sw" style="background:#fff;border:2px solid #000;box-sizing:border-box"></span>★ Capital de provincia o de comunidad</div><small>Población de todo el término municipal (no de la ciudad ni de su área metropolitana).</small></div>'}
+ return h}
+/* Exportación: a escala mundial, mapamundi en proyección Equal Earth (como el Atlas mundial y el Análisis geográfico) con los círculos de las ciudades */
+function hookExport(){try{const EE=window.anambroAnalysisEqualEarth;if(!EE||EE.__anUrb||typeof equalEarthProject!=='function')return;const ow=EE.wanted,orr=EE.render;
+ const worldView=()=>{const b=map.getBounds(),lon=map.getSize().x*360/(256*Math.pow(2,map.getZoom())),lat=Math.min(85,b.getNorth())-Math.max(-85,b.getSouth());return lon>=35||lat>=28};
+ const urbOnly=()=>st.on&&!(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)&&(typeof layoutContentMode==='undefined'||layoutContentMode==='map')&&worldView();
+ EE.wanted=function(){return ow.apply(this,arguments)||urbOnly()};
+ EE.render=async function(){const url=await orr.apply(this,arguments);if(!st.on||!D)return url;
+  const F=EE.frame(),im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=url});const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);const k=c.width/F.W0;x.scale(k,k);
+  const wrap=v=>((v+540)%360+360)%360-180,P=(lon,lat)=>{const q=equalEarthProject(wrap(lon-F.lam0),lat);return [F.W0/2+(q[0]-F.cx)*F.k,F.H0/2-(q[1]-F.cy)*F.k]};
+  const i=yi(),list=D.c.filter(r=>r[6][i]>=st.min&&(!st.cap||r[3])).sort((a,b)=>b[6][i]-a[6][i]);
+  for(const r of [...list].reverse()){const [px,py]=P(r[5],r[4]);if(px<-30||py<-30||px>F.W0+30||py>F.H0+30)continue;x.beginPath();x.arc(px,py,radius(r[6][i]),0,2*Math.PI);x.globalAlpha=.85;x.fillStyle=clsOf(r[6][i])[1];x.fill();x.globalAlpha=1;x.lineWidth=r[3]?2.2:.8;x.strokeStyle=r[3]?'#000':'#5a3a2a';x.stroke()}
+  if(st.lab){const boxes=[];x.textBaseline='middle';x.lineJoin='round';for(const r of list){const [px,py]=P(r[5],r[4]);if(px<0||py<0||px>F.W0||py>F.H0)continue;const p=r[6][i],t=(r[3]?'★ ':'')+nice(r[1]);x.font=(r[3]?'800 ':'700 ')+(p>=5000?13:p>=1000?12:11)+'px system-ui,Arial';const w=x.measureText(t).width,rr=radius(p),bx=[px+rr+2,py-8,w+4,16];if(boxes.some(q=>bx[0]<q[0]+q[2]&&bx[0]+bx[2]>q[0]&&bx[1]<q[1]+q[3]&&bx[1]+bx[3]>q[1]))continue;boxes.push(bx);x.strokeStyle='#fff';x.lineWidth=3;x.strokeText(t,bx[0],py);x.fillStyle=r[3]?'#000':'#1d2b36';x.fillText(t,bx[0],py)}}
+  return c.toDataURL('image/jpeg',.94)};
+ EE.__anUrb=true}catch(e){console.warn('Red urbana · exportación',e)}}
+function hubButton(){try{const card=[...document.querySelectorAll('#toolHubPanel .hubCard')].find(c=>/Atlas estadístico/.test(c.querySelector('b')?.textContent||''));if(!card||card.querySelector('.anUrbHub'))return;
+ const b=document.createElement('button');b.type='button';b.className='anUrbHub';b.textContent='🏙️ Red urbana · ciudades del mundo, España y Canarias';card.appendChild(b);
+ b.addEventListener('click',()=>{const p=$('layersPanel');try{closePanels()}catch(_){}p?.classList.remove('hidden');let sc='Mundo';try{const c=map.getCenter();if(c.lat<29.6&&c.lat>27.4&&c.lng<-13&&c.lng>-18.5)sc='Canarias';else if(c.lat>35&&c.lat<44.5&&c.lng>-10&&c.lng<4.5)sc='España'}catch(_){}
+  const root=[...p.querySelectorAll('details.layerScope')].find(d=>(d.querySelector('summary')?.textContent||'').includes(sc));const u=root?.querySelector('.anUrbSub');if(!u)return;for(let d=u;d&&d!==p;d=d.parentElement)if(d.tagName==='DETAILS')d.open=true;setTimeout(()=>u.scrollIntoView({block:'start',behavior:'smooth'}),60)})}catch(e){console.warn(e)}}
+function hookLegend(){try{if(typeof updateLegend!=='function'||updateLegend.__anUrb)return;const old=updateLegend;const f=function(){const r=old.apply(this,arguments);try{if(active()){const h=legendHTML(),c=$('legendContent');if(c&&h)c.innerHTML=(otherThematic()?c.innerHTML+'<hr>':'')+h}}catch(e){console.warn(e)}return r};for(const k of Object.keys(old))try{f[k]=old[k]}catch(_){};f.__anUrb=true;updateLegend=f}catch(e){console.warn(e)}}
 /* ---------- panel ---------- */
 function blockHtml(){return '<label><input type="checkbox" '+(document.getElementById('anUrb_world')?'':'id="anUrb_world" ')+'data-urb="on"/> <b>Red urbana mundial · ciudades por población (ONU, 2025)</b></label><div class="layerSubBlock"><small>12.000 ciudades de más de 50.000 habitantes con su población desde 1975 y proyección a 2050; capitales de Estado destacadas. Pulsa una ciudad para ver su crecimiento y la jerarquía urbana de su país.</small></div>'+
  '<div class="anUrbOpts anClimaBlock" style="display:none"><div class="anClimaRow"><small><b>Año</b></small><input type="range" class="anUrbYear" min="0" max="15" step="1" value="10" style="flex:1"/><b class="anUrbYearTxt">2025</b><button type="button" class="anUrbPlay">▶ Animar</button></div>'+
@@ -28407,6 +28444,7 @@ function blockHtml(){return '<label><input type="checkbox" '+(document.getElemen
  '<label class="sub"><input type="checkbox" class="anUrbCap"/> Solo capitales de Estado</label><label class="sub"><input type="checkbox" class="anUrbLab" checked/> Nombres de las ciudades</label><small class="anUrbCount anTmCountTxt"></small><div class="anUrbLegend anClimaLegend" style="display:none"></div></div>'}
 function sync(sel,v,prop='value'){document.querySelectorAll(sel).forEach(x=>x[prop]=v)}
 function install(){
+ hookLegend();hookExport();hubButton();
  const scopes=[...document.querySelectorAll('#layersPanel details.layerScope')];const find=n=>scopes.find(d=>(d.querySelector('summary')?.textContent||'').includes(n));
  for(const n of ['Mundo','España','Canarias']){const root=find(n);if(!root||root.querySelector('.anUrbSub'))continue;const inner=root.querySelector('.layerScopeInner')||root;
   const cat=[...inner.querySelectorAll(':scope > details.layerCategory')].find(d=>/Geografía Humana|Atlas estadístico/.test(d.querySelector('summary')?.textContent||''));
@@ -28432,7 +28470,7 @@ function install(){
 }
 function setYear(k){if(!D)return;st.year=D.years[k];sync('.anUrbYear',String(k));sync('.anUrbYearTxt',st.year+(st.year>2025?' (proy.)':''),'textContent');if(st.on)refresh();if(cur&&!cur.isE&&!$('anUrbWin')?.classList.contains('hidden'))render()}
 function openFromGlobe(ent){if(ent?.es){const r=E.D?.m.find(x=>x[0]===ent.es);if(r)openMuni(r,ent.sc);return}const r=D?.c?.find(x=>x[x.length-1]===ent?.idx);if(r)openCity(r)}
-window.anambroUrbano={state:st,E,refreshE,openMuni,refresh,openCity,openFromGlobe,get layer(){return layer},nice,pais,load};
+window.anambroUrbanoActive=active;window.anambroUrbanoLegendHTML=legendHTML;window.anambroUrbano={state:st,E,refreshE,openMuni,refresh,openCity,openFromGlobe,get layer(){return layer},nice,pais,load};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 
@@ -29358,5 +29396,199 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 </script>
+<script id="anambro-r53-orden-js">
+/* ANAMBRO r53 · Orden de las capas
+   El mismo esqueleto en Canarias, España y Mundo, en el orden del temario de Geografía:
+   1 Mapa base · 2 Límites y referencia · 3 Geografía Física (relieve → geología → clima → tiempo → aguas → vegetación →
+   espacios protegidos) · 4 Geografía Humana (población → poblamiento y ciudad → sector primario → industria, energía y
+   minería → transportes → servicios y turismo) · 5 Historia y patrimonio.
+   Solo se MUEVEN los elementos del panel (con sus identificadores y sus eventos): ninguna capa cambia de funcionamiento. */
+(function(){
+'use strict';
+const norm=t=>(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const sum=d=>d?.querySelector(':scope > summary');
+const sumTxt=d=>sum(d)?.textContent||'';
+const IGN='<div class="layerSubBlock anOrdIgn"><small class="anClimaSrcNote">© Instituto Geográfico Nacional · SIGNA (CC BY 4.0), escala aproximada 1:200.000.</small></div>';
+function scopeOf(n){return [...document.querySelectorAll('#layersPanel details.layerScope')].find(d=>norm(sumTxt(d)).includes(norm(n)))}
+function inner(sc){return sc.querySelector(':scope > .layerScopeInner')||sc}
+function kids(par,cls){return [...par.querySelectorAll(':scope > details'+(cls?'.'+cls:''))]}
+function findIn(par,re,cls){return kids(par,cls).find(d=>re.test(sumTxt(d)))}
+function rename(d,t){const s=sum(d);if(s&&s.textContent!==t)s.textContent=t}
+function mk(cls,key,title){const d=document.createElement('details');d.className=cls;d.dataset.anOrd=key;d.innerHTML='<summary>'+title+'</summary>';return d}
+const labOf=(root,sel)=>root.querySelector(sel)?.closest('label')||null;
+// La etiqueta y lo que le acompaña (descripciones, opacidad, opciones), hasta la siguiente capa
+function withCompanions(lab){const out=[lab];let n=lab.nextElementSibling;while(n&&!(n.tagName==='LABEL'&&!n.classList.contains('sub'))&&!(n.tagName==='DETAILS'&&n.classList.contains('layerSubcategory'))){out.push(n);n=n.nextElementSibling}return out}
+function until(lab,stop){const out=[];let n=lab;while(n&&n!==stop){out.push(n);n=n.nextElementSibling}return out}
+const sg=(root,keys)=>keys.map(k=>labOf(root,'input[data-sg="'+k+'"]')).filter(Boolean);
+function put(sub,nodes,ign){for(const n of nodes)if(n)sub.appendChild(n);if(ign&&nodes.some(Boolean)){sub.querySelector(':scope > .anOrdIgn')?.remove();sub.insertAdjacentHTML('beforeend',IGN)}}
+function note(sub,html){sub.insertAdjacentHTML('beforeend','<div class="layerSubBlock anOrdNote"><small>'+html+'</small></div>')}
+
+function humanBlocks(sc,inn,hum,scope){
+ // 📊 Población · atlas estadístico
+ if(scope==='Mundo'){
+  const wh=findIn(inn,/Geografía Humana/,'layerCategory');const ctl=document.getElementById('worldHumanControls');
+  const a=mk('layerSubcategory','pob','📊 Población y desarrollo · Atlas mundial (Banco Mundial)');if(ctl)a.appendChild(ctl);hum.appendChild(a);
+  const eu=findIn(inn,/Eurostat/,'layerCategory');const eb=document.getElementById('eusAtlasBlock');
+  const b=mk('layerSubcategory','eu','📊 Atlas regional de Europa · Eurostat');if(eb)b.appendChild(eb);hum.appendChild(b);
+  const urb=eu?.querySelector('.anUrbSub')||wh?.querySelector('.anUrbSub');if(urb){rename(urb,'🏙️ Poblamiento y ciudad');hum.appendChild(urb)}
+  if(eu&&!eu.querySelector('label,select,input'))eu.remove();
+  if(wh&&wh!==hum)wh.remove();
+  return;
+ }
+ const at=findIn(inn,/Atlas estadístico/,'layerCategory');
+ const blk=document.getElementById(scope==='Canarias'?'istacAtlasBlock':'ineAtlasBlock');
+ const a=mk('layerSubcategory','pob',scope==='Canarias'?'📊 Población · Atlas estadístico (ISTAC)':'📊 Población · Atlas estadístico (INE)');
+ if(blk)a.appendChild(blk);hum.appendChild(a);
+ // 🏙️ Poblamiento y ciudad: red urbana + equipamientos
+ const urb=at?.querySelector('.anUrbSub')||mk('layerSubcategory','urb','🏙️ Poblamiento y ciudad');
+ rename(urb,'🏙️ Poblamiento y ciudad');hum.appendChild(urb);
+ const es=urb.querySelector('.anUrbEs');const first=urb.querySelector(':scope > label');if(es&&first)urb.insertBefore(es,first);
+ const eq=sg(sc,['eq_hosp','eq_san','eq_mayor','eq_edu','eq_univ','eq_verde','eq_dep','eq_cem','eq_agua']);
+ if(eq.length){note(urb,'<b>Equipamientos y servicios urbanos</b> · dónde se concentran la sanidad, la educación y los servicios.');put(urb,eq,true)}
+ if(at&&at!==hum)at.remove();
+ // 🌾 Espacio rural y sector primario
+ const ru=mk('layerSubcategory','rur','🌾 Espacio rural y sector primario');put(ru,sg(sc,['pr_agro','pr_inv']),true);hum.appendChild(ru);
+ // 🏭 Industria, energía y minería
+ const ind=mk('layerSubcategory','ind','🏭 Industria, energía y minería');
+ put(ind,sg(sc,['pr_ind','en_nuc','en_ter','en_hid','en_eol','en_sol','en_red','en_hc','en_vec','pr_min']),true);hum.appendChild(ind);
+ // 🚆 Transportes
+ const tr=mk('layerSubcategory','tra','🚆 Transportes');
+ const tl=labOf(sc,'#transportCheck');if(tl)put(tr,withCompanions(tl));
+ put(tr,sg(sc,['tr_viar','tr_carr','tr_ave','tr_fc','tr_mar','tr_aer','tr_cable','pr_puer']),true);hum.appendChild(tr);
+ // 🛍️ Servicios y turismo
+ const se=mk('layerSubcategory','ser','🛍️ Servicios y turismo');put(se,sg(sc,['eq_comer','tr_stgo','tr_vv']),true);hum.appendChild(se);
+}
+
+function organize(scope){
+ const sc=scopeOf(scope);if(!sc||sc.dataset.anOrd==='ok')return;const inn=inner(sc);
+ const phys=findIn(inn,/Geografía Física/,'layerCategory');if(!phys)return;
+ // 1 · Mapa base
+ const base=findIn(inn,/Cartografía base|Mapa base/);if(base)rename(base,'🗺️ Mapa base');
+ const topo=document.getElementById('topoMapsCategory');
+ // 2 · Límites y referencia
+ let lim;
+ if(scope==='Canarias'){lim=mk('layerSubcategory','lim','🧭 Límites y referencia');const ml=labOf(sc,'#munCheck');if(ml)put(lim,withCompanions(ml))}
+ else if(scope==='España'){lim=findIn(inn,/Territorio y comunicaciones/)||mk('layerSubcategory','lim','');rename(lim,'🧭 Límites y referencia')}
+ else{lim=findIn(inn,/Límites, divisiones/);if(lim)rename(lim,'🧭 Límites, divisiones, toponimia y husos horarios');const tz=document.getElementById('tzCategory');if(tz&&lim){tz.className='layerSubcategory';rename(tz,'🕒 Husos horarios y día-noche');lim.appendChild(tz)}}
+ // 3 · Geografía Física
+ const subs={};for(const d of kids(phys,'layerSubcategory'))subs[norm(sumTxt(d))]=d;
+ const pick=re=>Object.entries(subs).find(([k])=>re.test(k))?.[1];
+ const rel=pick(/relieve/),geo=pick(/^\W*geologia/),vul=pick(/vulcanismo/),topf=pick(/toponimia fisica/),cli=pick(/^\W*clima/),tie=pick(/tiempo en directo/),veg=pick(/vegetacion/);
+ if(rel)rename(rel,'⛰️ Relieve');
+ const agu=mk('layerSubcategory','agu','💧 Aguas · ríos y cuencas');
+ if(scope==='España'){const h=labOf(sc,'#spainHydroNetworkCheck'),t=labOf(sc,'#spainReliefToponymsCheck');if(h&&t)put(agu,until(h,t))}
+ if(scope==='Mundo'){const h=labOf(sc,'#worldRiversCheck');if(h)put(agu,until(h,null))}
+ if(rel){put(rel,sg(sc,['or_alin','or_com']),true)}
+ const enp=mk('layerSubcategory','enp','🌳 Espacios naturales protegidos');
+ if(scope==='Canarias'){const e=labOf(sc,'#enpMaster'),hb=document.getElementById('heritageCanaryBlock');if(e)put(enp,until(e,hb))}
+ put(enp,sg(sc,['ep_pn','ep_pnat','ep_n2000','ep_mar','ep_geo']),true);
+ const order=[rel,topf,geo,vul,cli,tie,agu.childElementCount>1?agu:null,veg,enp.childElementCount>1?enp:null].filter(Boolean);
+ const extra=kids(phys,'layerSubcategory').filter(d=>!order.includes(d)&&!d.classList.contains('anSgSub'));
+ for(const d of order.concat(extra))phys.appendChild(d);
+ phys.querySelectorAll('.anSgPhys').forEach(w=>w.remove());
+ // 4 · Geografía Humana
+ let hum=findIn(inn,/Geografía Humana/,'layerCategory');
+ if(!hum||scope==='Mundo'){const h2=mk('layerCategory','hum','👥 Geografía Humana');if(hum&&scope==='Mundo'){/* se vacía abajo */}hum=h2}
+ rename(hum,'👥 Geografía Humana');
+ humanBlocks(sc,inn,hum,scope);
+ for(const d of [...hum.querySelectorAll(':scope > details.layerSubcategory')])if(!d.querySelector('label,select,input,.atlasPanelBlock'))d.remove();
+ inn.querySelectorAll(':scope > details.anSgCat').forEach(c=>c.remove());
+ // 5 · Historia y patrimonio
+ let his=findIn(inn,/Historia/,'layerCategory');if(!his){his=mk('layerCategory','his','');}
+ rename(his,'🏛️ Historia y patrimonio');
+ const hb=document.getElementById('heritageCanaryBlock');if(hb&&scope==='Canarias'){his.appendChild(hb);his.querySelector(':scope > .layerEmpty')?.remove()}
+ const terr=findIn(inn,/Territorio y patrimonio/);
+ // Colocación final
+ const seq=[base,topo&&sc.contains(topo)?topo:null,lim,phys,hum,his];
+ for(const d of seq)if(d)inn.appendChild(d);
+ for(const d of kids(inn))if(!seq.includes(d))inn.appendChild(d); // cualquier otra cosa, al final (nunca se pierde)
+ if(terr&&!terr.querySelector('label,details'))terr.remove();
+ sc.dataset.anOrd='ok';
+}
+function ready(){const p=document.getElementById('layersPanel');if(!p)return false;
+ return p.querySelectorAll('.anSgCat').length>=2&&p.querySelectorAll('.anUrbSub').length>=3&&p.querySelectorAll('.anTmSub').length>=3&&p.querySelectorAll('.anClimaScope').length>=3&&document.getElementById('worldHumanControls')&&document.getElementById('eusAtlasBlock')&&document.getElementById('tzCategory')}
+let tries=0;
+function run(){if(!ready()&&++tries<60)return setTimeout(run,500);
+ for(const s of ['Canarias','España','Mundo'])try{organize(s)}catch(e){console.warn('ANAMBRO · orden de capas',s,e)}
+ try{window.__anActiveLayers?.sync()}catch(_){}}
+window.anambroOrdenCapas={run,organize};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,800));else setTimeout(run,800);
+})();
+
+</script>
+<style id="anambro-r53-estilo-css">
+/* ANAMBRO r53 · Acabado de la interfaz: botones con relieve suave, reacción al tocar y ventanas que aparecen con suavidad.
+   Solo cambia el aspecto (colores, sombras, esquinas, transiciones); no cambia tamaños ni posiciones. */
+:root{--an-ink:#17324d;--an-ink2:#245b86;--an-acc:#2f86c4;--an-soft:#eef5fb;--an-line:rgba(23,50,77,.12);--an-ease:cubic-bezier(.2,.9,.25,1)}
+
+/* Botones de la barra lateral */
+html body .toolbar button.tool,html body .toolbar .toolBtn{
+ background:linear-gradient(180deg,#ffffff 0%,#f3f7fb 100%)!important;border:1px solid var(--an-line)!important;border-radius:12px!important;color:var(--an-ink)!important;
+ box-shadow:0 1px 2px rgba(16,32,48,.08),0 6px 16px -8px rgba(16,32,48,.22)!important;
+ transition:transform .18s var(--an-ease),box-shadow .18s var(--an-ease),border-color .18s,background .18s!important}
+html body .toolbar button.tool:hover,html body .toolbar .toolBtn:hover{transform:translateY(-1px);border-color:rgba(47,134,196,.55)!important;background:linear-gradient(180deg,#ffffff 0%,#eaf3fb 100%)!important;
+ box-shadow:0 2px 4px rgba(16,32,48,.08),0 12px 24px -10px rgba(36,91,134,.45)!important}
+html body .toolbar button.tool:active,html body .toolbar .toolBtn:active{transform:translateY(0) scale(.985);box-shadow:0 1px 2px rgba(16,32,48,.12)!important}
+html body .toolbar button.tool:focus-visible{outline:3px solid rgba(47,134,196,.45);outline-offset:2px}
+html body .toolbar button.tool span{display:inline-block;transition:transform .25s var(--an-ease)}
+html body .toolbar button.tool:hover span{transform:scale(1.12) rotate(-4deg)}
+
+/* Botones de acción (azules) */
+html body button.action,html body .action{background:linear-gradient(180deg,var(--an-ink2) 0%,var(--an-ink) 100%)!important;border-radius:10px!important;
+ box-shadow:0 1px 0 rgba(255,255,255,.18) inset,0 4px 12px -4px rgba(23,50,77,.55)!important;transition:transform .16s var(--an-ease),box-shadow .16s,filter .16s!important}
+html body button.action:hover,html body .action:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 1px 0 rgba(255,255,255,.2) inset,0 8px 18px -6px rgba(23,50,77,.6)!important}
+html body button.action:active,html body .action:active{transform:translateY(0) scale(.985);filter:brightness(.97)}
+
+/* Ventanas */
+html body .panel{border-radius:16px!important;border:1px solid rgba(23,50,77,.08);box-shadow:0 22px 50px -18px rgba(15,30,45,.45),0 2px 8px rgba(15,30,45,.10)!important}
+html body .anambro-panel-close{border-radius:10px!important;transition:transform .2s var(--an-ease),background .2s!important}
+html body .anambro-panel-close:hover{transform:rotate(90deg)}
+
+/* Panel de capas: ámbitos, temas y subtemas */
+#layersPanel details>summary{list-style:none;border-radius:10px;transition:background .16s,color .16s,box-shadow .16s;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#layersPanel details>summary::-webkit-details-marker{display:none}
+#layersPanel details>summary::before{content:'';display:inline-block;width:6px;height:6px;margin:0 9px 2px 3px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);opacity:.55;transition:transform .22s var(--an-ease),opacity .2s;vertical-align:middle}
+#layersPanel details[open]>summary::before{transform:rotate(45deg);opacity:.9}
+#layersPanel details>summary:hover{background:var(--an-soft)}
+#layersPanel .layerScope{border:0!important}
+#layersPanel .layerScope>summary{background:linear-gradient(180deg,#fbfdff,#f1f6fb);border:1px solid var(--an-line);margin:6px 0;box-shadow:0 1px 2px rgba(16,32,48,.05)}
+#layersPanel .layerScope>summary:hover{border-color:rgba(47,134,196,.45);box-shadow:0 6px 14px -8px rgba(36,91,134,.4)}
+#layersPanel .layerScope[open]>summary{background:linear-gradient(180deg,var(--an-ink2),var(--an-ink));color:#fff;border-color:transparent;box-shadow:0 8px 18px -10px rgba(23,50,77,.7)}
+#layersPanel .layerCategory>summary{color:var(--an-ink)}
+#layersPanel .layerCategory[open]>summary{color:var(--an-ink2);box-shadow:inset 3px 0 0 var(--an-acc);background:linear-gradient(90deg,var(--an-soft),transparent 80%)}
+#layersPanel .layerSubcategory[open]>summary{color:var(--an-ink2)}
+#layersPanel details[open]>:not(summary){animation:anUnfold .22s var(--an-ease)}
+#layersPanel label{border-radius:8px;transition:background .14s}
+#layersPanel label:hover{background:#f2f7fb}
+#layersPanel input[type=checkbox],#layersPanel input[type=radio],.panel input[type=checkbox],.panel input[type=radio]{accent-color:var(--an-ink2);cursor:pointer;transition:transform .15s var(--an-ease)}
+#layersPanel input[type=checkbox]:active,#layersPanel input[type=radio]:active{transform:scale(.9)}
+#layersPanel select,#layersPanel input[type=search],#layersPanel input[type=text]{border-radius:8px;border:1px solid var(--an-line);transition:border-color .15s,box-shadow .15s}
+#layersPanel select:focus,#layersPanel input[type=search]:focus,#layersPanel input[type=text]:focus{outline:0;border-color:var(--an-acc);box-shadow:0 0 0 3px rgba(47,134,196,.18)}
+
+/* Menú ANAMBRO */
+#toolHubPanel .hubCard{border-radius:14px!important;transition:box-shadow .2s var(--an-ease),transform .2s var(--an-ease)}
+#toolHubPanel .hubCard:hover{box-shadow:0 10px 24px -14px rgba(23,50,77,.5)}
+#toolHubPanel .hubCard button{border-radius:9px!important;transition:background .15s,transform .15s var(--an-ease),box-shadow .15s!important}
+#toolHubPanel .hubCard button:hover{background:var(--an-soft)!important;transform:translateX(2px);box-shadow:inset 3px 0 0 var(--an-acc)}
+
+/* Fichas (clima, tiempo, ciudades) */
+#anClimaFicha,#anTiempoWin,#anUrbWin{border-radius:18px!important;box-shadow:0 30px 70px -20px rgba(10,25,40,.55),0 2px 10px rgba(10,25,40,.12)!important}
+#anClimaFicha .acfTabs button,#anTiempoWin .acfTabs button,#anUrbWin .acfTabs button,#anClimaFicha .acfBar button,#anTiempoWin .acfBar button,#anUrbWin .acfBar button{border-radius:9px!important;transition:background .15s,transform .15s var(--an-ease),box-shadow .15s!important}
+#anClimaFicha .acfTabs button:hover,#anTiempoWin .acfTabs button:hover,#anUrbWin .acfTabs button:hover,#anClimaFicha .acfBar button:hover,#anTiempoWin .acfBar button:hover,#anUrbWin .acfBar button:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(23,50,77,.5)}
+#anClimaFicha .acfClose,#anTiempoWin .acfClose,#anUrbWin .acfClose{transition:transform .2s var(--an-ease)}
+#anClimaFicha .acfClose:hover,#anTiempoWin .acfClose:hover,#anUrbWin .acfClose:hover{transform:rotate(90deg)}
+
+/* Aparición de ventanas */
+@keyframes anPop{from{opacity:0;translate:0 12px;scale:.98}to{opacity:1;translate:0 0;scale:1}}
+@keyframes anFicha{from{opacity:0;scale:.965}to{opacity:1;scale:1}}
+@keyframes anUnfold{from{opacity:0;translate:0 -4px}to{opacity:1;translate:0 0}}
+@keyframes anPopup{from{opacity:0;scale:.94}to{opacity:1;scale:1}}
+html body .panel:not(.hidden){animation:anPop .28s var(--an-ease)}
+#anClimaFicha:not(.hidden),#anTiempoWin:not(.hidden),#anUrbWin:not(.hidden){animation:anFicha .3s var(--an-ease)}
+.leaflet-popup .leaflet-popup-content-wrapper,.leaflet-popup .leaflet-popup-tip-container{animation:anPopup .22s var(--an-ease);transform-origin:50% 100%}
+.leaflet-popup-content-wrapper{border-radius:14px!important;box-shadow:0 16px 40px -14px rgba(10,25,40,.5)!important}
+@media (prefers-reduced-motion:reduce){html body .panel:not(.hidden),#anClimaFicha:not(.hidden),#anTiempoWin:not(.hidden),#anUrbWin:not(.hidden),.leaflet-popup .leaflet-popup-content-wrapper,#layersPanel details[open]>:not(summary){animation:none}
+ html body .toolbar button.tool:hover,html body button.action:hover{transform:none}}
+</style>
 </body>
 </html>
