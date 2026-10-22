@@ -29584,7 +29584,9 @@ function hookNames(){const N=window.anambroUnitNames;if(!N||N.nameOf.__anEs)retu
 let tries=0;
 function boot(){const ms=$('geoGeneralMetric');if(!ms||!window.anambroGaUnits||!wrapLoad()){if(++tries<60)setTimeout(boot,500);return}
  ui();organize();hookLegend();hookNames();
- new MutationObserver(()=>{if(!busy)setTimeout(organize,50)}).observe(ms,{childList:true,subtree:true});
+ // Solo se reordena si un módulo añade indicadores nuevos (opciones sin ordenar); los cambios propios no cuentan
+ let tm=null;const fresh=()=>[...ms.querySelectorAll('option')].some(o=>o.dataset.anI==null||!o.parentElement?.dataset?.anG);
+ const mo=new MutationObserver(()=>{if(busy||!fresh())return;clearTimeout(tm);tm=setTimeout(()=>{organize();mo.takeRecords()},120)});mo.observe(ms,{childList:true,subtree:true});
  $('geoGeneralUnits')?.addEventListener('change',()=>setTimeout(avail,30));
  // ¿Picking activo? el clic del mapa no debe abrir la ventana del punto
  window.anambroGaPick={SEL,organize,avail}}
