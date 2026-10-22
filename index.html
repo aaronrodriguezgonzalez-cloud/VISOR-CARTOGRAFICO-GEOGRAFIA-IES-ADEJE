@@ -29813,7 +29813,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 </script>
 <script id="anambro-r53-nucleos-js">
-/* ANAMBRO r53 · 🏘️ Núcleos de población de Canarias (ISTAC)
+/* ANAMBRO r53 · Atlas estadístico ISTAC · niveles «Entidades de población» y «Núcleos y diseminados»
    Población oficial del ISTAC por núcleo y diseminado (padrón 2025, 2011 y 2001) sobre los contornos de los núcleos de 2001,
    digitalizados por ANAMBRO de la Cartografía Estadística de IDECanarias (GRAFCAN / ISTAC), único lugar donde están dibujados.
    Coropleta con el mismo fondo temático y la misma leyenda que los mapas estadísticos; ficha de cada núcleo; Excel. */
@@ -29837,33 +29837,43 @@ const IND=[
 const val=(p,k)=>{const t=p.p25;switch(k){case 'p25':return t;case 'dens':return t!=null&&p.km2>0?t/p.km2:null;case 'v01':return t!=null&&p.p01>0?(t/p.p01-1)*100:null;case 'v11':return t!=null&&p.p11>0?(t/p.p11-1)*100:null;
  case 'j':return t>0?p.a0/t*100:null;case 'v':return t>0?p.a65/t*100:null;case 'ie':return p.a0>0?p.a65/p.a0*100:null;case 'rm':return p.m>0?p.h/p.m*100:null}return null};
 const SEQ=['#fff5eb','#fdd0a2','#fdae6b','#fd8d3c','#e6550d','#a63603'],DIV=['#b2182b','#ef8a62','#fddbc7','#d1e5f0','#67a9cf','#2166ac'];
-const st={on:false,ind:'dens',dis:true};let D=null,layer=null,br=[],prevBase=null;
-async function load(){if(!D)D=await (await fetch('data/istac/nucleos.json?v=2026-10-22')).json();return D}
+const st={on:false,level:'nuc',ind:'dens',dis:true,lab:true};let DN=null,DE=null,layer=null,lbl=null,br=[],prevBase=null,saved=null;
+const LV={anEnt:'ent',anNuc:'nuc'};
+async function load(){if(st.level==='ent'){if(!DE)DE=await (await fetch('data/istac/entidades.json?v=2026-10-22')).json();return DE}if(!DN)DN=await (await fetch('data/istac/nucleos.json?v=2026-10-22b')).json();return DN}
+const data=()=>st.level==='ent'?DE:DN;
 function breaks(vals,kind){const v=vals.filter(isFinite).sort((a,b)=>a-b);if(!v.length)return [];if(kind==='div')return [-25,-10,0,10,25];if(kind==='div100')return [90,95,100,105,110];const q=k=>v[Math.min(v.length-1,Math.floor(k*v.length))];const nice2=x=>{if(!isFinite(x)||x===0)return x;const p=Math.pow(10,Math.floor(Math.log10(Math.abs(x)))-1);return Math.round(x/p)*p};return [...new Set([q(1/6),q(2/6),q(3/6),q(4/6),q(5/6)].map(nice2))]}
 function color(x,kind){if(x==null||!isFinite(x))return '#d9d9d9';const P=kind==='seq'?SEQ:DIV;let i=0;while(i<br.length&&x>=br[i])i++;return P[Math.min(i,P.length-1)]}
-function meta(){return IND.find(i=>i[0]===st.ind)}
+function meta(){return IND.find(i=>i[0]===st.ind)||IND[0]}
+const nm=p=>st.level==='ent'?p.n:(p.dis?'Diseminado de '+nice(p.e):p.n);
+const opac=()=>+($('istacOpacity')?.value||.72);
+function center(g){let a=[180,90,-180,-90];const w=c=>{if(typeof c[0]==='number'){if(c[0]<a[0])a[0]=c[0];if(c[1]<a[1])a[1]=c[1];if(c[0]>a[2])a[2]=c[0];if(c[1]>a[3])a[3]=c[1]}else c.forEach(w)};w(g.coordinates);return [(a[1]+a[3])/2,(a[0]+a[2])/2]}
+const Lbl=L.Layer.extend({onAdd(m){this._m=m;if(!m.getPane('anNucLblPane')){const p=m.createPane('anNucLblPane');p.style.zIndex='640';p.style.pointerEvents='none'}this._c=L.DomUtil.create('canvas','');m.getPane('anNucLblPane').appendChild(this._c);m.on('moveend resize',this._draw,this);this._draw()},onRemove(m){m.off('moveend resize',this._draw,this);this._c.remove()},
+ _draw(){const m=this._m,c=this._c;if(!m)return;const sz=m.getSize(),r=devicePixelRatio||1;L.DomUtil.setPosition(c,m.containerPointToLayerPoint([0,0]));c.width=sz.x*r;c.height=sz.y*r;c.style.width=sz.x+'px';c.style.height=sz.y+'px';const x=c.getContext('2d');x.scale(r,r);
+  if(!st.lab||m.getZoom()<(st.level==='ent'?11:12))return;const b=m.getBounds(),boxes=[];x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+  for(const f of [...data().features].sort((a,b)=>(b.properties.p25||0)-(a.properties.p25||0))){const p=f.properties;if(p.dis)continue;const ll=f.__c||(f.__c=center(f.geometry));if(!b.contains(ll))continue;const pt=m.latLngToContainerPoint(ll),t=nm(p);x.font='700 11px system-ui,Arial';const w=x.measureText(t).width,bx=[pt.x-w/2-2,pt.y-8,w+4,16];if(boxes.some(q=>bx[0]<q[0]+q[2]&&bx[0]+bx[2]>q[0]&&bx[1]<q[1]+q[3]&&bx[1]+bx[3]>q[1]))continue;boxes.push(bx);x.strokeStyle='#fff';x.lineWidth=3;x.strokeText(t,pt.x,pt.y);x.fillStyle='#1d2b36';x.fillText(t,pt.x,pt.y)}}});
 async function refresh(){
- document.querySelectorAll('.anNucOpts').forEach(o=>o.style.display=st.on?'block':'none');
- if(!st.on){if(layer)map.removeLayer(layer);thematic();try{renderActiveSources()}catch(_){}return}
- await load();const [k,lab,unit,dec,kind]=meta();
- const fs=D.features.filter(f=>st.dis||!f.properties.dis);
+ if(!st.on){if(layer)map.removeLayer(layer);if(lbl)map.removeLayer(lbl);thematic();try{renderActiveSources()}catch(_){}return}
+ const D=await load();const [k,lab,unit,dec,kind]=meta();
+ const fs=D.features.filter(f=>st.level==='ent'||st.dis||!f.properties.dis);
  br=breaks(fs.map(f=>val(f.properties,k)),kind);
  if(!map.getPane('anNucPane')){const p=map.createPane('anNucPane');p.style.zIndex='450'}
- if(layer)map.removeLayer(layer);
+ if(layer)map.removeLayer(layer);const op=opac();
  layer=L.geoJSON({type:'FeatureCollection',features:fs},{pane:'anNucPane',renderer:L.canvas({pane:'anNucPane',padding:.3}),
-  style:f=>({color:'#5c6670',weight:f.properties.dis?.35:.6,opacity:.75,dashArray:f.properties.aprox?'3 2':null,fillColor:color(val(f.properties,k),kind),fillOpacity:f.properties.dis?.55:.85}),
+  style:f=>({color:'#4f5b66',weight:f.properties.dis?.35:.7,opacity:.8,dashArray:f.properties.aprox?'3 2':null,fillColor:color(val(f.properties,k),kind),fillOpacity:(f.properties.dis?.75:1)*op}),
   onEachFeature:(f,l)=>{l.on('click',e=>{L.DomEvent.stopPropagation(e);L.popup({maxWidth:360}).setLatLng(e.latlng).setContent(popup(f.properties)).openOn(map)});l.bindTooltip(()=>'<b>'+esc(nm(f.properties))+'</b><br>'+fmt(val(f.properties,k),dec)+' '+unit,{sticky:true,direction:'top',opacity:.95})}}).addTo(map);
- document.querySelectorAll('.anNucCount').forEach(e=>e.textContent=fmt(fs.filter(f=>!f.properties.dis).length)+' núcleos'+(st.dis?' y '+fmt(fs.filter(f=>f.properties.dis).length)+' diseminados':'')+' · '+fmt(fs.reduce((a,f)=>a+(f.properties.p25||0),0))+' habitantes en 2025');
+ if(!lbl)lbl=new Lbl();if(!map.hasLayer(lbl))lbl.addTo(map);else lbl._draw();
+ const n=fs.length,tot=fs.reduce((a,f)=>a+(f.properties.p25||0),0);
+ const s=$('istacStatus');if(s)s.textContent=(st.level==='ent'?fmt(n)+' entidades de población':fmt(fs.filter(f=>!f.properties.dis).length)+' núcleos'+(st.dis?' y '+fmt(fs.filter(f=>f.properties.dis).length)+' diseminados':''))+' · '+fmt(tot)+' habitantes (padrón 2025, ISTAC).';
+ const ml=$('istacLegend');if(ml)ml.innerHTML=legendHTML();
  thematic();try{renderActiveSources()}catch(_){}
 }
-const nm=p=>p.dis?'Diseminado de '+nice(p.e):p.n;
-function popup(p){const r=(t,v)=>'<tr><td>'+t+'</td><td style="text-align:right"><b>'+v+'</b></td></tr>';
- return '<div class="anNucPop"><b style="font-size:14px">🏘️ '+esc(nm(p))+'</b><br><small>'+(p.dis?'Población dispersa (fuera de los núcleos)':'Entidad singular: '+esc(nice(p.e)))+' · '+esc(nice(p.nmun))+' · '+esc(p.isla)+'</small>'+
- '<table style="width:100%;margin-top:5px;border-collapse:collapse;font-size:12px">'+r('Población 2025',fmt(p.p25)+' hab.')+r('Población 2011',fmt(p.p11))+r('Población 2001',fmt(p.p01))+r('Variación 2001–2025',fmt(val(p,'v01'),1)+' %')+r('Superficie (2001)',fmt(p.km2,2)+' km²')+r('Densidad',fmt(val(p,'dens'))+' hab./km²')+r('De 0 a 14 años',fmt(val(p,'j'),1)+' %')+r('65 años y más',fmt(val(p,'v'),1)+' %')+r('Índice de envejecimiento',fmt(val(p,'ie')))+r('Hombres por cada 100 mujeres',fmt(val(p,'rm')))+'</table>'+
- (p.aprox?'<div class="anNucAprox">⚠️ Núcleo creado después de 2001: <b>contorno aproximado</b>, reconstruido por ANAMBRO dentro del polígono del que se segregó ('+esc(p.de||'')+') a partir de su situación en el nomenclátor de IDECanarias.</div>':'')+(p.div?'<div class="anNucAprox">Polígono de 2001 reducido: una parte pasó a núcleos creados después. Por eso no se compara con la población de 2001.</div>':'')+'<small style="display:block;margin-top:4px;color:#555">Fuente: ISTAC (padrón). '+(p.aprox?'':'Contorno de 2001 digitalizado por ANAMBRO de la cartografía estadística de GRAFCAN; ')+'código INE '+esc(p.k)+'.</small></div>'}
-function legendHTML(){if(!st.on||!D)return '';const [k,lab,unit,dec,kind]=meta(),P=kind==='seq'?SEQ:DIV;let h='<b>🏘️ '+esc(lab)+(unit&&unit!=='%'?' · '+unit:unit==='%'?' (%)':'')+'</b><br><small>Núcleos'+(st.dis?' y diseminados':'')+' de Canarias · ISTAC, padrón</small><div style="margin-top:5px">';
+function popup(p){const r=(t,v)=>'<tr><td>'+t+'</td><td style="text-align:right"><b>'+v+'</b></td></tr>',ent=st.level==='ent';
+ return '<div class="anNucPop"><b style="font-size:14px">🏘️ '+esc(nm(p))+'</b><br><small>'+(ent?'Entidad singular de población'+(p.nn?' · '+p.nn+' núcleo'+(p.nn>1?'s':''):''):p.dis?'Población dispersa (fuera de los núcleos)':'Núcleo de la entidad '+esc(nice(p.e)))+' · '+esc(nice(p.nmun))+' · '+esc(p.isla)+'</small>'+
+ '<table style="width:100%;margin-top:5px;border-collapse:collapse;font-size:12px">'+r('Población 2025',fmt(p.p25)+' hab.')+r('Población 2011',fmt(p.p11))+r('Población 2001',fmt(p.p01))+r('Variación 2001–2025',fmt(val(p,'v01'),1)+' %')+r('Superficie',fmt(p.km2,2)+' km²')+r('Densidad',fmt(val(p,'dens'))+' hab./km²')+r('De 0 a 14 años',fmt(val(p,'j'),1)+' %')+r('65 años y más',fmt(val(p,'v'),1)+' %')+r('Índice de envejecimiento',fmt(val(p,'ie')))+r('Hombres por cada 100 mujeres',fmt(val(p,'rm')))+'</table>'+
+ (p.aprox?'<div class="anNucAprox">⚠️ Núcleo creado después de 2001: <b>contorno aproximado</b>, reconstruido por ANAMBRO dentro del polígono del que se segregó ('+esc(p.de||'')+').</div>':'')+(p.div?'<div class="anNucAprox">Polígono de 2001 reducido: una parte pasó a núcleos creados después. Por eso no se compara con la población de 2001.</div>':'')+'<small style="display:block;margin-top:4px;color:#555">Fuente: ISTAC (padrón). Contornos: cartografía estadística de IDECanarias (2001), digitalizados por ANAMBRO · código INE '+esc(p.k)+'.</small></div>'}
+function legendHTML(){if(!st.on||!data())return '';const [k,lab,unit,dec,kind]=meta(),P=kind==='seq'?SEQ:DIV;let h='<b>🏘️ '+esc(lab)+(unit&&unit!=='%'?' · '+unit:unit==='%'?' (%)':'')+'</b><br><small>'+(st.level==='ent'?'Entidades de población':'Núcleos'+(st.dis?' y diseminados':''))+' de Canarias · ISTAC, padrón</small><div style="margin-top:5px">';
  const L0=[-Infinity,...br],H0=[...br,Infinity];for(let i=0;i<L0.length;i++){const t=i===0?'Menos de '+fmt(br[0],dec):i===L0.length-1?fmt(br[br.length-1],dec)+' o más':fmt(L0[i],dec)+' – '+fmt(H0[i],dec);h+='<div><span class="sw" style="background:'+P[Math.min(i,P.length-1)]+'"></span>'+t+'</div>'}
- return h+'<div><span class="sw" style="background:#d9d9d9"></span>Sin dato</div></div><small class="anClimaSrcNote">Contornos de los núcleos de 2001 (cartografía estadística de GRAFCAN/ISTAC, digitalizados por ANAMBRO). Los núcleos creados después (borde discontinuo) tienen un contorno aproximado reconstruido por ANAMBRO.</small>'}
+ return h+'<div><span class="sw" style="background:#d9d9d9"></span>Sin dato</div></div><small class="anClimaSrcNote">Contornos de 2001 (cartografía estadística de IDECanarias, digitalizados por ANAMBRO); núcleos creados después con contorno aproximado (borde discontinuo).</small>'}
 function otherThematic(){try{return !!(window.anambroIstacActive?.()||window.anambroIneActive?.()||window.anambroGeoAnalysisActive?.()||window.anambroUrbanoActive?.()||(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length))}catch(_){return false}}
 function thematic(){const on=st.on;
  if(on&&prevBase===null)prevBase=document.querySelector('input[data-base-choice]:checked')?.dataset?.baseChoice||'';
@@ -29872,24 +29882,40 @@ function thematic(){const on=st.on;
  else if(prevBase!==null){const k=prevBase;prevBase=null;if(k&&!otherThematic()){try{const r=document.querySelector('input[data-base-choice="'+CSS.escape(k)+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}catch(_){}}}
  try{updateLegend()}catch(_){}}
 function hookLegend(){try{if(typeof updateLegend!=='function'||updateLegend.__anNuc)return;const old=updateLegend;const f=function(){const r=old.apply(this,arguments);try{if(st.on){const h=legendHTML(),c=$('legendContent');if(c&&h)c.innerHTML=(otherThematic()?c.innerHTML+'<hr>':'')+h}}catch(e){console.warn(e)}return r};for(const k of Object.keys(old))try{f[k]=old[k]}catch(_){};f.__anNuc=true;updateLegend=f}catch(e){console.warn(e)}}
-function xlsx(){if(!window.anambroXlsx||!D)return;const rows=D.features.map(f=>{const p=f.properties;return [p.k,nm(p),p.dis?'Diseminado':'Núcleo',nice(p.e),nice(p.nmun),p.isla,p.p25,p.p11,p.p01,p.km2,val(p,'dens'),val(p,'v01'),val(p,'v11'),val(p,'j'),val(p,'v'),val(p,'ie'),val(p,'rm')]}).sort((a,b)=>(b[6]||0)-(a[6]||0));
- window.anambroXlsx.download('ANAMBRO_nucleos_poblacion_Canarias.xlsx',[{name:'Núcleos',header:['Código INE','Núcleo','Tipo','Entidad singular','Municipio','Isla','Población 2025','Población 2011','Población 2001','Superficie 2001 (km²)','Densidad (hab./km²)','Variación 2001–2025 (%)','Variación 2011–2025 (%)','0–14 años (%)','65 y más (%)','Índice de envejecimiento','Razón de masculinidad'],rows,widths:[16,30,11,24,20,14,12,12,12,12,12,12,12,10,10,12,12]},window.anambroXlsx.metaSheet({'Fuente':SRC,'Nota':'Núcleos creados después de 2001: contorno aproximado reconstruido por ANAMBRO dentro del polígono del que se segregaron; el polígono de origen queda reducido y sin comparación con 2001.'})])}
-function blockHtml(){return '<details class="layerSubcategory anNucSub" data-an-ord="nuc"><summary>🏘️ Núcleos de población (ISTAC)</summary><label><input type="checkbox" id="anNuc_can" data-nuc="on"/> <b>Núcleos y diseminados de Canarias · población 2025 (ISTAC)</b></label><div class="layerSubBlock"><small>Los 2.300 núcleos y diseminados de las siete islas con su población oficial de 2025, 2011 y 2001: densidad, crecimiento, envejecimiento… Pulsa un núcleo para ver su ficha.</small></div>'+
- '<div class="anNucOpts anClimaBlock" style="display:none"><div class="anClimaRow"><small><b>Indicador</b></small><select class="anNucInd">'+IND.map(i=>'<option value="'+i[0]+'">'+esc(i[1])+'</option>').join('')+'</select></div>'+
- '<label class="sub"><input type="checkbox" class="anNucDis" checked/> Incluir los diseminados (población fuera de los núcleos)</label><div class="anClimaRow"><button type="button" class="action anNucXlsx">📊 Excel de todos los núcleos</button></div><small class="anNucCount anTmCountTxt"></small></div></details>'}
-function install(){const sc=[...document.querySelectorAll('#layersPanel details.layerScope')].find(d=>(d.querySelector('summary')?.textContent||'').includes('Canarias'));if(!sc)return false;
- if(sc.dataset.anOrd!=='ok')return false;if(sc.querySelector('.anNucSub'))return true;
- const hum=[...sc.querySelectorAll('details.layerCategory')].find(d=>/Geografía Humana/.test(d.querySelector(':scope>summary')?.textContent||''));if(!hum)return false;
- const pob=hum.querySelector(':scope > details[data-an-ord="pob"]');const w=document.createElement('div');w.innerHTML=blockHtml();const el=w.firstElementChild;if(pob)pob.after(el);else hum.prepend(el);
- return true}
-function boot(n=0){if(typeof map==='undefined'||!install()){if(n<80)return setTimeout(()=>boot(n+1),500);return}
- hookLegend();
- document.addEventListener('change',e=>{const t=e.target;if(!t.closest?.('.anNucSub'))return;if(t.dataset.nuc==='on'){st.on=t.checked;refresh()}else if(t.classList.contains('anNucInd')){st.ind=t.value;refresh()}else if(t.classList.contains('anNucDis')){st.dis=t.checked;refresh()}});
- document.addEventListener('click',e=>{if(e.target.closest?.('.anNucXlsx'))load().then(xlsx)});
- try{if(typeof ANAMBRO_SOURCES!=='undefined')ANAMBRO_SOURCES.nuc={short:'ISTAC · padrón por núcleos · contornos GRAFCAN 2001 (digitalizados por ANAMBRO)'};if(typeof activeSourceKeys==='function'&&!activeSourceKeys.__anNuc){const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if(st.on)r.push('nuc');return [...new Set(r)]};for(const k of Object.keys(old))try{f[k]=old[k]}catch(_){};f.__anNuc=true;activeSourceKeys=f}}catch(e){console.warn(e)}
- const reg=()=>{const A=window.__anActiveLayers;if(!A)return setTimeout(reg,600);A.META['anNuc_can']={name:'Núcleos de población de Canarias (ISTAC)',p:84,get:()=>[layer]}};reg()}
-window.anambroNucActive=()=>st.on;window.anambroNucleos={state:st,refresh,load};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,1500));else setTimeout(boot,1500);
+function xlsx(){const D=data();if(!window.anambroXlsx||!D)return;const ent=st.level==='ent';
+ const rows=D.features.map(f=>{const p=f.properties;return [p.k,nm(p),ent?(p.nn||0):(p.dis?'Diseminado':'Núcleo'),ent?'':nice(p.e),nice(p.nmun),p.isla,p.p25,p.p11,p.p01,p.km2,val(p,'dens'),val(p,'v01'),val(p,'v11'),val(p,'j'),val(p,'v'),val(p,'ie'),val(p,'rm')]}).sort((a,b)=>(b[6]||0)-(a[6]||0));
+ window.anambroXlsx.download(ent?'ANAMBRO_entidades_poblacion_Canarias.xlsx':'ANAMBRO_nucleos_poblacion_Canarias.xlsx',[{name:ent?'Entidades':'Núcleos',header:['Código INE',ent?'Entidad':'Núcleo',ent?'Núcleos':'Tipo',ent?'':'Entidad singular','Municipio','Isla','Población 2025','Población 2011','Población 2001','Superficie (km²)','Densidad (hab./km²)','Variación 2001–2025 (%)','Variación 2011–2025 (%)','0–14 años (%)','65 y más (%)','Índice de envejecimiento','Razón de masculinidad'],rows,widths:[16,30,10,24,20,14,12,12,12,12,12,12,12,10,10,12,12]},window.anambroXlsx.metaSheet({'Fuente':SRC})])}
+/* ---------- integración en el Atlas estadístico del ISTAC ---------- */
+const mine=()=>LV[$('istacLevelSelect')?.value];
+function enter(level){const sel=$('istacIndicatorSelect');if(!saved&&sel)saved={html:sel.innerHTML,val:sel.value};
+ try{window.anambroClearIstacAtlas?.()}catch(_){}try{$('istacClearBtn')?.click()}catch(_){}
+ st.level=level;if(sel){sel.innerHTML=IND.map(i=>'<option value="'+i[0]+'"'+(i[0]===st.ind?' selected':'')+'>'+esc(i[1])+'</option>').join('')}
+ const yr=$('istacYearSelect');if(yr)yr.style.display='none';const lt=$('istacLabelsText');if(lt)lt.textContent=level==='ent'?'Nombres de las entidades':'Nombres de los núcleos';
+ let d=$('anNucDisWrap');if(!d){$('istacLabelsCheck')?.closest('label')?.insertAdjacentHTML('afterend','<label id="anNucDisWrap"><input type="checkbox" id="anNucDis" checked/> Incluir los diseminados (población fuera de los núcleos)</label>');d=$('anNucDisWrap');$('anNucDis').addEventListener('change',e=>{st.dis=e.target.checked;refresh()})}
+ d.style.display=level==='nuc'?'':'none';st.lab=$('istacLabelsCheck')?.checked!==false;st.on=true;refresh()}
+function leave(){st.on=false;refresh();const sel=$('istacIndicatorSelect');if(saved&&sel){sel.innerHTML=saved.html;sel.value='';}saved=null;const yr=$('istacYearSelect');if(yr)yr.style.display='';const d=$('anNucDisWrap');if(d)d.style.display='none';const lt=$('istacLabelsText');if(lt)lt.textContent='Nombres municipales';const ml=$('istacLegend');if(ml)ml.innerHTML='';const st2=$('istacStatus');if(st2)st2.textContent='Elige un indicador.'}
+function addLevels(){const s=$('istacLevelSelect');if(!s||s.querySelector('option[value="anEnt"]'))return!!s;
+ s.insertAdjacentHTML('beforeend','<option value="anEnt">Entidades de población · 2025</option><option value="anNuc">Núcleos y diseminados · 2025</option>');return true}
+function hooks(){
+ document.addEventListener('change',e=>{const t=e.target;
+  if(t.id==='istacLevelSelect'){const lv=LV[t.value];if(lv){e.stopImmediatePropagation();enter(lv);return}if(st.on||saved)leave();return}
+  if(t.id==='istacIndicatorSelect'&&mine()){e.stopImmediatePropagation();st.ind=t.value;if(!st.on)st.on=true;refresh();return}
+  if(t.id==='istacLabelsCheck'&&mine()){st.lab=t.checked;lbl?._draw()}},true);
+ document.addEventListener('input',e=>{const t=e.target;if(!mine())return;
+  if(t.id==='istacIndicatorSearch'){e.stopImmediatePropagation();const q=(t.value||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();const sel=$('istacIndicatorSelect');sel.innerHTML=IND.filter(i=>!q||i[1].normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().includes(q)).map(i=>'<option value="'+i[0]+'"'+(i[0]===st.ind?' selected':'')+'>'+esc(i[1])+'</option>').join('');return}
+  if(t.id==='istacOpacity'&&layer){const op=+t.value;layer.setStyle(f=>({fillOpacity:(f.properties.dis?.75:1)*op}))}},true);
+ document.addEventListener('click',e=>{const t=e.target;if(!mine())return;
+  if(t.closest?.('#istacClearBtn')){if(st.on){e.stopImmediatePropagation();st.on=false;refresh();const s=$('istacStatus');if(s)s.textContent='Mapa quitado. Elige un indicador para volver a cartografiar.'}return}
+  if(t.closest?.('[data-atlas-excel="istac"]')){e.stopImmediatePropagation();load().then(xlsx);return}
+  if(t.closest?.('#istacLatestBtn,#istacReloadBtn')){e.stopImmediatePropagation();refresh()}},true)}
+function boot(n=0){if(typeof map==='undefined'||!addLevels()){if(n<80)return setTimeout(()=>boot(n+1),500);return}
+ hookLegend();hooks();
+ // la ayuda del bloque menciona ya los nuevos niveles
+ const h=document.querySelector('#istacAtlasBlock .atlasSearchHint');if(h&&!/entidades/.test(h.textContent))h.textContent='Datos oficiales del ISTAC · municipios, secciones censales, entidades de población y núcleos. Misma clasificación, simbología, leyenda, ficha y exportación.';
+ try{if(typeof ANAMBRO_SOURCES!=='undefined')ANAMBRO_SOURCES.nuc={short:'ISTAC · padrón por entidades y núcleos · contornos de IDECanarias 2001 (digitalizados por ANAMBRO)'};if(typeof activeSourceKeys==='function'&&!activeSourceKeys.__anNuc){const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if(st.on)r.push('nuc');return [...new Set(r)]};for(const k of Object.keys(old))try{f[k]=old[k]}catch(_){};f.__anNuc=true;activeSourceKeys=f}}catch(e){console.warn(e)}
+ const reg=()=>{const A=window.__anActiveLayers;if(!A)return setTimeout(reg,600);A.META.__anNucAtlas={virtual:true,p:47,name:()=>'Atlas estadístico · ISTAC · '+(st.level==='ent'?'entidades':'núcleos')+' · '+meta()[1],on:()=>st.on,off:()=>{st.on=false;refresh()},get:()=>[layer]}};reg()}
+window.anambroNucActive=()=>st.on;window.anambroNucleos={state:st,refresh,load,enter,leave};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,1200));else setTimeout(boot,1200);
 })();
 
 </script>
