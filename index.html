@@ -20396,7 +20396,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   if(m.virtual){try{return !!m.on?.()}catch(_){return false}}
   return !!q(id)?.checked;
  }
- function activeKeys(){discoverVisibleControls();return Object.keys(META).filter(isOn)}
+ function activeKeys(){discoverVisibleControls();return Object.keys(META).filter(k=>!META[k]?.hidden&&isOn(k))}
  function displayName(id){const n=META[id]?.name;try{return typeof n==='function'?n():n||id}catch(_){return String(n||id)}}
  function normalizeOrder(){
   const active=activeKeys();
@@ -20416,6 +20416,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
  function apply2DOrder(){
   if(typeof map==='undefined')return;
   const a=normalizeOrder();
+  if(window.__anStack2D){try{return window.__anStack2D(a,layersFor)}catch(e){console.warn('ANAMBRO · capas visibles',e)}}
   // Se recorre de abajo arriba; la última llamada bringToFront deja arriba la capa de mayor prioridad.
   [...a].reverse().forEach((id,i)=>{const z=450+i;for(const l of layersFor(id))if(!map.hasLayer||map.hasLayer(l))lift(l,z)});
  }
@@ -20439,6 +20440,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   const rule=document.querySelector('#layersPanel .layersRule');if(rule&&!q('activeLayersOpenInside')){const b=document.createElement('button');b.id='activeLayersOpenInside';b.type='button';b.className='action activeLayersOpenBtn';b.textContent='👁️ Ver, ordenar y desactivar capas visibles';b.addEventListener('click',()=>togglePanel('activeLayersPanel'));rule.insertAdjacentElement('afterend',b)}
   q('activeLayersList')?.addEventListener('click',e=>{const row=e.target.closest('[data-active-layer]');if(!row)return;const id=row.dataset.activeLayer;if(e.target.closest('[data-up]'))move(id,-1);else if(e.target.closest('[data-down]'))move(id,1);else if(e.target.closest('[data-off]')){const m=META[id];if(m?.virtual){try{m.off?.()}catch(_){typeof __anLog=='function'&&__anLog(_,'L20069');}}else{const c=q(id);if(c&&c.checked){try{c.click()}catch(_){typeof __anLog=='function'&&__anLog(_,'L20069');}if(c.checked){c.checked=false;try{c.dispatchEvent(new Event('input',{bubbles:true}))}catch(_){typeof __anLog=='function'&&__anLog(_,'L20069');}try{c.dispatchEvent(new Event('change',{bubbles:true}))}catch(_){typeof __anLog=='function'&&__anLog(_,'L20069');}}setTimeout(()=>{if(!c.checked){for(const l of layersFor(id)){try{if(typeof map!=='undefined'&&map.hasLayer?.(l))map.removeLayer(l)}catch(_){typeof __anLog=='function'&&__anLog(_,'L20069');}}}sync()},60)}}setTimeout(sync,0)}});
  }
+ window.__anActiveLayers={META,normalizeOrder,layersFor,isOn,rank,sync:()=>sync(),apply:()=>apply2DOrder()};
  function pointCandidates2D(latlng){
   if(typeof map==='undefined')return[];const click=map.latLngToContainerPoint(latlng),out=[];
   const add=(id,layer)=>{if(!isOn(id)||!layer||!map.hasLayer(layer))return;try{layer.eachLayer(ch=>{if(typeof ch.getLatLng!=='function'||!ch.getPopup?.())return;const p=map.latLngToContainerPoint(ch.getLatLng()),d=click.distanceTo(p);if(d<=18)out.push({id,layer:ch,d})})}catch(_){typeof __anLog=='function'&&__anLog(_,'L20073');}};
@@ -27840,6 +27842,9 @@ function install(){
  }
  if(!$('anClimaList')){const dlst=document.createElement('datalist');dlst.id='anClimaList';document.body.appendChild(dlst)}
  Object.values(SCOPES).forEach(id=>$(id)?.addEventListener('change',refresh));
+ // Al activar Canarias o España, si el mapa está mirando a otro sitio, se va al ámbito (si no, las estaciones quedan fuera de la vista)
+ const BB={canary:[[27.55,-18.3],[29.45,-13.35]],spain:[[35.8,-9.6],[43.9,4.4]]};
+ for(const k of ['canary','spain'])$(SCOPES[k])?.addEventListener('change',e=>{if(!e.target.checked||typeof map==='undefined'||document.body.classList.contains('globe-mode'))return;try{const b=L.latLngBounds(BB[k]),v=map.getBounds();if(!v.intersects(b)||map.getZoom()<5)map.fitBounds(b,{padding:[20,20]})}catch(_){}});
  document.querySelectorAll('.anClimaPer').forEach(sel=>sel.addEventListener('change',e=>{state.pk=e.target.value;document.querySelectorAll('.anClimaPer').forEach(x=>x.value=state.pk);refresh()}));
  document.querySelectorAll('.anClimaSym').forEach(sel=>sel.addEventListener('change',e=>{state.sym=e.target.value;document.querySelectorAll('.anClimaSym').forEach(x=>x.value=state.sym);refresh()}));
  document.querySelectorAll('.anClimaSearch').forEach(inp=>{
@@ -27923,7 +27928,7 @@ function boot(){
  try{installGa()}catch(e){console.warn('ANAMBRO · Análisis geográfico (clima)',e)}
  hookGlobe();
 }
-window.anambroClima={load,openStation,openFromGlobe,koppen,miller,basics,climogramSVG,refresh,state,get db(){return DB},_test:{axisSpec,fmt,inGeom}};
+window.anambroClima={load,openStation,openFromGlobe,koppen,miller,basics,climogramSVG,refresh,state,get db(){return DB},get layer(){return layer},_test:{axisSpec,fmt,inGeom}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 
@@ -28022,7 +28027,7 @@ function install(){
   if(typeof activeSourceKeys==='function'&&!activeSourceKeys.__anClimaMap){const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if($('anClimaMapCheck')?.checked)r.push('terraclimate');return [...new Set(r)]};f.__anClimaMap=true;f.__anClima=old.__anClima;activeSourceKeys=f}}catch(e){console.warn(e)}
  try{if(typeof ensureGlobe==='function'&&!ensureGlobe.__anClimaMap){const old=ensureGlobe;const f=async function(){const r=await old.apply(this,arguments);setTimeout(syncGlobe,60);return r};f.__anClimaMap=true;f.__anClima=old.__anClima;ensureGlobe=f}}catch(e){console.warn(e)}
 }
-window.anambroClimaMap={refresh,classAt,state:st};
+window.anambroClimaMap={refresh,classAt,state:st,layer:()=>overlay};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 
@@ -28104,8 +28109,106 @@ function pointInfo(lat,lon){
   if(best){const c=meta.vars.kp.classes[best.kp-1];return {code:c,name:KN[c],color:meta.vars.kp.colors[c],tm:valueAt('tm',best.la,best.lo)/10,p:valueAt('p',best.la,best.lo),off:Math.round(best.dist*r*111000),cite:meta.src,u:meta.u}}}
  return null;
 }
-window.anambroAtlasCanarias={refresh,valueAt,state:st,ensure,isReady,pointInfo};
+window.anambroAtlasCanarias={refresh,valueAt,state:st,ensure,isReady,pointInfo,layer:()=>ov};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+
+</script>
+<script id="anambro-r53-capas-js">
+/* ANAMBRO r53 · «Capas visibles» de verdad
+   - Cada capa visible tiene su propio piso en el mapa (pane de Leaflet) y los pisos se apilan en el orden de la lista:
+     la primera de la lista queda encima de todas, sea raster (imágenes, WMS, teselas) o vectorial (líneas, polígonos, puntos).
+   - Como cada piso vectorial tiene su propio lienzo, el clic se reenvía al lienzo más alto que tenga algo debajo del puntero:
+     así se puede seguir pulsando en una capa aunque haya otra encima (como antes).
+   - La lista ya no muestra opciones que no son capas (rótulos, relleno, contornos…) y registra las capas nuevas de r53.
+   El fondo (mapa base) queda siempre debajo y los marcadores, ventanas y etiquetas emergentes siempre encima. */
+(function(){
+'use strict';
+const PANE_DEFAULT=new Set(['tilePane','overlayPane','shadowPane','markerPane','tooltipPane','popupPane','mapPane']);
+const OPTION_IDS=['placesMaster','istacLabelsCheck','ineLabelsCheck','ineMunicipalBordersCheck','worldRiverLabelsCheck','worldHistoryFillCheck','worldHistoryStrokeCheck','worldHistoryLabelsCheck','worldHistoryShadeCheck'];
+const rendererFor={}; // pane → lienzo propio
+let moving=false;
+const paneName=id=>'anOrd_'+String(id).replace(/[^A-Za-z0-9_]/g,'_');
+function ensurePane(n){return map.getPane(n)||map.createPane(n)}
+function canvasFor(pn,old){if(!rendererFor[pn]){const o=old?.options||{};rendererFor[pn]=L.canvas({pane:pn,padding:o.padding??.3,tolerance:o.tolerance??0})}return rendererFor[pn]}
+// Pasa una capa (y sus hijas) al piso pn. Las que ya usan un piso propio (no estándar) no se mueven: se sube o baja ese piso.
+function place(layer,pn,custom){
+ if(!layer)return;
+ if(typeof layer.eachLayer==='function'&&!(layer instanceof L.Path)){layer.eachLayer(ch=>place(ch,pn,custom));if(layer.options?.pane&&!PANE_DEFAULT.has(layer.options.pane))custom.add(layer.options.pane);return}
+ if(L.Marker&&layer instanceof L.Marker){if(layer.options.pane&&!PANE_DEFAULT.has(layer.options.pane))custom.add(layer.options.pane);return}
+ const cur=layer.options?.pane;
+ if(cur&&!PANE_DEFAULT.has(cur)&&!cur.startsWith('anOrd_')){custom.add(cur);return}
+ if(cur===pn)return;
+ const on=map.hasLayer(layer);
+ layer.options.pane=pn;
+ if(layer instanceof L.Path){const r=layer.options.renderer;if(r&&r.options?.pane!==pn)layer.options.renderer=(r instanceof L.SVG)?L.svg({pane:pn}):canvasFor(pn,r)}
+ if(on){moving=true;try{map.removeLayer(layer);map.addLayer(layer)}finally{moving=false}}
+}
+// Sustituye al antiguo apply2DOrder (que solo ordenaba dentro de cada piso): z de 590 (la primera) hacia abajo
+window.__anStack2D=function(order,layersFor){
+ if(typeof map==='undefined')return;
+ order.forEach((id,i)=>{
+  const z=590-i*5,pn=paneName(id),pane=ensurePane(pn);pane.style.zIndex=String(z);
+  const custom=new Set();
+  for(const l of extraLayers(id).concat(layersFor(id)||[]))if(l)place(l,pn,custom);
+  [...custom].forEach((c,k)=>{const p=map.getPane(c);if(p)p.style.zIndex=String(z+1+k)});
+ });
+};
+// Capas de r53 que el panel antiguo no sabía localizar
+function extraLayers(id){
+ try{
+  const T=window.anambroTiempo?.layers?.()||{},C=window.anambroClima,A=window.anambroAtlasCanarias,M=window.anambroClimaMap;
+  if(/^anClima(Canary|Spain|World)Check$/.test(id))return [C?.layer];
+  if(id==='anAtlasCheck')return [A?.layer?.()];
+  if(id==='anClimaMapCheck')return [M?.layer?.()];
+  if(id.startsWith('anTm_obs_'))return T.obs||[];
+  if(id==='anTm_radar')return T.radar||[];
+  if(id==='anTm_sat')return T.sat||[];
+  if(id==='anTm_storm')return T.storm||[];
+  if(id==='anTm_iso')return T.iso||[];
+  if(id==='anTm_cyc')return T.cyc||[];
+ }catch(_){}
+ return [];
+}
+// Reenvío de clics y del puntero entre lienzos de pisos distintos
+function canvases(){const out=[];map.eachLayer(l=>{if(l instanceof L.Canvas&&l._container&&l._map){const pn=l.options.pane||'overlayPane',p=map.getPane(pn);if(!p||getComputedStyle(p).pointerEvents==='none')return;out.push({r:l,z:+(getComputedStyle(p).zIndex)||0})}});return out.sort((a,b)=>b.z-a.z)}
+function hitIn(r,e){try{const pt=map.mouseEventToLayerPoint(e);for(let o=r._drawFirst;o;o=o.next){const l=o.layer;if(l.options.interactive&&!l._empty?.()&&l._containsPoint(pt))return l}}catch(_){}return null}
+let installed=false;
+function installForward(){
+ if(installed||typeof map==='undefined')return;installed=true;
+ const box=map.getContainer();
+ const fwd=e=>{
+  if(!(e.target instanceof HTMLCanvasElement)||!e.target.closest('.leaflet-pane'))return;
+  const cs=canvases();if(cs.length<2)return;
+  const top=cs.find(c=>c.r._container===e.target);
+  const hit=cs.find(c=>hitIn(c.r,e));
+  if(e.type==='mousemove'){for(const c of cs)if(!hit||c.r!==hit.r)try{c.r._handleMouseOut?.(e)}catch(_){}if(hit&&hit.r._container!==e.target){e.stopPropagation();hit.r._onMouseMove(e)}return}
+  if(hit&&hit.r._container!==e.target){e.stopPropagation();hit.r._onClick(e)}
+ };
+ for(const t of ['click','dblclick','contextmenu','mousemove'])box.addEventListener(t,fwd,true);
+}
+// Las capas que se reconstruyen (por ejemplo al cambiar de año o de indicador) vuelven a su piso
+let tm=null;
+function relayer(){if(moving)return;clearTimeout(tm);tm=setTimeout(()=>{try{window.__anActiveLayers?.apply()}catch(_){}},200)}
+function register(){
+ const A=window.__anActiveLayers;if(!A)return false;const M=A.META;
+ for(const id of OPTION_IDS)M[id]={...(M[id]||{}),hidden:true,name:M[id]?.name||id,get:()=>[]};
+ const add=(id,name,p)=>{M[id]={name,p,get:()=>[]}};
+ add('anClimaCanaryCheck','Estaciones climáticas · normales (Canarias)',80);add('anClimaSpainCheck','Estaciones climáticas · normales (España)',80);add('anClimaWorldCheck','Estaciones climáticas · normales (Mundo)',80);
+ add('anAtlasCheck','Atlas Climático de Canarias · ULPGC',33);add('anClimaMapCheck','Climas del mundo · Miller / Köppen (TerraClimate)',33);
+ add('anTm_obs_canary','Tiempo · estaciones de AEMET (Canarias)',82);add('anTm_obs_spain','Tiempo · estaciones de AEMET (España)',82);add('anTm_obs_world','Tiempo · aeródromos del mundo (METAR)',82);
+ add('anTm_radar','Tiempo · radar de precipitación',60);add('anTm_sat','Tiempo · satélite',31);add('anTm_storm','Tiempo · rayos y tormentas',61);add('anTm_iso','Tiempo · isobaras (GFS)',62);add('anTm_cyc','Tiempo · ciclones tropicales',63);
+ return true;
+}
+function boot(){
+ if(typeof map==='undefined'||typeof L==='undefined')return;
+ if(!register())return setTimeout(boot,500);
+ installForward();
+ map.on('layeradd',relayer);
+ document.addEventListener('change',e=>{if(e.target?.closest?.('#layersPanel'))setTimeout(()=>{try{window.__anActiveLayers?.sync()}catch(_){}},120)});
+ try{window.__anActiveLayers.sync()}catch(_){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,300));else setTimeout(boot,300);
 })();
 
 </script>
@@ -28190,6 +28293,7 @@ canvas.anTmLbl{position:absolute;left:0;top:0;pointer-events:none}
 .anTmAem .anTmPopD td:nth-child(3){font-size:10.5px;max-width:110px;white-space:normal}
 .anTmWarn{display:block;color:#8a4b00;background:#fff4e0;border-radius:4px;padding:2px 4px;margin:2px 0;font-size:10.5px}
 .leaflet-popup-content:has(.anTmPop){max-height:calc(100vh - 250px);overflow-y:auto;overscroll-behavior:contain}
+.anTmCountTxt{display:block;color:#536674;font-size:10.5px;margin-top:3px}
 </style>
 <script id="anambro-r53-tiempo-js">
 /* ANAMBRO r53 · ⛈️ Tiempo en directo
@@ -28263,6 +28367,7 @@ function pane(n,z,pe){if(!map.getPane(n)){const p=map.createPane(n);p.style.zInd
 /* ---------------- capa de observaciones ---------------- */
 let obsLayer=null,lblLayer=null,renderer=null,obsItems=[];
 const Lbl=L.Layer.extend({
+ options:{pane:'anTmLblPane'},
  onAdd(m){this._m=m;this._c=L.DomUtil.create('canvas','anTmLbl');pane('anTmLblPane',647).appendChild(this._c);m.on('moveend resize',this._draw,this);m.on('zoomstart',this._hide,this);this._draw()},
  onRemove(m){m.off('moveend resize',this._draw,this);m.off('zoomstart',this._hide,this);this._c.remove()},
  _hide(){this._c.style.display='none'},
@@ -28741,20 +28846,20 @@ const OBS_TXT={canary:['Estaciones de AEMET · Canarias','Unas 80 estaciones aut
 function blockHtml(k){
  const opt=(cls,o,sel)=>'<select class="'+cls+'">'+o.map(([v,t])=>'<option value="'+v+'"'+(v===sel?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select>';
  return '<div class="layerSubBlock"><small>Observaciones y productos que se actualizan solos: estaciones, radar, satélite, rayos, isobaras y ciclones. Pulsa una estación o cualquier lugar para ver su tiempo.</small></div>'+
- '<label><input type="checkbox" data-tm="obs" data-scope="'+k+'"/> <b>'+OBS_TXT[k][0]+'</b></label><div class="layerSubBlock"><small>'+OBS_TXT[k][1]+'</small></div>'+
+ '<label><input type="checkbox" id="anTm_obs_'+k+'" data-tm="obs" data-scope="'+k+'"/> <b>'+OBS_TXT[k][0]+'</b></label><div class="layerSubBlock"><small>'+OBS_TXT[k][1]+'</small></div>'+
  '<div class="anTmObsOpts anClimaBlock" style="display:none"><div class="anClimaRow"><small><b>Variable</b></small>'+opt('anTmVar',Object.entries(VARS).map(([v,o])=>[v,o.l]),st.v)+'</div>'+
  '<div class="anClimaRow"><small><b>Hora (AEMET)</b></small><select class="anTmHour"><option value="-1">Última hora disponible</option></select></div>'+
- '<label class="sub"><input type="checkbox" class="anTmLab" checked/> Rotular los valores en el mapa</label><small class="anTmCount anClimaCount"></small><div class="anTmLegend anClimaLegend" style="display:none"></div></div>'+
- '<label><input type="checkbox" data-tm="radar"/> <b>Radar de precipitación · últimas 2 horas, animado</b></label><div class="layerSubBlock"><small>Mosaico mundial de radares (RainViewer). Hasta zoom 7.</small></div>'+
+ '<label class="sub"><input type="checkbox" class="anTmLab" checked/> Rotular los valores en el mapa</label><small class="anTmCount anTmCountTxt"></small><div class="anTmLegend anClimaLegend" style="display:none"></div></div>'+
+ '<label><input type="checkbox" '+(k==='canary'?'id="anTm_radar" ':'')+'data-tm="radar"/> <b>Radar de precipitación · últimas 2 horas, animado</b></label><div class="layerSubBlock"><small>Mosaico mundial de radares (RainViewer). Hasta zoom 7.</small></div>'+
  '<div class="anTmRadarOpts anClimaBlock" style="display:none"><div class="anClimaRow"><button type="button" class="anTmRadarPlay">⏸ Pausa</button><small class="anTmRadarTime"></small></div><small><b>Opacidad</b></small><input type="range" class="anTmRadarOp" min="0.2" max="1" step="0.05" value="'+st.radarOp+'" style="width:100%"/>'+
  '<div class="anClimaRow"><button type="button" data-img="radar">📡 Radares de AEMET (imagen)</button>'+(k!=='world'?'<button type="button" data-img="rayos">⚡ Rayos en España</button>':'')+'</div></div>'+
- '<label><input type="checkbox" data-tm="sat"/> <b>Satélite · nubes</b></label><div class="layerSubBlock"><small>Meteosat (EUMETSAT) cada 10–15 min y mosaico mundial de satélites geoestacionarios.</small></div>'+
- '<div class="anTmSatOpts anClimaBlock" style="display:none"><div class="anClimaRow">'+opt('anTmSatL',Object.entries(SAT).map(([v,o])=>[v,o.l]),st.satL)+'</div><label class="sub"><input type="checkbox" class="anTmSatAnim"/> Animar (últimas 6 h; 24 h en el mosaico mundial)</label><small class="anTmSatTime anClimaCount"></small><small><b>Opacidad</b></small><input type="range" class="anTmSatOp" min="0.2" max="1" step="0.05" value="'+st.satOp+'" style="width:100%"/></div>'+
- '<label><input type="checkbox" data-tm="storm"/> <b>Tormentas · rayos y núcleos convectivos</b></label><div class="layerSubBlock"><small>Detector de rayos del Meteosat de 3.ª generación y tormentas en desarrollo rápido (Europa, África y Atlántico).</small></div>'+
- '<div class="anTmStormOpts anClimaBlock" style="display:none"><small class="anTmStormTime anClimaCount"></small></div>'+
- '<label><input type="checkbox" data-tm="iso"/> <b>Isobaras y centros de acción (A / B)</b></label><div class="layerSubBlock"><small>Presión a nivel del mar del modelo GFS: isobaras cada 4 hPa (la de 1012 hPa, en azul claro), análisis y pronóstico a 24, 48 y 72 h.</small></div>'+
- '<div class="anTmIsoOpts anClimaBlock" style="display:none"><div class="anClimaRow">'+opt('anTmIsoStep',[['0','Análisis (situación actual)'],['1','Pronóstico a 24 h'],['2','Pronóstico a 48 h'],['3','Pronóstico a 72 h']],String(st.isoStep))+'</div><small class="anTmIsoTime anClimaCount"></small><div class="anClimaRow"><button type="button" data-img="analisis">🗺️ Mapa de análisis de AEMET (con frentes)</button></div></div>'+
- '<label><input type="checkbox" data-tm="cyc"/> <b>Ciclones tropicales · huracanes y tifones</b></label><div class="layerSubBlock"><small>Posición, trayectoria, cono de pronóstico y vientos (NHC · GDACS).</small></div><div class="anTmCycOpts anClimaBlock" style="display:none"><small class="anTmCycInfo anClimaCount"></small></div>'+
+ '<label><input type="checkbox" '+(k==='canary'?'id="anTm_sat" ':'')+'data-tm="sat"/> <b>Satélite · nubes</b></label><div class="layerSubBlock"><small>Meteosat (EUMETSAT) cada 10–15 min y mosaico mundial de satélites geoestacionarios.</small></div>'+
+ '<div class="anTmSatOpts anClimaBlock" style="display:none"><div class="anClimaRow">'+opt('anTmSatL',Object.entries(SAT).map(([v,o])=>[v,o.l]),st.satL)+'</div><label class="sub"><input type="checkbox" class="anTmSatAnim"/> Animar (últimas 6 h; 24 h en el mosaico mundial)</label><small class="anTmSatTime anTmCountTxt"></small><small><b>Opacidad</b></small><input type="range" class="anTmSatOp" min="0.2" max="1" step="0.05" value="'+st.satOp+'" style="width:100%"/></div>'+
+ '<label><input type="checkbox" '+(k==='canary'?'id="anTm_storm" ':'')+'data-tm="storm"/> <b>Tormentas · rayos y núcleos convectivos</b></label><div class="layerSubBlock"><small>Detector de rayos del Meteosat de 3.ª generación y tormentas en desarrollo rápido (Europa, África y Atlántico).</small></div>'+
+ '<div class="anTmStormOpts anClimaBlock" style="display:none"><small class="anTmStormTime anTmCountTxt"></small></div>'+
+ '<label><input type="checkbox" '+(k==='canary'?'id="anTm_iso" ':'')+'data-tm="iso"/> <b>Isobaras y centros de acción (A / B)</b></label><div class="layerSubBlock"><small>Presión a nivel del mar del modelo GFS: isobaras cada 4 hPa (la de 1012 hPa, en azul claro), análisis y pronóstico a 24, 48 y 72 h.</small></div>'+
+ '<div class="anTmIsoOpts anClimaBlock" style="display:none"><div class="anClimaRow">'+opt('anTmIsoStep',[['0','Análisis (situación actual)'],['1','Pronóstico a 24 h'],['2','Pronóstico a 48 h'],['3','Pronóstico a 72 h']],String(st.isoStep))+'</div><small class="anTmIsoTime anTmCountTxt"></small><div class="anClimaRow"><button type="button" data-img="analisis">🗺️ Mapa de análisis de AEMET (con frentes)</button></div></div>'+
+ '<label><input type="checkbox" '+(k==='canary'?'id="anTm_cyc" ':'')+'data-tm="cyc"/> <b>Ciclones tropicales · huracanes y tifones</b></label><div class="layerSubBlock"><small>Posición, trayectoria, cono de pronóstico y vientos (NHC · GDACS).</small></div><div class="anTmCycOpts anClimaBlock" style="display:none"><small class="anTmCycInfo anTmCountTxt"></small></div>'+
  '<label><input type="checkbox" data-tm="punto"/> <b>El tiempo en cualquier punto</b></label><div class="layerSubBlock"><small>Pulsa en cualquier lugar del mapa: la ventana muestra el tiempo ahora y los próximos 3 días en ese punto (Open-Meteo) y, en Canarias y las ciudades de España, la predicción oficial de AEMET de su municipio; desde ella, 7 días con gráficos y cualquier día desde 1940.</small></div>'+
  '<small class="anTmEstado anClimaSrcNote"></small>';
 }
@@ -28796,7 +28901,7 @@ function installSources(){try{if(typeof ANAMBRO_SOURCES==='undefined')return;Obj
   tm_eum:{short:'EUMETSAT Meteosat data 2026 · EUMETView'},tm_gibs:{short:'NASA EOSDIS GIBS'},tm_gfs:{short:'NOAA NCEP GFS · isobaras calculadas por ANAMBRO'},tm_cyc:{short:'NOAA NHC · GDACS (CE-JRC / ONU-OCHA)'},tm_om:{short:'Open-Meteo.com (CC BY 4.0) · ERA5 Copernicus/ECMWF'}});
  if(typeof activeSourceKeys==='function'&&!activeSourceKeys.__anTiempo){const old=activeSourceKeys;const f=function(){const r=old.apply(this,arguments)||[];if(st.obs.canary||st.obs.spain)r.push('tm_aemet');if(st.obs.world)r.push('tm_metar');if(st.radar)r.push('tm_rv');if(st.sat)r.push(SAT[st.satL].gibs?'tm_gibs':'tm_eum');if(st.storm)r.push('tm_eum');if(st.iso)r.push('tm_gfs');if(st.cyc)r.push('tm_cyc');if(st.punto){r.push('tm_om');r.push('tm_aemet')}return [...new Set(r)]};for(const k of ['__anClima','__anClimaMap','__anAtlas'])f[k]=old[k];f.__anTiempo=true;activeSourceKeys=f}}catch(e){console.warn(e)}}
 function srcRefresh(){try{renderActiveSources()}catch(_){}}
-window.anambroTiempo={openPoint,openStation,openStationById,ptPopup,aemetMuni,openAemetImg,openFromGlobe,gSyncAll,state:st,refreshObs,_test:{chartSVG,aVals,mVals,barb}};
+window.anambroTiempo={layers:()=>({obs:[obsLayer,lblLayer],radar:radar?.frames?.map(f=>f.layer)||[],sat:sat?.frames||[],storm:storm||[],iso:[isoLayer],cyc:[cycLayer]}),openPoint,openStation,openStationById,ptPopup,aemetMuni,openAemetImg,openFromGlobe,gSyncAll,state:st,refreshObs,_test:{chartSVG,aVals,mVals,barb}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 
