@@ -14141,7 +14141,7 @@ html body.istac-export-clean #map{background:#d9eef6!important;}
   ensurePanes();
   gebco2D=L.tileLayer.wms(GEBCO_URL,{
    layers:'gebco_latest',format:'image/jpeg',transparent:false,version:'1.3.0',
-   pane:'atlasBathymetryPane',opacity:.50,maxZoom:10,className:'anambro-gebco-tile',
+   pane:'atlasBathymetryPane',opacity:.50,maxZoom:10,tileSize:512,className:'anambro-gebco-tile',
    attribution:'GEBCO_2026'
   });
   return gebco2D;
@@ -28404,12 +28404,24 @@ function setYearE(k){E.yk=k;sync('.anUrbYearE',String(k));if(E.es.on||E.can.on)r
 const active=()=>st.on||E.es.on||E.can.on;
 let prevBase=null;
 function otherThematic(){try{return !!(window.anambroIstacActive?.()||window.anambroIneActive?.()||window.anambroGeoAnalysisActive?.()||(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length))}catch(_){return false}}
+/* Tierra al instante: el fondo batimétrico GEBCO (WMS) tarda en llegar y, sin coropleta encima, las tierras se veían
+   a parches. Se dibuja la tierra en vectorial (Natural Earth 1:50 M; en Canarias, el contorno de los 88 municipios) */
+let landL=null,landBusy=null;
+const inCanBox=f=>{let ok=true;const w=c=>{if(typeof c[0]==='number'){if(c[0]<-18.6||c[0]>-13||c[1]<27.4||c[1]>29.6)ok=false}else c.forEach(w)};w(f?.geometry?.coordinates||[]);return ok};
+function landLayer(){if(landL)return Promise.resolve(landL);if(landBusy)return landBusy;landBusy=(async()=>{
+ const pn='atlasLandPane';if(!map.getPane(pn)){const p=map.createPane(pn);p.style.zIndex='220';p.style.pointerEvents='none'}
+ const ren=L.canvas({pane:pn,padding:.3}),g=L.layerGroup(),FILL='#f7f5ef';
+ try{const ne=typeof loadHistoryLand==='function'?await loadHistoryLand():null;if(ne)g.addLayer(L.geoJSON({type:'FeatureCollection',features:(ne.features||[]).filter(f=>!inCanBox(f))},{pane:pn,renderer:ren,interactive:false,style:{color:'#39779d',weight:.9,opacity:.8,fillColor:FILL,fillOpacity:.78}}))}catch(e){console.warn('Red urbana · tierras',e)}
+ try{const mc=await (await fetch('data/clima/canarias/municipios_canarias.json')).json();g.addLayer(L.geoJSON(mc,{pane:pn,renderer:ren,interactive:false,style:{color:FILL,weight:1,opacity:.78,fillColor:FILL,fillOpacity:.78}}))}catch(e){console.warn('Red urbana · Canarias',e)}
+ landL=g;return g})();return landBusy}
+function historyAtlasOn(){return !!document.getElementById('worldHistoryCheck')?.checked}
+async function syncLand(){try{const want=active()&&!otherThematic()&&!historyAtlasOn();if(!want){if(landL&&map.hasLayer(landL))map.removeLayer(landL);return}const g=await landLayer();if(active()&&!otherThematic()&&!historyAtlasOn()&&!map.hasLayer(g))g.addTo(map)}catch(e){console.warn(e)}}
 function thematic(){const on=active();
  if(on&&prevBase===null)prevBase=document.querySelector('input[data-base-choice]:checked')?.dataset?.baseChoice||'';
  try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}
  if(on){const dyn=$('dynamicLegend'),btn=$('legendToggle');if(dyn){dyn.classList.remove('hidden');if(btn){btn.innerHTML='<span>✕</span> Ocultar leyenda';btn.setAttribute('aria-expanded','true')}}}
  else if(prevBase!==null){const k=prevBase;prevBase=null;if(k&&!otherThematic()){try{const r=document.querySelector('input[data-base-choice="'+CSS.escape(k)+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}catch(_){}}}
- try{updateLegend()}catch(_){}}
+ syncLand();try{updateLegend()}catch(_){}}
 function circlesSVG(vals,rf,lab){const R=vals.map(rf),M=Math.max(...R),cx=M+4,by=M*2+8;let ly=-1e9;const Ys=R.map(r=>by-2*r).map(y=>{const yy=Math.max(y,ly+13);ly=yy;return yy}),H=Math.max(by,ly+6)+2,W=M*2+160;
  return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="display:block;margin:4px 0">'+vals.map((v,i)=>{const r=R[i],y=by-2*r,ty=Ys[i];return '<circle cx="'+cx+'" cy="'+(by-r)+'" r="'+r+'" fill="none" stroke="#33475b" stroke-width="1"/><polyline points="'+cx+','+y+' '+(cx+M+8)+','+y+' '+(cx+M+14)+','+ty+'" fill="none" stroke="#33475b" stroke-width=".6" stroke-dasharray="2 2"/><text x="'+(cx+M+17)+'" y="'+(ty+4)+'" font-size="11" font-family="system-ui,Arial" fill="#1d2b36">'+lab(v)+'</text>'}).join('')+'</svg>'}
 function legendHTML(){let h='';
