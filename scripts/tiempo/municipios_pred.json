@@ -1,0 +1,2045 @@
+[
+{
+"id": "38001",
+"n": "Adeje",
+"cap": "Adeje",
+"la": 28.1205,
+"lo": -16.7225,
+"z": 218,
+"hab": 46667
+},
+{
+"id": "35001",
+"n": "Agaete",
+"cap": "Agaete",
+"la": 28.0986,
+"lo": -15.699,
+"z": 45,
+"hab": 5656
+},
+{
+"id": "38002",
+"n": "Agulo",
+"cap": "Agulo",
+"la": 28.1876,
+"lo": -17.1918,
+"z": 153,
+"hab": 1086
+},
+{
+"id": "35002",
+"n": "Agüimes",
+"cap": "Agüimes",
+"la": 27.9051,
+"lo": -15.4448,
+"z": 279,
+"hab": 30244
+},
+{
+"id": "38003",
+"n": "Alajeró",
+"cap": "Alajeró",
+"la": 28.0624,
+"lo": -17.2379,
+"z": 803,
+"hab": 1954
+},
+{
+"id": "02003",
+"n": "Albacete",
+"cap": "Albacete",
+"la": 38.9959,
+"lo": -1.8557,
+"z": 681,
+"hab": 172487
+},
+{
+"id": "41004",
+"n": "Alcalá de Guadaíra",
+"cap": "Alcalá de Guadaíra",
+"la": 37.3347,
+"lo": -5.8507,
+"z": 43,
+"hab": 74404
+},
+{
+"id": "28005",
+"n": "Alcalá de Henares",
+"cap": "Alcalá de Henares",
+"la": 40.4803,
+"lo": -3.3693,
+"z": 587,
+"hab": 200768
+},
+{
+"id": "28006",
+"n": "Alcobendas",
+"cap": "Alcobendas",
+"la": 40.541,
+"lo": -3.6324,
+"z": 669,
+"hab": 112188
+},
+{
+"id": "28007",
+"n": "Alcorcón",
+"cap": "Alcorcón",
+"la": 40.3516,
+"lo": -3.8285,
+"z": 711,
+"hab": 170336
+},
+{
+"id": "03009",
+"n": "Alcoy/Alcoi",
+"cap": "Alcoy/Alcoi",
+"la": 38.6984,
+"lo": -0.4732,
+"z": 561,
+"hab": 59675
+},
+{
+"id": "35020",
+"n": "Aldea de San Nicolás, La",
+"cap": "Aldea de San Nicolás, La",
+"la": 27.9842,
+"lo": -15.7802,
+"z": 69,
+"hab": 8225
+},
+{
+"id": "11004",
+"n": "Algeciras",
+"cap": "Algeciras",
+"la": 36.1314,
+"lo": -5.4477,
+"z": 19,
+"hab": 117974
+},
+{
+"id": "03014",
+"n": "Alicante/Alacant",
+"cap": "Alicante/Alacant",
+"la": 38.3455,
+"lo": -0.4832,
+"z": 5,
+"hab": 332067
+},
+{
+"id": "04013",
+"n": "Almería",
+"cap": "Almería",
+"la": 36.8389,
+"lo": -2.4641,
+"z": 16,
+"hab": 193351
+},
+{
+"id": "35003",
+"n": "Antigua",
+"cap": "Antigua",
+"la": 28.4216,
+"lo": -14.0133,
+"z": 254,
+"hab": 11643
+},
+{
+"id": "38004",
+"n": "Arafo",
+"cap": "Arafo",
+"la": 28.3386,
+"lo": -16.4168,
+"z": 445,
+"hab": 5464
+},
+{
+"id": "28013",
+"n": "Aranjuez",
+"cap": "Aranjuez",
+"la": 40.0334,
+"lo": -3.6028,
+"z": 495,
+"hab": 57792
+},
+{
+"id": "28014",
+"n": "Arganda del Rey",
+"cap": "Arganda del Rey",
+"la": 40.3007,
+"lo": -3.4391,
+"z": 613,
+"hab": 55307
+},
+{
+"id": "38005",
+"n": "Arico",
+"cap": "Arico",
+"la": 28.1774,
+"lo": -16.4791,
+"z": 361,
+"hab": 7670
+},
+{
+"id": "38006",
+"n": "Arona",
+"cap": "Arona",
+"la": 28.0991,
+"lo": -16.6796,
+"z": 616,
+"hab": 79890
+},
+{
+"id": "35004",
+"n": "Arrecife",
+"cap": "Arrecife",
+"la": 28.9602,
+"lo": -13.5515,
+"z": 6,
+"hab": 56880
+},
+{
+"id": "35005",
+"n": "Artenara",
+"cap": "Artenara",
+"la": 28.0184,
+"lo": -15.645,
+"z": 1189,
+"hab": 1180
+},
+{
+"id": "35006",
+"n": "Arucas",
+"cap": "Arucas",
+"la": 28.1171,
+"lo": -15.5215,
+"z": 237,
+"hab": 37056
+},
+{
+"id": "33004",
+"n": "Avilés",
+"cap": "Avilés",
+"la": 43.5586,
+"lo": -5.9248,
+"z": 5,
+"hab": 81659
+},
+{
+"id": "06015",
+"n": "Badajoz",
+"cap": "Badajoz",
+"la": 38.8787,
+"lo": -6.971,
+"z": 182,
+"hab": 150517
+},
+{
+"id": "08015",
+"n": "Badalona",
+"cap": "Badalona",
+"la": 41.4526,
+"lo": 2.2463,
+"z": 23,
+"hab": 217210
+},
+{
+"id": "48013",
+"n": "Barakaldo",
+"cap": "San Vicente de Barakaldo/San Bizenti-Barakaldo",
+"la": 43.2957,
+"lo": -2.9973,
+"z": 35,
+"hab": 100080
+},
+{
+"id": "08019",
+"n": "Barcelona",
+"cap": "Barcelona",
+"la": 41.3842,
+"lo": 2.1763,
+"z": 13,
+"hab": 1602386
+},
+{
+"id": "38007",
+"n": "Barlovento",
+"cap": "Barlovento",
+"la": 28.8272,
+"lo": -17.8038,
+"z": 564,
+"hab": 2005
+},
+{
+"id": "29025",
+"n": "Benalmádena",
+"cap": "Benalmádena",
+"la": 36.5931,
+"lo": -4.5724,
+"z": 243,
+"hab": 66939
+},
+{
+"id": "03031",
+"n": "Benidorm",
+"cap": "Benidorm",
+"la": 38.5343,
+"lo": -0.1307,
+"z": 11,
+"hab": 69010
+},
+{
+"id": "35007",
+"n": "Betancuria",
+"cap": "Betancuria",
+"la": 28.4236,
+"lo": -14.0557,
+"z": 401,
+"hab": 733
+},
+{
+"id": "48020",
+"n": "Bilbao",
+"cap": "Bilbao",
+"la": 43.2572,
+"lo": -2.9239,
+"z": 6,
+"hab": 346574
+},
+{
+"id": "38008",
+"n": "Breña Alta",
+"cap": "San Pedro",
+"la": 28.6615,
+"lo": -17.7851,
+"z": 315,
+"hab": 7293
+},
+{
+"id": "38009",
+"n": "Breña Baja",
+"cap": "San José",
+"la": 28.6443,
+"lo": -17.7733,
+"z": 260,
+"hab": 5366
+},
+{
+"id": "38010",
+"n": "Buenavista del Norte",
+"cap": "Buenavista del Norte",
+"la": 28.3713,
+"lo": -16.8498,
+"z": 121,
+"hab": 4884
+},
+{
+"id": "09059",
+"n": "Burgos",
+"cap": "Burgos",
+"la": 42.3411,
+"lo": -3.7042,
+"z": 859,
+"hab": 177776
+},
+{
+"id": "07011",
+"n": "Calvià",
+"cap": "Calvià",
+"la": 39.5659,
+"lo": 2.5025,
+"z": 109,
+"hab": 50363
+},
+{
+"id": "38011",
+"n": "Candelaria",
+"cap": "Candelaria",
+"la": 28.3512,
+"lo": -16.3689,
+"z": 0,
+"hab": 26543
+},
+{
+"id": "30016",
+"n": "Cartagena",
+"cap": "Cartagena",
+"la": 37.6002,
+"lo": -0.9821,
+"z": 67,
+"hab": 216451
+},
+{
+"id": "08056",
+"n": "Castelldefels",
+"cap": "Castelldefels",
+"la": 41.2788,
+"lo": 1.9768,
+"z": 3,
+"hab": 63255
+},
+{
+"id": "12040",
+"n": "Castelló de la Plana",
+"cap": "Castelló de la Plana",
+"la": 39.9864,
+"lo": -0.0369,
+"z": 27,
+"hab": 173841
+},
+{
+"id": "08266",
+"n": "Cerdanyola del Vallès",
+"cap": "Cerdanyola del Vallès",
+"la": 41.4913,
+"lo": 2.1399,
+"z": 84,
+"hab": 57402
+},
+{
+"id": "51001",
+"n": "Ceuta",
+"cap": "Ceuta",
+"la": 35.8881,
+"lo": -5.3068,
+"z": 27,
+"hab": 84963
+},
+{
+"id": "11015",
+"n": "Chiclana de la Frontera",
+"cap": "Chiclana de la Frontera",
+"la": 36.4184,
+"lo": -6.1462,
+"z": 13,
+"hab": 82298
+},
+{
+"id": "13034",
+"n": "Ciudad Real",
+"cap": "Ciudad Real",
+"la": 38.9865,
+"lo": -3.9313,
+"z": 625,
+"hab": 74960
+},
+{
+"id": "28047",
+"n": "Collado Villalba",
+"cap": "Collado Villalba",
+"la": 40.643,
+"lo": -3.9927,
+"z": 918,
+"hab": 62587
+},
+{
+"id": "08073",
+"n": "Cornellà de Llobregat",
+"cap": "Cornellà de Llobregat",
+"la": 41.3555,
+"lo": 2.0701,
+"z": 27,
+"hab": 86234
+},
+{
+"id": "15030",
+"n": "Coruña, A",
+"cap": "Coruña, A",
+"la": 43.3701,
+"lo": -8.3911,
+"z": 21,
+"hab": 244810
+},
+{
+"id": "28049",
+"n": "Coslada",
+"cap": "Coslada",
+"la": 40.4265,
+"lo": -3.5675,
+"z": 620,
+"hab": 88847
+},
+{
+"id": "16078",
+"n": "Cuenca",
+"cap": "Cuenca",
+"la": 40.0765,
+"lo": -2.1315,
+"z": 997,
+"hab": 55738
+},
+{
+"id": "10037",
+"n": "Cáceres",
+"cap": "Cáceres",
+"la": 39.4732,
+"lo": -6.3712,
+"z": 457,
+"hab": 95855
+},
+{
+"id": "11012",
+"n": "Cádiz",
+"cap": "Cádiz",
+"la": 36.5217,
+"lo": -6.2841,
+"z": 13,
+"hab": 121739
+},
+{
+"id": "14021",
+"n": "Córdoba",
+"cap": "Córdoba",
+"la": 37.8795,
+"lo": -4.7803,
+"z": 106,
+"hab": 328041
+},
+{
+"id": "20069",
+"n": "Donostia/San Sebastián",
+"cap": "Donostia/San Sebastián",
+"la": 43.3172,
+"lo": -1.9819,
+"z": 7,
+"hab": 186126
+},
+{
+"id": "41038",
+"n": "Dos Hermanas",
+"cap": "Dos Hermanas",
+"la": 37.2889,
+"lo": -5.9133,
+"z": 52,
+"hab": 130369
+},
+{
+"id": "04902",
+"n": "Ejido, El",
+"cap": "Ejido, El",
+"la": 36.7758,
+"lo": -2.8149,
+"z": 81,
+"hab": 84144
+},
+{
+"id": "03065",
+"n": "Elche/Elx",
+"cap": "Elche/Elx",
+"la": 38.2674,
+"lo": -0.6978,
+"z": 82,
+"hab": 228647
+},
+{
+"id": "03066",
+"n": "Elda",
+"cap": "Elda",
+"la": 38.4788,
+"lo": -0.7961,
+"z": 395,
+"hab": 53540
+},
+{
+"id": "29051",
+"n": "Estepona",
+"cap": "Estepona",
+"la": 36.4266,
+"lo": -5.1464,
+"z": 14,
+"hab": 66566
+},
+{
+"id": "38012",
+"n": "Fasnia",
+"cap": "Fasnia",
+"la": 28.2393,
+"lo": -16.4397,
+"z": 462,
+"hab": 2846
+},
+{
+"id": "15036",
+"n": "Ferrol",
+"cap": "Ferrol",
+"la": 43.482,
+"lo": -8.2349,
+"z": 9,
+"hab": 70389
+},
+{
+"id": "35008",
+"n": "Firgas",
+"cap": "Firgas",
+"la": 28.106,
+"lo": -15.5612,
+"z": 503,
+"hab": 7618
+},
+{
+"id": "38013",
+"n": "Frontera",
+"cap": "Frontera",
+"la": 27.7561,
+"lo": -17.9984,
+"z": 321,
+"hab": 3901
+},
+{
+"id": "38014",
+"n": "Fuencaliente de la Palma",
+"cap": "Canarios, Los",
+"la": 28.5024,
+"lo": -17.8577,
+"z": 516,
+"hab": 1745
+},
+{
+"id": "29054",
+"n": "Fuengirola",
+"cap": "Fuengirola",
+"la": 36.539,
+"lo": -4.6238,
+"z": 6,
+"hab": 75856
+},
+{
+"id": "28058",
+"n": "Fuenlabrada",
+"cap": "Fuenlabrada",
+"la": 40.2822,
+"lo": -3.7909,
+"z": 662,
+"hab": 195864
+},
+{
+"id": "46131",
+"n": "Gandia",
+"cap": "Gandia",
+"la": 38.9674,
+"lo": -0.1794,
+"z": 21,
+"hab": 76497
+},
+{
+"id": "38015",
+"n": "Garachico",
+"cap": "Garachico",
+"la": 28.3728,
+"lo": -16.7601,
+"z": 39,
+"hab": 5169
+},
+{
+"id": "38016",
+"n": "Garafía",
+"cap": "Santo Domingo",
+"la": 28.8294,
+"lo": -17.9433,
+"z": 387,
+"hab": 1618
+},
+{
+"id": "28065",
+"n": "Getafe",
+"cap": "Getafe",
+"la": 40.304,
+"lo": -3.7294,
+"z": 622,
+"hab": 173057
+},
+{
+"id": "48044",
+"n": "Getxo",
+"cap": "Algorta",
+"la": 43.3627,
+"lo": -3.0181,
+"z": 47,
+"hab": 79544
+},
+{
+"id": "33024",
+"n": "Gijón",
+"cap": "Gijón/Xixón",
+"la": 43.5392,
+"lo": -5.6595,
+"z": 7,
+"hab": 275735
+},
+{
+"id": "17079",
+"n": "Girona",
+"cap": "Girona",
+"la": 41.9819,
+"lo": 2.8241,
+"z": 69,
+"hab": 97227
+},
+{
+"id": "18087",
+"n": "Granada",
+"cap": "Granada",
+"la": 37.1764,
+"lo": -3.6,
+"z": 684,
+"hab": 237540
+},
+{
+"id": "38017",
+"n": "Granadilla de Abona",
+"cap": "Granadilla de Abona",
+"la": 28.1247,
+"lo": -16.5753,
+"z": 625,
+"hab": 43455
+},
+{
+"id": "08096",
+"n": "Granollers",
+"cap": "Granollers",
+"la": 41.6079,
+"lo": 2.2862,
+"z": 145,
+"hab": 59930
+},
+{
+"id": "19130",
+"n": "Guadalajara",
+"cap": "Guadalajara",
+"la": 40.6344,
+"lo": -3.1621,
+"z": 685,
+"hab": 83720
+},
+{
+"id": "38018",
+"n": "Guancha, La",
+"cap": "Guancha, La",
+"la": 28.3727,
+"lo": -16.6499,
+"z": 498,
+"hab": 5482
+},
+{
+"id": "38019",
+"n": "Guía de Isora",
+"cap": "Guía de Isora",
+"la": 28.208,
+"lo": -16.777,
+"z": 579,
+"hab": 20061
+},
+{
+"id": "35009",
+"n": "Gáldar",
+"cap": "Gáldar",
+"la": 28.1435,
+"lo": -15.6541,
+"z": 104,
+"hab": 24209
+},
+{
+"id": "38020",
+"n": "Güímar",
+"cap": "Güímar",
+"la": 28.3146,
+"lo": -16.4102,
+"z": 271,
+"hab": 18751
+},
+{
+"id": "35010",
+"n": "Haría",
+"cap": "Haría",
+"la": 29.1453,
+"lo": -13.4966,
+"z": 285,
+"hab": 4736
+},
+{
+"id": "38021",
+"n": "Hermigua",
+"cap": "Hermigua",
+"la": 28.1671,
+"lo": -17.1929,
+"z": 119,
+"hab": 1919
+},
+{
+"id": "08101",
+"n": "Hospitalet de Llobregat, L'",
+"cap": "Hospitalet de Llobregat, L'",
+"la": 41.3598,
+"lo": 2.1014,
+"z": 11,
+"hab": 253518
+},
+{
+"id": "21041",
+"n": "Huelva",
+"cap": "Huelva",
+"la": 37.26,
+"lo": -6.9504,
+"z": 24,
+"hab": 147212
+},
+{
+"id": "22125",
+"n": "Huesca",
+"cap": "Huesca",
+"la": 42.1406,
+"lo": -0.4084,
+"z": 483,
+"hab": 52555
+},
+{
+"id": "38022",
+"n": "Icod de los Vinos",
+"cap": "Icod de los Vinos",
+"la": 28.3668,
+"lo": -16.713,
+"z": 298,
+"hab": 22913
+},
+{
+"id": "35011",
+"n": "Ingenio",
+"cap": "Ingenio",
+"la": 27.9184,
+"lo": -15.4422,
+"z": 317,
+"hab": 30173
+},
+{
+"id": "20045",
+"n": "Irun",
+"cap": "Irun",
+"la": 43.34,
+"lo": -1.7874,
+"z": 9,
+"hab": 61195
+},
+{
+"id": "23050",
+"n": "Jaén",
+"cap": "Jaén",
+"la": 37.7652,
+"lo": -3.7904,
+"z": 570,
+"hab": 115837
+},
+{
+"id": "11020",
+"n": "Jerez de la Frontera",
+"cap": "Jerez de la Frontera",
+"la": 36.7021,
+"lo": -6.1288,
+"z": 57,
+"hab": 212226
+},
+{
+"id": "28074",
+"n": "Leganés",
+"cap": "Leganés",
+"la": 40.3317,
+"lo": -3.7666,
+"z": 667,
+"hab": 186696
+},
+{
+"id": "24089",
+"n": "León",
+"cap": "León",
+"la": 42.5991,
+"lo": -5.5671,
+"z": 837,
+"hab": 129551
+},
+{
+"id": "23055",
+"n": "Linares",
+"cap": "Linares",
+"la": 38.0921,
+"lo": -3.635,
+"z": 418,
+"hab": 60290
+},
+{
+"id": "38024",
+"n": "Llanos de Aridane, Los",
+"cap": "Llanos de Aridane, Los",
+"la": 28.6582,
+"lo": -17.9142,
+"z": 340,
+"hab": 20416
+},
+{
+"id": "25120",
+"n": "Lleida",
+"cap": "Lleida",
+"la": 41.6153,
+"lo": 0.6206,
+"z": 167,
+"hab": 139176
+},
+{
+"id": "26089",
+"n": "Logroño",
+"cap": "Logroño",
+"la": 42.4664,
+"lo": -2.4457,
+"z": 384,
+"hab": 151962
+},
+{
+"id": "30024",
+"n": "Lorca",
+"cap": "Lorca",
+"la": 37.677,
+"lo": -1.6993,
+"z": 342,
+"hab": 91759
+},
+{
+"id": "27028",
+"n": "Lugo",
+"cap": "Lugo",
+"la": 43.0091,
+"lo": -7.5582,
+"z": 452,
+"hab": 98560
+},
+{
+"id": "11022",
+"n": "Línea de la Concepción, La",
+"cap": "Línea de la Concepción, La",
+"la": 36.1676,
+"lo": -5.3472,
+"z": 3,
+"hab": 63132
+},
+{
+"id": "28079",
+"n": "Madrid",
+"cap": "Madrid",
+"la": 40.4084,
+"lo": -3.6876,
+"z": 657,
+"hab": 3165235
+},
+{
+"id": "28080",
+"n": "Majadahonda",
+"cap": "Majadahonda",
+"la": 40.4721,
+"lo": -3.8741,
+"z": 740,
+"hab": 70359
+},
+{
+"id": "08113",
+"n": "Manresa",
+"cap": "Manresa",
+"la": 41.722,
+"lo": 1.8272,
+"z": 237,
+"hab": 75297
+},
+{
+"id": "29069",
+"n": "Marbella",
+"cap": "Marbella",
+"la": 36.5096,
+"lo": -4.8841,
+"z": 18,
+"hab": 138679
+},
+{
+"id": "38025",
+"n": "Matanza de Acentejo, La",
+"cap": "Matanza de Acentejo, La",
+"la": 28.4516,
+"lo": -16.4444,
+"z": 564,
+"hab": 8745
+},
+{
+"id": "08121",
+"n": "Mataró",
+"cap": "Mataró",
+"la": 41.5408,
+"lo": 2.4466,
+"z": 26,
+"hab": 124280
+},
+{
+"id": "52001",
+"n": "Melilla",
+"cap": "Melilla",
+"la": 35.2907,
+"lo": -2.9472,
+"z": 30,
+"hab": 84509
+},
+{
+"id": "29070",
+"n": "Mijas",
+"cap": "Mijas",
+"la": 36.5934,
+"lo": -4.639,
+"z": 430,
+"hab": 77521
+},
+{
+"id": "35012",
+"n": "Mogán",
+"cap": "Mogán",
+"la": 27.8825,
+"lo": -15.7226,
+"z": 288,
+"hab": 23491
+},
+{
+"id": "30027",
+"n": "Molina de Segura",
+"cap": "Molina de Segura",
+"la": 38.0506,
+"lo": -1.2116,
+"z": 92,
+"hab": 68775
+},
+{
+"id": "08124",
+"n": "Mollet del Vallès",
+"cap": "Mollet del Vallès",
+"la": 41.5392,
+"lo": 2.2135,
+"z": 64,
+"hab": 51719
+},
+{
+"id": "18140",
+"n": "Motril",
+"cap": "Motril",
+"la": 36.7457,
+"lo": -3.5212,
+"z": 39,
+"hab": 60870
+},
+{
+"id": "35013",
+"n": "Moya",
+"cap": "Moya",
+"la": 28.1094,
+"lo": -15.5825,
+"z": 480,
+"hab": 7869
+},
+{
+"id": "30030",
+"n": "Murcia",
+"cap": "Murcia",
+"la": 37.9844,
+"lo": -1.1285,
+"z": 42,
+"hab": 439712
+},
+{
+"id": "29067",
+"n": "Málaga",
+"cap": "Málaga",
+"la": 36.7203,
+"lo": -4.42,
+"z": 8,
+"hab": 566913
+},
+{
+"id": "06083",
+"n": "Mérida",
+"cap": "Mérida",
+"la": 38.9174,
+"lo": -6.3442,
+"z": 224,
+"hab": 58985
+},
+{
+"id": "28092",
+"n": "Móstoles",
+"cap": "Móstoles",
+"la": 40.3236,
+"lo": -3.8649,
+"z": 660,
+"hab": 205712
+},
+{
+"id": "35014",
+"n": "Oliva, La",
+"cap": "Oliva, La",
+"la": 28.6095,
+"lo": -13.9263,
+"z": 221,
+"hab": 24307
+},
+{
+"id": "03099",
+"n": "Orihuela",
+"cap": "Orihuela",
+"la": 38.0857,
+"lo": -0.9466,
+"z": 25,
+"hab": 83417
+},
+{
+"id": "38026",
+"n": "Orotava, La",
+"cap": "Orotava, La",
+"la": 28.3893,
+"lo": -16.5236,
+"z": 370,
+"hab": 41179
+},
+{
+"id": "32054",
+"n": "Ourense",
+"cap": "Ourense",
+"la": 42.3365,
+"lo": -7.8637,
+"z": 138,
+"hab": 106905
+},
+{
+"id": "33044",
+"n": "Oviedo",
+"cap": "Oviedo",
+"la": 43.3623,
+"lo": -5.8437,
+"z": 231,
+"hab": 223765
+},
+{
+"id": "34120",
+"n": "Palencia",
+"cap": "Palencia",
+"la": 42.0078,
+"lo": -4.5346,
+"z": 734,
+"hab": 80178
+},
+{
+"id": "07040",
+"n": "Palma de Mallorca",
+"cap": "Palma de Mallorca",
+"la": 39.5711,
+"lo": 2.6518,
+"z": 24,
+"hab": 399093
+},
+{
+"id": "35016",
+"n": "Palmas de Gran Canaria, Las",
+"cap": "Palmas de Gran Canaria, Las",
+"la": 28.0994,
+"lo": -15.4134,
+"z": 6,
+"hab": 382283
+},
+{
+"id": "31201",
+"n": "Pamplona/Iruña",
+"cap": "Pamplona/Iruña",
+"la": 42.8141,
+"lo": -1.6452,
+"z": 450,
+"hab": 196166
+},
+{
+"id": "28106",
+"n": "Parla",
+"cap": "Parla",
+"la": 40.2378,
+"lo": -3.7709,
+"z": 645,
+"hab": 125323
+},
+{
+"id": "38027",
+"n": "Paso, El",
+"cap": "Paso, El",
+"la": 28.6502,
+"lo": -17.8783,
+"z": 669,
+"hab": 7617
+},
+{
+"id": "46190",
+"n": "Paterna",
+"cap": "Paterna",
+"la": 39.5027,
+"lo": -0.4426,
+"z": 53,
+"hab": 67156
+},
+{
+"id": "38901",
+"n": "Pinar de El Hierro, El",
+"cap": "Pinar, El",
+"la": 27.7039,
+"lo": -17.9812,
+"z": 840,
+"hab": 1801
+},
+{
+"id": "24115",
+"n": "Ponferrada",
+"cap": "Ponferrada",
+"la": 42.5477,
+"lo": -6.5973,
+"z": 512,
+"hab": 67367
+},
+{
+"id": "36038",
+"n": "Pontevedra",
+"cap": "Pontevedra",
+"la": 42.4338,
+"lo": -8.648,
+"z": 16,
+"hab": 82946
+},
+{
+"id": "28115",
+"n": "Pozuelo de Alarcón",
+"cap": "Pozuelo de Alarcón",
+"la": 40.4359,
+"lo": -3.8158,
+"z": 689,
+"hab": 84360
+},
+{
+"id": "08169",
+"n": "Prat de Llobregat, El",
+"cap": "Prat de Llobregat, El",
+"la": 41.331,
+"lo": 2.0926,
+"z": 5,
+"hab": 62866
+},
+{
+"id": "11027",
+"n": "Puerto de Santa María, El",
+"cap": "Puerto de Santa María, El",
+"la": 36.6001,
+"lo": -6.2292,
+"z": 11,
+"hab": 88700
+},
+{
+"id": "38028",
+"n": "Puerto de la Cruz",
+"cap": "Puerto de la Cruz",
+"la": 28.4155,
+"lo": -16.55,
+"z": 8,
+"hab": 29435
+},
+{
+"id": "35017",
+"n": "Puerto del Rosario",
+"cap": "Puerto del Rosario",
+"la": 28.4976,
+"lo": -13.8592,
+"z": 3,
+"hab": 36790
+},
+{
+"id": "13071",
+"n": "Puertollano",
+"cap": "Puertollano",
+"la": 38.6862,
+"lo": -4.1125,
+"z": 704,
+"hab": 50608
+},
+{
+"id": "38029",
+"n": "Puntagorda",
+"cap": "Pino de la Virgen",
+"la": 28.7733,
+"lo": -17.9882,
+"z": 545,
+"hab": 2031
+},
+{
+"id": "38030",
+"n": "Puntallana",
+"cap": "San Juan de Puntallana",
+"la": 28.7405,
+"lo": -17.7432,
+"z": 386,
+"hab": 2348
+},
+{
+"id": "35015",
+"n": "Pájara",
+"cap": "Pájara",
+"la": 28.3494,
+"lo": -14.1057,
+"z": 231,
+"hab": 19679
+},
+{
+"id": "38031",
+"n": "Realejos, Los",
+"cap": "Realejo Alto",
+"la": 28.3795,
+"lo": -16.5836,
+"z": 357,
+"hab": 36860
+},
+{
+"id": "43123",
+"n": "Reus",
+"cap": "Reus",
+"la": 41.1541,
+"lo": 1.1099,
+"z": 117,
+"hab": 104962
+},
+{
+"id": "28123",
+"n": "Rivas-Vaciamadrid",
+"cap": "Vaciamadrid",
+"la": 40.328,
+"lo": -3.5161,
+"z": 563,
+"hab": 80483
+},
+{
+"id": "04079",
+"n": "Roquetas de Mar",
+"cap": "Roquetas de Mar",
+"la": 36.7647,
+"lo": -2.6151,
+"z": 7,
+"hab": 91682
+},
+{
+"id": "38032",
+"n": "Rosario, El",
+"cap": "Esperanza, La",
+"la": 28.4496,
+"lo": -16.3652,
+"z": 907,
+"hab": 17329
+},
+{
+"id": "28127",
+"n": "Rozas de Madrid, Las",
+"cap": "Rozas de Madrid, Las",
+"la": 40.492,
+"lo": -3.8746,
+"z": 712,
+"hab": 92784
+},
+{
+"id": "08184",
+"n": "Rubí",
+"cap": "Rubí",
+"la": 41.4917,
+"lo": 2.03,
+"z": 123,
+"hab": 74353
+},
+{
+"id": "08187",
+"n": "Sabadell",
+"cap": "Sabadell",
+"la": 41.547,
+"lo": 2.1078,
+"z": 191,
+"hab": 207444
+},
+{
+"id": "46220",
+"n": "Sagunto/Sagunt",
+"cap": "Sagunto/Sagunt",
+"la": 39.6801,
+"lo": -0.276,
+"z": 46,
+"hab": 65003
+},
+{
+"id": "37274",
+"n": "Salamanca",
+"cap": "Salamanca",
+"la": 40.9674,
+"lo": -5.6654,
+"z": 798,
+"hab": 148042
+},
+{
+"id": "38033",
+"n": "San Andrés y Sauces",
+"cap": "Sauces, Los",
+"la": 28.7971,
+"lo": -17.7585,
+"z": 0,
+"hab": 4378
+},
+{
+"id": "35018",
+"n": "San Bartolomé",
+"cap": "San Bartolomé",
+"la": 28.9999,
+"lo": -13.612,
+"z": 263,
+"hab": 18689
+},
+{
+"id": "35019",
+"n": "San Bartolomé de Tirajana",
+"cap": "San Bartolomé de Tirajana",
+"la": 27.924,
+"lo": -15.5714,
+"z": 842,
+"hab": 54377
+},
+{
+"id": "38023",
+"n": "San Cristóbal de La Laguna",
+"cap": "San Cristóbal de La Laguna",
+"la": 28.4875,
+"lo": -16.3147,
+"z": 549,
+"hab": 153009
+},
+{
+"id": "11031",
+"n": "San Fernando",
+"cap": "San Fernando",
+"la": 36.4653,
+"lo": -6.2051,
+"z": 25,
+"hab": 96335
+},
+{
+"id": "38034",
+"n": "San Juan de la Rambla",
+"cap": "San José",
+"la": 28.3933,
+"lo": -16.646,
+"z": 95,
+"hab": 5053
+},
+{
+"id": "38035",
+"n": "San Miguel de Abona",
+"cap": "San Miguel",
+"la": 28.0993,
+"lo": -16.6149,
+"z": 617,
+"hab": 16221
+},
+{
+"id": "38036",
+"n": "San Sebastián de la Gomera",
+"cap": "San Sebastián de la Gomera",
+"la": 28.0899,
+"lo": -17.1093,
+"z": 2,
+"hab": 8668
+},
+{
+"id": "28134",
+"n": "San Sebastián de los Reyes",
+"cap": "San Sebastián de los Reyes",
+"la": 40.5471,
+"lo": -3.6267,
+"z": 672,
+"hab": 83329
+},
+{
+"id": "03122",
+"n": "San Vicente del Raspeig/Sant Vicent del Raspeig",
+"cap": "San Vicente del Raspeig/Sant Vicent del Raspeig",
+"la": 38.3961,
+"lo": -0.525,
+"z": 107,
+"hab": 55946
+},
+{
+"id": "11032",
+"n": "Sanlúcar de Barrameda",
+"cap": "Sanlúcar de Barrameda",
+"la": 36.776,
+"lo": -6.3531,
+"z": 31,
+"hab": 67385
+},
+{
+"id": "08200",
+"n": "Sant Boi de Llobregat",
+"cap": "Sant Boi de Llobregat",
+"la": 41.3425,
+"lo": 2.0418,
+"z": 32,
+"hab": 83107
+},
+{
+"id": "08205",
+"n": "Sant Cugat del Vallès",
+"cap": "Sant Cugat del Vallès",
+"la": 41.4735,
+"lo": 2.0853,
+"z": 123,
+"hab": 87118
+},
+{
+"id": "35021",
+"n": "Santa Brígida",
+"cap": "Santa Brígida",
+"la": 28.0319,
+"lo": -15.4982,
+"z": 524,
+"hab": 18775
+},
+{
+"id": "08245",
+"n": "Santa Coloma de Gramenet",
+"cap": "Santa Coloma de Gramenet",
+"la": 41.4537,
+"lo": 2.2122,
+"z": 56,
+"hab": 118738
+},
+{
+"id": "38038",
+"n": "Santa Cruz de Tenerife",
+"cap": "Santa Cruz de Tenerife",
+"la": 28.4629,
+"lo": -16.2472,
+"z": 1,
+"hab": 205279
+},
+{
+"id": "38037",
+"n": "Santa Cruz de la Palma",
+"cap": "Santa Cruz de la Palma",
+"la": 28.6819,
+"lo": -17.7631,
+"z": 0,
+"hab": 16184
+},
+{
+"id": "35022",
+"n": "Santa Lucía de Tirajana",
+"cap": "Santa Lucía de Tirajana",
+"la": 27.9114,
+"lo": -15.5404,
+"z": 699,
+"hab": 68544
+},
+{
+"id": "35023",
+"n": "Santa María de Guía de Gran Canaria",
+"cap": "Santa María de Guía de Gran Canaria",
+"la": 28.1377,
+"lo": -15.631,
+"z": 203,
+"hab": 13968
+},
+{
+"id": "38039",
+"n": "Santa Úrsula",
+"cap": "Santa Úrsula",
+"la": 28.4227,
+"lo": -16.4936,
+"z": 332,
+"hab": 14296
+},
+{
+"id": "39075",
+"n": "Santander",
+"cap": "Santander",
+"la": 43.463,
+"lo": -3.8047,
+"z": 8,
+"hab": 175736
+},
+{
+"id": "15078",
+"n": "Santiago de Compostela",
+"cap": "Santiago de Compostela",
+"la": 42.8803,
+"lo": -8.5442,
+"z": 260,
+"hab": 95800
+},
+{
+"id": "38040",
+"n": "Santiago del Teide",
+"cap": "Santiago del Teide",
+"la": 28.2958,
+"lo": -16.8133,
+"z": 935,
+"hab": 10468
+},
+{
+"id": "38041",
+"n": "Sauzal, El",
+"cap": "Sauzal, El",
+"la": 28.4773,
+"lo": -16.4356,
+"z": 356,
+"hab": 8998
+},
+{
+"id": "40194",
+"n": "Segovia",
+"cap": "Segovia",
+"la": 40.9499,
+"lo": -4.1252,
+"z": 1002,
+"hab": 53260
+},
+{
+"id": "41091",
+"n": "Sevilla",
+"cap": "Sevilla",
+"la": 37.3862,
+"lo": -5.9925,
+"z": 11,
+"hab": 696676
+},
+{
+"id": "33066",
+"n": "Siero",
+"cap": "Pola Siero, La",
+"la": 43.3947,
+"lo": -5.6632,
+"z": 222,
+"hab": 52380
+},
+{
+"id": "38042",
+"n": "Silos, Los",
+"cap": "Silos, Los",
+"la": 28.3641,
+"lo": -16.8152,
+"z": 104,
+"hab": 4727
+},
+{
+"id": "42173",
+"n": "Soria",
+"cap": "Soria",
+"la": 41.7633,
+"lo": -2.4662,
+"z": 1061,
+"hab": 39516
+},
+{
+"id": "38043",
+"n": "Tacoronte",
+"cap": "Tacoronte",
+"la": 28.4813,
+"lo": -16.4161,
+"z": 469,
+"hab": 23929
+},
+{
+"id": "45165",
+"n": "Talavera de la Reina",
+"cap": "Talavera de la Reina",
+"la": 39.9602,
+"lo": -4.8337,
+"z": 367,
+"hab": 86779
+},
+{
+"id": "38044",
+"n": "Tanque, El",
+"cap": "Tanque, El",
+"la": 28.3624,
+"lo": -16.7719,
+"z": 475,
+"hab": 2775
+},
+{
+"id": "43148",
+"n": "Tarragona",
+"cap": "Tarragona",
+"la": 41.1191,
+"lo": 1.2584,
+"z": 69,
+"hab": 132199
+},
+{
+"id": "38045",
+"n": "Tazacorte",
+"cap": "Tazacorte",
+"la": 28.6425,
+"lo": -17.9318,
+"z": 132,
+"hab": 4844
+},
+{
+"id": "38046",
+"n": "Tegueste",
+"cap": "Tegueste",
+"la": 28.523,
+"lo": -16.3367,
+"z": 390,
+"hab": 11097
+},
+{
+"id": "35024",
+"n": "Teguise",
+"cap": "Teguise",
+"la": 29.0579,
+"lo": -13.5582,
+"z": 315,
+"hab": 21101
+},
+{
+"id": "35025",
+"n": "Tejeda",
+"cap": "Tejeda",
+"la": 27.9937,
+"lo": -15.6137,
+"z": 1076,
+"hab": 1990
+},
+{
+"id": "35026",
+"n": "Telde",
+"cap": "Telde",
+"la": 27.9942,
+"lo": -15.4167,
+"z": 147,
+"hab": 102076
+},
+{
+"id": "35027",
+"n": "Teror",
+"cap": "Teror",
+"la": 28.0584,
+"lo": -15.5459,
+"z": 562,
+"hab": 12606
+},
+{
+"id": "08279",
+"n": "Terrassa",
+"cap": "Terrassa",
+"la": 41.5624,
+"lo": 2.0122,
+"z": 281,
+"hab": 215517
+},
+{
+"id": "44216",
+"n": "Teruel",
+"cap": "Teruel",
+"la": 40.3441,
+"lo": -1.1093,
+"z": 915,
+"hab": 35675
+},
+{
+"id": "38047",
+"n": "Tijarafe",
+"cap": "Pueblo, El",
+"la": 28.712,
+"lo": -17.9534,
+"z": 689,
+"hab": 2684
+},
+{
+"id": "35029",
+"n": "Tinajo",
+"cap": "Tinajo",
+"la": 29.0652,
+"lo": -13.6749,
+"z": 194,
+"hab": 5808
+},
+{
+"id": "45168",
+"n": "Toledo",
+"cap": "Toledo",
+"la": 39.8572,
+"lo": -4.0243,
+"z": 516,
+"hab": 83334
+},
+{
+"id": "28148",
+"n": "Torrejón de Ardoz",
+"cap": "Torrejón de Ardoz",
+"la": 40.4592,
+"lo": -3.479,
+"z": 586,
+"hab": 126878
+},
+{
+"id": "39087",
+"n": "Torrelavega",
+"cap": "Torrelavega",
+"la": 43.3516,
+"lo": -4.0472,
+"z": 20,
+"hab": 54196
+},
+{
+"id": "29901",
+"n": "Torremolinos",
+"cap": "Torremolinos",
+"la": 36.6212,
+"lo": -4.4976,
+"z": 43,
+"hab": 67353
+},
+{
+"id": "46244",
+"n": "Torrent",
+"cap": "Torrent",
+"la": 39.4371,
+"lo": -0.465,
+"z": 46,
+"hab": 80551
+},
+{
+"id": "03133",
+"n": "Torrevieja",
+"cap": "Torrevieja",
+"la": 37.9778,
+"lo": -0.683,
+"z": 7,
+"hab": 91415
+},
+{
+"id": "35030",
+"n": "Tuineje",
+"cap": "Tuineje",
+"la": 28.324,
+"lo": -14.0477,
+"z": 182,
+"hab": 13778
+},
+{
+"id": "35028",
+"n": "Tías",
+"cap": "Tías",
+"la": 28.9532,
+"lo": -13.6501,
+"z": 196,
+"hab": 19658
+},
+{
+"id": "41095",
+"n": "Utrera",
+"cap": "Utrera",
+"la": 37.1794,
+"lo": -5.7809,
+"z": 49,
+"hab": 52437
+},
+{
+"id": "28161",
+"n": "Valdemoro",
+"cap": "Valdemoro",
+"la": 40.1889,
+"lo": -3.6788,
+"z": 613,
+"hab": 72265
+},
+{
+"id": "46250",
+"n": "Valencia",
+"cap": "Valencia",
+"la": 39.4753,
+"lo": -0.3757,
+"z": 16,
+"hab": 786424
+},
+{
+"id": "47186",
+"n": "Valladolid",
+"cap": "Valladolid",
+"la": 41.6523,
+"lo": -4.7233,
+"z": 690,
+"hab": 306830
+},
+{
+"id": "38049",
+"n": "Valle Gran Rey",
+"cap": "Calera, La",
+"la": 28.1078,
+"lo": -17.3165,
+"z": 330,
+"hab": 4181
+},
+{
+"id": "38050",
+"n": "Vallehermoso",
+"cap": "Vallehermoso",
+"la": 28.1796,
+"lo": -17.263,
+"z": 224,
+"hab": 2913
+},
+{
+"id": "35032",
+"n": "Valleseco",
+"cap": "Valleseco",
+"la": 28.0486,
+"lo": -15.5729,
+"z": 1057,
+"hab": 3886
+},
+{
+"id": "35031",
+"n": "Valsequillo de Gran Canaria",
+"cap": "Valsequillo",
+"la": 27.9893,
+"lo": -15.4971,
+"z": 503,
+"hab": 9233
+},
+{
+"id": "38048",
+"n": "Valverde",
+"cap": "Valverde",
+"la": 27.806,
+"lo": -17.913,
+"z": 606,
+"hab": 4973
+},
+{
+"id": "35033",
+"n": "Vega de San Mateo",
+"cap": "Vega de San Mateo",
+"la": 28.0091,
+"lo": -15.531,
+"z": 831,
+"hab": 7698
+},
+{
+"id": "38051",
+"n": "Victoria de Acentejo, La",
+"cap": "Victoria de Acentejo, La",
+"la": 28.4326,
+"lo": -16.4687,
+"z": 420,
+"hab": 9026
+},
+{
+"id": "36057",
+"n": "Vigo",
+"cap": "Vigo",
+"la": 42.2395,
+"lo": -8.7264,
+"z": 19,
+"hab": 294997
+},
+{
+"id": "12135",
+"n": "Vila-real",
+"cap": "Vila-real",
+"la": 39.9381,
+"lo": -0.1008,
+"z": 43,
+"hab": 50755
+},
+{
+"id": "08301",
+"n": "Viladecans",
+"cap": "Viladecans",
+"la": 41.3173,
+"lo": 2.0182,
+"z": 18,
+"hab": 65358
+},
+{
+"id": "38052",
+"n": "Vilaflor de Chasna",
+"cap": "Vilaflor de Chasna",
+"la": 28.1557,
+"lo": -16.6351,
+"z": 1364,
+"hab": 1715
+},
+{
+"id": "08307",
+"n": "Vilanova i la Geltrú",
+"cap": "Vilanova i la Geltrú",
+"la": 41.2272,
+"lo": 1.7238,
+"z": 25,
+"hab": 65941
+},
+{
+"id": "38053",
+"n": "Villa de Mazo",
+"cap": "Pueblo, El",
+"la": 28.6046,
+"lo": -17.775,
+"z": 399,
+"hab": 4927
+},
+{
+"id": "01059",
+"n": "Vitoria-Gasteiz",
+"cap": "Vitoria-Gasteiz",
+"la": 42.8506,
+"lo": -2.6728,
+"z": 539,
+"hab": 242082
+},
+{
+"id": "29094",
+"n": "Vélez-Málaga",
+"cap": "Vélez-Málaga",
+"la": 36.7827,
+"lo": -4.1021,
+"z": 64,
+"hab": 77808
+},
+{
+"id": "35034",
+"n": "Yaiza",
+"cap": "Yaiza",
+"la": 28.9508,
+"lo": -13.7635,
+"z": 186,
+"hab": 15068
+},
+{
+"id": "49275",
+"n": "Zamora",
+"cap": "Zamora",
+"la": 41.4991,
+"lo": -5.7549,
+"z": 649,
+"hab": 64423
+},
+{
+"id": "50297",
+"n": "Zaragoza",
+"cap": "Zaragoza",
+"la": 41.6565,
+"lo": -0.8793,
+"z": 208,
+"hab": 666058
+},
+{
+"id": "05019",
+"n": "Ávila",
+"cap": "Ávila",
+"la": 40.6559,
+"lo": -4.6977,
+"z": 1131,
+"hab": 58933
+}
+]

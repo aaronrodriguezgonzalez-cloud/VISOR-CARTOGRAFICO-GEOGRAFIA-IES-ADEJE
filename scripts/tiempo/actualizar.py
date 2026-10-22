@@ -6,7 +6,7 @@
 #   - NOAA Aviation Weather Center: último METAR de los aeródromos de todo el mundo (dominio público).
 #   - NOAA NCEP GFS: presión a nivel del mar → isobaras (análisis y pronóstico a 24, 48 y 72 h) (dominio público).
 #   - NOAA NHC y GDACS (UE/ONU): ciclones tropicales activos.
-import os, sys, json, gzip, io, csv, time, math, datetime as dt, urllib.request, urllib.parse, zipfile, re, traceback
+import os, sys, json, gzip, io, csv, time, math, datetime as dt, urllib.request, urllib.parse, urllib.error, zipfile, re, traceback
 import xml.etree.ElementTree as ET
 
 OUT = os.environ.get('OUT', 'data/tiempo')
@@ -23,6 +23,8 @@ def get(url, headers=None, timeout=60, tries=3):
             req = urllib.request.Request(url, headers={**UA, **(headers or {})})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.read()
+        except urllib.error.HTTPError as e:
+            last = e; time.sleep(35 if e.code == 429 else 3 * (i + 1))
         except Exception as e:
             last = e; time.sleep(3 * (i + 1))
     raise last
@@ -55,11 +57,22 @@ def block(key, files):
     return deco
 
 # ---------------- AEMET ----------------
+_ultima = [0.0]
+def _pausa(seg=2.2):
+    # AEMET OpenData corta con «429 Too Many Requests» si se le pide demasiado deprisa
+    t = time.time() - _ultima[0]
+    if t < seg: time.sleep(seg - t)
+    _ultima[0] = time.time()
+
 def aemet(path):
     if not KEY: raise RuntimeError('Falta AEMET_API_KEY')
-    idx = json.loads(get('https://opendata.aemet.es/opendata/api/' + path, {'api_key': KEY}).decode('latin-1'))
+    for intento in range(4):
+        _pausa()
+        idx = json.loads(get('https://opendata.aemet.es/opendata/api/' + path, {'api_key': KEY}).decode('latin-1'))
+        if idx.get('estado') != 429: break
+        time.sleep(45)  # «límite de peticiones»: AEMET pide esperar
     if idx.get('estado') != 200: raise RuntimeError(f"AEMET {path}: {idx.get('estado')} {idx.get('descripcion')}")
-    time.sleep(1.5)  # AEMET limita las peticiones por minuto
+    _pausa()
     return get(idx['datos'])
 
 OBS_VARS = ['ta', 'tamax', 'tamin', 'hr', 'tpr', 'prec', 'vv', 'dv', 'vmax', 'dmax', 'pres', 'pres_nmar', 'vis', 'inso', 'nieve']
@@ -283,9 +296,66 @@ def ciclones():
     save('ciclones.json', {'type': 'FeatureCollection', 'features': feats, 'avisos': errs[:6], 'fuente': 'NOAA · National Hurricane Center (Atlántico y Pacífico oriental) y GDACS · Comisión Europea (JRC) / OCHA (todas las cuencas).'})
     return {'sistemas': n, 'avisos': errs[:3]}
 
+
+# ---------------- AEMET: predicción oficial por municipios (cada ~3 h) ----------------
+MUNI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'municipios_pred.json')
+
+def _dia(dd):
+    def best(lst, key='value'):
+        lst = [x for x in (lst or []) if x.get(key) not in ('', None)]
+        if not lst: return None
+        for per in ('00-24', '12-24', '00-12'):
+            for x in lst:
+                if x.get('periodo') == per: return x
+        return lst[0]
+    c = best(dd.get('estadoCielo'), 'descripcion')
+    pp = [x.get('value') for x in dd.get('probPrecipitacion') or [] if isinstance(x.get('value'), (int, float))]
+    vv = best(dd.get('viento'), 'direccion')
+    rm = [int(x['value']) for x in dd.get('rachaMax') or [] if str(x.get('value', '')).isdigit()]
+    cota = [int(x['value']) for x in dd.get('cotaNieveProv') or [] if str(x.get('value', '')).isdigit()]
+    t, hr = dd.get('temperatura') or {}, dd.get('humedadRelativa') or {}
+    return {'f': (dd.get('fecha') or '')[:10], 'cielo': (c or {}).get('descripcion'), 'cod': (c or {}).get('value'),
+            'tx': t.get('maxima'), 'tn': t.get('minima'), 'pp': max(pp) if pp else None,
+            'vd': (vv or {}).get('direccion'), 'vv': (vv or {}).get('velocidad'), 'racha': max(rm) if rm else None,
+            'hrx': hr.get('maxima'), 'hrn': hr.get('minima'), 'uv': dd.get('uvMax'), 'cota': max(cota) if cota else None}
+
+@block('aemet_pred', ['pred_aemet.json'])
+def aemet_pred():
+    """Una sexta parte de los municipios en cada ejecución (cada 30 min): todos se renuevan cada 3 h
+    sin superar el ritmo que permite AEMET ni alargar cada ejecución más de unos minutos."""
+    prev = None
+    try: prev = json.loads(get(f'{SITE}/data/tiempo/pred_aemet.json', timeout=30, tries=1))
+    except Exception: pass
+    lista = json.load(open(MUNI, encoding='utf-8'))
+    old = {m['id']: m for m in (prev or {}).get('m', [])}
+    ahora = dt.datetime.now(dt.timezone.utc)
+    tanda = (ahora.hour * 2 + ahora.minute // 30) % 6
+    if os.environ.get('FORZAR_PRED') == '1' or not old: hacer = lista
+    else:
+        hacer = [m for i, m in enumerate(lista) if i % 6 == tanda]
+        hacer += [m for m in lista if m['id'] not in old and m not in hacer][:10]  # los que falten, poco a poco
+    nuevos, fallos = {}, 0
+    for mu in hacer:
+        try:
+            d = json.loads(aemet('prediccion/especifica/municipio/diaria/' + mu['id']).decode('latin-1'))[0]
+            nuevos[mu['id']] = {**mu, 'elab': d.get('elaborado'), 'd': [_dia(x) for x in d['prediccion']['dia'][:4]]}
+        except Exception as e:
+            fallos += 1; print('pred', mu['id'], e)
+    out = [nuevos.get(m['id']) or old.get(m['id']) for m in lista]
+    out = [m for m in out if m]
+    # se descartan predicciones de más de 24 h (por si AEMET falla mucho tiempo)
+    def fresca(m):
+        try: return (ahora - dt.datetime.fromisoformat(m['elab']).replace(tzinfo=dt.timezone.utc)).total_seconds() < 86400
+        except Exception: return False
+    out = [m for m in out if fresca(m)]
+    if not out: raise RuntimeError('sin predicciones')
+    save('pred_aemet.json', {'generado': ahora.strftime('%Y-%m-%dT%H:%M:%SZ'), 'm': out,
+        'fuente': '© AEMET. Predicción para municipios (AEMET OpenData). Autorizado el uso de la información y su reproducción citando a AEMET como autora de la misma.'})
+    return {'municipios': len(out), 'renovados': len(nuevos), 'fallos': fallos}
+
 if __name__ == '__main__':
     only = sys.argv[1:]
-    for name, fn in [('aemet_obs', aemet_obs), ('aemet_img', aemet_img), ('metar', metar), ('gfs', gfs), ('ciclones', ciclones)]:
+    for name, fn in [('aemet_obs', aemet_obs), ('aemet_img', aemet_img), ('metar', metar), ('gfs', gfs), ('ciclones', ciclones), ('aemet_pred', aemet_pred)]:
         if only and name not in only: continue
         print('·', name, flush=True); fn()
     save('estado.json', STATUS)
