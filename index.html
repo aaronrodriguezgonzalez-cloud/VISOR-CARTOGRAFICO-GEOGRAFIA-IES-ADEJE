@@ -8588,7 +8588,7 @@ async function refreshLayoutWorldSnapshot(){
  const prevMaxBounds=map.options.maxBounds;
  const btn=event?.target;if(btn){btn.disabled=true;btn.textContent='Preparando mapamundi…';}
  try{
-  if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length){
+  if(window.anambroPrintMode?.()!=='visor'&&typeof activeHumanIndicators==='function'&&activeHumanIndicators().length){
    layoutSnapshotData=await renderThematicWorldLayoutSnapshot();
    syncLayoutThematicAppearance(true);
    const img=document.getElementById('layoutMapImage');
@@ -8636,7 +8636,7 @@ async function refreshLayoutSnapshot(){
    const src=document.getElementById('layoutSources');if(src)src.textContent='Fuentes: '+profileExportSourcesText();
    return;
   }
-  if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length){
+  if(window.anambroPrintMode?.()!=='visor'&&typeof activeHumanIndicators==='function'&&activeHumanIndicators().length){
    layoutSnapshotData=await renderThematicWorldLayoutSnapshot();
    syncLayoutThematicAppearance(true);
   }else{
@@ -8647,7 +8647,7 @@ async function refreshLayoutSnapshot(){
    if(statisticalExport){try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){typeof __anLog=='function'&&__anLog(_,'L8490');}await new Promise(r=>setTimeout(r,220));}
    // En los atlas estadísticos se exporta exactamente el fondo batimétrico GEBCO
    // visible en el visor: Portugal, África y el entorno no se sustituyen por azul plano.
-   if(window.anambroAnalysisEqualEarth?.wanted?.()){
+   if(window.anambroPrintMode?.()!=='visor'&&window.anambroAnalysisEqualEarth?.wanted?.()){
     // Mapamundis y mapas continentales del Análisis geográfico / Atlas Eurostat: proyección Equal Earth.
     layoutSnapshotData=await window.anambroAnalysisEqualEarth.render();
    }else{
@@ -14089,7 +14089,7 @@ html body #globeScaleGraphicLabel{font-size:11px!important;}
  function historyOn(){return !!document.getElementById('worldHistoryCheck')?.checked&&((document.getElementById('worldHistoryBackground')?.value||'atlas')==='atlas');}
  function enforce2D(){
   if(typeof map==='undefined'||document.body.classList.contains('globe-mode'))return;
-  if(!(humanOn()||historyOn()))return;
+  if(window.anambroAtlasBgOff?.()||!(humanOn()||historyOn()))return;
   try{if(typeof worldImagery!=='undefined'&&map.hasLayer(worldImagery))map.removeLayer(worldImagery);}catch(e){typeof __anLog=='function'&&__anLog(e,'L13908');}
   try{if(typeof activeBase!=='undefined'&&activeBase&&map.hasLayer(activeBase))map.removeLayer(activeBase);}catch(e){typeof __anLog=='function'&&__anLog(e,'L13909');}
   const c=map.getContainer();c.style.background=BLUE;c.style.backgroundColor=BLUE;
@@ -14134,7 +14134,7 @@ html body.istac-export-clean #map{background:#d9eef6!important;}
  function historyOn(){return !!document.getElementById('worldHistoryCheck')?.checked&&((document.getElementById('worldHistoryBackground')?.value||'atlas')==='atlas');}
  function istacOn(){try{return !!window.anambroUrbanoActive?.()||!!window.anambroNucActive?.()||!!window.anambroIstacActive?.()||!!window.anambroIneActive?.()||!!window.anambroGeoAnalysisActive?.();}catch(e){return false;}}
  function atlasOn(){return humanOn()||historyOn();}
- function atlas2DOn(){return atlasOn()||istacOn();}
+ function atlas2DOn(){if(window.anambroAtlasBgOff?.())return false;return atlasOn()||istacOn();}
  function ensurePanes(){
   if(!map.getPane('atlasBathymetryPane')){const p=map.createPane('atlasBathymetryPane');p.style.zIndex='180';p.style.pointerEvents='none';}
   if(!map.getPane('atlasLandPane')){const p=map.createPane('atlasLandPane');p.style.zIndex='220';p.style.pointerEvents='none';}
@@ -28431,7 +28431,7 @@ function landLayer(){if(landL)return Promise.resolve(landL);if(landBusy)return l
  try{const mc=await (await fetch('data/clima/canarias/municipios_canarias.json')).json();g.addLayer(L.geoJSON(mc,{pane:pn,renderer:ren,interactive:false,style:{color:FILL,weight:1,opacity:.78,fillColor:FILL,fillOpacity:.78}}))}catch(e){console.warn('Red urbana · Canarias',e)}
  landL=g;return g})();return landBusy}
 function historyAtlasOn(){return !!document.getElementById('worldHistoryCheck')?.checked}
-async function syncLand(){try{const want=active()&&!otherThematic()&&!historyAtlasOn();if(!want){if(landL&&map.hasLayer(landL))map.removeLayer(landL);return}const g=await landLayer();if(active()&&!otherThematic()&&!historyAtlasOn()&&!map.hasLayer(g))g.addTo(map)}catch(e){console.warn(e)}}
+async function syncLand(){try{const want=active()&&!otherThematic()&&!historyAtlasOn()&&!window.anambroAtlasBgOff?.();if(!want){if(landL&&map.hasLayer(landL))map.removeLayer(landL);return}const g=await landLayer();if(active()&&!otherThematic()&&!historyAtlasOn()&&!window.anambroAtlasBgOff?.()&&!map.hasLayer(g))g.addTo(map)}catch(e){console.warn(e)}}
 function thematic(){const on=active();
  if(on&&prevBase===null)prevBase=document.querySelector('input[data-base-choice]:checked')?.dataset?.baseChoice||'';
  try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}
@@ -29692,6 +29692,125 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 </script>
+<script id="anambro-r53-fondo-js">
+/* ANAMBRO r53 · «Fondo de atlas» opcional
+   Los mapas temáticos (atlas ISTAC, INE, Banco Mundial, Eurostat, Análisis geográfico, red urbana, núcleos…) ponían siempre el
+   fondo de atlas y quitaban el mapa base. Ahora es una opción: si se desactiva —o si se elige otro mapa base con un mapa temático
+   activo— el mapa base se respeta y se puede combinar cualquier capa. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let off=false,switching=false;
+window.anambroAtlasBgOff=()=>off;
+const isBase=l=>{try{return (typeof activeBase!=='undefined'&&l===activeBase)||(typeof worldImagery!=='undefined'&&l===worldImagery)||(typeof worldEox!=='undefined'&&l===worldEox)}catch(_){return false}};
+function guard(){if(L.Map.prototype.removeLayer.__anBg)return;const o=L.Map.prototype.removeLayer;const f=function(layer){if(off&&!switching&&isBase(layer))return this;return o.apply(this,arguments)};f.__anBg=true;L.Map.prototype.removeLayer=f}
+function thematicOn(){try{return !!(window.anambroIstacActive?.()||window.anambroIneActive?.()||window.anambroGeoAnalysisActive?.()||window.anambroUrbanoActive?.()||window.anambroNucActive?.()||(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length))}catch(_){return false}}
+function reapplyBase(){const r=document.querySelector('input[data-base-choice]:checked');if(!r)return;switching=true;try{r.dispatchEvent(new Event('change',{bubbles:true}))}catch(_){}setTimeout(()=>switching=false,1500)}
+function set(v,why){off=v;document.querySelectorAll('.anBgToggle').forEach(c=>c.checked=!v);
+ try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}
+ try{window.anambroUrbano?.refresh&&window.anambroUrbano.state.on&&window.anambroUrbano.refresh()}catch(_){}
+ if(off){reapplyBase();try{map.getContainer().style.backgroundColor=''}catch(_){}}
+ const n=$('anBgNote');if(n)n.textContent=why||''}
+function ui(){const p=$('activeLayersPanel');if(!p||p.querySelector('.anBgToggle'))return;const h=p.querySelector(':scope > h3');
+ const d=document.createElement('label');d.className='anBgRow';d.innerHTML='<input type="checkbox" class="anBgToggle" checked/> <b>Fondo de atlas en los mapas temáticos</b><small id="anBgNote"></small>';
+ (h?h.nextSibling:p.firstChild)?p.insertBefore(d,h?h.nextSibling:p.firstChild):p.appendChild(d);
+ d.querySelector('input').addEventListener('change',e=>set(!e.target.checked,e.target.checked?'':'Se mantiene el mapa base que elijas; las capas se combinan libremente.'))}
+function boot(n=0){if(typeof map==='undefined'||typeof L==='undefined'){if(n<60)return setTimeout(()=>boot(n+1),500);return}
+ guard();ui();
+ // si el usuario elige un mapa base con un mapa temático activo, se respeta su elección
+ document.addEventListener('change',e=>{const t=e.target;if(!t?.matches?.('input[data-base-choice]'))return;switching=true;setTimeout(()=>switching=false,1500);if(e.isTrusted&&thematicOn()&&!off)set(true,'Has elegido un mapa base: se mantiene sobre el fondo de atlas.')},true);
+ new MutationObserver(()=>ui()).observe(document.body,{childList:true,subtree:false})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,600));else setTimeout(boot,600);
+})();
+
+</script>
+<script id="anambro-r53-estilos-capas-js">
+/* ANAMBRO r53 · «Capas visibles»: transparencia y estilo de cada capa
+   Botón 🎨 en cada capa: transparencia (cualquier capa) y, en las de líneas y polígonos, color y grosor del contorno,
+   color y opacidad del relleno y «colores políticos» (vecinos con colores distintos). El estilo se mantiene aunque la capa
+   se redibuje y sale igual al imprimir, porque se aplica a la propia capa del mapa. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const S={};let open=null,busy=false;
+const PAL=['#f4cf86','#a8d5a2','#f2a7a0','#9fc5e8','#d5b8e6','#f9e79f','#b6d7c9','#f5c6a5'];
+function layersOf(id){const A=window.__anActiveLayers;let ls=[];try{ls=(A?.layersFor?.(id)||[]).slice()}catch(_){}try{const m=A?.META?.[id];if(m?.get)ls=ls.concat(m.get()||[])}catch(_){}return [...new Set(ls.filter(Boolean))]}
+function leaves(l,out=[]){if(!l)return out;if(l instanceof L.Path||l instanceof L.TileLayer||l instanceof L.ImageOverlay||(L.GridLayer&&l instanceof L.GridLayer))out.push(l);else if(typeof l.eachLayer==='function')l.eachLayer(x=>leaves(x,out));else if(l.setOpacity)out.push(l);return out}
+function kind(id){const ls=layersOf(id).flatMap(l=>leaves(l));return {vec:ls.some(l=>l instanceof L.Path),ras:ls.some(l=>!(l instanceof L.Path)),ls}}
+// colores políticos: coloreado voraz con vecinos aproximados por solape de recuadros
+function political(paths){const B=paths.map(p=>{try{return p.getBounds?.()}catch(_){return null}});const col=new Array(paths.length).fill(-1);
+ const order=paths.map((p,i)=>i).sort((a,b)=>{const A=B[a],Bb=B[b];return (Bb?(Bb.getNorth()-Bb.getSouth())*(Bb.getEast()-Bb.getWest()):0)-(A?(A.getNorth()-A.getSouth())*(A.getEast()-A.getWest()):0)});
+ for(const i of order){if(!B[i]){col[i]=0;continue}const used=new Set();for(let j=0;j<paths.length;j++){if(j===i||col[j]<0||!B[j])continue;if(B[i].intersects(B[j]))used.add(col[j])}let c=0;while(used.has(c)&&c<PAL.length-1)c++;col[i]=c}
+ return col}
+// Las fronteras son líneas: para rellenar países se añade debajo una capa de polígonos de países (Natural Earth)
+const FILLERS={};
+async function filler(id,lineLayer){if(FILLERS[id])return FILLERS[id];if(id!=='countriesCheck'||typeof loadCountries!=='function')return null;const g=await loadCountries();
+ let pane='overlayPane';try{lineLayer.eachLayer(l=>{pane=l.options.pane||pane})}catch(_){}
+ FILLERS[id]=L.geoJSON(g,{pane,interactive:false,style:{stroke:false,fill:true,fillOpacity:0}});return FILLERS[id]}
+function apply(id){const s=S[id];if(!s)return;
+ if(id==='countriesCheck'&&s.fillMode!=='orig'&&s.fillMode!=='none'){const src=layersOf(id)[0];filler(id,src).then(f=>{if(!f)return;if(!map.hasLayer(f)){busy=true;f.addTo(map);try{f.bringToBack()}catch(_){}setTimeout(()=>busy=false,80)}const P=leaves(f).filter(l=>l instanceof L.Path),pc=s.fillMode==='pol'?political(P):null;P.forEach((l,i)=>{try{l.setStyle({fill:true,fillColor:s.fillMode==='pol'?PAL[pc[i]%PAL.length]:s.fill,fillOpacity:s.fo*s.op})}catch(_){}})})}
+ else if(FILLERS[id]&&map.hasLayer(FILLERS[id]))map.removeLayer(FILLERS[id]);
+ busy=true;try{const {ls}=kind(id),paths=ls.filter(l=>l instanceof L.Path&&!(FILLERS[id]&&FILLERS[id].hasLayer?.(l)));const pc=s.fillMode==='pol'?political(paths):null;
+ ls.forEach(l=>{if(!(l instanceof L.Path)){try{l.setOpacity?.(s.op)}catch(_){}return}
+  if(l.__anOrig==null)l.__anOrig={...l.options};const o={};
+  o.opacity=(s.line!=null?1:(l.__anOrig.opacity??1))*s.op;
+  if(s.line!=null){o.color=s.line}
+  if(s.w!=null)o.weight=s.w;
+  if(s.fillMode==='none'){o.fill=true;o.fillOpacity=0}
+  else if(s.fillMode==='one'){o.fill=true;o.fillColor=s.fill;o.fillOpacity=s.fo*s.op}
+  else if(s.fillMode==='pol'){o.fill=true;o.fillColor=PAL[pc[paths.indexOf(l)]%PAL.length];o.fillOpacity=s.fo*s.op}
+  else{o.fillOpacity=(l.__anOrig.fillOpacity??.2)*s.op}
+  try{l.setStyle(o)}catch(_){}})}finally{setTimeout(()=>busy=false,50)}}
+function panel(id){const k=kind(id),s=S[id]||(S[id]={op:1,line:null,w:null,fillMode:'orig',fill:'#f4cf86',fo:.6});
+ return '<div class="anStyleBox" data-sid="'+id+'"><label><small><b>Transparencia</b> <span class="anSOv">'+Math.round((1-s.op)*100)+' %</span></small><input type="range" min="0" max="1" step="0.05" value="'+(1-s.op)+'" data-s="op"></label>'+
+ (k.vec?'<div class="anSRow"><label><small><b>Contorno</b></small><input type="color" data-s="line" value="'+(s.line||'#ffffff')+'"></label><label><small><b>Grosor</b> <span class="anSWv">'+(s.w??'—')+'</span></small><input type="range" min="0" max="6" step="0.5" value="'+(s.w??1.5)+'" data-s="w"></label></div>'+
+  '<div class="anSRow"><label><small><b>Relleno</b></small><select data-s="fillMode"><option value="orig"'+(s.fillMode==='orig'?' selected':'')+'>Como está</option><option value="none"'+(s.fillMode==='none'?' selected':'')+'>Sin relleno</option><option value="one"'+(s.fillMode==='one'?' selected':'')+'>Un color</option><option value="pol"'+(s.fillMode==='pol'?' selected':'')+'>Colores políticos (vecinos distintos)</option></select></label><label><small><b>Color</b></small><input type="color" data-s="fill" value="'+s.fill+'"></label></div>'+
+  '<label><small><b>Opacidad del relleno</b> <span class="anSFv">'+Math.round(s.fo*100)+' %</span></small><input type="range" min="0" max="1" step="0.05" value="'+s.fo+'" data-s="fo"></label>':'')+
+ '<button type="button" class="anSReset">Restablecer estilo original</button></div>'}
+function decorate(){const list=$('activeLayersList');if(!list)return;
+ list.querySelectorAll('.activeLayerRow').forEach(r=>{const id=r.dataset.activeLayer,a=r.querySelector('.activeLayerActions');if(!a||a.querySelector('[data-style]'))return;
+  const b=document.createElement('button');b.type='button';b.dataset.style='1';b.title='Transparencia y estilo';b.textContent='🎨';a.prepend(b);
+  if(open===id)r.insertAdjacentHTML('afterend',panel(id))})}
+function boot(n=0){const list=$('activeLayersList');if(!list||typeof map==='undefined'){if(n<80)return setTimeout(()=>boot(n+1),500);return}
+ new MutationObserver(()=>decorate()).observe(list,{childList:true});decorate();
+ list.addEventListener('click',e=>{const b=e.target.closest('[data-style]');if(b){e.stopPropagation();const id=b.closest('.activeLayerRow').dataset.activeLayer;open=open===id?null:id;list.querySelectorAll('.anStyleBox').forEach(x=>x.remove());if(open)b.closest('.activeLayerRow').insertAdjacentHTML('afterend',panel(open));return}
+  const r=e.target.closest('.anSReset');if(r){const id=r.closest('.anStyleBox').dataset.sid;const {ls}=kind(id);ls.forEach(l=>{if(l instanceof L.Path&&l.__anOrig){try{l.setStyle({color:l.__anOrig.color,weight:l.__anOrig.weight,opacity:l.__anOrig.opacity??1,fillColor:l.__anOrig.fillColor,fillOpacity:l.__anOrig.fillOpacity,fill:l.__anOrig.fill})}catch(_){}}else{try{l.setOpacity?.(1)}catch(_){}}});delete S[id];open=null;r.closest('.anStyleBox').remove()}},true);
+ const upd=e=>{const t=e.target;if(!t.dataset?.s)return;const box=t.closest('.anStyleBox');if(!box)return;const id=box.dataset.sid,s=S[id];
+  if(t.dataset.s==='op'){s.op=1-(+t.value);box.querySelector('.anSOv').textContent=Math.round(+t.value*100)+' %'}
+  else if(t.dataset.s==='w'){s.w=+t.value;box.querySelector('.anSWv').textContent=t.value}
+  else if(t.dataset.s==='fo'){s.fo=+t.value;box.querySelector('.anSFv').textContent=Math.round(s.fo*100)+' %';if(s.fillMode==='orig'){s.fillMode='one';box.querySelector('[data-s="fillMode"]').value='one'}}
+  else if(t.dataset.s==='line')s.line=t.value;else if(t.dataset.s==='fill'){s.fill=t.value;if(s.fillMode!=='pol'){s.fillMode='one';box.querySelector('[data-s="fillMode"]').value='one'}}else if(t.dataset.s==='fillMode')s.fillMode=t.value;
+  apply(id)};
+ list.addEventListener('input',upd);list.addEventListener('change',upd);
+ // si una capa se redibuja (cambio de año, de indicador…), conserva su estilo
+ map.on('layerremove',e=>{for(const [id,f] of Object.entries(FILLERS)){const src=layersOf(id)[0];if(e.layer===src&&map.hasLayer(f))map.removeLayer(f)}});
+ let tm=null;map.on('layeradd',()=>{if(busy||!Object.keys(S).length)return;clearTimeout(tm);tm=setTimeout(()=>Object.keys(S).forEach(apply),250)})}
+window.anambroLayerStyles={S,apply};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,1500));else setTimeout(boot,1500);
+})();
+
+</script>
+<script id="anambro-r53-imprimir-js">
+/* ANAMBRO r53 · Imprimir «tal cual lo veo»
+   El compositor imprimía los mapamundis temáticos (Atlas mundial, Análisis geográfico, red urbana) en proyección Equal Earth,
+   dibujando solo la capa temática. Ahora se elige: «Lo que veo en el visor» (todas las capas activas, con su orden,
+   transparencia y estilo) o «Mapamundi Equal Earth». En automático, si hay más de una capa o un mapa base propio, sale lo que se ve. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let mode='auto';
+function nLayers(){try{return window.__anActiveLayers?.normalizeOrder?.().filter(k=>k!=='gridCheck').length||0}catch(_){return 0}}
+window.anambroPrintMode=()=>{if(mode!=='auto')return mode;return (nLayers()>1||window.anambroAtlasBgOff?.())?'visor':'ee'};
+function ui(){const b=$('layoutPresetBlock');if(!b||$('anPrintMode'))return;
+ b.insertAdjacentHTML('afterend','<div class="layoutPresetBlock anPrintModeBox"><label>Qué se imprime<select id="anPrintMode"><option value="auto">Automático (lo que veo si combino capas)</option><option value="visor">🗺️ Lo que veo en el visor: todas las capas activas</option><option value="ee">🌍 Mapamundi Equal Earth (solo la capa temática)</option></select></label><small id="anPrintModeNote"></small></div>');
+ $('anPrintMode').addEventListener('change',e=>{mode=e.target.value;note();try{refreshLayoutSnapshot()}catch(_){}})}
+function note(){const n=$('anPrintModeNote');if(n)n.textContent=window.anambroPrintMode()==='visor'?'Se imprime el mapa tal como lo ves: capas, orden, transparencia y estilos.':'Mapamundi en proyección Equal Earth con la capa temática (las demás capas no se incluyen).'}
+function boot(n=0){if(!$('layoutPresetBlock')){if(n<60)return setTimeout(()=>boot(n+1),500);return}ui();
+ try{if(typeof openLayoutEditor==='function'&&!openLayoutEditor.__anPm){const o=openLayoutEditor;const f=function(){const r=o.apply(this,arguments);try{ui();note()}catch(_){}return r};for(const k of Object.keys(o))try{f[k]=o[k]}catch(_){};f.__anPm=true;openLayoutEditor=f}}catch(e){console.warn(e)}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,900));else setTimeout(boot,900);
+})();
+
+</script>
 <script id="anambro-r53-orden-js">
 /* ANAMBRO r53 · Orden de las capas
    El mismo esqueleto en Canarias, España y Mundo, en el orden del temario de Geografía:
@@ -30029,6 +30148,22 @@ html body .panel:not(.hidden){animation:anPop .28s var(--an-ease)}
 #layoutLegendContent .anUrbPick.off,#layoutLegendContent .anUrbPickAuto,#layoutLegendContent .anUrbPickHelp{display:none}
 
 .anNucAprox{margin-top:5px;padding:4px 6px;border-radius:7px;background:#fff6e5;border:1px solid #f0d9a8;font-size:11.5px}
+
+#activeLayersPanel .anBgRow{display:block;margin:4px 0 8px;padding:7px 9px;border:1px solid var(--an-line);border-radius:10px;background:#f6f9fc}
+#activeLayersPanel .anBgRow small{display:block;color:#556;margin-top:2px}
+
+/* «Capas visibles» · estilo de cada capa */
+#activeLayersList .anStyleBox{margin:-2px 0 8px 26px;padding:8px 10px;border:1px solid var(--an-line);border-radius:10px;background:#f7fafd;animation:anUnfold .2s var(--an-ease)}
+#activeLayersList .anStyleBox label{display:block;margin:3px 0}
+#activeLayersList .anStyleBox input[type=range]{width:100%}
+#activeLayersList .anSRow{display:flex;gap:10px;align-items:flex-end}
+#activeLayersList .anSRow label{flex:1}
+#activeLayersList .anStyleBox input[type=color]{width:100%;height:26px;border:1px solid var(--an-line);border-radius:6px;padding:1px;background:#fff}
+#activeLayersList .anStyleBox select{width:100%}
+#activeLayersList .anSReset{margin-top:6px;border:0;background:none;color:#245b86;font-weight:700;cursor:pointer;padding:2px 0}
+
+.anPrintModeBox select{width:100%;margin-top:3px}
+.anPrintModeBox small{display:block;color:#556;margin-top:3px}
 </style>
 </body>
 </html>
