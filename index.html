@@ -8569,6 +8569,7 @@ async function renderThematicWorldLayoutSnapshot(){
   }
   ctx.globalAlpha=1;
  }catch(e){typeof __anLog=='function'&&__anLog(e,'L8414');}
+ try{const __s=Math.max(1,width/Math.max(600,map.getSize().x));ctx.save();ctx.scale(__s,__s);await window.__anEEOverlay?.(ctx,(lo,la)=>{const q=px(lo,la);return [q[0]/__s,q[1]/__s]},width/__s,height/__s,{jump:width/__s*.5});ctx.restore()}catch(e){console.warn('Equal Earth · capas activas',e)}
  // En la exportación temática no se dibujan topónimos: la composición queda limpia
  // y la lectura se concentra en la variable representada y su leyenda.
  const eqWest=px(-180,0),eqEast=px(180,0);
@@ -15144,6 +15145,7 @@ fix();setTimeout(fix,300);setTimeout(fix,1500);
  const COUNTRY_ES={AL:'Albania',AD:'Andorra',AM:'Armenia',AT:'Austria',AZ:'Azerbaiyán',BE:'Bélgica',BA:'Bosnia y Herzegovina',BG:'Bulgaria',BY:'Bielorrusia',CH:'Suiza',CY:'Chipre',CZ:'Chequia',DE:'Alemania',DK:'Dinamarca',EE:'Estonia',ES:'España',FI:'Finlandia',FR:'Francia',GB:'Reino Unido',GE:'Georgia',GR:'Grecia',HR:'Croacia',HU:'Hungría',IE:'Irlanda',IS:'Islandia',IT:'Italia',LI:'Liechtenstein',LT:'Lituania',LU:'Luxemburgo',LV:'Letonia',MC:'Mónaco',MD:'Moldavia',ME:'Montenegro',MK:'Macedonia del Norte',MT:'Malta',NL:'Países Bajos',NO:'Noruega',PL:'Polonia',PT:'Portugal',RO:'Rumanía',RS:'Serbia',RU:'Rusia',SE:'Suecia',SI:'Eslovenia',SK:'Eslovaquia',SM:'San Marino',TR:'Turquía',UA:'Ucrania',VA:'Ciudad del Vaticano',XK:'Kosovo'};
  const POLITICAL_PALETTE=['#f4d35e','#8ecae6','#f7a072','#9cc27c','#b7bdf5','#ef9aa8','#8bd3c7','#c5a3d8','#ffd166','#a7d8de','#dced91','#ffb3a7'];
  let politicalLayer=null,politicalBathy=null,politicalPhysicalBase=null,politicalLabels=L.layerGroup(),politicalLeaders=L.layerGroup(),politicalDataCache=new Map();
+ window.__anPolitical={layer:()=>politicalLayer,labels:()=>politicalLabels,leaders:()=>politicalLeaders,title:()=>{try{return politicalScopeTitle()}catch(_){return ''}}};
  let politicalActive=false,politicalSelected=null,politicalCurrentScope='canary-municipalities',politicalHistoryAutoEnabled=false,politicalHistoryWasVisible=false,politicalViewSnapshot=null,politicalCanaryDefaultsApplied=false;
  const politicalOverrides=new Map(),politicalLabelOverrides=new Map(),politicalLabelRefs=new Map();
 
@@ -27153,6 +27155,7 @@ async function render(){
   if(o.fill!==false&&(o.fillOpacity??.2)>0){ctx.globalAlpha=Math.max(0,Math.min(1,o.fillOpacity??.2));ctx.fillStyle=o.fillColor||o.color||'#3388ff';ctx.fill('evenodd')}
   if(o.stroke!==false&&(o.weight??3)>0&&(o.opacity??1)>0){ctx.globalAlpha=Math.max(0,Math.min(1,o.opacity??1));ctx.strokeStyle=o.color||'#3388ff';ctx.lineWidth=Math.max(.3,+(o.weight??3));ctx.stroke()}
   ctx.globalAlpha=1}
+ try{await window.__anEEOverlay?.(ctx,P(F),F.W0,F.H0,{skip:ls,jump:F.k*2.5})}catch(e){console.warn('Equal Earth · capas activas',e)}
  const b=map.getBounds(),ext={west:Math.max(-180,b.getWest()),east:Math.min(180,b.getEast()),south:Math.max(-85,b.getSouth()),north:Math.min(85,b.getNorth())};
  try{if($('worldHistoryCheck')?.checked)await window.__anambroHistoryShadeExport?.(ctx,P(F),ext,F.W0,F.H0)}catch(e){console.warn('Sombreado · Equal Earth',e)}
  if($('layoutShowGrid')?.checked)graticule(ctx,F);
@@ -28454,14 +28457,13 @@ function hookExport(){try{const EE=window.anambroAnalysisEqualEarth;if(!EE||EE._
  const worldView=()=>{const b=map.getBounds(),lon=map.getSize().x*360/(256*Math.pow(2,map.getZoom())),lat=Math.min(85,b.getNorth())-Math.max(-85,b.getSouth());return lon>=35||lat>=28};
  const urbOnly=()=>st.on&&!(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)&&(typeof layoutContentMode==='undefined'||layoutContentMode==='map')&&worldView();
  EE.wanted=function(){return ow.apply(this,arguments)||urbOnly()};
- EE.render=async function(){const url=await orr.apply(this,arguments);if(!st.on||!D)return url;
-  const F=EE.frame(),im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=url});const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);const k=c.width/F.W0;x.scale(k,k);
-  const wrap=v=>((v+540)%360+360)%360-180,P=(lon,lat)=>{const q=equalEarthProject(wrap(lon-F.lam0),lat);return [F.W0/2+(q[0]-F.cx)*F.k,F.H0/2-(q[1]-F.cy)*F.k]};
+ EE.__anUrb=true}catch(e){console.warn('Red urbana · exportación',e)}}
+/* Dibuja la red urbana mundial sobre cualquier mapamundi Equal Earth (P = proyección lon,lat → px; W0×H0 = lienzo) */
+function drawEE(x,P,W0,H0){if(!st.on||!D)return;const F={W0,H0};x.save();
   const i=yi(),list=D.c.filter(r=>r[6][i]>=effMin()&&(!st.cap||r[3])).sort((a,b)=>b[6][i]-a[6][i]);
   for(const r of [...list].reverse()){const [px,py]=P(r[5],r[4]);if(px<-30||py<-30||px>F.W0+30||py>F.H0+30)continue;x.beginPath();x.arc(px,py,radius(r[6][i]),0,2*Math.PI);x.globalAlpha=.85;x.fillStyle=clsOf(r[6][i])[1];x.fill();x.globalAlpha=1;x.lineWidth=r[3]?2.2:.8;x.strokeStyle=r[3]?'#000':'#5a3a2a';x.stroke();if(r[3])star(x,px,py,starR(radius(r[6][i])))}
   if(st.lab){const boxes=[];x.textBaseline='middle';x.lineJoin='round';for(const r of list){const [px,py]=P(r[5],r[4]);if(px<0||py<0||px>F.W0||py>F.H0)continue;const p=r[6][i],t=nice(r[1]);x.font=(r[3]?'800 ':'700 ')+(p>=5000?13:p>=1000?12:11)+'px system-ui,Arial';const w=x.measureText(t).width,rr=radius(p),bx=[px+rr+2,py-8,w+4,16];if(boxes.some(q=>bx[0]<q[0]+q[2]&&bx[0]+bx[2]>q[0]&&bx[1]<q[1]+q[3]&&bx[1]+bx[3]>q[1]))continue;boxes.push(bx);x.strokeStyle='#fff';x.lineWidth=3;x.strokeText(t,bx[0],py);x.fillStyle=r[3]?'#000':'#1d2b36';x.fillText(t,bx[0],py)}}
-  return c.toDataURL('image/jpeg',.94)};
- EE.__anUrb=true}catch(e){console.warn('Red urbana · exportación',e)}}
+  x.restore()}
 function hubButton(){try{const card=[...document.querySelectorAll('#toolHubPanel .hubCard')].find(c=>/Atlas estadístico/.test(c.querySelector('b')?.textContent||''));if(!card||card.querySelector('.anUrbHub'))return;
  const b=document.createElement('button');b.type='button';b.className='anUrbHub';b.textContent='🏙️ Red urbana · ciudades del mundo, España y Canarias';card.appendChild(b);
  b.addEventListener('click',()=>{const p=$('layersPanel');try{closePanels()}catch(_){}p?.classList.remove('hidden');let sc='Mundo';try{const c=map.getCenter();if(c.lat<29.6&&c.lat>27.4&&c.lng<-13&&c.lng>-18.5)sc='Canarias';else if(c.lat>35&&c.lat<44.5&&c.lng>-10&&c.lng<4.5)sc='España'}catch(_){}
@@ -28618,7 +28620,7 @@ function install(){
 }
 function setYear(k){if(!D)return;st.year=D.years[k];sync('.anUrbYear',String(k));sync('.anUrbYearTxt',st.year+(st.year>2025?' (proy.)':''),'textContent');if(st.on)refresh();if(cur&&!cur.isE&&!cur.isU&&!$('anUrbWin')?.classList.contains('hidden'))render()}
 function openFromGlobe(ent){if(ent?.es){const r=E.D?.m.find(x=>x[0]===ent.es);if(r)openMuni(r,ent.sc);return}const r=D?.c?.find(x=>x[x.length-1]===ent?.idx);if(r)openCity(r)}
-window.anambroUrbanoActive=active;window.anambroUrbanoLegendHTML=legendHTML;window.anambroUrbano={state:st,E,openUnit,netOf,refreshE,openMuni,refresh,openCity,openFromGlobe,get layer(){return layer},nice,pais,load};
+window.anambroUrbanoActive=active;window.anambroUrbanoLegendHTML=legendHTML;window.anambroUrbano={drawEE,state:st,E,openUnit,netOf,refreshE,openMuni,refresh,openCity,openFromGlobe,get layer(){return layer},nice,pais,load};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 
@@ -29590,7 +29592,7 @@ function groupOf(v,o){
  if(/^clima-/.test(v))return 'cli';
  if(/^(veg|geo|land|soil|lito|mfe|corine|clc)/.test(v))return 'fis';
  if(/^enp-/.test(v))return 'enp';
- if(/^pop-/.test(v)||EUS_POB.test(v))return 'pob';
+ if(/^pop-/.test(v)||/^pyr:/.test(v)||EUS_POB.test(v))return 'pob';
  if(/^urb:/.test(v))return 'urb';
  if(EUS_ECO.test(v))return 'eco';
  if(/^sg:eq_/.test(v)||EUS_SER.test(v))return 'ser';
@@ -29609,6 +29611,7 @@ function why(v,u){const a=areaOf(u);
  if(/^eus:/.test(v)&&a!=='eu')return 'solo con regiones NUTS de Europa (Eurostat)';
  if(/^sg:/.test(v)&&a!=='canarias'&&a!=='spain')return 'solo con unidades de España o Canarias (IGN)';
  if(/^urb:/.test(v)&&!URB_UNITS.has(u))return 'con países, regiones, comunidades, provincias o islas (no con municipios ni entidades históricas)';
+ if(/^pyr:/.test(v)&&!(a==='spain'||a==='canarias'||u==='world-countries'))return 'con países del mundo y unidades de España y Canarias (en Europa, usa la edad mediana y los grupos de edad de Eurostat)';
  if(/^pop-/.test(v)&&a==='history')return 'no hay población oficial de las entidades históricas';
  return ''}
 let busy=false;
@@ -29785,28 +29788,77 @@ function boot(n=0){const list=$('activeLayersList');if(!list||typeof map==='unde
  // si una capa se redibuja (cambio de año, de indicador…), conserva su estilo
  map.on('layerremove',e=>{for(const [id,f] of Object.entries(FILLERS)){const src=layersOf(id)[0];if(e.layer===src&&map.hasLayer(f))map.removeLayer(f)}});
  let tm=null;map.on('layeradd',()=>{if(busy||!Object.keys(S).length)return;clearTimeout(tm);tm=setTimeout(()=>Object.keys(S).forEach(apply),250)})}
-window.anambroLayerStyles={S,apply};
+window.anambroLayerStyles={S,apply,FILLERS};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,1500));else setTimeout(boot,1500);
 })();
 
 </script>
 <script id="anambro-r53-imprimir-js">
-/* ANAMBRO r53 · Imprimir «tal cual lo veo»
-   El compositor imprimía los mapamundis temáticos (Atlas mundial, Análisis geográfico, red urbana) en proyección Equal Earth,
-   dibujando solo la capa temática. Ahora se elige: «Lo que veo en el visor» (todas las capas activas, con su orden,
-   transparencia y estilo) o «Mapamundi Equal Earth». En automático, si hay más de una capa o un mapa base propio, sale lo que se ve. */
+/* ANAMBRO r53 · Imprimir
+   Dos maneras de imprimir:
+   · «Mapamundi Equal Earth»: el mapamundi en proyección Equal Earth con TODAS las capas activas que se pueden
+     redibujar en esa proyección (atlas mundial, análisis geográfico, red urbana, áreas metropolitanas, fronteras con
+     su estilo, placas, terremotos…), en el orden de «Capas visibles» y con su transparencia y su estilo.
+   · «Lo que veo en el visor»: la captura del mapa tal como se ve (sirve también para capas ráster: satélite, radar…).
+   En automático: a escala mundial, Equal Earth si todas las capas activas se pueden redibujar; si no, lo que se ve. */
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
 let mode='auto';
-function nLayers(){try{return window.__anActiveLayers?.normalizeOrder?.().filter(k=>k!=='gridCheck').length||0}catch(_){return 0}}
-window.anambroPrintMode=()=>{if(mode!=='auto')return mode;return (nLayers()>1||window.anambroAtlasBgOff?.())?'visor':'ee'};
+// capas que no se dibujan en el mapamundi (rótulos con iconos HTML) pero no impiden usarlo
+const LABELS=new Set(['gridCheck','countryLabelsCheck','worldToponymsCheck','worldPhysicalToponymsCheck']);
+const A=()=>window.__anActiveLayers;
+const isHuman=id=>!!$(id)?.classList?.contains('worldHumanLayerCheck');
+function pathLeaves(l,out=[]){if(!l)return out;if(l instanceof L.Path)out.push(l);else if(typeof l.eachLayer==='function')l.eachLayer(x=>pathLeaves(x,out));return out}
+function layersOf(id){let ls=[];try{ls=(A()?.layersFor(id)||[]).slice()}catch(_){}const f=window.anambroLayerStyles?.FILLERS?.[id];if(f)ls.unshift(f);return ls.filter(l=>l&&map.hasLayer(l))}
+function ids(){try{return A()?.normalizeOrder()||[]}catch(_){return []}}
+function geoAnalysisOn(){try{const l=window.__anambroGeographicAnalysisGeneral?.layer?.();return !!(l&&map.hasLayer(l))}catch(_){return false}}
+// ¿Se puede redibujar esta capa en Equal Earth?
+function drawable(id){if(LABELS.has(id)||isHuman(id)||id==='anUrb_world')return true;return layersOf(id).some(l=>pathLeaves(l).length)}
+function notDrawable(){return ids().filter(id=>!drawable(id)).map(id=>{try{const n=A().META[id]?.name;return typeof n==='function'?n():n||id}catch(_){return id}})}
+function worldView(){try{const b=map.getBounds(),lon=map.getSize().x*360/(256*Math.pow(2,map.getZoom())),lat=Math.min(85,b.getNorth())-Math.max(-85,b.getSouth());return lon>=35||lat>=28}catch(_){return false}}
+function anyThematic(){return ids().some(id=>!LABELS.has(id))||geoAnalysisOn()}
+window.anambroPrintMode=()=>{if(mode!=='auto')return mode;return (window.anambroAtlasBgOff?.()||notDrawable().length)?'visor':'ee'};
+
+/* Dibuja sobre un lienzo Equal Earth todas las capas activas (de abajo arriba). P(lon,lat) → [x,y] en px del lienzo.
+   opt.skip: capas o elementos ya dibujados por el mapa base del mapamundi; opt.jump: salto horizontal que delata el antimeridiano. */
+function ring(ctx,P,lls,close,jump){let first=true,x0=0;for(const ll of lls){const lat=ll.lat,lon=ll.lng;if(!Number.isFinite(lat)||!Number.isFinite(lon))continue;const [x,y]=P(lon,lat);if(first||Math.abs(x-x0)>jump){ctx.moveTo(x,y);first=false}else ctx.lineTo(x,y);x0=x}if(close&&!first)ctx.closePath()}
+function nest(ctx,P,a,close,jump){if(!Array.isArray(a)||!a.length)return;if(a[0] instanceof L.LatLng||(a[0]&&a[0].lat!=null&&!Array.isArray(a[0])))return ring(ctx,P,a,close,jump);for(const b of a)nest(ctx,P,b,close,jump)}
+function drawPath(ctx,P,p,jump){const o=p.options||{};
+ if(o.opacity===0&&(o.fillOpacity===0||o.fill===false))return;
+ ctx.beginPath();
+ if(p instanceof L.CircleMarker){const ll=p.getLatLng();const [x,y]=P(ll.lng,ll.lat);let r=p instanceof L.Circle?(p._radius||4):(p.getRadius?.()??o.radius??6);ctx.arc(x,y,Math.max(.8,r),0,2*Math.PI)}
+ else if(typeof p.getLatLngs==='function')nest(ctx,P,p.getLatLngs(),p instanceof L.Polygon,jump);else return;
+ const isLine=!(p instanceof L.Polygon)&&!(p instanceof L.CircleMarker);
+ if(o.fill!==false&&!isLine||o.fill===true){const fo=o.fillOpacity??.2;if(fo>0){ctx.globalAlpha=Math.min(1,fo);ctx.fillStyle=o.fillColor||o.color||'#3388ff';ctx.fill('evenodd')}}
+ if(o.stroke!==false&&(o.weight??3)>0&&(o.opacity??1)>0){ctx.globalAlpha=Math.min(1,o.opacity??1);ctx.strokeStyle=o.color||'#3388ff';ctx.lineWidth=Math.max(.3,+(o.weight??3));
+  try{ctx.setLineDash(o.dashArray?String(o.dashArray).split(/[ ,]+/).map(Number).filter(Number.isFinite):[])}catch(_){}ctx.stroke();try{ctx.setLineDash([])}catch(_){}}
+ ctx.globalAlpha=1}
+async function overlay(ctx,P,W,H,opt={}){
+ const skip=new Set(opt.skip||[]),jump=opt.jump||W*.5,order=[...ids()].reverse();
+ ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+ for(const id of order){
+  if(LABELS.has(id)||isHuman(id))continue;
+  if(id==='anUrb_world'){try{window.anambroUrbano?.drawEE?.(ctx,P,W,H)}catch(e){console.warn('Equal Earth · red urbana',e)}continue}
+  for(const l of layersOf(id)){if(skip.has(l))continue;for(const p of pathLeaves(l)){if(skip.has(p))continue;try{drawPath(ctx,P,p,jump)}catch(_){}}}
+ }
+ ctx.restore()}
+window.__anEEOverlay=overlay;
+
+/* Mapamundi Equal Earth también cuando no hay atlas mundial ni análisis: p. ej. fronteras coloreadas + áreas metropolitanas */
+function hookWanted(n=0){const EE=window.anambroAnalysisEqualEarth;if(!EE){if(n<60)setTimeout(()=>hookWanted(n+1),500);return}if(EE.__anPm)return;const ow=EE.wanted;
+ EE.wanted=function(){if(ow.apply(this,arguments))return true;try{if(typeof layoutContentMode!=='undefined'&&layoutContentMode!=='map')return false;if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().length)return false;
+  return window.anambroPrintMode()==='ee'&&worldView()&&anyThematic()}catch(_){return false}};EE.__anPm=true}
+
 function ui(){const b=$('layoutPresetBlock');if(!b||$('anPrintMode'))return;
- b.insertAdjacentHTML('afterend','<div class="layoutPresetBlock anPrintModeBox"><label>Qué se imprime<select id="anPrintMode"><option value="auto">Automático (lo que veo si combino capas)</option><option value="visor">🗺️ Lo que veo en el visor: todas las capas activas</option><option value="ee">🌍 Mapamundi Equal Earth (solo la capa temática)</option></select></label><small id="anPrintModeNote"></small></div>');
+ b.insertAdjacentHTML('afterend','<div class="layoutPresetBlock anPrintModeBox"><label>Qué se imprime<select id="anPrintMode"><option value="auto">Automático</option><option value="ee">🌍 Mapamundi Equal Earth con las capas activas</option><option value="visor">🗺️ Lo que veo en el visor (captura)</option></select></label><small id="anPrintModeNote"></small></div>');
  $('anPrintMode').addEventListener('change',e=>{mode=e.target.value;note();try{refreshLayoutSnapshot()}catch(_){}})}
-function note(){const n=$('anPrintModeNote');if(n)n.textContent=window.anambroPrintMode()==='visor'?'Se imprime el mapa tal como lo ves: capas, orden, transparencia y estilos.':'Mapamundi en proyección Equal Earth con la capa temática (las demás capas no se incluyen).'}
-function boot(n=0){if(!$('layoutPresetBlock')){if(n<60)return setTimeout(()=>boot(n+1),500);return}ui();
+function note(){const n=$('anPrintModeNote');if(!n)return;const m=window.anambroPrintMode(),nd=notDrawable();
+ if(m==='visor')n.textContent='Se imprime el mapa tal como lo ves: capas, orden, transparencia y estilos.'+(mode==='auto'&&nd.length?' (Equal Earth no puede redibujar: '+nd.join(', ')+'.)':'');
+ else n.textContent='Mapamundi en proyección Equal Earth (a escala mundial) con todas las capas activas, en su orden y con su estilo.'+(nd.length?' No se incluyen: '+nd.join(', ')+' (elige «Lo que veo» para imprimirlas).':'')+' Los rótulos de países y topónimos no se dibujan.'}
+function boot(n=0){hookWanted();if(!$('layoutPresetBlock')){if(n<60)return setTimeout(()=>boot(n+1),500);return}ui();
  try{if(typeof openLayoutEditor==='function'&&!openLayoutEditor.__anPm){const o=openLayoutEditor;const f=function(){const r=o.apply(this,arguments);try{ui();note()}catch(_){}return r};for(const k of Object.keys(o))try{f[k]=o[k]}catch(_){};f.__anPm=true;openLayoutEditor=f}}catch(e){console.warn(e)}}
+window.anambroPrint={overlay,notDrawable,drawable};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,900));else setTimeout(boot,900);
 })();
 
@@ -29928,6 +29980,213 @@ function run(){if(!ready()&&++tries<60)return setTimeout(run,500);
  try{window.__anActiveLayers?.sync()}catch(_){}}
 window.anambroOrdenCapas={run,organize};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,800));else setTimeout(run,800);
+})();
+
+</script>
+<script id="anambro-r53-politico-js">
+/* ANAMBRO r53 · El mapa político es una capa más
+   Aparece en «Capas visibles» y se ordena como cualquier otra: si la red urbana (o cualquier capa) se pone encima,
+   se ve encima; también admite transparencia y estilo (🎨) y sale en la impresión Equal Earth. */
+(function(){
+'use strict';
+const P=()=>window.__anPolitical;
+const on=()=>{try{const l=P()?.layer?.();return !!(l&&map.hasLayer(l))}catch(_){return false}};
+function reg(n=0){const A=window.__anActiveLayers;if(!A||!P()||typeof map==='undefined'){if(n<80)setTimeout(()=>reg(n+1),500);return}
+ A.META.__anPolitical={virtual:true,p:65,name:()=>'Mapa político'+(P().title?.()?' · '+P().title():''),on,
+  off:()=>{try{document.getElementById('politicalExitBtn')?.click()}catch(_){}},
+  get:()=>[P().layer?.(),P().leaders?.(),P().labels?.()]};
+ map.on('layeradd layerremove',e=>{if(e.layer===P().layer?.())setTimeout(()=>{try{A.sync()}catch(_){}},150)})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(reg,1200));else setTimeout(reg,1200);
+})();
+
+</script>
+<script id="anambro-r53-piramide-js">
+/* ANAMBRO r53 · Pirámides de población
+   Al pinchar en una unidad territorial (país, comunidad autónoma, provincia, isla, municipio, sección censal o región
+   europea) la ficha ofrece su pirámide de población; si está cargada una capa de población (estructura por edades,
+   población, natalidad…) la pirámide aparece ya dibujada. Hombres en azul (izquierda), mujeres en rojo (derecha).
+   Fuentes y coherencia:
+   · Países: ONU, World Population Prospects 2024 (a 1 de julio; desde 2024, proyección de la variante media).
+   · España y Canarias: INE, Censo anual de población (a 1 de enero). Provincias, comunidades autónomas, islas,
+     Canarias y España son la SUMA exacta de sus municipios: lo que se ve en una escala cuadra con la de abajo.
+   · Secciones censales: INE, mismo censo (delimitación de cada año).
+   · Regiones de Europa (NUTS): Eurostat, demo_r_pjangrp3 (a 1 de enero), consultado en directo.
+   Las limitaciones se indican siempre en la propia ficha. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const BLUE='#2f6db3',RED='#cf3b35',BLUE2='#9cc0e6',RED2='#f0a19c';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>Math.round(n).toLocaleString('es-ES');
+const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s*\/.*$/,'').replace(/[^a-z0-9]+/g,' ').trim();
+const AGES=['0-4','5-9','10-14','15-19','20-24','25-29','30-34','35-39','40-44','45-49','50-54','55-59','60-64','65-69','70-74','75-79','80-84','85-89','90-94','95-99','100+'];
+const NOTE={
+ W:'Fuente: Naciones Unidas, <i>World Population Prospects 2024</i>. Población estimada a 1 de julio; desde 2024 es una proyección (variante media). Para comparar países con el mismo criterio se usa la ONU también para España, cuya cifra no coincide exactamente con la del INE (a 1 de enero).',
+ E:'Fuente: INE, Censo anual de población (población residente a 1 de enero), grupos quinquenales por sexo. Las provincias, comunidades autónomas, islas, Canarias y España son la suma exacta de sus municipios.',
+ S:'Fuente: INE, Censo anual de población por secciones censales (1 de enero). Las secciones cambian de límites con el tiempo: la comparación con 2021 solo se ofrece si la sección existía con el mismo código, y aun así puede haber cambiado de límites.',
+ U:'Fuente: Eurostat, <i>demo_r_pjangrp3</i> (población a 1 de enero por regiones NUTS), consultado en directo. Las cifras de las regiones españolas pueden diferir ligeramente del INE.',
+ X:'Sin pirámide para esta unidad: no hay una fuente homogénea de población por edad y sexo a esta escala (fuera de Europa solo se dispone de los países; los núcleos y las entidades de población solo tienen hombres y mujeres, sin edades).'};
+/* ---------- datos ---------- */
+const cache={};
+const getJSON=u=>cache[u]||(cache[u]=fetch(u,{cache:'force-cache'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).catch(e=>{delete cache[u];throw e}));
+const W=()=>getJSON('data/piramides/mundo.json?v=2026-10-23');
+const ES=()=>getJSON('data/piramides/es.json?v=2026-10-23');
+const SEC=p=>getJSON('data/piramides/sec/'+p+'.json?v=2026-10-23');
+const MUN=p=>getJSON('data/piramides/mun/'+p+'.json?v=2026-10-23');
+let esIdx=null;
+let DN=null;function esName(iso,fb){try{DN=DN||new Intl.DisplayNames(['es'],{type:'region'});const i2=(window.anambroISO3_2||{})[iso];return (i2&&DN.of(String(i2).toUpperCase()))||fb}catch(_){return fb}}
+async function esIndex(){if(esIdx)return esIdx;const d=await ES();const by={};for(const [c,n0] of Object.entries(d.mn||{}))d.u['M'+c]=d.u['M'+c]||{n:n0,lazy:1};for(const [k,u] of Object.entries(d.u)){const n=norm(u.n);(by[n]=by[n]||[]).push(k);
+ // variantes «Palmas, Las» → «Las Palmas», «Rozas de Madrid, Las» → «Las Rozas de Madrid»
+ const m=String(u.n).match(/^(.*), (El|La|Los|Las|L'|Els|Les|O|A|Os|As)$/i);if(m){const n2=norm(m[2]+' '+m[1]);(by[n2]=by[n2]||[]).push(k)}}
+ const extra={'canarias':['CA05'],'santa cruz de tenerife':['P38','M38038'],'las palmas':['P35'],'comunidad de madrid':['CA13'],'madrid':['P28','M28079','CA13'],'navarra':['CA15'],'asturias':['CA03'],'murcia':['CA14','P30','M30030'],'balears illes':['CA04'],'illes balears':['CA04'],'islas baleares':['CA04'],'baleares':['CA04'],'comunidad valenciana':['CA10'],'valencia':['P46','M46250'],'la rioja':['CA17'],'rioja la':['CA17'],'pais vasco':['CA16'],'euskadi':['CA16'],'cataluna':['CA09'],'catalunya':['CA09'],'galicia':['CA12'],'espana':['ES'],'spain':['ES']};
+ for(const [k,v] of Object.entries(extra))by[k]=[...new Set([...(by[k]||[]),...v])];
+ esIdx={d,by};return esIdx}
+async function eurostat(code){const u='https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_r_pjangrp3?format=JSON&lang=EN&unit=NR&geo='+encodeURIComponent(code)+'&sinceTimePeriod=2014';
+ const j=await getJSON(u);if(!j?.id)throw Error('Eurostat sin datos');const ids=j.id,size=j.size,dims=j.dimension,st=[];let acc=1;for(let k=ids.length-1;k>=0;k--){st[k]=acc;acc*=size[k]}
+ // grupos de edad disponibles: quinquenales cerrados + el último abierto («85 y más» o «90 y más»)
+ const cats=Object.keys(dims.age.category.index).map(c=>{let m;if(c==='Y_LT5')return {c,a:0,b:4};if((m=c.match(/^Y(\d+)-(\d+)$/))&&+m[2]-+m[1]===4)return {c,a:+m[1],b:+m[2]};if((m=c.match(/^Y_GE(\d+)$/)))return {c,a:+m[1],b:null};return null}).filter(Boolean);
+ const closed=cats.filter(x=>x.b!=null).sort((x,y)=>x.a-y.a);let end=0;const use=[];for(const x of closed){if(x.a===end){use.push(x);end=x.b+1}}
+ const open=cats.find(x=>x.b==null&&x.a===end);if(open)use.push(open);
+ const ages=use.map(x=>x.b==null?x.a+'+':x.a+'-'+x.b),times=Object.keys(dims.time.category.index).sort(),out={};
+ const pos=(sex,age,t)=>{let p=0;for(let k=0;k<ids.length;k++){const d=ids[k],ci=d==='sex'?dims.sex.category.index[sex]:d==='age'?dims.age.category.index[age]:d==='time'?dims.time.category.index[t]:0;if(ci==null)return -1;p+=ci*st[k]}return p};
+ for(const t of times){const a=[[],[]];let ok=!!open;for(const [sx,si] of [['M',0],['F',1]])for(const x of use){const p=pos(sx,x.c,t),v=p<0?null:j.value[p];if(v==null){ok=false;break}a[si].push(+v)}if(ok)out[t]=a}
+ return {ages,a:out,n:dims.geo.category.label?.[code]||code,open:open?open.a:null}}
+/* Unidad → datos {n, ages, a:{año:[H,M]}, kind} */
+async function load(key){
+ if(key.startsWith('W:')){const d=await W(),u=d.d[key.slice(2)];if(!u)return null;return {n:esName(key.slice(2),u.n),ages:d.ages,a:u.a,kind:'W',yrs:d.y.map(String),def:'2023'}}
+ if(key.startsWith('S')){const c=key.slice(1),d=await SEC(c.slice(0,2)),u=d.u[c];if(!u)return null;return {n:u.n.replace(/ sección /,' · sección '),ages:AGES,a:u.a,kind:'S'}}
+ if(key.startsWith('U:')){const r=await eurostat(key.slice(2));if(!Object.keys(r.a).length)return null;return {n:r.n,ages:r.ages,a:r.a,kind:'U',open:r.open}}
+ const {d}=await esIndex();let u=d.u[key];if(!u)return null;if(u.lazy){const m=(await MUN(key.slice(1,3))).u[key.slice(1)];if(!m)return null;u=d.u[key]={n:m.n,a:m.a}}const fal=(d.faltan||[]).filter(pp=>key==='ES'||key==='CA'+d.pca?.[pp]);return {fal,n:u.n,ages:AGES,a:u.a,kind:'E',lvl:key==='ES'?'España':key.startsWith('CA')?'Comunidad autónoma':key.startsWith('P')?'Provincia':key.startsWith('I:')?'Isla':'Municipio'}}
+/* ---------- indicadores ---------- */
+function stats(a,ages){const H=a[0],M=a[1],T=H.map((h,i)=>h+M[i]),tot=T.reduce((x,y)=>x+y,0)||1,h=H.reduce((x,y)=>x+y,0),m=M.reduce((x,y)=>x+y,0);
+ const sum=(f,t)=>T.slice(f,t).reduce((x,y)=>x+y,0),j=sum(0,3),ad=sum(3,13),v=sum(13,T.length);
+ let acc=0,med=null;for(let i=0;i<T.length;i++){if(acc+T[i]>=tot/2){med=i*5+5*(tot/2-acc)/(T[i]||1);break}acc+=T[i]}
+ return {tot,h,m,j:j/tot*100,ad:ad/tot*100,v:v/tot*100,env:j?v/j*100:null,dep:ad?(j+v)/ad*100:null,mas:m?h/m*100:null,med}}
+function shape(s){if(s.j>=30&&s.v<8)return 'Pirámide <b>progresiva</b> (base ancha, muchos jóvenes: natalidad alta).';if(s.v>=20||s.env>=150)return 'Pirámide <b>regresiva</b> (base estrecha y cúspide ancha: población envejecida).';if(s.j>=20)return 'Pirámide <b>de transición</b> hacia el estancamiento.';return 'Pirámide <b>estancada o regresiva</b> (natalidad baja y envejecimiento).'}
+/* ---------- dibujo ---------- */
+function svg(a,ages,o={}){const W0=o.w||420,rows=ages.length,rh=o.rh||14,top=o.title?22:8,H0=top+rows*rh+30,gap=o.gap??38,half=(W0-gap)/2-16,cx=W0/2;
+ const T=(x)=>x[0].reduce((p,q)=>p+q,0)+x[1].reduce((p,q)=>p+q,0);const pct=o.mode!=='abs',tot=T(a)||1,ct=o.cmp?T(o.cmp)||1:1;
+ const val=(x,t)=>pct?x/t*100:x;let mx=0;for(const s of [0,1])for(const v of a[s])mx=Math.max(mx,val(v,tot));if(o.cmp)for(const s of [0,1])for(const v of o.cmp[s])mx=Math.max(mx,val(v,ct));
+ const step=nice(mx/3);mx=Math.ceil(mx/step)*step||1;const sc=v=>v/mx*(half-6);
+ let g='<svg class="anPyrSvg" viewBox="0 0 '+W0+' '+H0+'" width="100%" role="img" aria-label="Pirámide de población" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,Arial">';
+ if(o.title)g+='<text x="'+(cx-gap/2-4)+'" y="14" text-anchor="end" font-size="12" font-weight="700" fill="'+BLUE+'">Hombres</text><text x="'+(cx+gap/2+4)+'" y="14" font-size="12" font-weight="700" fill="'+RED+'">Mujeres</text>';
+ // rejilla
+ for(let v=step;v<=mx+1e-9;v+=step){for(const sgn of [-1,1]){const x=cx+sgn*(gap/2+sc(v));g+='<line x1="'+x+'" x2="'+x+'" y1="'+top+'" y2="'+(top+rows*rh)+'" stroke="#d9dee3" stroke-width="1"/><text x="'+x+'" y="'+(top+rows*rh+13)+'" font-size="9.5" text-anchor="middle" fill="#56636e">'+(pct?String(+v.toFixed(2)).replace('.',',')+' %':short(v))+'</text>'}}
+ for(let i=0;i<rows;i++){const y=top+(rows-1-i)*rh,bh=rh-2;const hv=sc(val(a[0][i],tot)),mv=sc(val(a[1][i],tot));
+  g+='<rect x="'+(cx-gap/2-hv)+'" y="'+(y+1)+'" width="'+hv+'" height="'+bh+'" fill="'+BLUE+'"><title>Hombres '+ages[i]+': '+fmt(a[0][i])+' ('+(a[0][i]/tot*100).toFixed(2).replace('.',',')+' %)</title></rect>';
+  g+='<rect x="'+(cx+gap/2)+'" y="'+(y+1)+'" width="'+mv+'" height="'+bh+'" fill="'+RED+'"><title>Mujeres '+ages[i]+': '+fmt(a[1][i])+' ('+(a[1][i]/tot*100).toFixed(2).replace('.',',')+' %)</title></rect>';
+  if(rows<=21&&(rh>=11||i%2===0))g+='<text x="'+cx+'" y="'+(y+rh/2+3.5)+'" font-size="'+(rh>=13?9.5:8.5)+'" text-anchor="middle" fill="#2b3640">'+ages[i]+'</text>'}
+ if(o.cmp){const line=(s,sgn)=>{let d='';for(let i=0;i<rows;i++){const y=top+(rows-1-i)*rh,x=cx+sgn*(gap/2+sc(val(o.cmp[s][i],ct)));d+=(i?'L':'M')+x.toFixed(1)+' '+(y+rh)+'L'+x.toFixed(1)+' '+y}return '<path d="'+d+'" fill="none" stroke="'+(o.cmpColor||'#111')+'" stroke-width="'+(o.cmpDash===''?2.2:1.6)+'"'+(o.cmpDash===''?'':' stroke-dasharray="'+(o.cmpDash||'4 2.5')+'"')+' opacity=".9"/>'};g+=line(0,-1)+line(1,1)}
+ g+='<line x1="'+(cx-gap/2)+'" x2="'+(cx-gap/2)+'" y1="'+top+'" y2="'+(top+rows*rh)+'" stroke="#7b8790"/><line x1="'+(cx+gap/2)+'" x2="'+(cx+gap/2)+'" y1="'+top+'" y2="'+(top+rows*rh)+'" stroke="#7b8790"/>';
+ return g+'</svg>'}
+function nice(x){if(!(x>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(x))),m=x/p;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p}
+function short(v){return v>=1e6?String(+(v/1e6).toFixed(1)).replace('.',',')+' M':v>=1e3?String(+(v/1e3).toFixed(1)).replace('.',',')+' mil':String(Math.round(v))}
+/* ---------- ventana ---------- */
+let cur=null;
+function win(){let w=$('anPyrWin');if(w)return w;w=document.createElement('div');w.id='anPyrWin';w.className='anPyrWin hidden';w.innerHTML='<div class="anPyrHead"><b id="anPyrTitle">Pirámide de población</b><button type="button" class="anPyrClose" title="Cerrar">×</button></div><div id="anPyrBody"></div>';document.body.appendChild(w);
+ w.querySelector('.anPyrClose').onclick=()=>w.classList.add('hidden');
+ w.addEventListener('change',async e=>{if(!cur)return;const t=e.target;if(t.dataset.py==='u'){const c=await catalog(),k=c.by[t.value];if(!k){t.setCustomValidity('Elige una unidad de la lista');t.reportValidity();return}try{const u=await load(k);if(!u)return;cur.cu={k,u,label:t.value};cur.c=''}catch(err){t.setCustomValidity('No se pudo cargar: '+err.message);t.reportValidity();return}draw();return}if(t.dataset.py==='y')cur.y=t.value;else if(t.dataset.py==='c')cur.c=t.value;else if(t.dataset.py==='m')cur.m=t.value;draw()});
+ w.addEventListener('click',e=>{if(e.target.closest('.anPyrCuOff')){cur.cu=null;draw();return}if(e.target.closest('[data-pyk]')){open(e.target.closest('[data-pyk]').dataset.pyk)}if(e.target.closest('.anPyrPng'))png()});
+ // arrastrar por la cabecera
+ const h=w.querySelector('.anPyrHead');let d=null;h.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=w.getBoundingClientRect();d={x:e.clientX-r.left,y:e.clientY-r.top};h.setPointerCapture(e.pointerId)});h.addEventListener('pointermove',e=>{if(!d)return;w.style.left=Math.max(0,e.clientX-d.x)+'px';w.style.top=Math.max(0,e.clientY-d.y)+'px';w.style.right='auto'});h.addEventListener('pointerup',()=>d=null);
+ return w}
+function yearsOf(u){return Object.keys(u.a).sort()}
+/* catálogo de unidades para comparar (países con su nombre en español, CCAA, provincias, islas y municipios) */
+let CAT=null;
+async function catalog(){if(CAT)return CAT;const L=[];const {d}=await esIndex();const pn={};for(const [k,u] of Object.entries(d.u))if(k.startsWith('P'))pn[k.slice(1)]=u.n;
+ for(const [k,u] of Object.entries(d.u)){if(k==='ES')continue;const t=k.startsWith('CA')?'comunidad autónoma':k.startsWith('P')?'provincia':k.startsWith('I:')?'isla':'municipio · '+(pn[k.slice(1,3)]||'');L.push([u.n+' ('+t+')',k])}
+ try{const w=await W();let dn=null;try{dn=new Intl.DisplayNames(['es'],{type:'region'})}catch(_){}const i32=window.anambroISO3_2||{};
+  for(const [iso,u] of Object.entries(w.d)){let n=u.n;try{const i2=i32[iso];if(dn&&i2)n=dn.of(i2.toUpperCase())||n}catch(_){}L.push([n+' (país)',(iso==='ESP'?'W:ESP':'W:'+iso)])}}catch(_){}
+ L.sort((a,b)=>a[0].localeCompare(b[0],'es'));CAT={L,by:Object.fromEntries(L)};return CAT}
+function cmpTable(s,o,na,nb){const r=(l,a,b,dec=1,suf='')=>'<tr><td>'+l+'</td><td>'+(a==null?'—':(+a).toFixed(dec).replace('.',',')+suf)+'</td><td>'+(b==null?'—':(+b).toFixed(dec).replace('.',',')+suf)+'</td></tr>';
+ return '<table class="anPyrCmp"><thead><tr><th></th><th>'+esc(na)+'</th><th>'+esc(nb)+'</th></tr></thead><tbody><tr><td>Habitantes</td><td>'+fmt(s.tot)+'</td><td>'+fmt(o.tot)+'</td></tr>'+r('0-14 años',s.j,o.j,1,' %')+r('15-64 años',s.ad,o.ad,1,' %')+r('65 y más',s.v,o.v,1,' %')+r('Índice de envejecimiento',s.env,o.env,0)+r('Tasa de dependencia',s.dep,o.dep,1,' %')+r('Índice de masculinidad',s.mas,o.mas,1)+r('Edad mediana',s.med,o.med,1,' años')+'</tbody></table>'}
+function draw(){const u=cur.u,ys=yearsOf(u),y=ys.includes(cur.y)?cur.y:ys[ys.length-1],a=u.a[y],s=stats(a,u.ages);
+ // comparación: con otra unidad (silueta verde) o con otro año de la misma (silueta discontinua)
+ let cmp=null,cy=null,cu=cur.cu;
+ if(cu?.u){const oy=yearsOf(cu.u);cy=oy.includes(y)?y:oy.reduce((b,x)=>Math.abs(+x-+y)<Math.abs(+b-+y)?x:b,oy[oy.length-1]);cmp=cu.u.ages.length===u.ages.length?cu.u.a[cy]:null}
+ else if(cur.c&&cur.c!==y&&u.a[cur.c])cmp=u.a[cur.c];
+ const opt=v=>ys.map(x=>'<option'+(x===v?' selected':'')+'>'+x+(u.kind==='W'&&+x>2023?' (proy.)':'')+'</option>').join('');
+ const lvl=u.lvl||({W:'País',S:'Sección censal',U:'Región europea (NUTS)'}[u.kind]||'');
+ $('anPyrTitle').textContent='Pirámide de población · '+u.n;
+ $('anPyrBody').innerHTML='<div class="anPyrCtl"><label>Año <select data-py="y">'+opt(y)+'</select></label><label>Comparar con otro año <select data-py="c"'+(cu?' disabled':'')+'><option value="">—</option>'+ys.filter(x=>x!==y).map(x=>'<option'+(x===cur.c?' selected':'')+'>'+x+(u.kind==='W'&&+x>2023?' (proy.)':'')+'</option>').join('')+'</select></label><label>Escala <select data-py="m"><option value="pct"'+(cur.m!=='abs'?' selected':'')+'>% del total</option><option value="abs"'+(cur.m==='abs'?' selected':'')+'>Habitantes</option></select></label></div>'+
+  '<div class="anPyrCtl anPyrCu"><label style="flex:1">Comparar con otra unidad <input data-py="u" list="anPyrUnits" placeholder="Escribe: Tenerife, Canarias, España, Japón, Adeje…" value="'+esc(cu?.label||'')+'"></label>'+(cu?'<button type="button" class="anPyrCuOff" title="Quitar la comparación">×</button>':'')+'</div>'+
+  (cur.alts?.length>1?'<div class="anPyrAlts">'+cur.alts.map(k=>'<button type="button" data-pyk="'+k.k+'" class="'+(k.k===cur.key?'on':'')+'">'+esc(k.l)+'</button>').join('')+'</div>':'')+
+  svg(a,u.ages,{title:true,cmp,mode:cur.m,w:440,rh:15,cmpColor:cu?'#138a4b':'#111',cmpDash:cu?'':'4 2.5'})+
+  (cmp&&cu?'<div class="anPyrLeg"><span class="anPyrDash" style="border-top:2.5px solid #138a4b"></span> Silueta de <b>'+esc(cu.u.n)+'</b> ('+cy+(cu.u.kind==='W'&&+cy>2023?', proyección':'')+')'+(cur.m==='abs'?' · en habitantes; para comparar la forma usa «% del total»':' · en % de su propio total: se compara la forma')+'</div>':cmp?'<div class="anPyrLeg"><span class="anPyrDash"></span> Silueta de '+cur.c+' (mismo criterio de escala)</div>':'')+
+  (cu&&!cmp?'<div class="anPyrNote">No se puede superponer: las dos fuentes usan grupos de edad distintos.</div>':'')+
+  (cu&&cmp?cmpTable(s,stats(cmp,u.ages),u.n+' · '+y,cu.u.n+' · '+cy+(cu.u.kind==='W'&&+cy>2023?' (proy.)':''))+(cu.u.kind!==u.kind?'<div class="anPyrNote">Fuentes distintas: '+({W:'ONU (1 de julio)',E:'INE (1 de enero)',S:'INE (1 de enero)',U:'Eurostat (1 de enero)'}[u.kind])+' frente a '+({W:'ONU (1 de julio)',E:'INE (1 de enero)',S:'INE (1 de enero)',U:'Eurostat (1 de enero)'}[cu.u.kind])+'. La comparación de la forma es válida; las cifras absolutas no son estrictamente comparables.</div>':''):
+  '<div class="anPyrStats"><span><b>'+fmt(s.tot)+'</b> hab.</span><span>♂ '+fmt(s.h)+' · ♀ '+fmt(s.m)+'</span><span>0-14: <b>'+s.j.toFixed(1).replace('.',',')+' %</b></span><span>15-64: <b>'+s.ad.toFixed(1).replace('.',',')+' %</b></span><span>65 y más: <b>'+s.v.toFixed(1).replace('.',',')+' %</b></span>'+
+  (s.env!=null?'<span>Índice de envejecimiento: <b>'+s.env.toFixed(0)+'</b></span>':'')+(s.dep!=null?'<span>Tasa de dependencia: <b>'+s.dep.toFixed(1).replace('.',',')+' %</b></span>':'')+(s.mas!=null?'<span>Índice de masculinidad: <b>'+s.mas.toFixed(1).replace('.',',')+'</b></span>':'')+(s.med!=null?'<span>Edad mediana: <b>'+s.med.toFixed(1).replace('.',',')+' años</b></span>':'')+'</div>')+
+  '<div class="anPyrShape">'+shape(s)+'</div>'+
+  (u.fal?.length?'<div class="anPyrNote" style="border-color:#c0392b">⚠️ Faltan los datos de '+u.fal.length+' provincia(s) ('+u.fal.join(', ')+'): esta pirámide está incompleta.</div>':'')+
+  '<div class="anPyrNote"><b>'+esc(lvl)+'.</b> '+NOTE[u.kind]+(u.kind==='U'&&u.open?' Eurostat agrupa desde los '+u.open+' años ('+u.open+'+).':'')+'</div>'+
+  '<div class="anPyrBtns"><button type="button" class="anPyrPng">⬇️ Guardar imagen (PNG)</button></div>';
+ catalog().then(c=>{if($('anPyrUnits'))return;const dl=document.createElement('datalist');dl.id='anPyrUnits';dl.innerHTML=c.L.map(x=>'<option value="'+esc(x[0])+'">').join('');document.body.appendChild(dl)}).catch(()=>{})}
+async function open(key,alts){const w=win();w.classList.remove('hidden');$('anPyrBody').innerHTML='<div class="anPyrLoad">Cargando la pirámide…</div>';
+ try{const u=await load(key);if(!u){$('anPyrBody').innerHTML='<div class="anPyrNote">'+NOTE.X+'</div>';return}const ys=yearsOf(u);cur={key,u,y:u.def&&u.a[u.def]?u.def:ys[ys.length-1],c:'',m:cur?.m||'pct',alts:alts||cur?.alts,cu:cur?.cu&&cur.cu.k!==key?cur.cu:null};if(!alts&&!cur.alts?.some(k=>k.k===key))cur.alts=null;draw()}
+ catch(e){$('anPyrBody').innerHTML='<div class="anPyrNote">No se pudo cargar la pirámide ('+esc(e.message)+').'+(key.startsWith('U:')?' Los datos de Eurostat se consultan en directo: comprueba la conexión.':'')+'</div>'}}
+function png(){const s=$('anPyrBody').querySelector('svg');if(!s)return;const xml=new XMLSerializer().serializeToString(s),img=new Image(),W0=1320,vb=s.viewBox.baseVal,H0=Math.round(W0*vb.height/vb.width)+70;
+ img.onload=()=>{const c=document.createElement('canvas');c.width=W0;c.height=H0;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W0,H0);x.fillStyle='#16222c';x.font='700 30px system-ui,Arial';x.fillText($('anPyrTitle').textContent.replace('Pirámide de población · ','')+' · '+cur.y,24,42);x.drawImage(img,0,60,W0,H0-70);if(cur.cu){x.font='600 18px system-ui,Arial';x.fillStyle='#138a4b';x.textAlign='right';x.fillText('— Silueta: '+cur.cu.u.n,W0-24,42);x.textAlign='left'}else if(cur.c){x.font='600 18px system-ui,Arial';x.fillStyle='#111';x.textAlign='right';x.fillText('- - Silueta de '+cur.c,W0-24,42);x.textAlign='left'}x.font='16px system-ui,Arial';x.fillStyle='#56636e';x.fillText({W:'ONU · WPP 2024',E:'INE · Censo anual de población',S:'INE · Censo anual de población (secciones)',U:'Eurostat · demo_r_pjangrp3'}[cur.u.kind]+' · ANAMBRO',24,H0-10);
+  const a=document.createElement('a');a.download='piramide_'+norm(cur.u.n).replace(/ /g,'_')+'_'+cur.y+'.png';a.href=c.toDataURL('image/png');a.click()};
+ img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml)}
+/* ---------- de la unidad pinchada a su pirámide ---------- */
+const NAMEK=['NAMEUNIT','nombre','NOMBRE','name','NAME','NAME_ES','name_es','DENOMUN','MUNICIPIO','municipio','NAME_LATN','NUTS_NAME','label','n'];
+function codeIn(p,keys,re){for(const k of keys){const v=p[k];if(v==null)continue;const m=String(v).match(re);if(m)return m[1]||m[0]}return null}
+async function resolve(f){const p=f?.properties||{},out=[];
+ // núcleos y entidades de población (ISTAC): solo hombres y mujeres → se ofrece la pirámide de su municipio
+ if(p.k&&/_/.test(String(p.k))&&p.mun&&(p.h!=null||p.p25!=null)){const {d}=await esIndex();const m='M'+String(p.mun).padStart(5,'0');if(d.u[m])out.push({k:m,l:'Municipio · '+d.u[m].n+' (el núcleo o la entidad no tiene datos por edad)',x:true});return out}
+ // unidades del Análisis geográfico
+ if(p.__anambroCode!=null){const u=$('geoGeneralUnits')?.value||'',c=String(p.__anambroCode);const {d}=await esIndex();let k=null;
+  if(u==='world-countries'){const w=await W();if(w.d[c.toUpperCase()]){out.push({k:'W:'+c.toUpperCase(),l:'País'});return out}return out}
+  if(/provinces$/.test(u))k='P'+c.padStart(2,'0');else if(/ccaa$/.test(u))k='CA'+c.padStart(2,'0');else if(u==='can-islands')k='I:'+(p.__anambroName||c);else if(/^(tf|canarias|es-municipalities)$/.test(u))k='M'+c.padStart(5,'0');
+  if(k&&d.u[k]){out.push({k,l:d.u[k].n});return out}}
+ const nuts=p.NUTS_ID||p.nuts_id;if(nuts&&/^[A-Z]{2}[A-Z0-9]{0,3}$/.test(nuts)&&!(p.ADM0_A3||p.ISO_A3)){out.push({k:'U:'+nuts,l:'Región NUTS '+nuts});return out}
+ const sec=codeIn(p,['CUSEC','cusec','COD_SECCION','cod_seccion','CODSEC','codsec','GEOCODE','geocode','CODIGO','codigo'],/^(\d{10})$/);if(sec){out.push({k:'S'+sec,l:'Sección censal'});const {d}=await esIndex();if(d.u['M'+sec.slice(0,5)])out.push({k:'M'+sec.slice(0,5),l:'Municipio · '+d.u['M'+sec.slice(0,5)].n});return out}
+ let iso='';try{if(p.ADM0_A3||p.ISO_A3||p.WB_A3||p.iso_a3||p.ISO3)iso=(typeof humanCountryCode==='function'?humanCountryCode(p):'')||String(p.ISO_A3||p.iso_a3||p.ISO3||p.ADM0_A3||'').toUpperCase()}catch(_){}
+ const admin1=p.adm1_code||p.ADM1_CODE||p.iso_3166_2||p.gn_a1_code||p.shapeISO||p.GID_1;
+ if(iso&&/^[A-Z]{3}$/.test(iso)&&!admin1){const w=await W();if(w.d[iso]){out.push({k:'W:'+iso,l:'País'});return out}}
+ const mun=codeIn(p,['CodINE','CODINE','codine','INE','COD_INE','cod_ine','CODIGO_MUNICIPIO','COD_MUN','codmun','CODMUN','MUNICIPIO_COD','GEOCODE','geocode','CODIGO','codigo','ine'],/^(\d{5})$/)||(()=>{const v=String(p.NATCODE||p.natcode||'');return /^\d{11}$/.test(v)?v.slice(-5):null})();
+ const {d,by}=await esIndex();
+ if(mun&&d.u['M'+mun]){out.push({k:'M'+mun,l:'Municipio'});return out}
+ // por nombre (comunidades, provincias, islas, municipios): si hay varias unidades con el mismo nombre se ofrecen todas
+ let nm='';for(const k of NAMEK){if(p[k]){nm=String(p[k]);break}}const ks=(by[norm(nm)]||[]).filter(k=>d.u[k]);
+ const lv=k=>k==='ES'?'España':k.startsWith('CA')?'Comunidad autónoma':k.startsWith('P')?'Provincia':k.startsWith('I:')?'Isla':'Municipio';
+ const ord=k=>k==='ES'?0:k.startsWith('CA')?1:k.startsWith('P')?2:k.startsWith('I:')?3:4;
+ for(const k of [...ks].sort((a,b)=>ord(a)-ord(b)))out.push({k,l:lv(k)+' · '+d.u[k].n});
+ if(!out.length&&iso){const w=await W();if(w.d[iso]&&!admin1)out.push({k:'W:'+iso,l:'País'})}
+ return out}
+// ¿Hay una capa de población cargada? Entonces la pirámide sale ya dibujada en la ficha
+const DEMO=new Set(['SP.POP.TOTL','EN.POP.DNST','SP.POP.GROW','SP.URB.TOTL.IN.ZS','SP.RUR.TOTL.ZS','SP.POP.0014.TO.ZS','SP.POP.1564.TO.ZS','SP.POP.65UP.TO.ZS','SP.POP.DPND','SP.DYN.CBRT.IN','SP.DYN.CDRT.IN','SP.DYN.TFRT.IN','SM.POP.NETM','SP.DYN.LE00.IN']);
+function demoOn(){try{if(typeof activeHumanIndicators==='function'&&activeHumanIndicators().some(x=>DEMO.has(x)))return true}catch(_){}
+ try{if(window.anambroIneActive?.()||window.anambroIstacActive?.())return true}catch(_){}
+ try{const g=$('geoGeneralMetric')||$('geoGeneralIndicator');if(g&&/pob|pop|demo|edad|enveje|natal|dependen|habit/i.test((g.value||'')+' '+(g.selectedOptions?.[0]?.textContent||''))&&window.__anambroGeographicAnalysisGeneral?.layer?.())return true}catch(_){}
+ return false}
+async function onPopup(e){try{const pop=e.popup,src=pop?._source,f=src?.feature;if(!f)return;const el=pop.getElement()?.querySelector('.leaflet-popup-content');if(!el||el.querySelector('.anPyrBox'))return;
+ const ks=await resolve(f);const auto=demoOn();if(!ks.length){if(auto&&f.properties&&(f.geometry?.type||'').includes('Polygon')){el.insertAdjacentHTML('beforeend','<div class="anPyrBox"><small class="anPyrNo">👥 '+NOTE.X+'</small></div>');relayout(pop)}return}
+ if(!pop.isOpen?.()||el.querySelector('.anPyrBox'))return;
+ const box=document.createElement('div');box.className='anPyrBox';box.innerHTML=(ks[0].x?'<small class="anPyrNo">Los núcleos y las entidades de población solo tienen hombres y mujeres (sin edades): se muestra la pirámide de su municipio.</small>':'')+'<button type="button" class="anPyrBtn">👥 Pirámide de población'+(ks.length>1||ks[0].x?' · '+esc(ks[0].l.replace(/ \(.*$/,'')):'')+'</button><div class="anPyrMini"></div>';el.appendChild(box);
+ box.querySelector('.anPyrBtn').onclick=ev=>{ev.stopPropagation();open(ks[0].k,ks)};
+ if(auto){try{const u=await load(ks[0].k);if(u){const ys=yearsOf(u),y=u.def&&u.a[u.def]?u.def:ys[ys.length-1];box.querySelector('.anPyrMini').innerHTML=svg(u.a[y],u.ages,{w:280,rh:8,gap:30,title:true})+'<small class="anPyrSrc">'+({W:'ONU · WPP 2024',E:'INE · Censo anual',S:'INE · Censo anual (sección)',U:'Eurostat'}[u.kind])+' · '+y+'. Pulsa el botón para ampliarla, comparar años y ver la nota de fuentes.</small>';box.querySelector('.anPyrMini').onclick=ev=>{ev.stopPropagation();open(ks[0].k,ks)}}}catch(err){box.querySelector('.anPyrMini').innerHTML='<small class="anPyrSrc">No se pudo cargar: '+esc(err.message)+'</small>'}}
+ relayout(pop)}catch(err){console.warn('Pirámide',err)}}
+function relayout(pop){try{pop._updateLayout();pop._updatePosition();pop._adjustPan?.()}catch(_){}}
+function boot(n=0){if(typeof map==='undefined'||typeof L==='undefined'){if(n<80)setTimeout(()=>boot(n+1),500);return}map.on('popupopen',onPopup);installGa()}
+/* ---------- Indicadores de estructura por edad en el Análisis geográfico (mapa de cualquier escala) ---------- */
+const PYR_PREF={'world-countries':'W:','es-ccaa':'CA','can-ccaa':'CA','es-provinces':'P','can-provinces':'P','can-islands':'I:','es-municipalities':'M','canarias':'M','tf':'M'};
+async function gaKey(f){const u=$('geoGeneralUnits')?.value||'',pre=PYR_PREF[u];if(!pre)return null;const ks=await resolve(f);const k=ks.find(x=>x.k.startsWith(pre)&&!x.x)||null;return k?.k||null}
+function installGa(n=0){const I=window.anambroGaIndicators,ms=$('geoGeneralMetric');if(!I||!ms){if(n<80)setTimeout(()=>installGa(n+1),600);return}if(I['pyr:med'])return;
+ const SRC='Países: ONU, World Population Prospects 2024 (2023, última estimación). España y Canarias: INE, Censo anual de población (1 de enero de 2025); provincias, comunidades, islas y España = suma de sus municipios.';
+ const M='Calculado con la población por grupos quinquenales de edad y sexo (la misma de las pirámides). Edad mediana interpolada dentro del grupo quinquenal. En regiones de Europa (NUTS) usa los indicadores equivalentes de Eurostat; fuera de Europa no hay datos regionales homogéneos.';
+ const def=(k,label,unit,dec,fn)=>{I['pyr:'+k]={meta:{label,unit,group:'Población y demografía',source:SRC,method:M,dec},async compute(f){const key=await gaKey(f);if(!key)return null;const u=await load(key);if(!u)return null;const ys=yearsOf(u),y=u.kind==='W'?'2023':ys[ys.length-1];const a=u.a[y];if(!a)return null;const v=fn(stats(a,u.ages),a);return v==null||!isFinite(v)?null:{value:v}}}};
+ def('med','Edad mediana','años',1,s=>s.med);
+ def('env','Índice de envejecimiento (65 y más / 0-14 × 100)','',0,s=>s.env);
+ def('p65','Población de 65 y más años','%',1,s=>s.v);
+ def('p80','Población de 80 y más años (sobreenvejecimiento)','%',1,(s,a)=>{const t=s.tot;let x=0;for(let i=16;i<a[0].length;i++)x+=a[0][i]+a[1][i];return t?x/t*100:null});
+ def('p014','Población de 0 a 14 años','%',1,s=>s.j);
+ def('dep','Tasa de dependencia ((0-14 + 65 y más) / 15-64 × 100)','%',1,s=>s.dep);
+ def('mas','Índice de masculinidad (hombres por 100 mujeres)','',1,s=>s.mas);
+ if(!ms.querySelector('option[value="pyr:med"]')){const g=document.createElement('optgroup');g.label='Estructura por edad y sexo (pirámides)';g.innerHTML=['med','env','p65','p80','p014','dep','mas'].map(k=>'<option value="pyr:'+k+'">'+esc(I['pyr:'+k].meta.label)+(I['pyr:'+k].meta.unit?' · '+esc(I['pyr:'+k].meta.unit):'')+'</option>').join('');ms.appendChild(g)}}
+window.anambroPiramide={open,load,resolve,svg,stats,gaKey};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,1000));else setTimeout(boot,1000);
 })();
 
 </script>
@@ -30164,6 +30423,33 @@ html body .panel:not(.hidden){animation:anPop .28s var(--an-ease)}
 
 .anPrintModeBox select{width:100%;margin-top:3px}
 .anPrintModeBox small{display:block;color:#556;margin-top:3px}
+/* Pirámides de población */
+.anPyrWin{position:fixed;top:110px;right:24px;width:min(500px,calc(100vw - 32px));max-height:calc(100vh - 130px);overflow:auto;z-index:4200;background:#fff;border-radius:16px;box-shadow:0 18px 48px rgba(15,30,45,.28),0 2px 6px rgba(15,30,45,.12);animation:anFicha .28s cubic-bezier(.2,.8,.2,1);font-size:13px;color:#1d2b36}
+.anPyrWin.hidden{display:none}
+.anPyrHead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;background:linear-gradient(90deg,#eaf2fb,#fdeceb);border-radius:16px 16px 0 0;cursor:move;position:sticky;top:0;z-index:1}
+.anPyrHead b{font-size:14px}
+.anPyrClose{border:0;background:#fff;border-radius:50%;width:28px;height:28px;font-size:18px;line-height:1;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+#anPyrBody{padding:10px 14px 14px}
+.anPyrCtl{display:flex;flex-wrap:wrap;gap:8px 12px;margin-bottom:6px}
+.anPyrCtl label{display:flex;flex-direction:column;font-size:11px;font-weight:700;color:#4a5864}
+.anPyrCtl select{margin-top:2px;padding:4px 6px;border-radius:8px;border:1px solid #c9d3dc;font-size:12px}
+.anPyrAlts{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 6px}
+.anPyrAlts button{border:1px solid #c9d3dc;background:#f6f8fa;border-radius:999px;padding:3px 9px;font-size:11px;cursor:pointer}
+.anPyrAlts button.on{background:#1d2b36;color:#fff;border-color:#1d2b36}
+.anPyrLeg{font-size:11px;color:#4a5864;margin:2px 0 4px}.anPyrDash{display:inline-block;width:22px;border-top:2px dashed #111;vertical-align:middle;margin-right:4px}
+.anPyrStats{display:flex;flex-wrap:wrap;gap:4px 10px;margin:6px 0;font-size:12px}
+.anPyrStats span{background:#f3f6f9;border-radius:8px;padding:3px 7px}
+.anPyrShape{font-size:12px;margin:4px 0}
+.anPyrNote{font-size:11px;line-height:1.45;color:#4a5864;background:#fbf7ec;border-left:3px solid #e2b13c;padding:6px 8px;border-radius:6px;margin-top:6px}
+.anPyrBtns{margin-top:8px}.anPyrBtns button,.anPyrBtn{border:0;border-radius:10px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer;color:#fff;background:linear-gradient(90deg,#2f6db3,#cf3b35);box-shadow:0 2px 8px rgba(47,109,179,.25);transition:transform .15s,box-shadow .15s}
+.anPyrBtns button:hover,.anPyrBtn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(47,109,179,.32)}
+.anPyrBox{margin-top:8px;border-top:1px solid #e3e8ec;padding-top:7px}
+.anPyrMini{margin-top:6px;cursor:zoom-in}.anPyrSrc,.anPyrNo{display:block;font-size:10.5px;color:#56636e;line-height:1.35;margin-top:3px}
+.anPyrLoad{padding:30px;text-align:center;color:#56636e}
+.anPyrCu{align-items:flex-end}.anPyrCu input{margin-top:2px;padding:5px 8px;border-radius:8px;border:1px solid #c9d3dc;font-size:12px;width:100%;box-sizing:border-box}
+.anPyrCuOff{border:0;background:#eef2f5;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:16px}
+.anPyrCmp{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}.anPyrCmp th{text-align:right;font-size:11px;color:#4a5864;padding:3px 6px;border-bottom:1px solid #dfe5ea}.anPyrCmp th:nth-child(3){color:#138a4b}
+.anPyrCmp td{padding:3px 6px;border-bottom:1px solid #f0f3f5;text-align:right}.anPyrCmp td:first-child{text-align:left;color:#4a5864}.anPyrCmp tr:nth-child(even) td{background:#fafbfc}
 </style>
 </body>
 </html>
