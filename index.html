@@ -2905,6 +2905,10 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
           <li><b>🏙️ Red urbana mundial (nuevo):</b> unas 12.000 ciudades con su población de 1975 a 2050 (ONU, 2025), capitales, animación por años, regla rango-tamaño e índice de primacía de cada país.</li>
           <li><b>Mapamundi de Miller y Köppen calculado (nuevo):</b> clasificaciones climáticas de todo el mundo para 1991–2020 y 1961–1990, calculadas por ANAMBRO con las normales de TerraClimate.</li>
           <li><b>⛈️ Tiempo en directo (nuevo):</b> partes METAR de unos 5.000 aeródromos, radar mundial animado, Meteosat y mosaico mundial de satélites, rayos, isobaras y centros de acción (GFS), huracanes y tifones (NHC, GDACS) y el tiempo de cualquier punto del planeta: ahora, 7 días e histórico desde 1940.</li>
+          <li><b>📍 Fichas de cada lugar (nuevo):</b> al pinchar un país, una región, una región europea, una comunidad, una provincia, una isla o un municipio (con su capa activa) se abre su ficha: pirámide, indicadores, ciudades, climas y estaciones, relieve, husos y áreas protegidas, y todo se puede ver en el mapa recortado a sus fronteras.</li>
+          <li><b>👥 Pirámides de población (nuevo):</b> de todos los países (ONU), regiones europeas (Eurostat) y comunidades, provincias, islas, municipios y secciones censales de España (INE), comparables entre sí.</li>
+          <li><b>🌊 Corrientes marinas (nuevo):</b> esquema de las grandes corrientes cálidas y frías y corrientes medidas por boyas, en el mapa, el globo y la impresión.</li>
+          <li><b>🛡️ Áreas protegidas del mundo (nuevo):</b> Protected Planet (UNEP-WCMC e IUCN), con su categoría de la UICN.</li>
           <li><b>Atlas Eurostat:</b> regiones NUTS 1, 2 y 3 de la UE, la AELC y los países candidatos, con datos oficiales de Eurostat (demografía, economía, trabajo, educación, salud y turismo) y límites GISCO (© EuroGeographics).</li>
            <li><b>Geografía humana:</b> atlas temático mundial con variables demográficas, sociales y económicas, consulta por país, series temporales y leyendas exportables.</li>
           <li><b>Historia Universal:</b> fronteras políticas históricas por año y acontecimientos históricos geolocalizados sincronizados con el tiempo.</li>
@@ -3700,6 +3704,7 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <div class="sourceItem sourceOk"><b>INE · Cifras oficiales de población de los municipios españoles (Revisión del Padrón Municipal)</b> · capa «Red urbana de España / de Canarias»: población a 1 de enero de 1996 a 2025 de los 8.100 municipios; situación del núcleo principal según el maestro de municipios de AEMET.<br><small>Reutilización libre citando la fuente · <a href="https://www.ine.es/dynt3/inebase/es/index.htm?padre=517" target="_blank" rel="noopener">ine.es</a></small></div>
     <div class="sourceItem sourceOk"><b>IGN · Instituto Geográfico Nacional · SIGNA (Sistema de Información Geográfica Nacional)</b> · capas de energía (centrales nucleares, térmicas, hidroeléctricas, eólicas y solares), transportes (AVE, ferrocarril, autopistas, puertos, aeropuertos), equipamientos (hospitales, centros de salud, residencias de mayores, universidades, centros educativos, cementerios), producción (minería, invernaderos), caminos históricos, espacios protegidos y orografía; con ellas el Análisis geográfico calcula equipamientos por 100.000 habitantes.<br><small>CC BY 4.0 · © Instituto Geográfico Nacional · <a href="https://signa.ign.es" target="_blank" rel="noopener">signa.ign.es</a></small></div>
     <div class="sourceItem sourceOk"><b>ISTAC · Padrón Municipal de Habitantes por núcleos y diseminados + Cartografía Estadística de IDECanarias (GRAFCAN)</b> · capa «Núcleos de población de Canarias»: población de 2025, 2011 y 2001 por sexo y edad de los 2.300 núcleos y diseminados. Contornos: núcleos de 2001 del servicio de cartografía estadística de IDECanarias, digitalizados por ANAMBRO; los núcleos creados después, con contorno aproximado reconstruido a partir del buscador de topónimos de IDECanarias.<br><small>ISTAC · <a href="https://www3.gobiernodecanarias.org/istac/" target="_blank" rel="noopener">istac</a> · GRAFCAN · <a href="https://www.idecanarias.es" target="_blank" rel="noopener">idecanarias.es</a></small></div>
+    <div class="sourceItem sourceOk"><b>INE · Censo anual de población (2021–2025)</b> · pirámides de población de todos los municipios y secciones censales de España; las de islas, provincias, comunidades y España son la suma de sus municipios.<br><small>Datos abiertos del INE con cita de la fuente.</small><br><a href="https://www.ine.es/dyngs/INEbase/operacion.htm?c=Estadistica_C&amp;cid=1254736177012" target="_blank" rel="noopener">Censo anual de población</a></div>
     <div class="sourceItem sourceOk"><b>IGME-CSIC</b> · GEODE y cartografía geológica.<br><small>Reutilización comercial y no comercial permitida con cita de origen y conservación de los metadatos aplicables.</small><br><a href="https://info.igme.es/ISE/doc/LICENCIA_USO_IGME.pdf" target="_blank" rel="noopener">Licencia de uso IGME</a></div>
     <div class="sourceItem sourceOk"><b>MITECO</b> · Mapa Forestal de España y vegetación potencial.<br><small>Reutilización, modificación y combinación autorizadas citando el origen y la fecha de actualización cuando exista.</small><br><a href="https://www.datosabiertos.miteco.gob.es/es/aviso-legal.html" target="_blank" rel="noopener">Condiciones de reutilización MITECO</a></div>
     <div class="sourceItem sourceOk"><b>Gobierno de Canarias · Historia y Patrimonio de Canarias</b> · referencia historiográfica para la capa «Organización territorial indígena».<br><small>Los límites interiores se representan como reconstrucciones aproximadas; la costa procede de cartografía geográfica y no del croquis histórico.</small></div>
@@ -3740,7 +3745,15 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <div class="sourceItem sourceOk"><b>Acontecimientos históricos</b> · fechas, ubicaciones y nombres consultados en Wikidata y conservados en un catálogo local. Incluye todos los registros fechados encontrados dentro del intervalo del visor, con ficha original enlazada.<br><a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata · CC0</a></div>
     <div class="sourceItem sourceOk"><b>RESOLVE / Dinerstein et al. (2017)</b> · ecorregiones y grandes biomas terrestres.<br><small>CC BY 4.0.</small><br><a href="https://doi.org/10.1093/biosci/bix014" target="_blank" rel="noopener">Dinerstein et al. (2017)</a></div>
     <div class="sourceItem sourceOk"><b>Macrostrat</b> · compilación mundial de cartografía geológica.<br><small>Teselas y datos geológicos bajo CC BY 4.0. ANAMBRO cita Macrostrat y conserva el identificador de la fuente cartográfica original cuando está disponible. La visualización cartográfica integra mapas de escalas y procedencias distintas, por lo que no debe interpretarse como un único mapa homogéneo a una escala fija.</small><br><a href="https://macrostrat.org/" target="_blank" rel="noopener">Macrostrat</a> · <a href="https://tiles.macrostrat.org/" target="_blank" rel="noopener">Tiles / términos de uso</a></div><div class="sourceItem sourceOk"><b>Cliopatria · Seshat Global History Databank</b> · entidades políticas mundiales, 3400 a. C.–2024.<br><small>CC BY 4.0. Cada geometría se asocia a un intervalo temporal; las fronteras antiguas son reconstrucciones historiográficas y pueden existir incertidumbres de extensión, fecha o denominación.</small><br><a href="https://github.com/Seshat-Global-History-Databank/cliopatria" target="_blank" rel="noopener">Cliopatria</a></div><div class="sourceItem sourceReview"><b>Radio Garden</b> · ciudades y emisoras de radio en directo.<br><small>Integración no oficial. Radio Garden no permite acceso CORS directo a su API JSON desde un sitio estático como GitHub Pages; ANAMBRO usa una instantánea pública del directorio como fallback y solicita el stream de audio al reproducir. Los endpoints pueden cambiar o restringirse sin previo aviso.</small><br><a href="https://radio.garden/" target="_blank" rel="noopener">Radio Garden</a></div><div class="sourceItem sourceOk"><b>Wikipedia / Wikimedia</b> · contexto histórico bajo demanda de las entidades políticas representadas.<br><small>ANAMBRO consulta la API pública de MediaWiki mediante CORS y prioriza Wikipedia en español. Los extractos y resultados se muestran como contexto auxiliar y enlazan a sus artículos de origen. Texto de Wikipedia bajo CC BY-SA 4.0.</small><br><a href="https://www.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a></div><div class="sourceItem sourceOk"><b>Wikidata</b> · acontecimientos históricos geolocalizados y metadatos temporales.<br><small>Datos estructurados publicados bajo CC0. ANAMBRO consulta Wikidata Query Service bajo demanda, filtra los resultados y utiliza el número de sitelinks como una señal cartográfica de relevancia, no como valoración histórica absoluta.</small><br><a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a></div>
-    <div class="sourceItem sourceOk"><b>Smithsonian Global Volcanism Program</b> · Volcanoes of the World y erupciones holocenas.<br><small>Uso educativo y no comercial permitido con cita. Cita: Global Volcanism Program, 2026, Volcanoes of the World v5.4.0, Smithsonian Institution, compiled by Venzke, E.</small><br><a href="https://volcano.si.edu/gvp_termsofuse.cfm" target="_blank" rel="noopener">GVP Terms of Use</a> · <a href="https://volcano.si.edu/database/webservices.cfm" target="_blank" rel="noopener">Webservices</a></div>
+    <div class="sourceItem sourceOk"><b>Smithsonian Global Volcanism Program</b> · Volcanoes of the World y erupciones holocenas.<br><small>Uso educativo y no comercial permitido con cita. Cita: Global Volcanism Program, 2026, Volcanoes of the World v5.4.0, Smithsonian Institution, compiled by Venzke, E. ANAMBRO guarda una copia local de los volcanes holocenos y de sus erupciones (el servicio WFS del Smithsonian ya no permite su lectura directa desde el navegador).</small><br><a href="https://volcano.si.edu/gvp_termsofuse.cfm" target="_blank" rel="noopener">GVP Terms of Use</a> · <a href="https://volcano.si.edu/database/webservices.cfm" target="_blank" rel="noopener">Webservices</a></div>
+    <div class="sourceItem sourceOk"><b>Naciones Unidas · DESA · División de Población · World Population Prospects 2024</b> · pirámides de población de todos los países (población por sexo y grupos quinquenales de edad) e indicadores de estructura por edad del Análisis geográfico.<br><small>Datos de la ONU de uso libre citando la fuente. ANAMBRO guarda una copia reducida (por sexo y grupos de edad).</small><br><a href="https://population.un.org/wpp/" target="_blank" rel="noopener">World Population Prospects</a></div>
+    <div class="sourceItem sourceOk"><b>NOAA · NCEI · GHCN-Daily (resúmenes mensuales GSOM)</b> · unas 9.800 estaciones y 11.000 pluviómetros con normal 1991–2020 calculada por ANAMBRO con los criterios de la OMM (temperatura: meses con ≤ 5 días ausentes y ≤ 3 seguidos; precipitación: meses completos; normal estándar ≥ 24 años, provisional 10–23).<br><small>Datos públicos de la NOAA. Solo se añaden donde no hay normal oficial de la OMM o de AEMET.</small><br><a href="https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily" target="_blank" rel="noopener">GHCN-Daily</a></div>
+    <div class="sourceItem sourceOk"><b>Rainfall Atlas of Hawaiʻi · Giambelluca et al. (2013)</b> · 92 pluviómetros de Hawái con su precipitación media 1978–2007 (monte Waiʻaleʻale, 10.004 mm/año).<br><small>Uso no comercial citando: Giambelluca, T.W., Q. Chen, A.G. Frazier, J.P. Price, Y.-L. Chen, P.-S. Chu, J.K. Eischeid y D.M. Delparte (2013). Online Rainfall Atlas of Hawaiʻi. Bull. Amer. Meteor. Soc. 94, 313-316.</small><br><a href="https://rainfall.geography.hawaii.edu/" target="_blank" rel="noopener">Rainfall Atlas of Hawaiʻi</a></div>
+    <div class="sourceItem sourceOk"><b>Corrientes marinas · esquema didáctico de ANAMBRO</b> · 40 grandes corrientes cálidas y frías digitalizadas a partir de NOAA NWS JetStream (dominio público) y Talley et al. (2011), <i>Descriptive Physical Oceanography</i>.<br><small>Trazado simplificado y contrastado con las boyas del Global Drifter Program.</small><br><a href="https://www.noaa.gov/jetstream/ocean/ocean-currents" target="_blank" rel="noopener">NOAA JetStream</a></div>
+    <div class="sourceItem sourceOk"><b>NOAA · AOML · Global Drifter Program</b> · corrientes superficiales medidas por boyas a la deriva (velocidad media a 15 m; Laurindo, Mariano y Lumpkin, 2017), agregadas por ANAMBRO a una malla de 0,5°.<br><small>CC BY 4.0.</small><br><a href="https://www.aoml.noaa.gov/phod/gdp/" target="_blank" rel="noopener">Global Drifter Program</a></div>
+    <div class="sourceItem sourceOk"><b>Protected Planet · UNEP-WCMC e IUCN · WDPCA</b> · áreas protegidas del mundo (capa en directo y fichas: nombre, figura, categoría UICN, año y superficie).<br><small>Uso no comercial. Por sus condiciones, los datos no se pueden descargar desde ANAMBRO: el mapa se pinta en directo desde el servidor oficial y no se guarda ninguna copia. Cita: UNEP-WCMC e IUCN (2026), Protected Planet: The World Database on Protected and Conserved Areas (WDPCA), Cambridge (Reino Unido): UNEP-WCMC e IUCN.</small><br><a href="https://www.protectedplanet.net/c/terms-and-conditions" target="_blank" rel="noopener">Términos y condiciones</a></div>
+    <div class="sourceItem sourceOk"><b>Wikidata</b> · punto más alto de cada país en su ficha.<br><small>Datos CC0 (dominio público).</small><br><a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a></div>
+    <div class="sourceItem sourceOk"><b>timezone-boundary-builder (vía tz-lookup)</b> · husos horarios oficiales de cada país y región en sus fichas.<br><small>Límites de husos: ODbL © colaboradores de OpenStreetMap; tz-lookup bajo licencia MIT.</small><br><a href="https://github.com/evansiroky/timezone-boundary-builder" target="_blank" rel="noopener">timezone-boundary-builder</a></div>
     <div class="sourceItem sourceOk"><b>USGS Earthquake Hazards Program</b> · GeoJSON Summary Feeds de terremotos recientes, actualizados cada minuto.<br><small>Magnitud, profundidad, localización, fecha/hora, tsunami, alerta y enlace al evento.</small><br><a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php" target="_blank" rel="noopener">USGS GeoJSON feeds</a></div>
     <div class="sourceItem sourceOk"><b>USGS Volcano Hazards Program</b> · información adicional y estado operativo de volcanes estadounidenses cuando existe.<br><small>Las fotografías se muestran únicamente cuando el servicio devuelve una imagen utilizable; las imágenes de terceros conservan sus propios derechos.</small><br><a href="https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits" target="_blank" rel="noopener">USGS Copyrights and Credits</a></div>
     <div class="sourceItem sourceReview"><b>Esri World Imagery</b> · fondo satelital del globo 3D.<br><small>ANAMBRO consume el servicio de teselas y mantiene la atribución a Esri y sus proveedores; no redistribuye el mosaico.</small></div>
@@ -3753,6 +3766,8 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
     <div class="sourceItem"><b>GeoTIFF.js / Proj4js</b> · elevaciones y transformaciones.</div>
     <div class="sourceItem"><b>html2canvas / jsPDF</b> · composición y exportación PDF.</div>
     <div class="sourceItem"><b>OpenMapTiles vector-tile / PBF</b> · lectura de teselas vectoriales.</div>
+    <div class="sourceItem"><b>world-atlas (Natural Earth 1:10 millones) y topojson-client</b> · ISC · contorno detallado de los países en sus fichas.</div>
+    <div class="sourceItem"><b>tz-lookup</b> · MIT · zona horaria de cada punto.</div>
   </details>
 
   <div class="sourcesLegalNote"><b>Principio de ANAMBRO:</b> integrar y transformar datos con atribución, enlazar a la fuente original y no redistribuir fotografías de derechos inciertos. El carácter educativo y sin ánimo de lucro no sustituye las condiciones particulares de cada licencia.</div>
@@ -5654,6 +5669,10 @@ const volcanoEnrichmentCache=new Map();
 
 function cqlQuote(s){return "'"+String(s??'').replace(/'/g,"''")+"'";}
 async function gvpWfsFeature(typeName,filters,maxFeatures=10){
+ try{const vn=(filters.map(f=>/^Volcano_Number=(\d+)$/.exec(f||'')).find(Boolean)||[])[1],nm=(filters.map(f=>/^Volcano_Name='(.*)'$/.exec(f||'')).find(Boolean)||[])[1];
+  if(/Holocene_Volcanoes/.test(typeName)){const g=await fetch('data/volcanes/holocenos.json?v=2026-10-27',{cache:'force-cache'}).then(r=>r.json());const hit=g.features.filter(f=>vn?String(f.properties.Volcano_Number)===vn:nm&&f.properties.Volcano_Name===nm.replace(/''/g,"'"));if(hit.length)return hit.slice(0,maxFeatures)}
+  if(/Holocene_Eruptions/.test(typeName)){const E=window.__anGvpErup||(window.__anGvpErup=fetch('data/volcanes/erupciones.json?v=2026-10-27',{cache:'force-cache'}).then(r=>r.json()));const by=await E;let key=vn;if(!key&&nm){const g=await fetch('data/volcanes/holocenos.json?v=2026-10-27',{cache:'force-cache'}).then(r=>r.json());key=String(g.features.find(f=>f.properties.Volcano_Name===nm.replace(/''/g,"'"))?.properties.Volcano_Number||'')}
+   const arr=key&&by[key];if(arr)return arr.slice(0,maxFeatures).map(p=>({type:'Feature',properties:Object.assign({Volcano_Number:+key},p)}))}}catch(e){console.warn('GVP local',e)}
  const base='https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows';
  for(const filter of filters.filter(Boolean)){
   try{
@@ -5682,6 +5701,7 @@ async function fetchGvpEruptions(vnum,name){
  return gvpWfsFeature('GVP-VOTW:Smithsonian_VOTW_Holocene_Eruptions',f,1000);
 }
 
+const gvpFetchT=(u,ms=6000)=>{const mir=/proyectomesoamerica/.test(u);if(mir&&window.__gvpMirrorOff)return Promise.reject(Error('espejo GVP no necesario'));const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);return fetch(u,{signal:c.signal}).catch(e=>{if(mir)window.__gvpMirrorOff=true;throw e}).finally(()=>clearTimeout(t))};
 const GVP_MIRROR_BASE='https://rmgir.proyectomesoamerica.org/server/rest/services/Hosted/Volcanes_del_mundo/FeatureServer';
 
 async function fetchGvpMirrorVolcano(v){
@@ -5693,7 +5713,7 @@ async function fetchGvpMirrorVolcano(v){
    const u=GVP_MIRROR_BASE+'/0/query?'+new URLSearchParams({
     where,outFields:'*',returnGeometry:'true',outSR:'4326',f:'json'
    });
-   const r=await fetch(u);if(!r.ok)continue;
+   const r=await gvpFetchT(u);if(!r.ok)continue;
    const d=await r.json(),f=d?.features?.[0];
    if(f){
     const a=f.attributes||{},g=f.geometry||{};
@@ -5717,7 +5737,7 @@ async function fetchGvpMirrorEruptions(v){
    const u=GVP_MIRROR_BASE+'/1/query?'+new URLSearchParams({
     where,outFields:'*',returnGeometry:'false',f:'json',resultRecordCount:'2000'
    });
-   const r=await fetch(u);if(!r.ok)continue;
+   const r=await gvpFetchT(u);if(!r.ok)continue;
    const d=await r.json(),arr=(d?.features||[]).map(x=>x.attributes||{});
    if(arr.length){
     arr.sort((a,b)=>mirrorEruptionYear(b)-mirrorEruptionYear(a));
@@ -5789,11 +5809,11 @@ async function fetchUsgsVolcano(vnum){
  if(!vnum)return {info:null,status:null};
  let info=null,status=null;
  try{
-  const r=await fetch('https://volcanoes.usgs.gov/vsc/api/volcanoApi/volcano?vnum='+encodeURIComponent(vnum));
+  const r=await gvpFetchT('https://volcanoes.usgs.gov/vsc/api/volcanoApi/volcano?vnum='+encodeURIComponent(vnum));
   if(r.ok)info=await r.json();
  }catch(e){typeof __anLog=='function'&&__anLog(e,'L5638');}
  try{
-  const r=await fetch('https://volcanoes.usgs.gov/vsc/api/volcanoApi/vhpstatus/'+encodeURIComponent(vnum));
+  const r=await gvpFetchT('https://volcanoes.usgs.gov/vsc/api/volcanoApi/vhpstatus/'+encodeURIComponent(vnum));
   if(r.ok)status=await r.json();
  }catch(e){typeof __anLog=='function'&&__anLog(e,'L5642');}
  return {info,status};
@@ -6026,6 +6046,7 @@ function volcanoDetailHtml(v,wikiUrl=null){
 }
 
 async function fetchSmithsonianVolcanoes(){
+ try{const r0=await fetch('data/volcanes/holocenos.json?v=2026-10-27',{cache:'force-cache'});if(r0.ok){const g0=await r0.json();if(g0?.features?.length){window.__gvpMirrorOff=true;return g0}}}catch(_){}
  const url='https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=GVP-VOTW%3ASmithsonian_VOTW_Holocene_Volcanoes&outputFormat=application%2Fjson&maxFeatures=2000';
  const r=await fetch(url);if(!r.ok)throw new Error('GVP '+r.status);
  return r.json();
@@ -6035,7 +6056,7 @@ async function fetchVolcanoFallback(){
  const u=base+'?'+new URLSearchParams({
   where:'1=1',outFields:'*',returnGeometry:'true',outSR:'4326',f:'geojson'
  });
- const r=await fetch(u);if(!r.ok)throw new Error('GVP mirror '+r.status);
+ const r=await gvpFetchT(u,12000);if(!r.ok)throw new Error('GVP mirror '+r.status);
  return r.json();
 }
 async function ensureWorldVolcanoes(){
@@ -30188,7 +30209,7 @@ async function onPopup(e){try{const pop=e.popup,src=pop?._source,f=src?.feature;
   const lv=unitLevels();if(!ks.length&&lv.length&&pop.getLatLng){const ch=await pointUnits(pop.getLatLng(),true);const i=ch.findIndex(x=>lv.some(p=>x.k.startsWith(p)));ks=i<0?[]:ch.slice(i)}}
  // ficha de la unidad de la capa activa más detallada (país, comunidad, provincia, isla, municipio o región del mundo),
  // que ya lleva su pirámide. Las secciones censales, los núcleos y las regiones NUTS conservan la pirámide en la ventana emergente.
- if(window.anambroPais&&!pickOn&&!(ks&&ks[0]&&(ks[0].x||/^(S|U:)/.test(ks[0].k)))){try{if(await window.anambroPais.fromPopup(pop,ks||[],f)){pop.getElement()?.querySelector('.leaflet-popup-content .anPyrBox')?.remove();return}}catch(err){console.warn('Ficha',err)}}
+ if(window.anambroPais&&!pickOn&&!(ks&&ks[0]&&(ks[0].x||/^S/.test(ks[0].k)))){try{if(await window.anambroPais.fromPopup(pop,ks||[],f)){pop.getElement()?.querySelector('.leaflet-popup-content .anPyrBox')?.remove();return}}catch(err){console.warn('Ficha',err)}}
  if(!ks)return;
  const auto=demoOn();if(!ks.length){if(auto&&f?.properties&&(f.geometry?.type||'').includes('Polygon')){el.insertAdjacentHTML('beforeend','<div class="anPyrBox"><small class="anPyrNo">👥 '+NOTE.X+'</small></div>');relayout(pop)}return}
  if(!pop.isOpen?.())return;pop.getElement()?.querySelector('.leaflet-popup-content .anPyrBox')?.remove();
@@ -30630,9 +30651,9 @@ let tzP=null;function tzLib(){if(window.tzlookup)return Promise.resolve(window.t
 function utcOff(z){try{const s=new Intl.DateTimeFormat('en-US',{timeZone:z,timeZoneName:'shortOffset'}).formatToParts(new Date()).find(x=>x.type==='timeZoneName')?.value||'';const m=/GMT([+-]\d+)(?::(\d+))?/.exec(s);return m?(+m[1])+(m[2]?Math.sign(+m[1]||1)*m[2]/60:0):0}catch(_){return null}}
 // país de cada zona IANA (zone.tab de la base de datos tz, dominio público)
 const TZC=(()=>{const o={};'AD:Europe/Andorra|AE:Asia/Dubai|AF:Asia/Kabul|AG:America/Antigua|AI:America/Anguilla|AL:Europe/Tirane|AM:Asia/Yerevan|AO:Africa/Luanda|AQ:Antarctica/McMurdo,Antarctica/Casey,Antarctica/Davis,Antarctica/DumontDUrville,Antarctica/Mawson,Antarctica/Palmer,Antarctica/Rothera,Antarctica/Syowa,Antarctica/Troll,Antarctica/Vostok|AR:America/Argentina/Buenos_Aires,America/Argentina/Cordoba,America/Argentina/Salta,America/Argentina/Jujuy,America/Argentina/Tucuman,America/Argentina/Catamarca,America/Argentina/La_Rioja,America/Argentina/San_Juan,America/Argentina/Mendoza,America/Argentina/San_Luis,America/Argentina/Rio_Gallegos,America/Argentina/Ushuaia|AS:Pacific/Pago_Pago|AT:Europe/Vienna|AU:Australia/Lord_Howe,Antarctica/Macquarie,Australia/Hobart,Australia/Melbourne,Australia/Sydney,Australia/Broken_Hill,Australia/Brisbane,Australia/Lindeman,Australia/Adelaide,Australia/Darwin,Australia/Perth,Australia/Eucla,Australia/Currie|AW:America/Aruba|AX:Europe/Mariehamn|AZ:Asia/Baku|BA:Europe/Sarajevo|BB:America/Barbados|BD:Asia/Dhaka|BE:Europe/Brussels|BF:Africa/Ouagadougou|BG:Europe/Sofia|BH:Asia/Bahrain|BI:Africa/Bujumbura|BJ:Africa/Porto-Novo|BL:America/St_Barthelemy|BM:Atlantic/Bermuda|BN:Asia/Brunei|BO:America/La_Paz|BQ:America/Kralendijk|BR:America/Noronha,America/Belem,America/Fortaleza,America/Recife,America/Araguaina,America/Maceio,America/Bahia,America/Sao_Paulo,America/Campo_Grande,America/Cuiaba,America/Santarem,America/Porto_Velho,America/Boa_Vista,America/Manaus,America/Eirunepe,America/Rio_Branco|BS:America/Nassau|BT:Asia/Thimphu|BW:Africa/Gaborone|BY:Europe/Minsk|BZ:America/Belize|CA:America/St_Johns,America/Halifax,America/Glace_Bay,America/Moncton,America/Goose_Bay,America/Blanc-Sablon,America/Toronto,America/Iqaluit,America/Atikokan,America/Winnipeg,America/Resolute,America/Rankin_Inlet,America/Regina,America/Swift_Current,America/Edmonton,America/Cambridge_Bay,America/Inuvik,America/Vancouver,America/Creston,America/Dawson_Creek,America/Fort_Nelson,America/Whitehorse,America/Dawson,America/Pangnirtung,America/Yellowknife|CC:Indian/Cocos|CD:Africa/Kinshasa,Africa/Lubumbashi|CF:Africa/Bangui|CG:Africa/Brazzaville|CH:Europe/Zurich|CI:Africa/Abidjan|CK:Pacific/Rarotonga|CL:America/Santiago,America/Coyhaique,America/Punta_Arenas,Pacific/Easter|CM:Africa/Douala|CN:Asia/Shanghai,Asia/Urumqi|CO:America/Bogota|CR:America/Costa_Rica|CU:America/Havana|CV:Atlantic/Cape_Verde|CW:America/Curacao|CX:Indian/Christmas|CY:Asia/Nicosia,Asia/Famagusta|CZ:Europe/Prague|DE:Europe/Berlin,Europe/Busingen|DJ:Africa/Djibouti|DK:Europe/Copenhagen|DM:America/Dominica|DO:America/Santo_Domingo|DZ:Africa/Algiers|EC:America/Guayaquil,Pacific/Galapagos|EE:Europe/Tallinn|EG:Africa/Cairo|EH:Africa/El_Aaiun|ER:Africa/Asmara|ES:Europe/Madrid,Africa/Ceuta,Atlantic/Canary|ET:Africa/Addis_Ababa|FI:Europe/Helsinki|FJ:Pacific/Fiji|FK:Atlantic/Stanley|FM:Pacific/Chuuk,Pacific/Pohnpei,Pacific/Kosrae|FO:Atlantic/Faroe|FR:Europe/Paris|GA:Africa/Libreville|GB:Europe/London|GD:America/Grenada|GE:Asia/Tbilisi|GF:America/Cayenne|GG:Europe/Guernsey|GH:Africa/Accra|GI:Europe/Gibraltar|GL:America/Nuuk,America/Danmarkshavn,America/Scoresbysund,America/Thule,America/Godthab|GM:Africa/Banjul|GN:Africa/Conakry|GP:America/Guadeloupe|GQ:Africa/Malabo|GR:Europe/Athens|GS:Atlantic/South_Georgia|GT:America/Guatemala|GU:Pacific/Guam|GW:Africa/Bissau|GY:America/Guyana|HK:Asia/Hong_Kong|HN:America/Tegucigalpa|HR:Europe/Zagreb|HT:America/Port-au-Prince|HU:Europe/Budapest|ID:Asia/Jakarta,Asia/Pontianak,Asia/Makassar,Asia/Jayapura|IE:Europe/Dublin|IL:Asia/Jerusalem|IM:Europe/Isle_of_Man|IN:Asia/Kolkata|IO:Indian/Chagos|IQ:Asia/Baghdad|IR:Asia/Tehran|IS:Atlantic/Reykjavik|IT:Europe/Rome|JE:Europe/Jersey|JM:America/Jamaica|JO:Asia/Amman|JP:Asia/Tokyo|KE:Africa/Nairobi|KG:Asia/Bishkek|KH:Asia/Phnom_Penh|KI:Pacific/Tarawa,Pacific/Kanton,Pacific/Kiritimati,Pacific/Enderbury|KM:Indian/Comoro|KN:America/St_Kitts|KP:Asia/Pyongyang|KR:Asia/Seoul|KW:Asia/Kuwait|KY:America/Cayman|KZ:Asia/Almaty,Asia/Qyzylorda,Asia/Qostanay,Asia/Aqtobe,Asia/Aqtau,Asia/Atyrau,Asia/Oral|LA:Asia/Vientiane|LB:Asia/Beirut|LC:America/St_Lucia|LI:Europe/Vaduz|LK:Asia/Colombo|LR:Africa/Monrovia|LS:Africa/Maseru|LT:Europe/Vilnius|LU:Europe/Luxembourg|LV:Europe/Riga|LY:Africa/Tripoli|MA:Africa/Casablanca|MC:Europe/Monaco|MD:Europe/Chisinau|ME:Europe/Podgorica|MF:America/Marigot|MG:Indian/Antananarivo|MH:Pacific/Majuro,Pacific/Kwajalein|MK:Europe/Skopje|ML:Africa/Bamako|MM:Asia/Yangon|MN:Asia/Ulaanbaatar,Asia/Hovd,Asia/Choibalsan|MO:Asia/Macau|MP:Pacific/Saipan|MQ:America/Martinique|MR:Africa/Nouakchott|MS:America/Montserrat|MT:Europe/Malta|MU:Indian/Mauritius|MV:Indian/Maldives|MW:Africa/Blantyre|MX:America/Mexico_City,America/Cancun,America/Merida,America/Monterrey,America/Matamoros,America/Chihuahua,America/Ciudad_Juarez,America/Ojinaga,America/Mazatlan,America/Bahia_Banderas,America/Hermosillo,America/Tijuana|MY:Asia/Kuala_Lumpur,Asia/Kuching|MZ:Africa/Maputo|NA:Africa/Windhoek|NC:Pacific/Noumea|NE:Africa/Niamey|NF:Pacific/Norfolk|NG:Africa/Lagos|NI:America/Managua|NL:Europe/Amsterdam|NO:Europe/Oslo|NP:Asia/Kathmandu|NR:Pacific/Nauru|NU:Pacific/Niue|NZ:Pacific/Auckland,Pacific/Chatham|OM:Asia/Muscat|PA:America/Panama|PE:America/Lima|PF:Pacific/Tahiti,Pacific/Marquesas,Pacific/Gambier|PG:Pacific/Port_Moresby,Pacific/Bougainville|PH:Asia/Manila|PK:Asia/Karachi|PL:Europe/Warsaw|PM:America/Miquelon|PN:Pacific/Pitcairn|PR:America/Puerto_Rico|PS:Asia/Gaza,Asia/Hebron|PT:Europe/Lisbon,Atlantic/Madeira,Atlantic/Azores|PW:Pacific/Palau|PY:America/Asuncion|QA:Asia/Qatar|RE:Indian/Reunion|RO:Europe/Bucharest|RS:Europe/Belgrade|RU:Europe/Kaliningrad,Europe/Moscow,Europe/Kirov,Europe/Volgograd,Europe/Astrakhan,Europe/Saratov,Europe/Ulyanovsk,Europe/Samara,Asia/Yekaterinburg,Asia/Omsk,Asia/Novosibirsk,Asia/Barnaul,Asia/Tomsk,Asia/Novokuznetsk,Asia/Krasnoyarsk,Asia/Irkutsk,Asia/Chita,Asia/Yakutsk,Asia/Khandyga,Asia/Vladivostok,Asia/Ust-Nera,Asia/Magadan,Asia/Sakhalin,Asia/Srednekolymsk,Asia/Kamchatka,Asia/Anadyr|RW:Africa/Kigali|SA:Asia/Riyadh|SB:Pacific/Guadalcanal|SC:Indian/Mahe|SD:Africa/Khartoum|SE:Europe/Stockholm|SG:Asia/Singapore|SH:Atlantic/St_Helena|SI:Europe/Ljubljana|SJ:Arctic/Longyearbyen|SK:Europe/Bratislava|SL:Africa/Freetown|SM:Europe/San_Marino|SN:Africa/Dakar|SO:Africa/Mogadishu|SR:America/Paramaribo|SS:Africa/Juba|ST:Africa/Sao_Tome|SV:America/El_Salvador|SX:America/Lower_Princes|SY:Asia/Damascus|SZ:Africa/Mbabane|TC:America/Grand_Turk|TD:Africa/Ndjamena|TF:Indian/Kerguelen|TG:Africa/Lome|TH:Asia/Bangkok|TJ:Asia/Dushanbe|TK:Pacific/Fakaofo|TL:Asia/Dili|TM:Asia/Ashgabat|TN:Africa/Tunis|TO:Pacific/Tongatapu|TR:Europe/Istanbul|TT:America/Port_of_Spain|TV:Pacific/Funafuti|TW:Asia/Taipei|TZ:Africa/Dar_es_Salaam|UA:Europe/Simferopol,Europe/Kyiv,Europe/Kiev,Europe/Zaporozhye,Europe/Uzhgorod|UG:Africa/Kampala|UM:Pacific/Midway,Pacific/Wake|US:America/New_York,America/Detroit,America/Kentucky/Louisville,America/Kentucky/Monticello,America/Indiana/Indianapolis,America/Indiana/Vincennes,America/Indiana/Winamac,America/Indiana/Marengo,America/Indiana/Petersburg,America/Indiana/Vevay,America/Chicago,America/Indiana/Tell_City,America/Indiana/Knox,America/Menominee,America/North_Dakota/Center,America/North_Dakota/New_Salem,America/North_Dakota/Beulah,America/Denver,America/Boise,America/Phoenix,America/Los_Angeles,America/Anchorage,America/Juneau,America/Sitka,America/Metlakatla,America/Yakutat,America/Nome,America/Adak,Pacific/Honolulu|UY:America/Montevideo|UZ:Asia/Samarkand,Asia/Tashkent|VA:Europe/Vatican|VC:America/St_Vincent|VE:America/Caracas|VG:America/Tortola|VI:America/St_Thomas|VN:Asia/Ho_Chi_Minh|VU:Pacific/Efate|WF:Pacific/Wallis|WS:Pacific/Apia|YE:Asia/Aden|YT:Indian/Mayotte|ZA:Africa/Johannesburg|ZM:Africa/Lusaka|ZW:Africa/Harare'.split('|').forEach(x=>{const [c,zs]=x.split(':');zs.split(',').forEach(z=>o[z]=c)});return o})();
-async function zones(f,i2){if(!f)return null;const tz=await tzLib(),g=f.geometry,b=bboxG(g),step=Math.max(.04,Math.sqrt((b[2]-b[0])*(b[3]-b[1])/20000)),n={};
+async function zones(f,i2,unit){if(!f)return null;const tz=await tzLib(),g=f.geometry,b=bboxG(g),step=Math.max(.04,Math.sqrt((b[2]-b[0])*(b[3]-b[1])/20000)),n={};
  for(let y=b[1]+step/2;y<b[3];y+=step)for(let x=b[0]+step/2;x<b[2];x+=step){if(!pip(x,y,g))continue;let z;try{z=tz(y,x)}catch(_){continue}if(z&&!/^Etc\//.test(z))n[z]=(n[z]||0)+1}
- const tot=Object.values(n).reduce((a,b)=>a+b,0);for(const z of Object.keys(n)){const c=TZC[z];if(c===i2?n[z]<1:n[z]<tot*.05)delete n[z]}
+ const tot=Object.values(n).reduce((a,b)=>a+b,0);for(const z of Object.keys(n)){const c=TZC[z];if(c===i2?n[z]<(unit?Math.max(1,tot*.03):1):n[z]<tot*.05)delete n[z]}
  const ownOff=new Set(Object.keys(n).filter(z=>TZC[z]===i2).map(utcOff));for(const z of Object.keys(n))if(TZC[z]!==i2&&ownOff.has(utcOff(z)))delete n[z];
  const offs={};for(const z of Object.keys(n)){const o=utcOff(z);if(o==null)continue;(offs[o]=offs[o]||[]).push(z)}
  return Object.keys(offs).map(Number).sort((a,b)=>a-b).map(o=>({o,z:offs[o]}))}
@@ -30651,33 +30672,52 @@ async function hires(f){try{const p=f?.properties||{};let n=String(p.ISO_N3&&+p.
 /* ---------- Vista del país en el mapa: solo el país, el resto del mundo en gris ----------
    Varias cosas a la vez (p. ej. relieve + ríos + ciudades): cada botón 🗺️ de la ficha pone o quita la suya. */
 const FX={mask:null,btn:null,key:null,c:null,items:new Map()};
-function panes(){if(!map.getPane('anPaisMask')){const a=map.createPane('anPaisMask');a.style.zIndex=695;a.style.pointerEvents='none'}if(!map.getPane('anPaisPts')){const b=map.createPane('anPaisPts');b.style.zIndex=698}if(!map.getPane('anPaisTip')){const t=map.createPane('anPaisTip');t.style.zIndex=699;t.style.pointerEvents='none'}if(!map.getPane('anPaisUnder')){const u=map.createPane('anPaisUnder');u.style.zIndex=690;u.style.pointerEvents='none'}}
+function panes(){if(!map.getPane('anPaisMask')){const a=map.createPane('anPaisMask');a.style.zIndex=695;a.style.pointerEvents='none'}if(!map.getPane('anPaisPts')){const b=map.createPane('anPaisPts');b.style.zIndex=698}if(!map.getPane('anPaisTip')){const t=map.createPane('anPaisTip');t.style.zIndex=699;t.style.pointerEvents='none'}if(!map.getPane('anPaisUnder')){const u=map.createPane('anPaisUnder');u.style.zIndex=690;u.style.pointerEvents='none'}if(!map.getPane('anPaisLine')){const l=map.createPane('anPaisLine');l.style.zIndex=696;l.style.pointerEvents='none'}}
 function rings(g){const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;return polys.map(P=>P[0].map(([x,y])=>[y,x]))}
 function setCheck(id,v){const c=$(id);if(!c||c.checked===v)return false;c.checked=v;c.dispatchEvent(new Event('change',{bubbles:true}));return true}
 function dropItem(k){const it=FX.items.get(k);if(!it)return;FX.items.delete(k);try{map.removeLayer(it.grp)}catch(_){}for(const u of it.undo.splice(0))try{u()}catch(_){}}
-function exitFocus(){for(const k of [...FX.items.keys()])dropItem(k);if(FX.mask){map.removeLayer(FX.mask);FX.mask=null}FX.btn?.remove();FX.btn=null;FX.key=null;FX.c=null;refreshFicha()}
+function exitFocus(){for(const k of [...FX.items.keys()])dropItem(k);clipClear();if(FX.mask){map.removeLayer(FX.mask);FX.mask=null}FX.btn?.remove();FX.btn=null;FX.key=null;FX.c=null;refreshFicha()}
 function ensureFocus(c,fit){panes();try{map.closePopup()}catch(_){}if(FX.key&&FX.key!==c.key)exitFocus();const first=!FX.mask;
  const gF=c.fHi||c.f;if(!FX.mask&&gF){// sin máscara: nada queda oculto; el país se distingue por su contorno (también en las copias del mundo a ±360°)
   const g=gF.geometry,mk=dx=>({type:'Feature',geometry:{type:g.type,coordinates:JSON.parse(JSON.stringify(g.coordinates,(k,v)=>Array.isArray(v)&&typeof v[0]==='number'?[v[0]+dx,v[1]]:v))}});
-  FX.mask=L.layerGroup([0,360,-360].flatMap(dx=>[L.geoJSON(mk(dx),{pane:'anPaisTip',interactive:false,style:{color:'#fff',weight:5,opacity:.9,fill:false}}),L.geoJSON(mk(dx),{pane:'anPaisTip',interactive:false,style:{color:'#0b3d91',weight:2.2,opacity:1,fill:false}})])).addTo(map)}
+  FX.mask=L.layerGroup([0,360,-360].flatMap(dx=>[L.geoJSON(mk(dx),{pane:'anPaisLine',interactive:false,style:{color:'#fff',weight:5,opacity:.9,fill:false}}),L.geoJSON(mk(dx),{pane:'anPaisLine',interactive:false,style:{color:'#0b3d91',weight:2.2,opacity:1,fill:false}})])).addTo(map)}
  FX.key=c.key;FX.c=c;
  if(!FX.btn){FX.btn=document.createElement('div');FX.btn.className='anPaisFx';document.body.appendChild(FX.btn);FX.btn.addEventListener('click',e=>{const t=e.target.closest('[data-fx]');if(!t)return;const k=t.dataset.fx;
-  if(k==='x')exitFocus();else if(k==='f')openFicha();else if(k==='u'){const u=FX.items.get('urb');if(u)try{window.anambroUrbano?.openUnit?.(FX.c.f,FX.c.name)}catch(_){}}else if(k.startsWith('-')){dropItem(k.slice(1));bar();refreshFicha()}})}
+  if(k==='x')exitFocus();else if(k==='f')openFicha();else if(k==='u'){const u=FX.items.get('urb');if(u)try{window.anambroUrbano?.openUnit?.(FX.c.f,FX.c.name)}catch(_){}}else if(k.startsWith('-')){dropItem(k.slice(1));bar();refreshFicha();setTimeout(clipApply,100)}})}
  if(fit&&first&&c.f)try{map.flyToBounds(cBounds(c.f),{duration:.8,padding:[30,30]})}catch(_){}}
 function bar(){if(!FX.btn||!FX.c)return;const c=FX.c;
  FX.btn.innerHTML=(window.anambroFlagHTML?window.anambroFlagHTML(c.iso,c.name):'')+'<span class="anPaisFxT"><b>'+esc(c.name)+'</b></span><span class="anPaisFxChips">'+([...FX.items].map(([k,it])=>'<em>'+it.label+'<button type="button" data-fx="-'+k+'" title="Quitar">×</button></em>').join('')||'<small>elige en la ficha qué ver</small>')+'</span>'+
   (FX.items.has('urb')?'<button type="button" data-fx="u" title="Gráfico rango-tamaño, primacía y tabla">📈 Rango-tamaño</button>':'')+'<button type="button" data-fx="f" title="Volver a la ficha">📍 Ficha</button><button type="button" data-fx="x">✕ Salir de esta vista</button>'}
 function refreshFicha(){try{if(cur&&!$('anPaisWin')?.classList.contains('hidden'))render()}catch(_){}}
+/* Recorte al contorno: las capas puestas desde la ficha (y la red urbana) se ven SOLO dentro de la unidad; fuera, el mapa
+   base tal cual, sin gris. Se recorta con clip-path cada piso (pane) en el que ANAMBRO coloca esa capa. */
+const CLIP={els:new Set(),busy:0};
+const PANE_STD=new Set(['tilePane','overlayPane','shadowPane','markerPane','tooltipPane','popupPane','mapPane']);
+function panesOfId(id){const out=new Set(['anOrd_'+String(id).replace(/[^A-Za-z0-9_]/g,'_')]);const A=window.__anActiveLayers;let ls=[];try{ls=(A?.layersFor(id)||[]).slice()}catch(_){}
+ try{if(id==='anClimaMapCheck')ls.push(window.anambroClimaMap?.layer?.())}catch(_){}if(id==='anWdpaCheck')out.add('anWdpaPane');if(id==='anUrb_world'){out.add('anUrbEPane');out.add('anUrbLblPane')}
+ const walk=l=>{if(!l)return;const pn=l.options?.pane;if(pn&&!PANE_STD.has(pn))out.add(pn);const rp=l.options?.renderer?.options?.pane;if(rp&&!PANE_STD.has(rp))out.add(rp);if(typeof l.eachLayer==='function'&&!(l instanceof L.Path))l.eachLayer(walk)};ls.forEach(walk);
+ return [...out].map(n=>map.getPane(n)).filter(Boolean)}
+function clipIds(){const ids=[];for(const k of FX.items.keys()){const id=FXIDS[k];if(id&&!['worldVolcanoesCheck','worldQuakesCheck'].includes(id)||id&&$(id)?.checked)ids.push(id)}if($('anUrb_world')?.checked)ids.push('anUrb_world');return [...new Set(ids)]}
+function clipPath(){const c=FX.c,gF=c&&(c.fHi||c.f);if(!gF)return null;const polys=gF.geometry.type==='Polygon'?[gF.geometry.coordinates]:gF.geometry.coordinates;let d='';
+ for(const dx of [0,360,-360])for(const P of polys)for(const r of P){let first=true;for(const [x,y] of r){const p=map.latLngToLayerPoint([y,x+dx]);d+=(first?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1);first=false}d+='Z'}return d}
+function clipApply(){if(!FX.c){clipClear();return}const ids=clipIds();const els=new Set();for(const id of ids)for(const el of panesOfId(id))els.add(el);
+ for(const el of CLIP.els)if(!els.has(el)){el.style.clipPath='';el.style.visibility=''}
+ const d=els.size?clipPath():null;for(const el of els){el.style.clipPath=d?'path(evenodd, "'+d+'")':'';el.style.visibility=''}CLIP.els=els}
+function clipClear(){for(const el of CLIP.els){el.style.clipPath='';el.style.visibility=''}CLIP.els=new Set()}
+let clipT=null;const clipSoon=()=>{clearTimeout(clipT);clipT=setTimeout(clipApply,120)};
+let clipHooked=false;function clipHook(){if(clipHooked||typeof map==='undefined')return;clipHooked=true;
+ map.on('zoomstart',()=>{for(const el of CLIP.els)el.style.visibility='hidden'});map.on('zoomend viewreset',()=>{if(FX.c)clipApply();else clipClear()});map.on('layeradd',()=>{if(FX.c)clipSoon()});
+ document.addEventListener('change',e=>{if(FX.c&&e.target?.id==='anUrb_world')setTimeout(clipApply,300)},true)}
 const EXCL={kp:['mi'],mi:['kp']};
-async function toggleFx(k,c){c=c||cur;if(!c)return;if(FX.key===c.key&&FX.items.has(k)){dropItem(k);bar();refreshFicha();return}
+async function toggleFx(k,c){c=c||cur;if(!c)return;if(FX.key===c.key&&FX.items.has(k)){dropItem(k);bar();refreshFicha();setTimeout(clipApply,100);return}
  const def=FXDEF[k];if(!def)return;ensureFocus(c,def.fit!==false);for(const o of EXCL[k]||[])dropItem(o);
  const it={grp:L.layerGroup().addTo(map),undo:[],label:def.label(c)};FX.items.set(k,it);bar();refreshFicha();
- try{await def.on(c,it)}catch(e){console.warn('Vista del país',k,e)}if(FX.items.get(k)===it){it.label=def.label(c,it);bar()}}
+ clipHook();try{await def.on(c,it)}catch(e){console.warn('Vista del país',k,e)}setTimeout(clipApply,150);setTimeout(clipApply,1200);setTimeout(clipApply,4000);if(FX.items.get(k)===it){it.label=def.label(c,it);bar()}}
 const isFx=k=>!!(cur&&FX.key===cur.key&&FX.items.has(k));
 function openFicha(){const w=$('anPaisWin');if(w&&cur&&cur.key===FX.key){w.classList.remove('hidden');render()}else if(FX.c)openC(FX.c)}
 const tip=(m,h)=>m.bindTooltip(h,{pane:'anPaisTip',direction:'top',offset:[0,-4]});
 const HI={l:null};function hiOn(f){hiOff();if(!f||typeof map==='undefined')return;panes();const g=f.geometry,mk=(dx)=>({type:'Feature',geometry:{type:g.type,coordinates:JSON.parse(JSON.stringify(g.coordinates,(k,v)=>Array.isArray(v)&&typeof v[0]==='number'?[v[0]+dx,v[1]]:v))}});
- HI.l=L.layerGroup([0,360,-360].flatMap(dx=>[L.geoJSON(mk(dx),{pane:'anPaisTip',interactive:false,style:{color:'#fff',weight:4,opacity:.8,fill:false}}),L.geoJSON(mk(dx),{pane:'anPaisTip',interactive:false,style:{color:'#0b3d91',weight:1.8,opacity:1,fill:false}})])).addTo(map)}
+ HI.l=L.layerGroup([0,360,-360].flatMap(dx=>[L.geoJSON(mk(dx),{pane:'anPaisLine',interactive:false,style:{color:'#fff',weight:4,opacity:.8,fill:false}}),L.geoJSON(mk(dx),{pane:'anPaisLine',interactive:false,style:{color:'#0b3d91',weight:1.8,opacity:1,fill:false}})])).addTo(map)}
 function hiOff(){if(HI.l){map.removeLayer(HI.l);HI.l=null}}
 // capas de ANAMBRO que se encienden con su casilla (y se apagan al quitarlas, si las encendió la ficha)
 const layerOn=id=>(c,it)=>{if(setCheck(id,true))it.undo.push(()=>setCheck(id,false))};
@@ -30802,7 +30842,7 @@ function render(){const w=win(),c=cur;if(c.kind!=='W')return renderUnit(w,c);w.q
 async function open(iso,f,tab,back){iso=String(iso||'').toUpperCase();const w=win();const wasOpen=!w.classList.contains('hidden');w.classList.remove('hidden');if(!wasOpen)delete w.dataset.shown;if(cur&&cur.key==='W:'+iso&&wasOpen)return;
  pushHist(back,'W:'+iso);
  const name=esName(iso,iso),keep=cur&&cur.kind==='W'&&!w.classList.contains('hidden')&&w.dataset.shown?cur.tab:'res';w.dataset.shown='1';cur={key:'W:'+iso,kind:'W',iso,name,tab:tab||keep,f:f||null};render();const me=cur;
- if(!me.f)me.f=await countryFeature(iso);if(cur===me)hiOn(me.f);hires(me.f).then(h=>{if(h===me.f)return;me.fHi=h;if(cur===me)hiOn(h);if(FX.key===me.key&&FX.mask){map.removeLayer(FX.mask);FX.mask=null;ensureFocus(me,false)}});if(FI&&cur===me){FI={iso,name:me.name,code:FI.code};setTimeout(markLegend,300)}const p=me.f?.properties||{};me.cont=({Africa:'África',Asia:'Asia',Europe:'Europa','North America':'América del Norte','South America':'América del Sur',Oceania:'Oceanía',Antarctica:'Antártida','Seven seas (open ocean)':'Islas oceánicas'})[p.CONTINENT]||p.CONTINENT||'';me.sub=SUB[p.SUBREGION]||p.SUBREGION||'';
+ if(!me.f)me.f=await countryFeature(iso);if(cur===me)hiOn(me.f);hires(me.f).then(h=>{if(h===me.f)return;me.fHi=h;if(cur===me)hiOn(h);if(FX.key===me.key&&FX.mask){map.removeLayer(FX.mask);FX.mask=null;ensureFocus(me,false);clipApply()}});if(FI&&cur===me){FI={iso,name:me.name,code:FI.code};setTimeout(markLegend,300)}const p=me.f?.properties||{};me.cont=({Africa:'África',Asia:'Asia',Europe:'Europa','North America':'América del Norte','South America':'América del Sur',Oceania:'Oceanía',Antarctica:'Antártida','Seven seas (open ocean)':'Islas oceánicas'})[p.CONTINENT]||p.CONTINENT||'';me.sub=SUB[p.SUBREGION]||p.SUBREGION||'';
  const redraw=()=>{if(cur===me)render()};redraw();
  const tasks=[
   wb(iso,['SP.POP.TOTL','EN.POP.DNST','AG.SRF.TOTL.K2','ER.LND.PTLD.ZS','ER.MRN.PTMR.ZS','ER.PTD.TOTL.ZS',...allCodes()].filter((v,i,a)=>a.indexOf(v)===i)).then(x=>{me.wb=x;me.wbDone=1;redraw()}),
@@ -30822,7 +30862,7 @@ async function cityView(iso,f){iso=String(iso).toUpperCase();const c={iso,name:e
    municipios → municipio · provincias → provincia · comunidades → comunidad · divisiones del mundo → región · fronteras → país.
    Casi todo sale de los datos de ANAMBRO: pirámides (INE, Censo anual), padrón municipal (INE), datos municipales del ISTAC,
    estaciones, mapa de climas, ciudades de la ONU, husos (tz-lookup) y relieve (motor del Análisis geográfico). ===================== */
-const UNITS_ON=false;
+const UNITS_ON=true;
 function pushHist(back,key){const w=win();if(!back&&cur&&cur.key!==key){HIST.push({key:cur.key,tab:cur.tab,f:cur.f,name:cur.name,iso:cur.iso,kind:cur.kind,sub:cur.sub});if(HIST.length>20)HIST.shift()}
  const bk=w.querySelector('.anPaisBack');if(bk){bk.hidden=!HIST.length;bk.title=HIST.length?'Volver a '+HIST[HIST.length-1].name:''}}
 function openC(c,tab,back){if(!c)return;if(c.kind==='W'||String(c.key).startsWith('W:'))return open(String(c.key).slice(2)||c.iso,c.f,tab,back);return openUnit(c.key,{f:c.f,name:c.name,iso:c.iso,sub:c.sub,tab,back})}
@@ -30831,8 +30871,9 @@ const ESJ=()=>getJ('data/piramides/es.json?v=2026-10-23');
 const MUNJ=()=>getJ('data/urbano/municipios_es.json');
 const ISTACJ=()=>getJ('data/admin/municipios_canarias_istac.json');
 const ISLA_COD={ES703:'El Hierro',ES704:'Fuerteventura',ES705:'Gran Canaria',ES706:'La Gomera',ES707:'La Palma',ES708:'Lanzarote',ES709:'Tenerife'};
-const KIND={CA:'Comunidad autónoma',P:'Provincia','I:':'Isla',M:'Municipio',A1:'División de 1.er nivel',A2:'División de 2.º nivel'};
-const kindOf=k=>k.startsWith('CA')?'CA':k.startsWith('I:')?'I:':k.startsWith('A1:')?'A1':k.startsWith('A2:')?'A2':k[0];
+const KIND={CA:'Comunidad autónoma',P:'Provincia','I:':'Isla',M:'Municipio',A1:'División de 1.er nivel',A2:'División de 2.º nivel',U:'Región europea'};
+const kindOf=k=>k.startsWith('CA')?'CA':k.startsWith('I:')?'I:':k.startsWith('U:')?'U':k.startsWith('A1:')?'A1':k.startsWith('A2:')?'A2':k[0];
+const iso3of2=c=>{c=String(c||'').toUpperCase();if(c==='EL')c='GR';if(c==='UK')c='GB';const m=window.anambroISO3_2||{};for(const [k,v] of Object.entries(m))if(String(v).toUpperCase()===c)return k;return null};
 // superficie geodésica (km²) de un polígono en grados
 function areaKm2(g){if(!g)return null;const R=6371.0088,rad=Math.PI/180;const ring=r=>{let a=0;for(let i=0;i<r.length-1;i++){const [x1,y1]=r[i],[x2,y2]=r[i+1];a+=(x2-x1)*rad*(2+Math.sin(y1*rad)+Math.sin(y2*rad))}return Math.abs(a)*R*R/2};
  const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];let t=0;for(const P of polys){P.forEach((r,i)=>{t+=i?-ring(r):ring(r)})}return t}
@@ -30841,6 +30882,7 @@ async function esGeom(key,f){if(f?.geometry&&/Polygon/.test(f.geometry.type))ret
  try{if(k==='CA'){const g=await getJ('data/admin/spain-communities.geojson');return g.features.find(x=>x.properties.cod_ccaa===key.slice(2))||null}
   if(k==='P'){const g=await getJ('data/admin/spain-provinces.geojson');return g.features.find(x=>x.properties.cod_prov===key.slice(1))||null}
   if(k==='I:'){const g=await ISTACJ(),isl=key.slice(2);return mergeGeoms(g.features.filter(x=>ISLA_COD[x.properties.isla]===isl))}
+  if(k==='U'){const code=key.slice(2);const E=window.anambroEurostat;if(E?.nutsGeo){const g=await E.nutsGeo(code.length-2);const x=g.features.find(q=>(q.properties.NUTS_ID||q.id)===code);if(x)return x}}
   if(k==='M'){const c=key.slice(1);if(/^(35|38)/.test(c)){const g=await ISTACJ();const x=g.features.find(x=>x.properties.geocode===c);if(x)return x}
    // municipios peninsulares: la geometría de la capa «Municipios · España» si está cargada
    try{if(typeof adminMun!=='undefined'&&adminMun?.eachLayer){let hit=null;adminMun.eachLayer(l=>{if(hit)return;const p=l.feature?.properties||{};const code=String(p.NATCODE||p.natcode||p.codigo||p.CODIGOINE||p.cod_ine||p.INE||'').slice(-5);if(code===c)hit=l.feature});if(hit)return hit}}catch(_){}}}catch(e){console.warn('Geometría',key,e)}return null}
@@ -30848,39 +30890,49 @@ function inside(g,x,y){return pip(x,y,g)}
 function bboxHit(b,x,y){return x>=b[0]&&x<=b[2]&&y>=b[1]&&y<=b[3]}
 async function openUnit(key,o={}){const w=win();const wasOpen=!w.classList.contains('hidden');w.classList.remove('hidden');if(!wasOpen)delete w.dataset.shown;if(cur&&cur.key===key&&wasOpen)return;
  pushHist(o.back,key);const kd=kindOf(key);const keep=cur&&cur.kind!=='W'&&!o.tab&&w.dataset.shown?cur.tab:'res';w.dataset.shown='1';
- cur={key,kind:kd,iso:o.iso||(kd==='A1'||kd==='A2'?null:'ESP'),name:o.name||'',sub:o.sub||'',tab:o.tab||keep,f:o.f||null};const me=cur;const redraw=()=>{if(cur===me)render()};
- const ES=kd!=='A1'&&kd!=='A2';
- if(ES){try{const e=await ESJ();me.name=me.name||e.u[key]?.n||e.mn?.[key.slice(1)]||key;const pr=kd==='M'?key.slice(1,3):kd==='P'?key.slice(1):null;
+ cur={key,kind:kd,iso:o.iso||(kd==='A1'||kd==='A2'||kd==='U'?null:'ESP'),name:o.name||'',sub:o.sub||'',tab:o.tab||keep,f:o.f||null};const me=cur;const redraw=()=>{if(cur===me)render()};
+ const ES=kd!=='A1'&&kd!=='A2'&&kd!=='U';const EU=kd==='U';
+ if(EU){const code=key.slice(2),E=window.anambroEurostat;me.iso=me.iso||iso3of2(code.slice(0,2));const lv=code.length-2;me.sub=(lv?'Región NUTS '+lv+' · ':'')+code+' · '+esName(me.iso,E?.COUNTRIES?.[code.slice(0,2)]||code.slice(0,2));
+  const ch=[];for(let L=code.length-1;L>=3;L--)ch.push({k:'U:'+code.slice(0,L),l:'NUTS '+(L-2)+' · '+code.slice(0,L)});if(me.iso)ch.push({k:'W:'+me.iso,l:'País · '+esName(me.iso,me.iso)});me.chain=ch}
+ else if(ES){try{const e=await ESJ();me.name=me.name||e.u[key]?.n||e.mn?.[key.slice(1)]||key;const pr=kd==='M'?key.slice(1,3):kd==='P'?key.slice(1):null;
    me.sub=KIND[kd]+(kd==='M'?' · '+(e.u['P'+pr]?.n||''):kd==='P'?' · '+(e.u['CA'+e.pca[pr]]?.n||''):kd==='I:'?' · Canarias':'')+' · España';
    // cadena de escalas (para saltar arriba)
    const ch=[];if(kd==='M'){const c=key.slice(1);if(/^(35|38)/.test(c)){const ist=await ISTACJ().catch(()=>null);const isl=ISLA_COD[ist?.features.find(x=>x.properties.geocode===c)?.properties.isla];if(isl)ch.push({k:'I:'+isl,l:'Isla · '+isl})}ch.push({k:'P'+pr,l:'Provincia · '+(e.u['P'+pr]?.n||'')})}
    if(kd==='M'||kd==='P'||kd==='I:'){const p2=kd==='I:'?(/Gran Canaria|Lanzarote|Fuerteventura/.test(key)?'35':'38'):pr;if(kd==='I:')ch.push({k:'P'+p2,l:'Provincia · '+(e.u['P'+p2]?.n||'')});ch.push({k:'CA'+e.pca[p2],l:'Comunidad · '+(e.u['CA'+e.pca[p2]]?.n||'')})}
    ch.push({k:'W:ESP',l:'País · España'});me.chain=ch.filter(x=>x.k!==key)}catch(err){console.warn(err)}}
- else{me.chain=me.iso?[{k:'W:'+me.iso,l:'País · '+esName(me.iso,me.iso)}]:[];me.sub=KIND[kd]+(me.iso?' · '+esName(me.iso,me.iso):'')}
- render();me.f=await esGeom(key,me.f);if(cur===me)hiOn(me.f);me.area=areaKm2(me.f?.geometry);redraw();
+ else if(!EU){me.chain=me.iso?[{k:'W:'+me.iso,l:'País · '+esName(me.iso,me.iso)}]:[];me.sub=KIND[kd]+(me.iso?' · '+esName(me.iso,me.iso):'')}
+ render();me.f=await esGeom(key,me.f);if(!me.name&&me.f){const p=me.f.properties||{};me.name=p.NAME_LATN||p.NUTS_NAME||p.__ga_name||key.slice(2)}if(cur===me)hiOn(me.f);me.area=areaKm2(me.f?.geometry);redraw();
  const g=me.f?.geometry,b=g?bboxG(g):null;
  const tasks=[];
- if(ES&&kd!=='A1'){
+ if(ES||EU){
   tasks.push((async()=>{try{const u=await window.anambroPiramide.load(key);if(u){me.pyr=u;const ys=Object.keys(u.a).sort(),y=ys[ys.length-1];me.popY=y;me.pop=u.a[y][0].reduce((a,b)=>a+b,0)+u.a[y][1].reduce((a,b)=>a+b,0);const y0=ys[0];me.pop0=u.a[y0][0].reduce((a,b)=>a+b,0)+u.a[y0][1].reduce((a,b)=>a+b,0);me.pop0Y=y0}}catch(_){}redraw()})());
-  tasks.push((async()=>{try{const [m,e]=await Promise.all([MUNJ(),ESJ()]);let rows=m.m;const c=key.slice(1);
+  if(ES)tasks.push((async()=>{try{const [m,e]=await Promise.all([MUNJ(),ESJ()]);let rows=m.m;const c=key.slice(1);
    if(kd==='CA')rows=rows.filter(r=>e.pca[r[0].slice(0,2)]===key.slice(2));else if(kd==='P')rows=rows.filter(r=>r[0].startsWith(c));else if(kd==='M')rows=rows.filter(r=>r[0]===c);
    else if(kd==='I:'){const ist=await ISTACJ();const set=new Set(ist.features.filter(x=>ISLA_COD[x.properties.isla]===key.slice(2)).map(x=>x.properties.geocode));rows=rows.filter(r=>set.has(r[0]))}
    me.muns=rows.slice().sort((a,b)=>b[5][6]-a[5][6]);me.caps=me.muns.filter(r=>kd==='CA'?r[4]>=2:kd==='P'||kd==='I:'?r[4]>=1:false);
    if(kd==='I:'&&!me.caps.length&&me.muns.length)me.caps=[];redraw()}catch(err){console.warn(err);me.muns=[]}})());
+  if(EU)tasks.push(eusAll(key.slice(2)).then(x=>{me.eus=x;redraw()}).catch(()=>{me.eus={}}));
   if(kd==='M'&&/^(35|38)/.test(key.slice(1)))tasks.push(ISTACJ().then(d=>{me.istac=d.features.find(x=>x.properties.geocode===key.slice(1))?.properties||null;redraw()}).catch(()=>{}));
  }
  if(g){
   tasks.push((async()=>{try{const db=await window.anambroClima.load();me.st=db.s.filter(s=>PK(s)&&bboxHit(b,s.lo,s.la)&&inside(g,s.lo,s.la)).sort((a,c)=>a.n.localeCompare(c.n,'es'))}catch(_){me.st=[]}redraw()})());
   tasks.push(getJ('data/urbano/ciudades_mundo.json').then(d=>{me.cities=d.c.filter(r=>bboxHit(b,r[5],r[4])&&inside(g,r[5],r[4])).sort((a,c)=>c[6][15]-a[6][15]);redraw()}).catch(()=>{me.cities=[]}));
   tasks.push((async()=>{try{me.kp=await climates(me.f,'koppen');me.mi=await climates(me.f,'miller')}catch(e){console.warn(e)}redraw()})());
-  tasks.push((async()=>{try{me.tz=await zones(me.f,iso2(me.iso||'ESP'))}catch(_){me.tz=[]}redraw()})());
+  tasks.push((async()=>{try{me.tz=await zones(me.f,iso2(me.iso||'ESP'),kd)}catch(_){me.tz=[]}redraw()})());
   tasks.push((async()=>{try{if(window.anambroWdpa)me.wdpa=await window.anambroWdpa.inGeom(key,g)}catch(_){me.wdpa={err:1}}redraw()})());
   // relieve: el mismo motor que el Análisis geográfico (MDT25 en España; modelo mundial fuera)
-  tasks.push((async()=>{try{const R=window.anambroGaRaster;if(R?.relief){const r=await R.relief(me.f,null,{extremes:true});if(r&&isFinite(r.max))me.rel={max:r.max,min:r.min,mean:r.mean,res:r.resM}}}catch(e){console.warn('Relieve',e)}me.relDone=1;redraw()})());
+  tasks.push((async()=>{try{const R=window.anambroGaRaster;if(R?.relief){const r=await Promise.race([R.relief(me.f,null,{extremes:true}),new Promise((_,ko)=>setTimeout(()=>ko(Error('tiempo agotado')),45000))]);if(r&&isFinite(r.max))me.rel={max:r.max,min:r.min,mean:r.mean,res:r.resM}}}catch(e){console.warn('Relieve',e)}me.relDone=1;redraw()})());
  }else{me.st=[];me.cities=[];me.relDone=1}
  await Promise.allSettled(tasks)}
-function unitTabs(c){return [['res','📍 Resumen'],['pob','👥 Población'],['ciu',c.kind==='A1'||c.kind==='A2'?'🏙️ Ciudades':'🏙️ Municipios y ciudades'],['cli','🌦️ Clima'],['ter','🗺️ Territorio']]}
-function renderUnit(w,c){const ES=c.kind!=='A1'&&c.kind!=='A2';const flag=window.anambroFlagHTML&&c.iso?window.anambroFlagHTML(c.iso,c.name):'';
+// indicadores del atlas Eurostat para UNA región (consulta pequeña por región, no la tabla entera)
+async function eusOne(it,code){const q=new URLSearchParams({format:'JSON',lang:'EN',geo:code,sinceTimePeriod:'2012'});for(const [k,v] of Object.entries(it.f))q.append(k,v);
+ const j=await getJ('https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/'+it.d+'?'+q);const ids=j.id,size=j.size,tk=ids.indexOf('time');if(tk<0)return null;let st=1;const strides=[];for(let k=ids.length-1;k>=0;k--){strides[k]=st;st*=size[k]}
+ const tIdx=j.dimension.time.category.index,tOf=Object.fromEntries(Object.entries(tIdx).map(([t,i])=>[i,t]));let best=null;for(const [key,v] of Object.entries(j.value||{})){if(v==null)continue;const ti=Math.floor(+key/strides[tk])%size[tk],t=tOf[ti];if(!best||t>best.y)best={v:+v,y:t}}return best}
+async function eusAll(code){const E=window.anambroEurostat;if(!E?.CAT)return {};const out={},q=E.CAT.slice();await Promise.all([0,1,2,3,4,5].map(async()=>{while(q.length){const it=q.shift();try{const r=await eusOne(it,code);if(r)out[it.id]=r}catch(_){}}}));return out}
+function eusRows(c,filter){const E=window.anambroEurostat;if(!E?.CAT||!c.eus)return '';const groups={};for(const it of E.CAT){if(!filter(it))continue;const x=c.eus[it.id];if(!x)continue;(groups[E.T[it.t]]=groups[E.T[it.t]]||[]).push(row(esc(it.n),nf(x.v,it.dec??1)+(it.u?' '+esc(it.u):''),'('+x.y+')'))}
+ return Object.entries(groups).map(([g,r])=>'<h4>'+esc(g)+'</h4><table class="anPaisT">'+r.join('')+'</table>').join('')}
+function unitTabs(c){return [['res','📍 Resumen'],['pob','👥 Población'],...(c.kind==='U'?[['eco','💶 Economía y sociedad']]:[]),['ciu',c.kind==='A1'||c.kind==='A2'?'🏙️ Ciudades':'🏙️ Municipios y ciudades'],['cli','🌦️ Clima'],['ter','🗺️ Territorio']]}
+function renderUnit(w,c){const EU=c.kind==='U',ES=c.kind!=='A1'&&c.kind!=='A2'&&!EU,PY=ES||EU;const flag=window.anambroFlagHTML&&c.iso?window.anambroFlagHTML(c.iso,c.name):'';
  w.querySelector('.anPaisTit').innerHTML=flag+'<div><b>'+esc(c.name)+'</b><small>'+esc(c.sub||'')+'</small></div>';
  w.querySelector('.anPaisTabs').innerHTML=unitTabs(c).map(([k,l])=>'<button type="button" data-pt="'+k+'" class="'+(k===c.tab?'on':'')+'">'+l+'</button>').join('');
  const B=w.querySelector('.anPaisBody'),F=w.querySelector('.anPaisFoot');let h='',src='';
@@ -30890,31 +30942,33 @@ function renderUnit(w,c){const ES=c.kind!=='A1'&&c.kind!=='A2';const flag=window
  if(c.tab==='res'){
   h=chain+mapsBlock(c)+'<table class="anPaisT">'+
    (capTxt?row(c.kind==='CA'?'Capital':'Capital de provincia',capTxt):'')+
-   (ES?row('Población',c.pop?nf(c.pop)+' hab.':(c.pyr===undefined?'…':'—'),c.pop?'(INE, '+c.popY+')':''):'')+
+   (PY?row('Población',c.pop?nf(c.pop)+' hab.':(c.pyr===undefined?'…':'—'),c.pop?'('+(EU?'Eurostat':'INE')+', '+c.popY+')':''):'')+
    row('Superficie',c.area?nf(c.area,c.area<100?1:0)+' km²':'…',ist?.superficie?'(ISTAC: '+nf(ist.superficie/100,1)+' km²)':'')+
-   (ES?row('Densidad',dens?nf(dens,1)+' hab./km²':'—'):'')+
+   (PY?row('Densidad',dens?nf(dens,1)+' hab./km²':'—'):'')+(EU&&c.eus?.gdpeu?row('PIB por habitante (% de la media UE, PPA)',nf(c.eus.gdpeu.v)+' %','('+c.eus.gdpeu.y+')'):'')+
    (c.kind==='M'&&c.muns?.[0]?row('Altitud del núcleo principal',nf(c.muns[0][6])+' m'):'')+
    row('Altitud máxima',c.rel?nf(c.rel.max)+' m':(c.relDone?'—':'…'),c.rel?'(media '+nf(c.rel.mean)+' m)':'')+
    (c.kind!=='M'&&ES?row('Municipios',c.muns?nf(c.muns.length):'…'):'')+
    row('Husos horarios (hora oficial hoy)',c.tz?(c.tz.length?c.tz.map(x=>fmtOff(x.o)).join(' · ')+MB('tz','en el mapa'):'—'):'…')+
    row('Ciudades de más de 50.000 hab. (ONU)',c.cities?nf(c.cities.length)+(c.cities.length?MB('urb','en el mapa'):''):'…')+
    row('Estaciones climáticas',c.st?nf(c.st.length)+(c.st.length?MB('st','solo las suyas'):''):'…')+'</table>'+
-   '<div class="anPaisBtns"><button data-pa="zoom">🔍 Ver en el mapa</button>'+(ES?'<button data-pa="pyr">👥 Pirámide</button>':'')+'<button data-pa="ga">📊 Analizar</button><button data-pa="topo">🔎 Topónimos</button></div>';
+   '<div class="anPaisBtns"><button data-pa="zoom">🔍 Ver en el mapa</button>'+(PY?'<button data-pa="pyr">👥 Pirámide</button>':'')+'<button data-pa="ga">📊 Analizar</button><button data-pa="topo">🔎 Topónimos</button></div>';
   src=(ES?'INE: Censo anual de población (pirámides), Padrón municipal (municipios, capitales, altitud del núcleo) · ':'')+'superficie geodésica calculada por ANAMBRO con el límite de la capa · altitud máxima: motor de relieve del Análisis geográfico · husos: tz-lookup · ONU: ciudades · ANAMBRO: estaciones.'}
  else if(c.tab==='pob'){
-  if(ES){h='<div class="anPaisPyr"></div><div class="anPaisBtns"><button data-pa="pyr">👥 Ampliar y comparar la pirámide (con su provincia, comunidad, España o cualquier país)</button></div>';
+  if(PY){h='<div class="anPaisPyr"></div><div class="anPaisBtns"><button data-pa="pyr">👥 Ampliar y comparar la pirámide (con otras unidades o cualquier país)</button></div>';
    if(c.pyr){const P=window.anambroPiramide,st=P.stats?P.stats(c.pyr.a[c.popY]):null;
     h+='<table class="anPaisT">'+row('Población ('+c.popY+')',nf(c.pop)+' hab.')+(c.pop0?row('Variación '+c.pop0Y+'–'+c.popY,(c.pop>=c.pop0?'+':'')+nf((c.pop/c.pop0-1)*100,1)+' %'):'')+
-     (st?Object.entries(st).filter(([k,v])=>v!=null&&typeof v!=='object').slice(0,8).map(([k,v])=>row(esc(({med:'Edad mediana',env:'Índice de envejecimiento',p65:'% de 65 años y más',p80:'% de 80 años y más',p014:'% de 0 a 14 años',dep:'Tasa de dependencia',mas:'Hombres por cada 100 mujeres'})[k]||k),nf(v,1))).join(''):'')+'</table>';
-    setTimeout(()=>{const box=w.querySelector('.anPaisPyr');if(box&&c.pyr)box.innerHTML=window.anambroPiramide.svg(c.pyr.a[c.popY],c.pyr.ages,{w:400,rh:11,title:true})+'<small class="anPaisNote">INE · Censo anual de población · '+c.popY+'</small>'},0)}
+     (st?[['med','Edad mediana',' años'],['j','Población de 0 a 14 años',' %'],['ad','Población de 15 a 64 años',' %'],['v','Población de 65 años y más',' %'],['env','Índice de envejecimiento (65+ / 0-14 × 100)',''],['dep','Tasa de dependencia',' %'],['mas','Hombres por cada 100 mujeres','']].filter(([k])=>st[k]!=null).map(([k,l,u])=>row(l,nf(st[k],1)+u)).join(''):'')+'</table>';
+    setTimeout(()=>{const box=w.querySelector('.anPaisPyr');if(box&&c.pyr)box.innerHTML=window.anambroPiramide.svg(c.pyr.a[c.popY],c.pyr.ages,{w:400,rh:11,title:true})+'<small class="anPaisNote">'+(EU?'Eurostat · población a 1 de enero':'INE · Censo anual de población')+' · '+c.popY+'</small>'},0)}
+   if(EU)h+=eusRows(c,it=>it.t==='pob')+(c.eus?'':'<p>cargando indicadores de Eurostat…</p>');
    if(ist)h+='<h4>Datos del ISTAC</h4><table class="anPaisT">'+[['Edad media',ist.poblacion_edad_media,1,' años'],['Población extranjera',ist.poblacion_extranjera_pc,1,' %'],['Nacida en Canarias',ist.poblacion_nacida_canarias_pc,1,' %'],['Nacida en el resto de España',ist.poblacion_nacida_es_xcanarias_pc,1,' %'],['Nacida en el extranjero',ist.poblacion_nacida_extranjero_pc,1,' %'],['Índice de envejecimiento',ist.poblacion_indice_vejez,1,''],['Índice de dependencia',ist.poblacion_indice_dependencia,1,''],['Índice de sobreenvejecimiento',ist.poblacion_indice_sobreenvejecimi,1,'']].filter(x=>x[1]!=null).map(([l,v,d,u])=>row(l,nf(v,d)+u)).join('')+'</table><small class="anPaisNote">ISTAC · datos municipales ('+(ist.ano||'')+')</small>';
-   src='INE · Censo anual de población (1 de enero; la unidad = suma de sus municipios)'+(ist?' · ISTAC':'')+'.'}
+   src=EU?'Eurostat (API de difusión, último año disponible para esta región).':'INE · Censo anual de población (1 de enero; la unidad = suma de sus municipios)'+(ist?' · ISTAC':'')+'.'}
   else{h='<p>Fuera de España no hay pirámides homogéneas por región en ANAMBRO. En Europa, la pirámide por regiones NUTS (Eurostat) se abre desde el Análisis geográfico con las regiones NUTS; en el resto del mundo, consulta la del país.</p><div class="anPaisBtns">'+(c.iso?'<button data-pa="up" data-arg="W:'+c.iso+'">👥 Ficha y pirámide de '+esc(esName(c.iso,c.iso))+'</button>':'')+'</div>';src='—'}}
  else if(c.tab==='ciu'){
   if(ES&&c.muns){const L=c.muns.slice(0,30);h='<p class="anPaisNote">'+nf(c.muns.length)+' municipio'+(c.muns.length===1?'':'s')+' · Padrón 2025.</p><table class="anPaisT anPaisCity"><tr><th>#</th><th>Municipio</th><th>2025</th><th>1996</th></tr>'+L.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+(r[4]>=1?'⭐ ':'')+'<a href="#" data-pa="mun" data-arg="'+r[0]+'">'+esc(r[1])+'</a></td><td>'+nf(r[5][6])+'</td><td><small>'+nf(r[5][0])+'</small></td></tr>').join('')+'</table>'+(c.muns.length>30?'<small class="anPaisNote">Se listan 30 de '+nf(c.muns.length)+'.</small>':'')}
   const U=c.cities||[];h+='<h4>Aglomeraciones urbanas (ONU) '+(U.length?MB('urb','en el mapa'):'')+'</h4>'+(U.length?'<table class="anPaisT anPaisCity">'+U.slice(0,15).map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+(r[3]?'⭐ ':'')+esc(window.anambroUrbano?.nice?.(r[1])||r[1])+'</td><td>'+big(r[6][15]*1000)+'</td></tr>').join('')+'</table>':'<p>'+(c.cities?'Ninguna de más de 50.000 habitantes.':'cargando…')+'</p>');
   if(ES&&c.kind!=='M')h+='<div class="anPaisBtns"><button data-pa="net">📈 Red urbana: rango-tamaño y primacía de sus municipios</button></div>';
   src=(ES?'INE · Revisión del Padrón Municipal (⭐ capital) · ':'')+'Naciones Unidas, World Urbanization Prospects 2025.'}
+ else if(c.tab==='eco'){h=eusRows(c,it=>it.t!=='pob')||'<p>'+(c.eus?'Sin datos de Eurostat para esta región.':'cargando indicadores de Eurostat…')+'</p>';src='Eurostat (API de difusión, último año disponible para esta región). Los mismos indicadores que el atlas Eurostat del Análisis geográfico.'}
  else if(c.tab==='cli'){const CM=window.anambroClimaMap,bar=(a,col,name)=>a?'<div class="anPaisBar">'+a.filter(x=>x.p>=.5).map(x=>'<span style="flex:'+x.p+';background:'+col[x.k]+'" title="'+esc(x.k+' · '+(name?.[x.k]||'')+' · '+nf(x.p,1)+' %')+'"></span>').join('')+'</div><table class="anPaisT">'+a.filter(x=>x.p>=1).map(x=>'<tr><td><span class="anPaisSw" style="background:'+col[x.k]+'"></span><b>'+x.k+'</b> '+esc(name?.[x.k]||'')+'</td><td><b>'+nf(x.p,1)+' %</b></td></tr>').join('')+'</table>':'<p>'+(c.f?'cargando…':'Sin límite cargado para esta unidad.')+'</p>';
   h='<h4>Köppen-Geiger · por superficie'+MB('kp','en el mapa')+'</h4>'+bar(c.kp,CM?.KCOL||{},CM?.KNAME)+'<h4>Miller · por superficie'+MB('mi','en el mapa')+'</h4>'+bar(c.mi,CM?.MCOL||{},Object.fromEntries(Object.entries(CM?.MDESC||{}).map(([k,v])=>[k,String(v).split(':')[0]])))+
    '<h4>Estaciones climáticas ('+(c.st?nf(c.st.length):'…')+')'+(c.st?.length?MB('st','solo las suyas en el mapa'):'')+'</h4>'+(c.st?.length?'<div class="anPaisSt">'+c.st.slice(0,60).map((s,i)=>'<button type="button" data-pa="st" data-arg="'+i+'" title="Abrir el climograma"><span class="anPaisSw" style="background:'+((CM?.KCOL||{})[PK(s)._k?.code]||'#999')+'"></span>'+esc(s.n)+' <small>'+esc(PK(s)._k?.code||'')+' · '+nf(s.z)+' m</small></button>').join('')+'</div>':'<p>'+(c.st?'Sin estaciones climáticas dentro.':'cargando…')+'</p>');
@@ -30929,10 +30983,20 @@ function renderUnit(w,c){const ES=c.kind!=='A1'&&c.kind!=='A2';const flag=window
 /* ¿Qué ficha abrir al pinchar? La de la capa activa más detallada */
 function featAt(layer,ll){let hit=null;try{layer?.eachLayer?.(l=>{if(hit)return;const f=l.feature;if(f?.geometry&&/Polygon/.test(f.geometry.type)&&pip(ll.lng,ll.lat,f.geometry))hit=f})}catch(_){}return hit}
 function adminIso(p){for(const k of ['ISO_A3','ISO3','ISO_3','iso3','WB_ADM0_CO','ADM0_A3','GID_0'])if(p?.[k]&&/^[A-Z]{3}$/.test(p[k]))return p[k];return null}
+// unidades españolas en el punto, con los límites locales de ANAMBRO (sin depender de servicios externos)
+async function localES(ll,on){const out=[];const x=ll.lng,y=ll.lat;const hit=(fs,code)=>{for(const f of fs){const g=f.geometry;if(!g)continue;const b=f.__bb||(f.__bb=bboxG(g));if(bboxHit(b,x,y)&&pip(x,y,g))return f}return null};
+ try{if(on('munCheck')||on('munSpainCheck')||window.anambroIstacActive?.()||window.anambroIneActive?.()){
+   if(y<30&&x<-12){const d=await ISTACJ();const f=hit(d.features);if(f)out.push({k:'M'+f.properties.geocode,f})}
+   else{try{if(typeof adminMun!=='undefined'&&adminMun?.eachLayer){adminMun.eachLayer(l=>{if(out.length)return;const g=l.feature?.geometry;if(g&&/Polygon/.test(g.type)&&pip(x,y,g)){const p=l.feature.properties||{};const code=String(p.NATCODE||p.natcode||p.codigo||p.CODIGOINE||p.cod_ine||p.INE||p.ine||'').slice(-5);if(/^\d{5}$/.test(code))out.push({k:'M'+code,f:l.feature})}})}}catch(_){}}}
+  if(on('provCheck')){const d=await getJ('data/admin/spain-provinces.geojson');const f=hit(d.features);if(f)out.push({k:'P'+f.properties.cod_prov,f})}
+  if(on('ccaaCheck')){const d=await getJ('data/admin/spain-communities.geojson');const f=hit(d.features);if(f)out.push({k:'CA'+f.properties.cod_ccaa,f})}}catch(e){console.warn('Unidades locales',e)}
+ return out}
 async function fromPopup(pop,ks,f){const ll=pop.getLatLng?.();if(!ll)return false;ks=ks||[];
  // (fichas de región/provincia/municipio: en pruebas; de momento solo el país)
  if(!UNITS_ON){const t=ks[0]?.k||'';if(t.startsWith('W:')){open(t.slice(2),f?.geometry&&/Polygon/.test(f.geometry.type)?f:null);return true}return false}
- const top=ks[0]?.k||'';const rank=k=>k.startsWith('M')?6:k.startsWith('P')||k.startsWith('I:')?4:k.startsWith('CA')?3:k.startsWith('W:')?1:0;
+ {const loc=await localES(ll,id=>!!$(id)?.checked);const rk=k=>k.startsWith('M')?6:k.startsWith('P')?4:k.startsWith('CA')?3:0;const best=loc.sort((a,b)=>rk(b.k)-rk(a.k))[0];if(best&&rk(best.k)>=rk(ks[0]?.k||'')){ks=[{k:best.k,f:best.f},...ks.filter(q=>q.k!==best.k)]}}
+ {const nu=f?.properties?.__nuts||(ks[0]?.k?.startsWith('U:')?ks[0].k.slice(2):null);if(nu){const p=f?.properties||{};openUnit('U:'+nu,{f:f?.geometry&&/Polygon/.test(f.geometry.type)?f:null,name:p.NAME_LATN||p.NUTS_NAME||p.__ga_name||p.__anambroName||nu});return true}}
+ const top=ks[0]?.k||'';const topF=ks[0]?.f||null;const rank=k=>k.startsWith('M')?6:k.startsWith('P')||k.startsWith('I:')?4:k.startsWith('CA')?3:k.startsWith('W:')?1:0;
  const on=id=>!!$(id)?.checked;let A=null,aRank=0;
  // divisiones infraestatales del mundo (capas o regiones del Análisis geográfico)
  try{const gu=$('geoGeneralUnits')?.value||'';if(f?.geometry&&/Polygon/.test(f.geometry.type)&&f.properties?.__ga_name&&/world-adm1/.test(gu)){A={f,lv:1};aRank=3.5}}catch(_){}
@@ -30944,7 +31008,7 @@ async function fromPopup(pop,ks,f){const ll=pop.getLatLng?.();if(!ll)return fals
   const p=A.f.properties||{};let name='';try{name=adminNameFromProps(p,A.lv)}catch(_){name=p.__ga_name||p.NAM_1||p.name||'Región'}
   openUnit('A'+A.lv+':'+name+'|'+(iso||''),{f:A.f,name,iso});return true}
  if(!top)return false;if(top.startsWith('W:')){open(top.slice(2),f?.geometry&&/Polygon/.test(f.geometry.type)?f:null);return true}
- openUnit(top,{f:f?.geometry&&/Polygon/.test(f.geometry.type)&&!top.startsWith('I:')?f:null});return true}
+ openUnit(top,{f:topF||(f?.geometry&&/Polygon/.test(f.geometry.type)&&!top.startsWith('I:')?f:null)});return true}
 /* «Capas visibles» no listaba los indicadores del atlas mundial (sus casillas no tienen id): se registran como capas
    virtuales para que aparezcan y se puedan quitar con su ✕ */
 function regHuman(){const A=window.__anActiveLayers;if(!A?.META)return false;for(const c of document.querySelectorAll('.worldHumanLayerCheck')){const k='__wh:'+c.dataset.humanIndicator;if(A.META[k])continue;
