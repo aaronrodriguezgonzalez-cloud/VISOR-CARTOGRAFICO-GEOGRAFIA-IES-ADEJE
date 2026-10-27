@@ -29824,7 +29824,7 @@ let mode='auto';
 // capas que no se dibujan en el mapamundi (rótulos con iconos HTML) pero no impiden usarlo
 const LABELS=new Set(['gridCheck','countryLabelsCheck','worldToponymsCheck','worldPhysicalToponymsCheck']);
 const A=()=>window.__anActiveLayers;
-const isHuman=id=>!!$(id)?.classList?.contains('worldHumanLayerCheck');
+const isHuman=id=>String(id).startsWith('__wh:')||!!$(id)?.classList?.contains('worldHumanLayerCheck');
 function pathLeaves(l,out=[]){if(!l)return out;if(l instanceof L.Path)out.push(l);else if(typeof l.eachLayer==='function')l.eachLayer(x=>pathLeaves(x,out));return out}
 function layersOf(id){let ls=[];try{ls=(A()?.layersFor(id)||[]).slice()}catch(_){}const f=window.anambroLayerStyles?.FILLERS?.[id];if(f)ls.unshift(f);return ls.filter(l=>l&&map.hasLayer(l))}
 function ids(){try{return A()?.normalizeOrder()||[]}catch(_){return []}}
@@ -30186,7 +30186,10 @@ async function onPopup(e){try{const pop=e.popup,src=pop?._source,f=src?.feature;
   if(m){const {d}=await esIndex();if(m[1].length===10){if((await SEC(m[1].slice(0,2)).catch(()=>({u:{}}))).u[m[1]])ks.push({k:'S'+m[1],l:'Sección censal'});if(d.u['M'+m[1].slice(0,5)])ks.push({k:'M'+m[1].slice(0,5),l:'Municipio · '+d.u['M'+m[1].slice(0,5)].n})}else if(d.u['M'+m[1]])ks.push({k:'M'+m[1],l:'Municipio'})}
   // por la posición, solo si hay cargada una capa de unidades territoriales: cada capa ofrece la pirámide de su unidad (y las de escala superior)
   const lv=unitLevels();if(!ks.length&&lv.length&&pop.getLatLng){const ch=await pointUnits(pop.getLatLng(),true);const i=ch.findIndex(x=>lv.some(p=>x.k.startsWith(p)));ks=i<0?[]:ch.slice(i)}}
- if(!ks)return;const auto=demoOn();if(!ks.length){if(auto&&f?.properties&&(f.geometry?.type||'').includes('Polygon')){el.insertAdjacentHTML('beforeend','<div class="anPyrBox"><small class="anPyrNo">👥 '+NOTE.X+'</small></div>');relayout(pop)}return}
+ if(!ks)return;
+ // país (fronteras, mapa político, atlas mundial): se abre directamente «Todo sobre el país», que ya lleva su pirámide
+ if(ks.length&&ks[0].k.startsWith('W:')&&window.anambroPais&&!pickOn){pop.getElement()?.querySelector('.leaflet-popup-content .anPyrBox')?.remove();window.anambroPais.open(ks[0].k.slice(2),f?.geometry&&/Polygon/.test(f.geometry.type)?f:null);return}
+ const auto=demoOn();if(!ks.length){if(auto&&f?.properties&&(f.geometry?.type||'').includes('Polygon')){el.insertAdjacentHTML('beforeend','<div class="anPyrBox"><small class="anPyrNo">👥 '+NOTE.X+'</small></div>');relayout(pop)}return}
  if(!pop.isOpen?.())return;pop.getElement()?.querySelector('.leaflet-popup-content .anPyrBox')?.remove();
  const box=document.createElement('div');box.className='anPyrBox';box.innerHTML=(ks[0].x?'<small class="anPyrNo">Los núcleos y las entidades de población solo tienen hombres y mujeres (sin edades): se muestra la pirámide de su municipio.</small>':'')+'<button type="button" class="anPyrBtn">👥 Pirámide de población'+(ks.length>1||ks[0].x?' · '+esc(ks[0].l.replace(/ \(.*$/,'')):'')+'</button><div class="anPyrMini"></div>'+(ks[0].k.startsWith('W:')&&window.anambroLugar?'<div class="anLugarAct anLugarIn"><button type="button" data-la="urb">🏙️ Red urbana del país</button><button type="button" data-la="ga">📊 Analizar este país</button><button type="button" data-la="reg">🗺️ Sus regiones</button><button type="button" data-la="card">📍 Todo sobre este país</button></div>':'');
  box.addEventListener('click',ev=>{const b=ev.target.closest('[data-la]');if(!b)return;ev.stopPropagation();const k=ks[0].k,nm=(ks[0].l||'').replace(/^País · /,'');const Lg=window.anambroLugar;const name=nm&&nm!=='País'?nm:(pop.getElement()?.querySelector('b')?.textContent||'').replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ]+/,'').trim();if(b.dataset.la==='urb'){if(window.anambroPais)window.anambroPais.cityView(k.slice(2),f?.geometry&&/Polygon/.test(f.geometry.type)?f:null);else Lg.urbanOf(k,name,f)}else if(b.dataset.la==='ga')Lg.gaFor(k,name);else if(b.dataset.la==='reg')Lg.regionsOf(k.slice(2));else if(window.anambroPais)window.anambroPais.open(k.slice(2),f?.geometry&&/Polygon/.test(f.geometry.type)?f:null);else Lg.openPlace({k,n:name,sub:'País'})});
@@ -30310,7 +30313,7 @@ async function muniData(){if(MUNI)return MUNI;MUNI=await fetch('data/urbano/muni
 const ISLAS={'Lanzarote':'35004 35010 35018 35024 35028 35029 35034','Fuerteventura':'35003 35007 35014 35015 35017 35030','Gran Canaria':'35001 35002 35005 35006 35008 35009 35011 35012 35013 35016 35019 35020 35021 35022 35023 35025 35026 35027 35031 35032 35033','La Gomera':'38002 38003 38021 38036 38049 38050','El Hierro':'38013 38048 38901','La Palma':'38007 38008 38009 38014 38024 38027 38029 38030 38031 38033 38037 38045 38047 38053'};
 async function countryFeature(iso){try{const g=await loadCountries();return (g.features||[]).find(f=>{try{return humanCountryCode(f.properties||{})===iso}catch(_){return false}})||null}catch(_){return null}}
 async function placeBounds(k){
- if(k.startsWith('W:')){const f=await countryFeature(k.slice(2));if(f)return {b:L.geoJSON(f).getBounds(),f}}
+ if(k.startsWith('W:')){const f=await countryFeature(k.slice(2));if(f)return {b:window.anambroCountryBounds?window.anambroCountryBounds(f):L.geoJSON(f).getBounds(),f}}
  const m=await muniData(),rows=m?.m||[];let sel=[];const PCA=(await fetch('data/piramides/es.json?v=2026-10-23',{cache:'force-cache'}).then(r=>r.json()).catch(()=>({}))).pca||{};
  if(k==='ES')sel=rows.filter(r=>!/^(35|38)/.test(r[0]));else if(k.startsWith('CA'))sel=rows.filter(r=>PCA[r[0].slice(0,2)]===k.slice(2));else if(k.startsWith('P'))sel=rows.filter(r=>r[0].startsWith(k.slice(1)));
  else if(k.startsWith('I:')){const set=new Set((ISLAS[k.slice(2)]||'').split(' '));sel=rows.filter(r=>k==='I:Tenerife'?r[0].startsWith('38')&&!Object.values(ISLAS).join(' ').includes(r[0]):set.has(r[0]))}
@@ -30341,7 +30344,7 @@ async function openPlace(x){const k=x.k,name=x.n;const pb=await placeBounds(k);i
   (w?'<button type="button" data-la="reg">🗺️ Sus regiones</button><button type="button" data-la="card">📍 Todo sobre este país</button>':'')+
   '<button type="button" data-la="topo">🔎 Topónimos de '+esc(name)+'</button></div>'+
   (chain.length?'<div class="anLugarEsc"><small>Cambiar de escala:</small>'+chain.map(c=>'<button type="button" data-lk="'+esc(c.k)+'" data-ln="'+esc(c.l.replace(/^[^·]*· /,''))+'">'+esc(c.l)+'</button>').join('')+'</div>':'')+'</div>';
- const at=pb?.b?.isValid?.()?pb.b.getCenter():map.getCenter();
+ const at=w&&pb?.f&&window.anambroCountryLabel?window.anambroCountryLabel(pb.f):pb?.b?.isValid?.()?pb.b.getCenter():map.getCenter();
  setTimeout(()=>{card=L.popup({maxWidth:360,className:'anLugarPop',autoPan:false}).setLatLng(at).setContent(html).openOn(map);const el=card.getElement();
   el.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();
    if(b.dataset.lk){openPlace({k:b.dataset.lk,n:b.dataset.ln,sub:b.textContent.split(' · ')[0]});return}
@@ -30575,6 +30578,12 @@ async function zones(f,i2){if(!f)return null;const tz=await tzLib(),g=f.geometry
  const offs={};for(const z of Object.keys(n)){const o=utcOff(z);if(o==null)continue;(offs[o]=offs[o]||[]).push(z)}
  return Object.keys(offs).map(Number).sort((a,b)=>a-b).map(o=>({o,z:offs[o]}))}
 const fmtOff=o=>'UTC'+(o>=0?'+':'−')+Math.floor(Math.abs(o))+(Math.abs(o)%1?':'+String(Math.round(Math.abs(o)%1*60)).padStart(2,'0'):'');
+/* Límites de un país que cruza la línea de cambio de fecha (Rusia, Fiyi, Kiribati, EE. UU. con las Aleutianas…):
+   si ocupa más de 180° de longitud, las longitudes negativas se pasan a +360 para que el encuadre no abarque el mundo entero */
+function cBounds(f){let w=180,e=-180,s=90,n=-90,w2=540,e2=-540;const go=a=>{if(typeof a[0]==='number'){const x=a[0],y=a[1],x2=x<0?x+360:x;w=Math.min(w,x);e=Math.max(e,x);w2=Math.min(w2,x2);e2=Math.max(e2,x2);s=Math.min(s,y);n=Math.max(n,y)}else a.forEach(go)};go(f.geometry.coordinates);
+ return (e-w>180&&e2-w2<e-w)?L.latLngBounds([s,w2],[n,e2]):L.latLngBounds([s,w],[n,e])}
+function cLabel(f){const p=f.properties||{},b=cBounds(f);let x=+p.LABEL_X,y=+p.LABEL_Y;if(!isFinite(x)||!isFinite(y))return b.getCenter();if(b.getEast()>180&&x<0)x+=360;return L.latLng(y,x)}
+window.anambroCountryBounds=cBounds;window.anambroCountryLabel=cLabel;
 /* ---------- Vista del país en el mapa: solo el país, el resto del mundo en gris ---------- */
 const FX={on:false,mask:null,grp:null,btn:null,undo:[],iso:null};
 function panes(){if(!map.getPane('anPaisMask')){const a=map.createPane('anPaisMask');a.style.zIndex=695;a.style.pointerEvents='none'}if(!map.getPane('anPaisPts')){const b=map.createPane('anPaisPts');b.style.zIndex=698}if(!map.getPane('anPaisTip')){const t=map.createPane('anPaisTip');t.style.zIndex=699;t.style.pointerEvents='none'}}
@@ -30583,11 +30592,14 @@ function setCheck(id,v){const c=$(id);if(!c||c.checked===v)return false;c.checke
 function clearContent(){if(FX.grp){FX.grp.clearLayers()}for(const u of FX.undo.splice(0))try{u()}catch(_){}}
 function exitFocus(){clearContent();if(FX.mask){map.removeLayer(FX.mask);FX.mask=null}if(FX.grp){map.removeLayer(FX.grp);FX.grp=null}FX.btn?.remove();FX.btn=null;FX.on=false;FX.iso=null}
 function enterFocus(c,label,fit=true){panes();try{map.closePopup()}catch(_){}if(FX.iso!==c.iso){exitFocus()}else clearContent();
- if(!FX.mask&&c.f){FX.mask=L.polygon([[[-89.9,-540],[89.9,-540],[89.9,540],[-89.9,540]],...rings(c.f.geometry)],{pane:'anPaisMask',stroke:true,color:'#2b3a4a',weight:1.6,fillColor:'#c3c7cc',fillOpacity:.93,interactive:false}).addTo(map)}
+ if(!FX.mask&&c.f){FX.mask=L.polygon([[[-89.9,-540],[89.9,-540],[89.9,540],[-89.9,540]],...rings(c.f.geometry),...rings(c.f.geometry).map(r=>r.map(([a,b])=>[a,b+360])),...rings(c.f.geometry).map(r=>r.map(([a,b])=>[a,b-360]))],{pane:'anPaisMask',stroke:true,color:'#2b3a4a',weight:1.6,fillColor:'#c3c7cc',fillOpacity:.93,interactive:false}).addTo(map)}
  if(!FX.grp)FX.grp=L.layerGroup().addTo(map);FX.on=true;FX.iso=c.iso;
  if(!FX.btn){FX.btn=document.createElement('div');FX.btn.className='anPaisFx';document.body.appendChild(FX.btn);FX.btn.addEventListener('click',e=>{if(e.target.closest('[data-fx=x]'))exitFocus();else if(e.target.closest('[data-fx=f]'))openFicha();else if(e.target.closest('[data-fx=u]')&&FX.unit){try{window.anambroUrbano?.openUnit?.(FX.unit.f,FX.unit.name)}catch(_){}}})}
  FX.btn.innerHTML=(window.anambroFlagHTML?window.anambroFlagHTML(c.iso,c.name):'')+'<span><b>'+esc(c.name)+'</b> · '+esc(label)+'</span><button type="button" data-fx="f" title="Volver a la ficha del país">📍 Ficha</button><button type="button" data-fx="x">✕ Salir de la vista del país</button>';
- if(fit&&c.f)try{map.flyToBounds(L.geoJSON(c.f).getBounds(),{duration:.8,padding:[30,30]})}catch(_){}}
+ if(fit&&c.f)try{map.flyToBounds(cBounds(c.f),{duration:.8,padding:[30,30]})}catch(_){}}
+const HI={l:null};function hiOn(f){hiOff();if(!f||typeof map==='undefined')return;panes();const g=f.geometry,mk=(dx)=>({type:'Feature',geometry:{type:g.type,coordinates:JSON.parse(JSON.stringify(g.coordinates,(k,v)=>Array.isArray(v)&&typeof v[0]==='number'?[v[0]+dx,v[1]]:v))}});
+ HI.l=L.layerGroup([0,360,-360].flatMap(dx=>[L.geoJSON(mk(dx),{pane:'anPaisTip',interactive:false,style:{color:'#fff',weight:6,opacity:.85,fill:false}}),L.geoJSON(mk(dx),{pane:'anPaisTip',interactive:false,style:{color:'#0b3d91',weight:2.6,opacity:1,fill:false}})])).addTo(map)}
+function hiOff(){if(HI.l){map.removeLayer(HI.l);HI.l=null}}
 function openFicha(){const w=$('anPaisWin');if(w&&cur&&cur.iso===FX.iso)w.classList.remove('hidden');else if(FX.iso)open(FX.iso)}
 const tip=(m,h)=>m.bindTooltip(h,{pane:'anPaisTip',direction:'top',offset:[0,-4]});
 function showCities(c){enterFocus(c,'red urbana: '+nf(c.cities?.length||0)+' aglomeraciones de más de 50.000 hab. (ONU, 2025)');
@@ -30620,12 +30632,13 @@ function showClimate(c,cls){enterFocus(c,'climas de '+(cls==='miller'?'Miller':'
  if(sel&&sel.value!==cls){const old=sel.value;sel.value=cls;sel.dispatchEvent(new Event('change',{bubbles:true}));FX.undo.push(()=>{sel.value=old;sel.dispatchEvent(new Event('change',{bubbles:true}))})}
  if(setCheck('anClimaMapCheck',true))FX.undo.push(()=>setCheck('anClimaMapCheck',false))}
 /* ---------- ventana ---------- */
-let cur=null;
+let cur=null;const HIST=[];
 // normal de cada estación: 1991–2020 si la hay; si no, 1961–1990
 const PKK=s=>s.p['9120']?'9120':s.p['6190']?'6190':Object.keys(s.p)[0];const PK=s=>s.p[PKK(s)];
 const SUB={'Southern Europe':'Europa meridional','Western Europe':'Europa occidental','Northern Europe':'Europa septentrional','Eastern Europe':'Europa oriental','Northern Africa':'África septentrional','Western Africa':'África occidental','Middle Africa':'África central','Eastern Africa':'África oriental','Southern Africa':'África austral','Western Asia':'Asia occidental','Central Asia':'Asia central','Southern Asia':'Asia meridional','South-Eastern Asia':'Sudeste asiático','Eastern Asia':'Asia oriental','Northern America':'América septentrional','Central America':'América central','Caribbean':'Caribe','South America':'América del Sur','Australia and New Zealand':'Australia y Nueva Zelanda','Melanesia':'Melanesia','Micronesia':'Micronesia','Polynesia':'Polinesia','Antarctica':'Antártida','Seven seas (open ocean)':'Islas oceánicas'};
-function win(){let w=$('anPaisWin');if(w)return w;w=document.createElement('div');w.id='anPaisWin';w.className='anPaisWin hidden';w.innerHTML='<div class="anPaisHead"><div class="anPaisTit"></div><button type="button" class="anPaisClose" title="Cerrar">×</button></div><div class="anPaisTabs"></div><div class="anPaisBody"></div><div class="anPaisFoot"></div>';document.body.appendChild(w);
- w.querySelector('.anPaisClose').onclick=()=>w.classList.add('hidden');
+function win(){let w=$('anPaisWin');if(w)return w;w=document.createElement('div');w.id='anPaisWin';w.className='anPaisWin hidden';w.innerHTML='<div class="anPaisHead"><button type="button" class="anPaisBack" title="Volver al país anterior" hidden>‹</button><div class="anPaisTit"></div><button type="button" class="anPaisClose" title="Cerrar">×</button></div><div class="anPaisTabs"></div><div class="anPaisBody"></div><div class="anPaisFoot"></div>';document.body.appendChild(w);
+ w.querySelector('.anPaisBack').onclick=()=>{const prev=HIST.pop();if(prev){cur=null;open(prev.iso,null,prev.tab,true)}};
+ w.querySelector('.anPaisClose').onclick=()=>{w.classList.add('hidden');hiOff()};
  w.addEventListener('click',e=>{const t=e.target.closest('[data-pt]');if(t){cur.tab=t.dataset.pt;render();return}const a=e.target.closest('[data-pa]');if(a)act(a.dataset.pa,a.dataset.arg)});
  const h=w.querySelector('.anPaisHead');let d=null;h.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=w.getBoundingClientRect();d={x:e.clientX-r.left,y:e.clientY-r.top};h.setPointerCapture(e.pointerId)});h.addEventListener('pointermove',e=>{if(!d)return;w.style.left=Math.max(0,e.clientX-d.x)+'px';w.style.top=Math.max(0,e.clientY-d.y)+'px';w.style.right='auto'});h.addEventListener('pointerup',()=>d=null);
  return w}
@@ -30633,15 +30646,31 @@ const TABS=[['res','📍 Resumen'],['pob','👥 Población'],['ciu','🏙️ Ciu
 function act(a,arg){const L=window.anambroLugar,k='W:'+cur.iso;
  if(a==='pyr')window.anambroPiramide?.open(k,[{k,l:cur.name}]);else if(a==='urb'){$('anPaisWin')?.classList.add('hidden');showCities(cur)}else if(a==='ga')L?.gaFor(k,cur.name);else if(a==='reg')L?.regionsOf(cur.iso);
  else if(a==='topo'){try{togglePanel('searchPanel')}catch(_){}const i=$('searchQ');if(i){i.value=cur.name;try{searchPlace()}catch(_){}}}
- else if(a==='zoom'&&cur.f){try{map.flyToBounds(L.geoJSON(cur.f).getBounds(),{duration:.8})}catch(_){}}
+ else if(a==='zoom'&&cur.f){try{map.flyToBounds(cBounds(cur.f),{duration:.8})}catch(_){}}
  else if(a==='fx'){$('anPaisWin')?.classList.add('hidden');({urb:showCities,st:showStations,hp:showPeak,tz:showZones,kp:c=>showClimate(c,'koppen'),mi:c=>showClimate(c,'miller')})[arg]?.(cur)}
  else if(a==='st'){const s=cur.st?.[+arg];if(s)window.anambroClima?.openStation(s,PKK(s))}
  else if(a==='city'){const r=cur.cities?.[+arg];if(r)window.anambroUrbano?.openCity?.(r)}
- else if(a==='ind'){const c=document.querySelector('.worldHumanLayerCheck[data-human-indicator="'+arg+'"]');if(c&&!c.checked){c.checked=true;c.dispatchEvent(new Event('change',{bubbles:true}))}}}
+ else if(a==='ind'){// interruptor: un solo indicador del atlas mundial a la vez desde la ficha; pulsar el mismo lo quita
+  const c=HC(arg);if(!c)return;const was=c.checked;
+  for(const o of document.querySelectorAll('.worldHumanLayerCheck'))if(o.checked&&o!==c){o.checked=false;o.dispatchEvent(new Event('change',{bubbles:true}))}
+  c.checked=!was;c.dispatchEvent(new Event('change',{bubbles:true}));FI=c.checked?{iso:cur.iso,name:cur.name,code:arg}:null;setTimeout(render,50);setTimeout(markLegend,600)}}
+/* (a) En la leyenda del indicador puesto desde la ficha se marca el tramo en el que cae el país (mismo año que el mapa) */
+let FI=null,legBusy=false;const numES=t=>{t=String(t).trim();if(/[a-zñ]/i.test(t.replace(/^(menos de|más de)\s*/i,'')))return NaN;return +t.replace(/\s/g,'').replace(/\./g,'').replace(',','.')};
+async function markLegend(){const lg=$('dynamicLegend');if(!FI||!lg||legBusy)return;const c=HC(FI.code);if(!c?.checked){FI=null;return}const meta=indMeta(FI.code);if(!meta)return;
+ const t=[...lg.querySelectorAll('b')].find(b=>b.textContent.startsWith(meta.name+' · '));if(!t)return;const blk=t.parentElement;if(blk.querySelector('.anPaisLegNote')&&blk.dataset.anIso===FI.iso)return;
+ const y=(/· (\d{4})/.exec(t.textContent)||[])[1];if(!y)return;legBusy=true;const fi=FI;
+ try{const j=await getJ('https://api.worldbank.org/v2/country/'+fi.iso+'/indicator/'+fi.code+'?format=json&date='+y);const v=(j?.[1]||[])[0]?.value;if(FI!==fi)return;
+  blk.querySelectorAll('.anPaisLegMark').forEach(x=>x.classList.remove('anPaisLegMark'));blk.querySelector('.anPaisLegNote')?.remove();blk.dataset.anIso=fi.iso;
+  const rows=[...blk.querySelectorAll('div')].filter(d=>d.querySelector(':scope > .sw')&&!/Sin datos/.test(d.textContent));let hit=null;
+  if(v!=null)rows.forEach((d,i)=>{const tx=d.textContent.trim();let lo=-Infinity,hi=Infinity;let m;if((m=/^Menos de (.+)$/i.exec(tx)))hi=numES(m[1]);else if((m=/^Más de (.+)$/i.exec(tx)))lo=numES(m[1]);else{const p=tx.split(' – ');lo=numES(p[0]);hi=numES(p[1])}if(isNaN(lo)||isNaN(hi))return;if(v>=lo&&v<hi)hit=i});
+  if(hit!=null)rows[hit].classList.add('anPaisLegMark');
+  const fmt=meta.compact?big(v):nf(v,meta.dec??1);(rows[rows.length-1]?.parentElement||blk).insertAdjacentHTML('beforeend','<div class="anPaisLegNote">▸ <b>'+esc(fi.name)+'</b>: '+(v==null?'sin dato en '+y:fmt+' '+esc(meta.unit||'')+' ('+y+')'+(hit!=null?' · tramo '+(hit+1)+' de '+rows.length:''))+'</div>')}catch(_){}finally{legBusy=false}}
+try{const mo=new MutationObserver(()=>{if(FI)setTimeout(markLegend,80)});const tryObs=(n=0)=>{const lg=$('dynamicLegend');if(lg)mo.observe(lg,{childList:true,subtree:true});else if(n<60)setTimeout(()=>tryObs(n+1),700)};tryObs()}catch(_){}
+const HC=code=>document.querySelector('.worldHumanLayerCheck[data-human-indicator="'+code+'"]');
 const MB=(a,t)=>' <button type="button" class="anPaisMini anPaisMap" data-pa="fx" data-arg="'+a+'" title="Verlo en el mapa (solo este país, el resto en gris)">🗺️'+(t?' '+t:'')+'</button>';
 function row(l,v,s){return '<tr><td>'+l+'</td><td><b>'+v+'</b>'+(s?'<small> '+s+'</small>':'')+'</td></tr>'}
 function cmpRow(code,meta){if(WB_ALT[code])meta=Object.assign({},meta,WB_ALT[code][1]);const x=cur.wb?.[wbCode(code)];if(!x?.v)return '';const dec=meta?.dec??1,fmt=v=>meta?.compact?big(v):nf(v,dec);
- return '<tr><td>'+esc(meta?.name||code)+'</td><td><b>'+fmt(x.v.v)+'</b> <small>'+esc(meta?.unit||'')+' · '+x.v.y+'</small></td><td><small>'+(x.w?'mundo: '+fmt(x.w.v):'')+'</small></td><td><button type="button" class="anPaisMini" data-pa="ind" data-arg="'+esc(code)+'" title="Ver en el mapa (atlas mundial)">🗺️</button></td></tr>'}
+ return '<tr><td>'+esc(meta?.name||code)+'</td><td><b>'+fmt(x.v.v)+'</b> <small>'+esc(meta?.unit||'')+' · '+x.v.y+'</small></td><td><small>'+(x.w?'mundo: '+fmt(x.w.v):'')+'</small></td><td><button type="button" class="anPaisMini'+(HC(code)?.checked?' on':'')+'" data-pa="ind" data-arg="'+esc(code)+'" title="'+(HC(code)?.checked?'Quitar del mapa':'Ver en el mapamundi (atlas mundial); sustituye al anterior')+'">'+(HC(code)?.checked?'✓ 🗺️':'🗺️')+'</button></td></tr>'}
 function indMeta(code){try{return WORLD_HUMAN_INDICATORS[code]||null}catch(_){return null}}
 function catOf(code){const c=document.querySelector('.worldHumanLayerCheck[data-human-indicator="'+code+'"]');return c?.closest('details')?.querySelector(':scope > summary')?.textContent.replace(/^\W+/,'').trim()||'Otros'}
 function allCodes(){return [...document.querySelectorAll('.worldHumanLayerCheck')].map(c=>c.dataset.humanIndicator).filter(c=>c&&c!=='UNDP_HDI')}
@@ -30674,9 +30703,10 @@ function render(){const w=win(),c=cur;w.querySelector('.anPaisTit').innerHTML=(w
  else if(c.tab==='ter'){h='<table class="anPaisT">'+row('Continente',esc(c.cont||'—'))+row('Subregión',esc(c.sub||'—'))+row('Superficie',c.wb?.['AG.SRF.TOTL.K2']?.v?nf(c.wb['AG.SRF.TOTL.K2'].v.v)+' km²':'—')+row('Punto más alto',c.wd?.hp?esc(c.wd.hp)+(c.wd.hpe!=null?' · '+nf(c.wd.hpe)+' m':'')+(c.wd.ll?MB('hp','dónde está'):''):'—')+row('Husos horarios',c.tz?.length?c.tz.map(x=>esc(fmtOff(x.o)+' ('+x.z.join(', ')+')')).join('<br>')+MB('tz','en el mapa'):'—')+'</table>'+
   '<div class="anPaisBtns"><button data-pa="reg">🗺️ Sus regiones en el Análisis geográfico (superficie, relieve, clima…)</button><button data-pa="ga">📊 Comparar el país con otros</button><button data-pa="topo">🔎 Buscar topónimos</button><button data-pa="zoom">🔍 Ver en el mapa</button></div>';src='Natural Earth (límites) · Wikidata (CC0) · Banco Mundial.'}
  B.innerHTML=h;F.innerHTML='<small><b>Fuentes:</b> '+src+'</small>'}
-async function open(iso,f){iso=String(iso||'').toUpperCase();const w=win();w.classList.remove('hidden');
- const name=esName(iso,iso);cur={iso,name,tab:'res',f:f||null};render();const me=cur;
- if(!me.f)me.f=await countryFeature(iso);const p=me.f?.properties||{};me.cont=({Africa:'África',Asia:'Asia',Europe:'Europa','North America':'América del Norte','South America':'América del Sur',Oceania:'Oceanía',Antarctica:'Antártida','Seven seas (open ocean)':'Islas oceánicas'})[p.CONTINENT]||p.CONTINENT||'';me.sub=SUB[p.SUBREGION]||p.SUBREGION||'';
+async function open(iso,f,tab,back){iso=String(iso||'').toUpperCase();const w=win();const wasOpen=!w.classList.contains('hidden');w.classList.remove('hidden');if(!wasOpen)delete w.dataset.shown;if(cur&&cur.iso===iso&&wasOpen)return;
+ if(!back&&cur&&cur.iso!==iso){HIST.push({iso:cur.iso,tab:cur.tab});if(HIST.length>20)HIST.shift()}const bk=w.querySelector('.anPaisBack');if(bk){bk.hidden=!HIST.length;bk.title=HIST.length?'Volver a '+esName(HIST[HIST.length-1].iso,HIST[HIST.length-1].iso):''}
+ const name=esName(iso,iso),keep=cur&&!w.classList.contains('hidden')&&w.dataset.shown?cur.tab:'res';w.dataset.shown='1';cur={iso,name,tab:tab||keep,f:f||null};render();const me=cur;
+ if(!me.f)me.f=await countryFeature(iso);if(cur===me)hiOn(me.f);if(FI&&cur===me){FI={iso,name:me.name,code:FI.code};setTimeout(markLegend,300)}const p=me.f?.properties||{};me.cont=({Africa:'África',Asia:'Asia',Europe:'Europa','North America':'América del Norte','South America':'América del Sur',Oceania:'Oceanía',Antarctica:'Antártida','Seven seas (open ocean)':'Islas oceánicas'})[p.CONTINENT]||p.CONTINENT||'';me.sub=SUB[p.SUBREGION]||p.SUBREGION||'';
  const redraw=()=>{if(cur===me)render()};redraw();
  const tasks=[
   wb(iso,['SP.POP.TOTL','EN.POP.DNST','AG.SRF.TOTL.K2',...allCodes()].filter((v,i,a)=>a.indexOf(v)===i)).then(x=>{me.wb=x;me.wbDone=1;redraw()}),
@@ -30689,6 +30719,13 @@ async function open(iso,f){iso=String(iso||'').toUpperCase();const w=win();w.cla
   (async()=>{if(!me.f)return;try{me.kp=await climates(me.f,'koppen');me.mi=await climates(me.f,'miller');redraw()}catch(e){console.warn(e)}})()];
  await Promise.allSettled(tasks)}
 async function cityView(iso,f){iso=String(iso).toUpperCase();const c={iso,name:esName(iso,iso),f:f||await countryFeature(iso)};if(!c.f)return false;const d=await getJ('data/urbano/ciudades_mundo.json');c.cities=d.c.filter(r=>r[2]===iso).sort((a,b)=>b[6][15]-a[6][15]);showCities(c);return true}
+/* «Capas visibles» no listaba los indicadores del atlas mundial (sus casillas no tienen id): se registran como capas
+   virtuales para que aparezcan y se puedan quitar con su ✕ */
+function regHuman(){const A=window.__anActiveLayers;if(!A?.META)return false;for(const c of document.querySelectorAll('.worldHumanLayerCheck')){const k='__wh:'+c.dataset.humanIndicator;if(A.META[k])continue;
+  A.META[k]={virtual:true,p:45,name:()=>'Atlas mundial · '+(c.closest('label')?.textContent.replace(/\s+/g,' ').trim()||c.dataset.humanIndicator),on:()=>c.checked,off:()=>{c.checked=false;c.dispatchEvent(new Event('change',{bubbles:true}))}}}return true}
+function bootHuman(n=0){if(!regHuman()){if(n<60)setTimeout(()=>bootHuman(n+1),700);return}
+ document.addEventListener('change',e=>{if(e.target?.classList?.contains('worldHumanLayerCheck')){regHuman();setTimeout(()=>{try{window.__anActiveLayers.sync()}catch(_){}if(cur&&!$('anPaisWin')?.classList.contains('hidden')&&cur.tab!=='res')render()},60)}},true)}
+bootHuman();
 window.anambroPais={open,cityView,get fxCount(){return FX.grp?FX.grp.getLayers().length:0},get fxOn(){return !!FX.mask},exit:exitFocus,show:(what)=>({urb:showCities,st:showStations,hp:showPeak,tz:showZones})[what]?.(cur),get cur(){return cur}};
 })();
 
@@ -31037,6 +31074,11 @@ html body .panel:not(.hidden){animation:anPop .28s var(--an-ease)}
 .anPaisPeak b{background:rgba(255,255,255,.92);padding:1px 6px;border-radius:4px;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,.25)}
 .anPaisMap{margin-left:4px;font-size:11.5px}
 .anPaisTzK{display:inline-block;width:11px;height:11px;border-radius:2px;margin:0 3px 0 6px;vertical-align:-1px;box-shadow:0 0 0 1px rgba(255,255,255,.7)}
+.anPaisMini.on{background:#123a5c;color:#fff;border-color:#123a5c}
+.anPaisBack{background:rgba(255,255,255,.15);border:0;color:#fff;font-size:24px;line-height:1;width:30px;height:30px;border-radius:50%;cursor:pointer;flex:none}
+.anPaisBack:hover{background:rgba(255,255,255,.3)}
+.anPaisLegMark{background:#fff3c4!important;outline:2px solid #0b3d91;border-radius:3px;font-weight:700}
+.anPaisLegNote{margin-top:4px;padding:4px 6px;background:#eef4fb;border-left:3px solid #0b3d91;border-radius:3px;font-size:11px}
 </style>
 </body>
 </html>
