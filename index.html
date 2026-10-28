@@ -9588,7 +9588,7 @@ function startGlobeProfile(){globeMeasureMode=null;globeProfileMode=true;globePr
 async function finishGlobeProfile(){if(globeProfilePts.length<2){alert('Marca al menos dos puntos para generar el perfil.');return;}globeProfileMode=false;redrawGlobeProfile();lastProfileSource='globe';lastProfileCountries=[];await finishProfileFromPoints(globeProfilePts.slice());}
 function clearGlobeProfile(reset=true){if(globeViewer)for(const e of globeProfileEntities)globeViewer.entities.remove(e);globeProfileEntities=[];globeProfileHandles=[];globeProfileLine=null;globeProfilePts=[];if(reset)globeProfileMode=false;if(globeViewer)globeViewer.scene.requestRender();}
 function countryName(p){return p.ADMIN||p.NAME_ES||p.NAME_EN||p.NAME||p.SOVEREIGNT||p.BRK_NAME||'Territorio sin identificar';}
-async function loadCountries(){if(countriesData)return countriesData;if(countriesLoading)return countriesLoading;countriesLoading=(async()=>{const urls=['https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_0_countries.geojson','https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson'];let j=null;for(const u of urls){try{const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(r.ok){j=await r.json();break;}}catch(e){typeof __anLog=='function'&&__anLog(e,'L9397');}}if(!j)throw new Error('No se pudo cargar Natural Earth 50m');countriesData=j;return j;})().finally(()=>countriesLoading=null);return countriesLoading;}
+async function loadCountries(){if(countriesData)return countriesData;if(countriesLoading)return countriesLoading;countriesLoading=(async()=>{const urls=['data/admin/paises_50m.json?v=2026-10-28','https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_0_countries.geojson','https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson'];let j=null;for(const u of urls){try{const r=await fetch(u,{mode:'cors',cache:'force-cache'});if(r.ok){j=await r.json();break;}}catch(e){typeof __anLog=='function'&&__anLog(e,'L9397');}}if(!j)throw new Error('No se pudo cargar Natural Earth 50m');countriesData=j;return j;})().finally(()=>countriesLoading=null);return countriesLoading;}
 function countryAtFeature(lat,lon){if(!countriesData)return null;return countriesData.features.find(f=>featureContainsPoint(f,lat,lon))||null;}
 
 async function loadWorldToponyms(){
@@ -9618,6 +9618,7 @@ async function loadCountryBorders(){
  if(countryBordersLoading)return countryBordersLoading;
  countryBordersLoading=(async()=>{
   const urls=[
+   'data/admin/fronteras_10m.json?v=2026-10-28',
    'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_admin_0_boundary_lines_land.geojson',
    'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_boundary_lines_land.geojson'
   ];
@@ -28038,7 +28039,7 @@ function legend(show){
  const order=st.cls==='miller'?MORDER:KORDER,cols=st.cls==='miller'?MCOL:KCOL,stats=meta?.stats?.[st.cls+'_'+st.pk]||{};
  el.innerHTML='<b>'+(st.cls==='miller'?'Miller':'Köppen-Geiger')+' · '+PER[st.pk]+'</b><br>'+order.filter(k=>!meta||stats[k]).map(k=>'<span class="it" title="'+esc(st.cls==='miller'?MDESC[k]:KNAME[k])+'"><span class="sw" style="border-radius:2px;background:'+cols[k]+'"></span>'+k+' · '+esc(st.cls==='miller'?MDESC[k].split(':')[0]:KNAME[k])+'</span>').join('<br>')+
  (st.cls==='miller'?'<small class="anClimaSrcNote"><b>G (montaña)</b>: en el mapa se pintan las montañas intertropicales (T media anual &lt; 21 °C entre los trópicos). Fuera de los trópicos la malla no incluye la altitud: al pulsar en el mapa, ANAMBRO lo valora con la altitud del punto (≥ 1.500 m).</small>':'')+
- '<small class="anClimaSrcNote">'+(st.cls==='miller'?'Miller: grupos térmicos de Miller y subtipos según la posición en el continente (fachada occidental u oriental a menos de 600 km del océano abierto, hacia el oeste o el este en un sector de ±45°), los vientos dominantes y el régimen (meses áridos de Gaussen, amplitud). Mismas reglas que las fichas de las estaciones. ':'')+'Cálculo de ANAMBRO con las normales de <a href="https://www.climatologylab.org/terraclimate.html" target="_blank" rel="noopener">TerraClimate</a> (Abatzoglou et al., 2018; dominio público) agregadas a 1/6° (≈ 18 km). Son datos interpolados: a escala insular (Canarias) usa mejor las estaciones de AEMET.</small>';
+ '<small class="anClimaSrcNote">'+(st.cls==='miller'?'Miller: grupos térmicos de Miller y subtipos según la posición en el continente (fachada occidental u oriental a menos de 600 km del océano abierto, hacia el oeste o el este en un sector de ±45°), los vientos dominantes y el régimen (meses áridos de Gaussen, amplitud). Mismas reglas que las fichas de las estaciones. ':'')+'Cálculo de ANAMBRO con las normales de <a href="https://www.climatologylab.org/terraclimate.html" target="_blank" rel="noopener">TerraClimate</a> (Abatzoglou et al., 2018; dominio público) agregadas a 1/6° (≈ 18 km). Son datos interpolados a ≈ 18 km: <b>en Canarias no sirven para distinguir costa, medianías y cumbre</b>; allí usa el Köppen oficial del <b>Atlas Climático de Canarias</b> (≈ 200 m, en la misma categoría de Clima) y las estaciones.</small>';
  el.style.display='block';
 }
 let globeLayer=null;
@@ -28058,6 +28059,8 @@ function pointExtra(lat,lon,altText){
  let h='<hr><b>🗺️ Clima de '+(st.cls==='miller'?'Miller':'Köppen-Geiger')+' · '+PER[st.pk]+':</b> <span style="display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;background:'+(st.cls==='miller'?MCOL:KCOL)[k]+';border:1px solid #0004"></span> <b>'+k+'</b> · '+esc(st.cls==='miller'?MDESC[k]:KNAME[k]);
  if(st.cls==='miller'){const z=parseInt(String(altText||'').replace(/\./g,''),10);if(Number.isFinite(z)&&z>=1500&&k!=='E')h+='<br><small>A '+z.toLocaleString('es-ES')+' m: por su altitud, Miller lo situaría en <b>G · clima de montaña</b> (criterio operativo de ANAMBRO: ≥ 1.500 m).</small>'}
  h+='<br><small style="color:#556">Cálculo de ANAMBRO · TerraClimate (malla de ≈ 18 km, datos interpolados).</small>';
+ // en Canarias manda el Köppen oficial del Atlas Climático (≈200 m): la malla de 18 km no distingue costa y cumbre
+ try{const A=window.anambroAtlasCanarias,inCan=lat>27.5&&lat<29.6&&lon>-18.4&&lon<-13.3;if(inCan&&st.cls!=='miller'&&A){if(A.isReady?.()){const pi=A.pointInfo(lat,lon);if(pi?.code)h+='<br><b>Köppen oficial (Atlas Climático de Canarias, 1991–2020): '+pi.code+'</b>'+(pi.code!==k?' <small>· prevalece sobre el cálculo de 18 km, que a escala insular no es fiable</small>':'')}else A.ensure?.()}}catch(_){}
  try{const db=window.anambroClima?.db;if(db){let best=null,bd=1e9;const cl=Math.cos(lat*Math.PI/180);for(const s of db.s){if(!s.p['9120'])continue;const dx=(s.lo-lon)*cl,dy=s.la-lat,d=dx*dx+dy*dy;if(d<bd){bd=d;best=s}}if(best){const km=Math.sqrt(bd)*111.2;if(km<300)h+='<br><small>Estación con normales más próxima: <a href="#" onclick="window.anambroClima.openStation(window.anambroClima.db.s['+best._i+'],\'9120\');return false">'+esc(best.n)+'</a> ('+Math.round(km)+' km)</small>'}}}catch(_){}
  return h;
 }
@@ -30724,9 +30727,12 @@ let clipT=null;const clipSoon=()=>{clearTimeout(clipT);clipT=setTimeout(clipAppl
 let clipHooked=false;function clipHook(){if(clipHooked||typeof map==='undefined')return;clipHooked=true;
  map.on('zoomstart',()=>{for(const el of CLIP.els)el.style.visibility='hidden'});map.on('zoomend viewreset',()=>{if(FX.c)clipApply();else clipClear()});map.on('layeradd',()=>{if(FX.c)clipSoon()});
  document.addEventListener('change',e=>{if(FX.c&&e.target?.id==='anUrb_world')setTimeout(clipApply,300)},true)}
-const EXCL={kp:['mi'],mi:['kp'],vega:['vegp'],vegp:['vega']};
+const EXCL={kp:['mi'],mi:['kp'],vega:['vegp'],vegp:['vega'],clof:['atl'],atl:['clof']};
 async function toggleFx(k,c){c=c||cur;if(!c)return;if(FX.key===c.key&&FX.items.has(k)){dropItem(k);bar();refreshFicha();setTimeout(clipApply,100);return}
- const def=FXDEF[k];if(!def)return;ensureFocus(c,def.fit!==false);for(const o of EXCL[k]||[])dropItem(o);
+ const def=FXDEF[k];if(!def)return;
+ // contorno detallado (1:10 M) solo al usar «Ver en el mapa»
+ if(c.kind==='W'&&!c.fHi&&c.f){try{c.fHi=await hires(c.f);if(cur===c)hiOn(c.fHi)}catch(_){}}
+ ensureFocus(c,def.fit!==false);for(const o of EXCL[k]||[])dropItem(o);
  const it={grp:L.layerGroup().addTo(map),undo:[],label:def.label(c)};FX.items.set(k,it);bar();refreshFicha();
  clipHook();try{await def.on(c,it)}catch(e){console.warn('Vista del país',k,e)}setTimeout(clipApply,150);setTimeout(clipApply,1200);setTimeout(clipApply,4000);if(FX.items.get(k)===it){it.label=def.label(c,it);bar()}}
 const isFx=k=>!!(cur&&FX.key===cur.key&&FX.items.has(k));
@@ -30741,7 +30747,7 @@ function climaOn(cls){return (c,it)=>{const sel=$('anClimaMapCls');if(sel&&sel.v
 function citiesOn(c,it){const L0=(c.cities||[]).slice().reverse(),mx=Math.max(...L0.map(r=>r[6][15]),1);
  for(const r of L0){const v=r[6][15],rad=Math.max(3,Math.sqrt(v/mx)*30);const col=v>=1e4?'#67000d':v>=5e3?'#a50f15':v>=1e3?'#de2d26':v>=500?'#fb6a4a':v>=300?'#fc9272':'#fcbba1';
   const m=L.circleMarker([r[4],r[5]],{pane:'anPaisPts',radius:rad,color:r[3]?'#000':'#5a2a1a',weight:r[3]?2.4:.8,fillColor:col,fillOpacity:.85});tip(m,(r[3]?'⭐ ':'')+'<b>'+esc(window.anambroUrbano?.nice?.(r[1])||r[1])+'</b><br>'+big(v*1000)+' hab. (2025)');m.on('click',()=>window.anambroUrbano?.openCity?.(r));it.grp.addLayer(m)}}
-function stationsOn(c,it){const CM=window.anambroClimaMap;for(const s of c.st||[]){const k=PK(s)._k?.code;const m=L.circleMarker([s.la??s.lat,s.lo??s.lon],{pane:'anPaisPts',radius:4,color:'#1d2733',weight:.6,fillColor:(CM?.KCOL||{})[k]||'#999',fillOpacity:.95});tip(m,'<b>'+esc(s.n)+'</b><br>'+esc(k||'')+' · '+nf(s.z)+' m');m.on('click',()=>window.anambroClima?.openStation(s,PKK(s)));it.grp.addLayer(m)}}
+async function stationsOn(c,it){await ensureSt(c);const CM=window.anambroClimaMap;for(const s of c.st||[]){const k=PK(s)._k?.code;const m=L.circleMarker([s.la??s.lat,s.lo??s.lon],{pane:'anPaisPts',radius:4,color:'#1d2733',weight:.6,fillColor:(CM?.KCOL||{})[k]||'#999',fillOpacity:.95});tip(m,'<b>'+esc(s.n)+'</b><br>'+esc(k||'')+' · '+nf(s.z)+' m');m.on('click',()=>window.anambroClima?.openStation(s,PKK(s)));it.grp.addLayer(m)}}
 function peakOn(c,it){const W=c.wd;if(!W?.ll)return;const ic=L.divIcon({className:'anPaisPeak',html:'<span>▲</span><b>'+esc(W.hp)+(W.hpe!=null?' · '+nf(W.hpe)+' m':'')+'</b>',iconSize:null,iconAnchor:[9,16]});it.grp.addLayer(L.marker(W.ll,{icon:ic,pane:'anPaisPts'}));try{map.flyTo(W.ll,Math.max(map.getZoom(),8),{duration:1})}catch(_){}}
 const TZPAL=['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#1f78b4','#b2df8a','#fb9a99','#cab2d6','#fdbf6f'];
 // husos del país: cada desfase (hora oficial de hoy) con un color propio; fuera del país lo tapa la máscara gris
@@ -30771,7 +30777,7 @@ const LAYERS={
  geo:{can:['canaryGeologyCheck'],esp:['spainGeologyCheck'],world:['worldGeologyCheck']},
  vega:{can:['vegetationCheck'],esp:['mfeCheck']},
  vegp:{can:['vegetationPotentialCanaryCheck'],esp:['mitecoPotentialCheck']},
- clof:{can:['canaryClimateCheck'],esp:['spainClimateCheck']},
+ clof:{can:['anAtlasCheck'],esp:['spainClimateCheck']},
  atl:{can:['anAtlasCheck']},
  bio:{world:['worldBiomesCheck']},
  wdpa:{can:['enpMaster'],esp:['sg_ep_pn','sg_ep_pnat','sg_ep_n2000'],world:['anWdpaCheck']},
@@ -30785,8 +30791,10 @@ const FXDEF={
  geo:{label:c=>({can:'🪨 geología de Canarias',esp:'🪨 geología GEODE (IGME)'})[scopeOf(c)]||'🪨 geología',on:layersOn('geo')},
  vega:{label:()=>'🌿 vegetación actual',on:layersOn('vega')},
  vegp:{label:()=>'🌳 vegetación potencial',on:layersOn('vegp')},
- clof:{label:()=>'🌦️ climas (Köppen oficial)',on:layersOn('clof')},
- atl:{label:()=>'🌡️ Atlas climático',on:layersOn('atl')},
+ clof:{label:c=>scopeOf(c)==='can'||scopeOf(c)==='esp+can'?'🌦️ Köppen oficial (Atlas Climático de Canarias)':'🌦️ Köppen-Geiger (mapa mundial)',on:(c,it)=>{layersOn('clof')(c,it);
+   // en Canarias, el Atlas con su variable Köppen
+   if(it.ids?.includes('anAtlasCheck')){const sel=$('anAtlasVar');if(sel&&sel.value!=='kp'){const old=sel.value;sel.value='kp';sel.dispatchEvent(new Event('change',{bubbles:true}));it.undo.push(()=>{sel.value=old;sel.dispatchEvent(new Event('change',{bubbles:true}))})}}}},
+ atl:{label:()=>'🌡️ Atlas climático',on:(c,it)=>{layersOn('atl')(c,it);const sel=$('anAtlasVar');if(sel&&sel.value==='kp'){sel.value='tm';sel.dispatchEvent(new Event('change',{bubbles:true}))}}},
  kp:{label:()=>'🌦️ climas de Köppen',on:climaOn('koppen')},
  mi:{label:()=>'🌡️ climas de Miller',on:climaOn('miller')},
  bio:{label:()=>'🌳 biomas',on:layersOn('bio')},
@@ -30800,13 +30808,18 @@ const FXDEF={
 // compatibilidad con llamadas anteriores
 const showCities=c=>(FX.key===c.key&&FX.items.has('urb'))?null:toggleFx('urb',c),showStations=c=>toggleFx('st',c),showPeak=c=>toggleFx('hp',c),showZones=c=>toggleFx('tz',c);
 function mapsFor(c){const sc=scopeOf(c),out=[['hyps','🏔️ Relieve'],['rios','💧 Ríos'],['geo','🪨 Geología']];
- if(sc!=='world')out.push(['vega','🌿 Vegetación actual'],['vegp','🌳 Vegetación potencial'],['clof','🌦️ Climas (Köppen oficial)']);
- if(sc==='can'||sc==='esp+can')out.push(['atl','🌡️ Atlas climático de Canarias']);
+ if(sc!=='world')out.push(['vega','🌿 Vegetación actual'],['vegp','🌳 Vegetación potencial'],['clof',sc==='esp'?'🌦️ Köppen (mapa mundial)':'🌦️ Köppen oficial (Atlas)']);
+ if(sc==='can'||sc==='esp+can')out.push(['atl','🌡️ Atlas climático (temperatura, lluvia…)']);
  if(sc==='world')out.push(['kp','🌦️ Köppen'],['bio','🌳 Biomas']);
  out.push(['mi','🌡️ Miller'],['wdpa',sc==='world'?'🛡️ Áreas protegidas':'🛡️ Espacios protegidos'],['volc','🌋 Volcanes'],['sis','〰️ Terremotos'],['urb','🏙️ Ciudades'],['st','📡 Estaciones'],['hp','▲ Punto más alto'],['tz','🕐 Husos']);
  return out.filter(([k])=>{if(k==='hp')return !!(c.wd?.ll||c.peak?.ll);if(LAYERS[k]){const ids=idsFor(k,c);return !!(ids&&ids.some(id=>$(id)))}return true})}
 function mapsBlock(c){return '<div class="anPaisMaps"><b>🗺️ Ver en el mapa</b><small> (se pueden combinar; lo de '+esc(c.name)+' sale solo de '+esc(c.name)+')</small><div>'+mapsFor(c).map(([k,l])=>'<button type="button" data-pa="fx" data-arg="'+k+'" class="'+(isFx(k)?'on':'')+'">'+l+'</button>').join('')+'</div></div>'}
 const FXIDS={kp:'anClimaMapCheck',mi:'anClimaMapCheck'};
+// carga diferida: estaciones (solo al abrir Clima o «Estaciones» en el mapa) e IDH (solo al abrir Economía)
+function ensureSt(c){if(c.st||c.stP)return c.stP;c.stP=(async()=>{try{const db=await window.anambroClima.load(climaZones(c));
+  if(c.kind==='W'){const i2=iso2(c.iso);c.st=db.s.filter(s=>s.c===i2&&PK(s))}else{const g=c.f?.geometry,b=g&&bboxG(g);c.st=g?db.s.filter(s=>PK(s)&&bboxHit(b,s.lo,s.la)&&inside(g,s.lo,s.la)):[]}
+  c.st.sort((a,b)=>a.n.localeCompare(b.n,'es'))}catch(_){c.st=[]}if(cur===c)render()})();return c.stP}
+function ensureHdi(c){if(c.hdi!==undefined||c.hdiP)return;c.hdiP=hdi(c.iso).then(x=>{c.hdi=x||null;if(cur===c)render()}).catch(()=>{c.hdi=null})}
 /* ---------- ventana ---------- */
 let cur=null;const HIST=[];
 // normal de cada estación: 1991–2020 si la hay; si no, 1961–1990
@@ -30869,7 +30882,7 @@ function render(){const w=win(),c=cur;placeWin(w);if(c.kind!=='W')return renderU
    row('Punto más alto',W?.hp?esc(W.hp)+(W.hpe!=null?' · '+nf(W.hpe)+' m':'')+(W.ll?MB('hp','dónde está'):''):(c.wdDone?'—':'…'))+
    row('Husos horarios (hora oficial hoy)',c.tz?(c.tz.length?c.tz.map(x=>'<span title="'+esc(x.z.join(', '))+'">'+fmtOff(x.o)+'</span>').join(' · ')+'<small> · '+c.tz.reduce((a,x)=>a+x.z.length,0)+' zona(s) IANA</small>'+MB('tz','en el mapa'):'—'):'…')+
    ['Idiomas oficiales','Moneda','Forma de gobierno','Jefe del Estado','Jefe del Gobierno','Gentilicio'].map(k=>wk[k]?row(k,esc(wk[k])):'').join('')+
-   row('Ciudades de más de 50.000 hab.',c.cities?nf(c.cities.length)+(c.cities.length?MB('urb','red urbana'):''):'…')+row('Estaciones climáticas',c.st?nf(c.st.length)+(c.st.length?MB('st','solo las suyas'):''):'…')+'</table>'+P(c.wdDone&&c.wbDone&&c.wikiDone)+(c.wiki?.url?'<small class="anPaisNote">Ficha de Wikipedia: <a href="'+esc(c.wiki.url)+'" target="_blank" rel="noopener">'+esc(c.wiki.title)+'</a></small>':'')+
+   row('Ciudades de más de 50.000 hab.',c.cities?nf(c.cities.length)+(c.cities.length?MB('urb','red urbana'):''):'…')+row('Estaciones climáticas',(c.st||c.stN!=null)?nf(c.st?c.st.length:c.stN)+((c.st?c.st.length:c.stN)?MB('st','solo las suyas'):''):'…')+'</table>'+P(c.wdDone&&c.wbDone&&c.wikiDone)+(c.wiki?.url?'<small class="anPaisNote">Ficha de Wikipedia: <a href="'+esc(c.wiki.url)+'" target="_blank" rel="noopener">'+esc(c.wiki.title)+'</a></small>':'')+
    '<div class="anPaisBtns"><button data-pa="zoom">🔍 Ver el país en el mapa</button><button data-pa="pyr">👥 Pirámide</button><button data-pa="urb">🏙️ Red urbana</button><button data-pa="ga">📊 Analizar</button><button data-pa="reg">🗺️ Sus regiones</button><button data-pa="topo">🔎 Topónimos</button></div>';
   src='Banco Mundial (WDI): población, superficie, densidad · Wikipedia en español (la misma ficha del mapa político): capital, idiomas, moneda, gobierno · husos: tz-lookup (timezone-boundary-builder, ODbL) consultada dentro del país, desfase vigente hoy · punto más alto: Wikidata (CC0) · ONU: ciudades · ANAMBRO: estaciones.'}
  else if(c.tab==='pob'){const PY=window.anambroPiramide;h='<div class="anPaisPyr"></div><div class="anPaisBtns"><button data-pa="pyr">👥 Ampliar y comparar la pirámide</button></div><table class="anPaisT anPaisInd">'+
@@ -30879,11 +30892,11 @@ function render(){const w=win(),c=cur;placeWin(w);if(c.kind!=='W')return renderU
  else if(c.tab==='ciu'){const L=c.cities||[];h=L.length?'<p class="anPaisNote">'+nf(L.length)+' aglomeraciones urbanas de más de 50.000 habitantes; en ellas viven '+big(L.reduce((a,r)=>a+r[6][15]*1000,0))+' de personas (2025).</p><table class="anPaisT anPaisCity"><tr><th>#</th><th>Aglomeración</th><th>2025</th><th>1975</th></tr>'+
    L.slice(0,25).map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+(r[3]?'⭐ ':'')+'<a href="#" data-pa="city" data-arg="'+i+'">'+esc(window.anambroUrbano?.nice?.(r[1])||r[1])+'</a></td><td>'+big(r[6][15]*1000)+'</td><td><small>'+(r[6][5]?big(r[6][5]*1000):'—')+'</small></td></tr>').join('')+'</table>':(c.cities?'<p>Sin aglomeraciones de más de 50.000 habitantes en la base de la ONU.</p>':'<p>cargando…</p>');
   h='<div class="anPaisBtns"><button data-pa="urb">🗺️ Ver su red urbana en el mapa (y el gráfico rango-tamaño, la primacía…)</button></div>'+h;src='Naciones Unidas, World Urbanization Prospects 2025 (aglomeraciones urbanas del Grado de Urbanización). ⭐ capital.'}
- else if(c.tab==='cli'){const CM=window.anambroClimaMap,kp=c.kp,mi=c.mi;const bar=(a,col,name)=>a?'<div class="anPaisBar">'+a.filter(x=>x.p>=.5).map(x=>'<span style="flex:'+x.p+';background:'+col[x.k]+'" title="'+esc(x.k+' · '+(name?.[x.k]||'')+' · '+nf(x.p,1)+' %')+'"></span>').join('')+'</div><table class="anPaisT">'+a.filter(x=>x.p>=1).map(x=>'<tr><td><span class="anPaisSw" style="background:'+col[x.k]+'"></span><b>'+x.k+'</b> '+esc(name?.[x.k]||'')+'</td><td><b>'+nf(x.p,1)+' %</b></td></tr>').join('')+'</table>':'<p>cargando…</p>';
+ else if(c.tab==='cli'){ensureSt(c);const CM=window.anambroClimaMap,kp=c.kp,mi=c.mi;const bar=(a,col,name)=>a?'<div class="anPaisBar">'+a.filter(x=>x.p>=.5).map(x=>'<span style="flex:'+x.p+';background:'+col[x.k]+'" title="'+esc(x.k+' · '+(name?.[x.k]||'')+' · '+nf(x.p,1)+' %')+'"></span>').join('')+'</div><table class="anPaisT">'+a.filter(x=>x.p>=1).map(x=>'<tr><td><span class="anPaisSw" style="background:'+col[x.k]+'"></span><b>'+x.k+'</b> '+esc(name?.[x.k]||'')+'</td><td><b>'+nf(x.p,1)+' %</b></td></tr>').join('')+'</table>':'<p>cargando…</p>';
   h='<h4>Köppen-Geiger · por superficie'+MB('kp','en el mapa')+'</h4>'+bar(kp,CM?.KCOL||{},CM?.KNAME)+'<h4>Miller · por superficie'+MB('mi','en el mapa')+'</h4>'+bar(mi,CM?.MCOL||{},Object.fromEntries(Object.entries(CM?.MDESC||{}).map(([k,v])=>[k,String(v).split(':')[0]])))+
    '<h4>Estaciones climáticas ('+(c.st?nf(c.st.length):'…')+')'+(c.st?.length?MB('st','solo las suyas en el mapa'):'')+'</h4>'+(c.st?.length?'<div class="anPaisSt">'+c.st.slice(0,60).map((s,i)=>'<button type="button" data-pa="st" data-arg="'+i+'" title="Abrir el climograma"><span class="anPaisSw" style="background:'+((CM?.KCOL||{})[PK(s)._k?.code]||'#999')+'"></span>'+esc(s.n)+' <small>'+esc(PK(s)._k?.code||'')+' · '+nf(s.z)+' m</small></button>').join('')+'</div>'+(c.st.length>60?'<small class="anPaisNote">Se listan 60 de '+nf(c.st.length)+'; en el mapa (🗺️) aparecen todas.</small>':''):'<p>'+(c.st?'Sin estaciones climáticas en ANAMBRO.':'cargando…')+'</p>');
   src='Climas por superficie: mapa calculado por ANAMBRO con las normales 1991–2020 de TerraClimate (Abatzoglou et al., 2018), muestreado dentro del país. Estaciones: OMM, AEMET, NOAA GHCN y Meteostat (normal 1991–2020; si una estación no la tiene, la de 1961–1990).'}
- else if(c.tab==='eco'){const groups={};for(const k of allCodes()){if(/^SP\.(POP|DYN)|SM\.POP|EN\.POP\.DNST|SP\.URB|SP\.RUR/.test(k))continue;(groups[catOf(k)]=groups[catOf(k)]||[]).push(k)}
+ else if(c.tab==='eco'){ensureHdi(c);const groups={};for(const k of allCodes()){if(/^SP\.(POP|DYN)|SM\.POP|EN\.POP\.DNST|SP\.URB|SP\.RUR/.test(k))continue;(groups[catOf(k)]=groups[catOf(k)]||[]).push(k)}
   h=(c.hdi?'<table class="anPaisT"><tr><td>Índice de Desarrollo Humano (IDH)</td><td><b>'+nf(c.hdi.v,3)+'</b> <small>PNUD · '+c.hdi.y+'</small></td></tr></table>':'')+Object.entries(groups).map(([g,ks])=>{const rows=ks.map(k=>cmpRow(k,indMeta(k))).join('');return rows?'<h4>'+esc(g)+'</h4><table class="anPaisT anPaisInd">'+rows+'</table>':''}).join('')+P(c.wbDone);
   src='Banco Mundial · World Development Indicators (último año disponible) · PNUD · Informe sobre Desarrollo Humano. 🗺️ = ver ese indicador en el mapa del atlas mundial.'}
  else if(c.tab==='ter'){h=mapsBlock(c)+'<table class="anPaisT">'+row('Continente',esc(c.cont||'—'))+row('Subregión',esc(c.sub||'—'))+row('Superficie',c.wb?.['AG.SRF.TOTL.K2']?.v?nf(c.wb['AG.SRF.TOTL.K2'].v.v)+' km²':'—')+row('Punto más alto',c.wd?.hp?esc(c.wd.hp)+(c.wd.hpe!=null?' · '+nf(c.wd.hpe)+' m':'')+(c.wd.ll?MB('hp','dónde está'):''):'—')+row('Husos horarios',c.tz?.length?c.tz.map(x=>esc(fmtOff(x.o)+' ('+x.z.join(', ')+')')).join('<br>')+MB('tz','en el mapa'):'—')+'</table>'+
@@ -30892,17 +30905,16 @@ function render(){const w=win(),c=cur;placeWin(w);if(c.kind!=='W')return renderU
 async function open(iso,f,tab,back){iso=String(iso||'').toUpperCase();const w=win();const wasOpen=!w.classList.contains('hidden');w.classList.remove('hidden');if(!wasOpen)delete w.dataset.shown;if(cur&&cur.key==='W:'+iso&&wasOpen)return;
  pushHist(back,'W:'+iso);
  const name=esName(iso,iso),keep=cur&&cur.kind==='W'&&!w.classList.contains('hidden')&&w.dataset.shown?cur.tab:'res';w.dataset.shown='1';cur={key:'W:'+iso,kind:'W',iso,name,tab:tab||keep,f:f||null};render();const me=cur;
- if(!me.f)me.f=await countryFeature(iso);if(cur===me)hiOn(me.f);hires(me.f).then(h=>{if(h===me.f)return;me.fHi=h;if(cur===me)hiOn(h);if(FX.key===me.key&&FX.mask){map.removeLayer(FX.mask);FX.mask=null;ensureFocus(me,false);clipApply()}});if(FI&&cur===me){FI={iso,name:me.name,code:FI.code};setTimeout(markLegend,300)}const p=me.f?.properties||{};me.cont=({Africa:'África',Asia:'Asia',Europe:'Europa','North America':'América del Norte','South America':'América del Sur',Oceania:'Oceanía',Antarctica:'Antártida','Seven seas (open ocean)':'Islas oceánicas'})[p.CONTINENT]||p.CONTINENT||'';me.sub=SUB[p.SUBREGION]||p.SUBREGION||'';
+ if(!me.f)me.f=await countryFeature(iso);if(cur===me)hiOn(me.f);if(FI&&cur===me){FI={iso,name:me.name,code:FI.code};setTimeout(markLegend,300)}const p=me.f?.properties||{};me.cont=({Africa:'África',Asia:'Asia',Europe:'Europa','North America':'América del Norte','South America':'América del Sur',Oceania:'Oceanía',Antarctica:'Antártida','Seven seas (open ocean)':'Islas oceánicas'})[p.CONTINENT]||p.CONTINENT||'';me.sub=SUB[p.SUBREGION]||p.SUBREGION||'';
  const redraw=()=>{if(cur===me)render()};redraw();
  const tasks=[
   wb(iso,['SP.POP.TOTL','EN.POP.DNST','AG.SRF.TOTL.K2','ER.LND.PTLD.ZS','ER.MRN.PTMR.ZS','ER.PTD.TOTL.ZS',...allCodes()].filter((v,i,a)=>a.indexOf(v)===i)).then(x=>{me.wb=x;me.wbDone=1;redraw()}),
   wd(iso).then(x=>{me.wd=x;me.wdDone=1;redraw()}),
   (async()=>{try{const f=me.f||await countryFeature(iso);if(f&&window.__anPolitical?.wiki)me.wiki=await window.__anPolitical.wiki(f)}catch(e){console.warn('Wikipedia',e)}me.wikiDone=1;redraw()})(),
   (async()=>{try{me.tz=await zones(me.f,iso2(iso))}catch(e){me.tz=[]}redraw()})(),
-  hdi(iso).then(x=>{me.hdi=x;redraw()}),
   (window.anambroWdpa?window.anambroWdpa.country(iso).then(x=>{me.wdpa=x;redraw()}).catch(()=>{me.wdpa={err:1};redraw()}):Promise.resolve()),
   getJ('data/urbano/ciudades_mundo.json').then(d=>{me.cities=d.c.filter(r=>r[2]===iso).sort((a,b)=>b[6][15]-a[6][15]);me.capCity=(me.cities.find(r=>r[3])||[])[1];redraw()}).catch(()=>{me.cities=[]}),
-  (async()=>{try{const db=await window.anambroClima.load(climaZones(me));const i2=iso2(iso);me.st=db.s.filter(s=>s.c===i2&&PK(s)).sort((a,b)=>a.n.localeCompare(b.n,'es'));redraw()}catch(_){me.st=[]}})(),
+  getJ('data/clima/indice_paises.json?v=2026-10-28').then(ix=>{me.stN=ix[iso2(iso)]||0;redraw()}).catch(()=>{}),
   (async()=>{if(!me.f)return;try{me.kp=await climates(me.f,'koppen');me.mi=await climates(me.f,'miller');redraw()}catch(e){console.warn(e)}})()];
  await Promise.allSettled(tasks)}
 async function cityView(iso,f){iso=String(iso).toUpperCase();const c={iso,name:esName(iso,iso),f:f||await countryFeature(iso)};if(!c.f)return false;const d=await getJ('data/urbano/ciudades_mundo.json');c.cities=d.c.filter(r=>r[2]===iso).sort((a,b)=>b[6][15]-a[6][15]);showCities(c);return true}
@@ -30934,7 +30946,7 @@ async function egrnMun(q){const p=new URLSearchParams(Object.assign({outFields:'
 async function esGeom(key,f){if(f?.geometry&&/Polygon/.test(f.geometry.type))return f;const k=kindOf(key);
  try{if(k==='CA'){const g=await getJ('data/admin/spain-communities.geojson');return g.features.find(x=>x.properties.cod_ccaa===key.slice(2))||null}
   if(k==='P'){const g=await getJ('data/admin/spain-provinces.geojson');return g.features.find(x=>x.properties.cod_prov===key.slice(1))||null}
-  if(k==='I:'){const g=await ISTACJ(),isl=key.slice(2);return mergeGeoms(g.features.filter(x=>ISLA_COD[x.properties.isla]===isl))}
+  if(k==='I:'){const isl=key.slice(2);try{const g=await getJ('data/admin/islas_canarias.json?v=2026-10-28');const x=g.features.find(q=>q.properties.isla===isl);if(x)return x}catch(_){}const g=await ISTACJ();return mergeGeoms(g.features.filter(x=>ISLA_COD[x.properties.isla]===isl))}
   if(k==='U'){const code=key.slice(2);const E=window.anambroEurostat;if(E?.nutsGeo){const g=await E.nutsGeo(code.length-2);const x=g.features.find(q=>(q.properties.NUTS_ID||q.id)===code);if(x)return x}}
   if(k==='M'){const c=key.slice(1);if(/^(35|38)/.test(c)){const g=await ISTACJ();const x=g.features.find(x=>x.properties.geocode===c);if(x)return x}
    // municipios de la Península, Baleares, Ceuta y Melilla: límite oficial EGRN (el mismo que el Atlas INE)
@@ -30971,6 +30983,11 @@ async function officialPeak(key){const k=kindOf(key);try{
  if(k==='P'){const iso=PROV_ISO[key.slice(1)];if(!iso)return null;const p=await wdPeak('?r wdt:P300 "ES-'+iso+'".');if(p?.e!=null||!UNIPROV[iso])return p;return await wdPeak('?r wdt:P300 "ES-'+UNIPROV[iso]+'".')}
  if(k==='M')return await wdPeak('?r wdt:P772 "'+key.slice(1)+'".');
  if(k==='W')return null}catch(e){console.warn('Cumbre',e)}return null}
+// Köppen oficial del Atlas Climático de Canarias (ULPGC, 1991–2020, ~200 m) dentro de una unidad de Canarias
+async function climatesAtlas(f){const A=window.anambroAtlasCanarias;if(!A?.ensure||!f)return null;await A.ensure(['kp']);const meta=await fetch('data/clima/canarias/atlas_meta.json?v=2026-10-21b',{cache:'force-cache'}).then(r=>r.json());const cls=meta.vars.kp.classes;
+ const g=f.geometry,b=bboxG(g),step=Math.max(.002,Math.sqrt((b[2]-b[0])*(b[3]-b[1])/40000)),cnt={};let tot=0;
+ for(let y=b[1]+step/2;y<b[3];y+=step)for(let x=b[0]+step/2;x<b[2];x+=step){if(!pip(x,y,g))continue;const v=A.valueAt('kp',y,x);if(v==null||v<1)continue;const k=cls[v-1];if(!k)continue;cnt[k]=(cnt[k]||0)+1;tot++}
+ return tot?Object.entries(cnt).map(([k,v])=>({k,p:v/tot*100})).sort((a,c)=>c.p-a.p):null}
 function inside(g,x,y){return pip(x,y,g)}
 function bboxHit(b,x,y){return x>=b[0]&&x<=b[2]&&y>=b[1]&&y<=b[3]}
 async function openUnit(key,o={}){const w=win();const wasOpen=!w.classList.contains('hidden');w.classList.remove('hidden');if(!wasOpen)delete w.dataset.shown;if(cur&&cur.key===key&&wasOpen)return;
@@ -31008,9 +31025,9 @@ async function openUnit(key,o={}){const w=win();const wasOpen=!w.classList.conta
   if(kd==='M'&&/^(35|38)/.test(key.slice(1)))tasks.push(ISTACJ().then(d=>{me.istac=d.features.find(x=>x.properties.geocode===key.slice(1))?.properties||null;redraw()}).catch(()=>{}));
  }
  if(g){
-  tasks.push((async()=>{try{const db=await window.anambroClima.load(climaZones(me));me.st=db.s.filter(s=>PK(s)&&bboxHit(b,s.lo,s.la)&&inside(g,s.lo,s.la)).sort((a,c)=>a.n.localeCompare(c.n,'es'))}catch(_){me.st=[]}redraw()})());
+  if(scopeOf(me)!=='world')tasks.push(ensureSt(me)); // fuera de España, las estaciones (9,5 MB) solo al abrir Clima
   tasks.push(getJ('data/urbano/ciudades_mundo.json').then(d=>{me.cities=d.c.filter(r=>bboxHit(b,r[5],r[4])&&inside(g,r[5],r[4])).sort((a,c)=>c[6][15]-a[6][15]);redraw()}).catch(()=>{me.cities=[]}));
-  tasks.push((async()=>{try{me.kp=await climates(me.f,'koppen');me.mi=await climates(me.f,'miller')}catch(e){console.warn(e)}redraw()})());
+  tasks.push((async()=>{try{if(scopeOf(me)==='can'){me.kp=await climatesAtlas(me.f);me.kpAtlas=!!me.kp}if(!me.kp)me.kp=await climates(me.f,'koppen');me.mi=await climates(me.f,'miller')}catch(e){console.warn(e)}redraw()})());
   tasks.push((async()=>{try{me.tz=await zones(me.f,iso2(me.iso||'ESP'),kd)}catch(_){me.tz=[]}redraw()})());
   tasks.push((async()=>{try{if(window.anambroWdpa)me.wdpa=await window.anambroWdpa.inGeom(key,g)}catch(_){me.wdpa={err:1}}redraw()})());
   // relieve: el mismo motor que el Análisis geográfico (MDT25 en España; modelo mundial fuera)
@@ -31047,7 +31064,7 @@ function renderUnit(w,c){const EU=c.kind==='U',ES=c.kind!=='A1'&&c.kind!=='A2'&&
    (c.kind!=='M'&&ES?row('Municipios',c.muns?nf(c.muns.length):'…'):'')+
    row('Husos horarios (hora oficial hoy)',c.tz?(c.tz.length?c.tz.map(x=>fmtOff(x.o)).join(' · ')+MB('tz','en el mapa'):'—'):'…')+
    row('Ciudades de más de 50.000 hab. (ONU)',c.cities?nf(c.cities.length)+(c.cities.length?MB('urb','en el mapa'):''):'…')+
-   row('Estaciones climáticas',c.st?nf(c.st.length)+(c.st.length?MB('st','solo las suyas'):''):'…')+'</table>'+
+   row('Estaciones climáticas',c.st?nf(c.st.length)+(c.st.length?MB('st','solo las suyas'):''):(scopeOf(c)==='world'?'<small>en la pestaña Clima</small>':'…'))+'</table>'+
    '<div class="anPaisBtns"><button data-pa="zoom">🔍 Ver en el mapa</button>'+(PY?'<button data-pa="pyr">👥 Pirámide</button>':'')+'<button data-pa="ga">📊 Analizar</button><button data-pa="topo">🔎 Topónimos</button></div>';
   src=(ES?'INE: Censo anual de población (pirámides), Padrón municipal (municipios, capitales, altitud del núcleo) · punto más alto: Wikidata (cumbre y altitud, en su mayoría del IGN) · ':'')+'superficie geodésica calculada por ANAMBRO con el límite de la capa · husos: tz-lookup · ONU: ciudades · ANAMBRO: estaciones.'}
  else if(c.tab==='pob'){
@@ -31066,10 +31083,10 @@ function renderUnit(w,c){const EU=c.kind==='U',ES=c.kind!=='A1'&&c.kind!=='A2'&&
   if(ES&&c.kind!=='M')h+='<div class="anPaisBtns"><button data-pa="net">📈 Red urbana: rango-tamaño y primacía de sus municipios</button></div>';
   src=(ES?'INE · Revisión del Padrón Municipal (⭐ capital) · ':'')+'Naciones Unidas, World Urbanization Prospects 2025.'}
  else if(c.tab==='eco'){h=eusRows(c,it=>it.t!=='pob')||'<p>'+(c.eus?'Sin datos de Eurostat para esta región.':'cargando indicadores de Eurostat…')+'</p>';src='Eurostat (API de difusión, último año disponible para esta región). Los mismos indicadores que el atlas Eurostat del Análisis geográfico.'}
- else if(c.tab==='cli'){const CM=window.anambroClimaMap,bar=(a,col,name)=>a?'<div class="anPaisBar">'+a.filter(x=>x.p>=.5).map(x=>'<span style="flex:'+x.p+';background:'+col[x.k]+'" title="'+esc(x.k+' · '+(name?.[x.k]||'')+' · '+nf(x.p,1)+' %')+'"></span>').join('')+'</div><table class="anPaisT">'+a.filter(x=>x.p>=1).map(x=>'<tr><td><span class="anPaisSw" style="background:'+col[x.k]+'"></span><b>'+x.k+'</b> '+esc(name?.[x.k]||'')+'</td><td><b>'+nf(x.p,1)+' %</b></td></tr>').join('')+'</table>':'<p>'+(c.f?'cargando…':'Sin límite cargado para esta unidad.')+'</p>';
-  h='<h4>Köppen-Geiger · por superficie'+MB('kp','en el mapa')+'</h4>'+bar(c.kp,CM?.KCOL||{},CM?.KNAME)+'<h4>Miller · por superficie'+MB('mi','en el mapa')+'</h4>'+bar(c.mi,CM?.MCOL||{},Object.fromEntries(Object.entries(CM?.MDESC||{}).map(([k,v])=>[k,String(v).split(':')[0]])))+
+ else if(c.tab==='cli'){ensureSt(c);const CM=window.anambroClimaMap,bar=(a,col,name)=>a?'<div class="anPaisBar">'+a.filter(x=>x.p>=.5).map(x=>'<span style="flex:'+x.p+';background:'+col[x.k]+'" title="'+esc(x.k+' · '+(name?.[x.k]||'')+' · '+nf(x.p,1)+' %')+'"></span>').join('')+'</div><table class="anPaisT">'+a.filter(x=>x.p>=1).map(x=>'<tr><td><span class="anPaisSw" style="background:'+col[x.k]+'"></span><b>'+x.k+'</b> '+esc(name?.[x.k]||'')+'</td><td><b>'+nf(x.p,1)+' %</b></td></tr>').join('')+'</table>':'<p>'+(c.f?'cargando…':'Sin límite cargado para esta unidad.')+'</p>';
+  h='<h4>Köppen-Geiger · por superficie'+(c.kpAtlas?MB('clof','en el mapa')+'<small> · oficial, Atlas Climático de Canarias</small>':MB('kp','en el mapa'))+'</h4>'+bar(c.kp,CM?.KCOL||{},CM?.KNAME)+'<h4>Miller · por superficie'+MB('mi','en el mapa')+'</h4>'+bar(c.mi,CM?.MCOL||{},Object.fromEntries(Object.entries(CM?.MDESC||{}).map(([k,v])=>[k,String(v).split(':')[0]])))+
    '<h4>Estaciones climáticas ('+(c.st?nf(c.st.length):'…')+')'+(c.st?.length?MB('st','solo las suyas en el mapa'):'')+'</h4>'+(c.st?.length?'<div class="anPaisSt">'+c.st.slice(0,60).map((s,i)=>'<button type="button" data-pa="st" data-arg="'+i+'" title="Abrir el climograma"><span class="anPaisSw" style="background:'+((CM?.KCOL||{})[PK(s)._k?.code]||'#999')+'"></span>'+esc(s.n)+' <small>'+esc(PK(s)._k?.code||'')+' · '+nf(s.z)+' m</small></button>').join('')+'</div>':'<p>'+(c.st?'Sin estaciones climáticas dentro.':'cargando…')+'</p>');
-  src='Climas por superficie: mapa de ANAMBRO con las normales 1991–2020 de TerraClimate (≈4 km; en unidades pequeñas, orientativo) · estaciones: OMM, AEMET, NOAA GHCN, Meteostat.'}
+  src=(c.kpAtlas?'Köppen-Geiger: Atlas Climático de Canarias (ULPGC / Gobierno de Canarias, 2022; 1991–2020, ≈200 m), clasificación oficial. Miller: mapa de ANAMBRO con TerraClimate (≈4 km; en Canarias, orientativo)':'Climas por superficie: mapa de ANAMBRO con las normales 1991–2020 de TerraClimate (≈4 km; en unidades pequeñas, orientativo)')+' · estaciones: OMM, AEMET, NOAA GHCN, Meteostat (la clasificación de cada estación es la de su normal, en su punto exacto).'}
  else if(c.tab==='ter'){const W=c.wdpa,Pw=window.anambroWdpa;
   h=chain+mapsBlock(c)+'<table class="anPaisT">'+row('Superficie',c.area?nf(c.area,c.area<100?1:0)+' km²':'—')+peakRow(c,true)+row('Altitud media del terreno',c.rel?nf(c.rel.mean)+' m':(c.relDone?'—':'…'),c.rel?'(modelo digital del terreno)':'')+row('Husos horarios',c.tz?.length?c.tz.map(x=>esc(fmtOff(x.o)+' ('+x.z.join(', ')+')')).join('<br>')+MB('tz','en el mapa'):'—')+'</table>'+
    '<h4>🛡️ Áreas protegidas'+MB('wdpa','en el mapa')+'</h4>'+(isFx('wdpa')&&Pw?.legendHTML?Pw.legendHTML():'')+'<table class="anPaisT">'+row('Áreas protegidas que tocan '+esc(c.name),W?.n!=null?nf(W.n):(W?.err?'—':'…'),'Protected Planet')+'</table>'+
