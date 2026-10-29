@@ -3177,7 +3177,8 @@ body.political-map-mode #map .anambro-political-canary-shadow{filter:grayscale(1
 <input id="spainClimateOpacity" max="1" min="0" step="0.05" style="width:100%" type="range" value="0.72"/>
 <div class="miniThemeLegend" id="spainClimateLegend" style="display:none"></div>
 </div></details>
-<details class="layerSubcategory"><summary>🌿 Vegetación</summary><label><input id="mfeCheck" type="checkbox"/> <b>Vegetación actual · España peninsular y Baleares (MFE25)</b></label>
+<details class="layerSubcategory"><summary>🌿 Vegetación</summary><label><input id="mfeCheck" type="checkbox"/> <b>Vegetación actual · España peninsular y Baleares (Mapa Forestal de España)</b></label>
+<div class="layerSubBlock"><small>Usos del suelo del Mapa Forestal de España (IEPNB · MITECO): <span style="display:inline-block;width:10px;height:10px;background:#38a800;vertical-align:middle"></span> arbolado · <span style="display:inline-block;width:10px;height:10px;background:#ffaa00;vertical-align:middle"></span> desarbolado (matorral, pastizal) · <span style="display:inline-block;width:10px;height:10px;background:#ffffbe;border:1px solid #ccc;vertical-align:middle"></span> cultivos · <span style="display:inline-block;width:10px;height:10px;background:#cccccc;vertical-align:middle"></span> artificial · <span style="display:inline-block;width:10px;height:10px;background:#bee8ff;vertical-align:middle"></span> agua. Toca el mapa para ver la formación y las especies.</small></div>
 <label><input id="mitecoPotentialCheck" type="checkbox"/> <b>Vegetación potencial · España peninsular y Baleares (MITECO)</b></label>
 <div class="layerSubBlock"><small><b>Opacidad</b> <span id="spainVegetationOpacityValue">72 %</span></small><input id="spainVegetationOpacity" max="1" min="0" step="0.05" style="width:100%" type="range" value="0.72"/></div></details>
 </details>
@@ -6121,6 +6122,10 @@ const geologySpain=L.tileLayer.wms(GEOLOGY_WMS,{noWrap:true,
  layers:'1,2,3,4,5,6,7,8,9',format:'image/png',transparent:true,version:'1.3.0',
  opacity:0.70,bounds:L.latLngBounds([[35.0,-10.8],[44.7,5.2]]),attribution:'GEODE · © IGME-CSIC'
 });
+(function(){const G1M='https://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer';
+ for(const lyr of [geologySpain,geologyCanary]){const orig=lyr.getTileUrl;lyr.options.attribution='Geología · © IGME-CSIC (GEODE 1:50.000; Mapa Geológico de España 1:1.000.000 a escalas pequeñas)';
+  lyr.getTileUrl=function(c){if(c.z>=12)return orig.call(this,c);const u0=this._url,l0=this.wmsParams.layers,w0=this.wmsParams.width,h0=this.wmsParams.height;const k=c.z<7?Math.min(8,2**(7-c.z)):1;
+   this._url=G1M;this.wmsParams.layers='0,2';this.wmsParams.width=this.wmsParams.height=256*k;try{return orig.call(this,c)}finally{this._url=u0;this.wmsParams.layers=l0;this.wmsParams.width=w0;this.wmsParams.height=h0}}}})();
 function isCanaryLatLng(ll){return !!ll&&ll.lat>=27.0&&ll.lat<=29.8&&ll.lng>=-18.9&&ll.lng<=-12.7;}
 function isPeninsularBalearicLatLng(ll){return !!ll&&ll.lat>=35.0&&ll.lat<=44.7&&ll.lng>=-10.8&&ll.lng<=5.2;}
 function geologyEnabledAt(lat,lon){
@@ -6139,9 +6144,11 @@ const vegetationPotential=L.geoJSON(null,{style:f=>({color:'#555',weight:.45,fil
 const vegetationCanary=L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/Vegetacion',{noWrap:true,layers:'VREAL',format:'image/png',transparent:true,version:'1.1.1',opacity:.78,attribution:'Mapa de Vegetación · © Gobierno de Canarias / GRAFCAN'});
 const vegetationCanaryPotential=L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/Vegetacion',{noWrap:true,layers:'VPOT',format:'image/png',transparent:true,version:'1.1.1',opacity:.55,attribution:'Vegetación potencial · © Gobierno de Canarias / GRAFCAN'});
 const MFE_FORMATION_COLORS={"Encinar":"#518b45","Alcornocal":"#698c57","Melojar":"#a18e59","Quejigar":"#b8a065","Coscojar":"#919f40","Sabinar":"#80a18f","Pinar":"#4b8e78","Hayedo":"#7d9ab5","Robledal":"#8d9c67","Abetal":"#5685a0","Pinsapar":"#447a89","Vegetación de ribera":"#5e9cb8","Matorral":"#bba279","Pastizal":"#d4c38b","Cultivo":"#d8bc7c","Artificial":"#a1a1a1","Agua":"#75a4ca","Formación no determinada":"#a9a9a9"};
-const MFE25_URL='https://geoserver.iepnb.es/geoserver/foto_fija_mfe/ff_uso/wms';
-const MFE25_SLD="<StyledLayerDescriptor version=\"1.0.0\" xmlns=\"http://www.opengis.net/sld\" xmlns:ogc=\"http://www.opengis.net/ogc\"><NamedLayer><Name>ff_uso</Name><UserStyle><FeatureTypeStyle><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*encinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#518b45</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*alcornocal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#698c57</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*melojar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#a18e59</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*quejigar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#b8a065</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*coscojar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#919f40</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*sabinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#80a18f</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*pinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#4b8e78</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*hayed*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#7d9ab5</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*robledal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#8d9c67</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*ribereñ*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#5e9cb8</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*matorral*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#bba279</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*pastizal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#d4c38b</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ElseFilter/><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#a9a9a9</CssParameter><CssParameter name=\"fill-opacity\">0.6</CssParameter></Fill></PolygonSymbolizer></Rule></FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>";
-const mfeCurrent=L.tileLayer.wms(MFE25_URL,{noWrap:true,layers:'ff_uso',format:'image/png',transparent:true,version:'1.1.1',sld_body:MFE25_SLD,opacity:.80,maxZoom:19,attribution:'MFE25 · © MITECO'});
+const MFE25_URL='https://iepnb.gob.es/geoserver/foto_fija_mfe/wms';
+const MFE25_SLD="<StyledLayerDescriptor version=\"1.0.0\" xmlns=\"http://www.opengis.net/sld\" xmlns:ogc=\"http://www.opengis.net/ogc\"><NamedLayer><Name>ff_uso</Name><UserStyle><FeatureTypeStyle><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*encinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#518b45</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*alcornocal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#698c57</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*melojar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#a18e59</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*quejigar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#b8a065</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*coscojar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#919f40</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*sabinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#80a18f</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*pinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#4b8e78</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*hayed*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#7d9ab5</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*robledal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#8d9c67</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*ribereñ*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#5e9cb8</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*matorral*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#bba279</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*pastizal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#d4c38b</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ElseFilter/><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#a9a9a9</CssParameter><CssParameter name=\"fill-opacity\">0.0</CssParameter></Fill></PolygonSymbolizer></Rule></FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>";
+const mfeCurrent=L.tileLayer.wms(MFE25_URL,{noWrap:true,layers:'ff_uso',format:'image/png',transparent:true,version:'1.1.1',sld_body:MFE25_SLD,opacity:.80,maxZoom:19,attribution:'Mapa Forestal de España · © MITECO (IEPNB)'});
+delete mfeCurrent.wmsParams.sld_body;mfeCurrent.wmsParams.styles='';
+(function(){const orig=mfeCurrent.getTileUrl;mfeCurrent.getTileUrl=function(c){if(c.z>=7)return orig.call(this,c);const w0=this.wmsParams.width,h0=this.wmsParams.height,k=Math.min(8,2**(7-c.z));this.wmsParams.width=this.wmsParams.height=256*k;try{return orig.call(this,c)}finally{this.wmsParams.width=w0;this.wmsParams.height=h0}}})();
 const vegetation=L.layerGroup([vegetationCanary]);
 let vegetationLoaded=false,vegetationLoading=null,vegetationFeatures=[];
 function vegetationColor(v){let h=0;for(const c of String(v))h=(h*31+c.charCodeAt(0))%360;return 'hsl('+h+' 48% 48%)';}
@@ -29741,7 +29748,9 @@ function boot(){const ms=$('geoGeneralMetric');if(!ms||!window.anambroGaUnits||!
   let i=SEL.feats.findIndex((f,k)=>C.has(String(idOf(f,k))));if(i<0)i=SEL.feats.findIndex((f,k)=>N.includes(nrm(nameOf(f,k))));
   if(i<0)i=SEL.feats.findIndex((f,k)=>{const n=nrm(nameOf(f,k));return N.some(x=>x.length>3&&(n.startsWith(x)||x.startsWith(n)))});
   if(i<0){chips();return null}add(SEL.feats[i],i);return nameOf(SEL.feats[i],i)}
- window.anambroGaPick={SEL,organize,avail,pickOne}}
+ // volver a «Todas las unidades» y quitar resaltados (tras calcular desde una ficha)
+ function reset(){SEL.ids.clear();SEL.mode='all';stopPicking();clearHL();clearCtx();const r=document.querySelector('input[name="anGaPickMode"][value="all"]');if(r)r.checked=true;const box=document.querySelector('.anGaPickBox');if(box)box.hidden=true;chips()}
+ window.anambroGaPick={SEL,organize,avail,pickOne,reset}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,1200));else setTimeout(boot,1200);
 })();
 
@@ -30580,7 +30589,9 @@ function gridProvider(l){const C=Cesium,ts=new C.WebMercatorTilingScheme(),o=l.o
  const maxN=Math.min(18,o.maxNativeZoom??o.maxZoom??18),minN=Math.max(0,o.minNativeZoom??0);
  return {tilingScheme:ts,rectangle:ts.rectangle,tileWidth:256,tileHeight:256,minimumLevel:0,maximumLevel:maxN,tileDiscardPolicy:undefined,errorEvent:new C.Event(),credit:undefined,proxy:undefined,hasAlphaChannel:true,ready:true,readyPromise:Promise.resolve(true),
   getTileCredits(){return []},pickFeatures(){return undefined},
-  requestImage(x,y,level){if(level<minN)return Promise.resolve(blank());return new Promise(res=>{let fin=false;const end=t=>{if(fin)return;fin=true;
+  requestImage(x,y,level){if(level<minN)return Promise.resolve(blank());
+   if(l instanceof L.TileLayer&&l.getTileUrl){const c=L.point(x,y);c.z=level;let u;try{u=l.getTileUrl(c)}catch(_){return Promise.resolve(blank())}return new Promise(res=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>res(im);im.onerror=()=>res(blank());im.src=u})}
+   return new Promise(res=>{let fin=false;const end=t=>{if(fin)return;fin=true;
     if(!t){res(blank());return}if(t.tagName==='IMG'){if(t.complete&&t.naturalWidth)res(t);else{t.crossOrigin=t.crossOrigin||'anonymous';t.onload=()=>res(t);t.onerror=()=>res(blank())}}else res(t)};
    const c=L.point(x,y);c.z=level;let t=null;try{t=l.createTile(c,(e,tile)=>end(tile||t))}catch(e){end(null);return}
    setTimeout(()=>end(t),20000)})}}}
@@ -30626,6 +30637,8 @@ function vectorPrims(group){const C=Cesium,v=gv();const K=Math.max(1,Math.ceil(n
 function paneOf(l){const own=l.options?.pane||l.options?.renderer?.options?.pane||'';if(own&&own!=='overlayPane')return own;if(l instanceof L.LayerGroup){let p='';l.eachLayer(ch=>{if(!p)p=ch.options?.pane||ch.options?.renderer?.options?.pane||''});return p||own}return own}
 function candidates(){const out=[];
  map.eachLayer(l=>{const pn=paneOf(l);
+  // WMS del IGME (geología): el puente general no lo refleja; se piden sus teselas con la misma regla de escalas que en 2D
+  if(l instanceof L.TileLayer.WMS&&/mapas\.igme\.es/.test(l._url||'')){out.push({l,kind:'grid'});return}
   if(l instanceof L.GridLayer&&!(l instanceof L.TileLayer.WMS)){
    const own=!(l instanceof L.TileLayer)||l.createTile!==L.TileLayer.prototype.createTile;// teselas dibujadas por la capa
    if((own||pn==='anWdpaPane')&&GRID_PANES.has(pn))out.push({l,kind:'grid'});return}
@@ -30932,7 +30945,7 @@ let clipT=null;const clipSoon=()=>{clearTimeout(clipT);clipT=setTimeout(clipAppl
 let clipHooked=false;function clipHook(){if(clipHooked||typeof map==='undefined')return;clipHooked=true;
  map.on('zoomstart',()=>{for(const el of CLIP.els)el.style.visibility='hidden'});map.on('zoomend viewreset',()=>{if(FX.c)clipApply();else clipClear()});map.on('layeradd',()=>{if(FX.c)clipSoon()});
  document.addEventListener('change',e=>{if(FX.c&&e.target?.id==='anUrb_world')setTimeout(clipApply,300)},true)}
-const EXCL={kp:['mi'],mi:['kp'],vega:['vegp'],vegp:['vega'],clof:['atl'],atl:['clof']};
+const EXCL={kp:['mi','clof'],mi:['kp','clof'],vega:['vegp'],vegp:['vega'],clof:['atl','mi','kp'],atl:['clof']};
 async function toggleFx(k,c){c=c||cur;if(!c)return;if(FX.key===c.key&&FX.items.has(k)){dropItem(k);bar();refreshFicha();setTimeout(clipApply,100);return}
  const def=FXDEF[k];if(!def)return;
  // contorno detallado (1:10 M) solo al usar «Ver en el mapa»
@@ -31084,7 +31097,7 @@ const LAYERS={
  geo:{can:['canaryGeologyCheck'],esp:['spainGeologyCheck'],world:['worldGeologyCheck']},
  vega:{can:['vegetationCheck'],esp:['mfeCheck']},
  vegp:{can:['vegetationPotentialCanaryCheck'],esp:['mitecoPotentialCheck']},
- clof:{can:['anAtlasCheck'],esp:['spainClimateCheck']},
+ clof:{can:['anAtlasCheck']},
  atl:{can:['anAtlasCheck']},
  bio:{world:['worldBiomesCheck']},
  wdpa:{can:['enpMaster'],esp:['sg_ep_pn','sg_ep_pnat','sg_ep_n2000'],world:['anWdpaCheck']},
@@ -31099,7 +31112,9 @@ const FXDEF={
  geo:{label:c=>({can:'🪨 geología de Canarias',esp:'🪨 geología GEODE (IGME)'})[scopeOf(c)]||'🪨 geología',on:layersOn('geo')},
  vega:{label:()=>'🌿 vegetación actual',on:layersOn('vega')},
  vegp:{label:()=>'🌳 vegetación potencial',on:layersOn('vegp')},
- clof:{label:c=>scopeOf(c)==='can'||scopeOf(c)==='esp+can'?'🌦️ Köppen oficial (Atlas Climático de Canarias)':'🌦️ Köppen-Geiger (mapa mundial)',on:(c,it)=>{layersOn('clof')(c,it);
+ clof:{label:c=>scopeOf(c)==='can'?'🌦️ Köppen oficial (Atlas Climático de Canarias)':scopeOf(c)==='esp+can'?'🌦️ Köppen (TerraClimate; en Canarias, Atlas oficial)':'🌦️ Köppen-Geiger (TerraClimate 1991–2020)',on:(c,it)=>{layersOn('clof')(c,it);
+   // España peninsular y Baleares: el mapa Köppen de ANAMBRO (TerraClimate 1991–2020), el mismo que en el resto del mundo
+   const sc=scopeOf(c);if(sc==='esp'||sc==='esp+can'){climaOn('koppen')(c,it);it.ids=[...(it.ids||[]),'anClimaMapCheck']}
    // en Canarias, el Atlas con su variable Köppen
    if(it.ids?.includes('anAtlasCheck')){const sel=$('anAtlasVar');if(sel&&sel.value!=='kp'){const old=sel.value;sel.value='kp';sel.dispatchEvent(new Event('change',{bubbles:true}));it.undo.push(()=>{sel.value=old;sel.dispatchEvent(new Event('change',{bubbles:true}))})}}}},
  atl:{label:()=>'🌡️ Atlas climático',on:(c,it)=>{layersOn('atl')(c,it);const sel=$('anAtlasVar');if(sel&&sel.value==='kp'){sel.value='tm';sel.dispatchEvent(new Event('change',{bubbles:true}))}}},
@@ -31116,11 +31131,11 @@ const FXDEF={
 // compatibilidad con llamadas anteriores
 const showCities=c=>(FX.key===c.key&&FX.items.has('urb'))?null:toggleFx('urb',c),showStations=c=>toggleFx('st',c),showPeak=c=>toggleFx('hp',c),showZones=c=>toggleFx('tz',c);
 function mapsFor(c){const sc=scopeOf(c),sn=SUBNAME(c),out=[...(sn?[['sub','🧩 '+sn]]:[]),['hyps','🏔️ Relieve'],['somb','⛰️ Sombras'],['rios','💧 Ríos'],['geo','🪨 Geología']];
- if(sc!=='world')out.push(['vega','🌿 Vegetación actual'],['vegp','🌳 Vegetación potencial'],['clof',sc==='esp'?'🌦️ Köppen (mapa mundial)':'🌦️ Köppen oficial (Atlas)']);
+ if(sc!=='world')out.push(['vega','🌿 Vegetación actual'],['vegp','🌳 Vegetación potencial'],['clof',sc==='esp'?'🌦️ Köppen':'🌦️ Köppen oficial (Atlas)']);
  if(sc==='can'||sc==='esp+can')out.push(['atl','🌡️ Atlas climático (temperatura, lluvia…)']);
  if(sc==='world')out.push(['kp','🌦️ Köppen'],['bio','🌳 Biomas']);
  out.push(['mi','🌡️ Miller'],['wdpa',sc==='world'?'🛡️ Áreas protegidas':'🛡️ Espacios protegidos'],['volc','🌋 Volcanes'],['sis','〰️ Terremotos'],['urb','🏙️ Ciudades'],['st','📡 Estaciones'],['hp','▲ Punto más alto'],['tz','🕐 Husos']);
- return out.filter(([k])=>{if(k==='hp')return !!(c.wd?.ll||c.peak?.ll);if(LAYERS[k]){const ids=idsFor(k,c);return !!(ids&&ids.some(id=>$(id)))}return true})}
+ return out.filter(([k])=>{if(k==='hp')return !!(c.wd?.ll||c.peak?.ll);if(k==='clof'&&sc!=='world')return true;if(LAYERS[k]){const ids=idsFor(k,c);return !!(ids&&ids.some(id=>$(id)))}return true})}
 function mapsBlock(c){return '<div class="anPaisMaps"><b>🗺️ Ver en el mapa</b><small> (se pueden combinar; lo de '+esc(c.name)+' sale solo de '+esc(c.name)+')</small><div>'+mapsFor(c).map(([k,l])=>'<button type="button" data-pa="fx" data-arg="'+k+'" class="'+(isFx(k)?'on':'')+'">'+l+'</button>').join('')+'</div>'+subSelect(c)+'</div>'}
 const FXIDS={kp:'anClimaMapCheck',mi:'anClimaMapCheck'};
 // carga diferida: estaciones (solo al abrir Clima o «Estaciones» en el mapa) e IDH (solo al abrir Economía)
@@ -31425,11 +31440,20 @@ async function localES(ll,on){const out=[];const x=ll.lng,y=ll.lat,x0=x.toFixed(
   if(on('ccaaCheck')){const d=await EGRN_CA();const f=hit(d.features);if(f&&f.properties.CodINE!=='20')out.push({k:'CA'+f.properties.CodINE,f})}}catch(e){console.warn('Unidades locales',e)}
  return out}
 const RK=k=>!k?0:k.startsWith('W:')?1:k.startsWith('U:')?1+k.length/2:k.startsWith('CA')?3:k.startsWith('A1')?3.5:k.startsWith('P')||k.startsWith('I:')?4:k.startsWith('A2')?5:k.startsWith('M')?6:0;
+// gesto del ratón/dedo: si se movió más de unos píxeles o se mantuvo pulsado, era arrastrar el mapa, no tocar una unidad
+const GEST={x:0,y:0,t:0,moved:0,dur:0,end:0};
+try{const el=map.getContainer();el.addEventListener('pointerdown',e=>{GEST.x=e.clientX;GEST.y=e.clientY;GEST.t=Date.now();GEST.moved=0},true);
+ el.addEventListener('pointermove',e=>{if(e.buttons)GEST.moved=Math.max(GEST.moved,Math.hypot(e.clientX-GEST.x,e.clientY-GEST.y))},true);
+ el.addEventListener('pointerup',e=>{GEST.moved=Math.max(GEST.moved,Math.hypot(e.clientX-GEST.x,e.clientY-GEST.y));GEST.dur=Date.now()-GEST.t;GEST.end=Date.now()},true);
+ map.on('dragstart',()=>{GEST.moved=99;GEST.end=Date.now()});}catch(_){}
+function wasDrag(){return Date.now()-GEST.end<1500&&(GEST.moved>6||GEST.dur>450)}
 // herramientas que marcan puntos sobre el mapa (medir, perfil, construir un track…): mientras se usan, tocar el mapa no abre fichas
 function toolActive(){try{return !!((typeof measureMode!=='undefined'&&measureMode)||(typeof profileMode!=='undefined'&&profileMode)||(typeof trackBuildActive!=='undefined'&&trackBuildActive)||(typeof globeMeasureMode!=='undefined'&&globeMeasureMode)||(typeof globeProfileMode!=='undefined'&&globeProfileMode))}catch(_){return false}}
 async function fromPopup(pop,ks,f){const ll=pop.getLatLng?.();if(!ll)return false;if(toolActive())return true;
  // con una ficha abierta, tocar FUERA de su unidad no cambia de ficha (así se puede arrastrar el mapa): se ofrece un botón
- const [dc,df]=decoUnit();const pane=!document.body.classList.contains('globe-mode')&&dc&&df?.geometry;
+ // un arrastre del mapa (aunque el navegador lo cuente como clic) nunca cambia de ficha
+ if(wasDrag()){try{map.closePopup(pop)}catch(_){}return true}
+ const [dc,df]=decoUnit();const pane=false&&dc&&df?.geometry;
  if(pane&&!pip(ll.lng,ll.lat,df.geometry)&&!pip(ll.lng+360,ll.lat,df.geometry)&&!pip(ll.lng-360,ll.lat,df.geometry)){DEFER=true;PEND=null;let r=false;try{r=await fromPopup0(pop,ks,f)}finally{DEFER=false}
   const P=PEND;PEND=null;if(P){const el=pop.getElement?.()?.querySelector('.leaflet-popup-content-wrapper');if(el&&!el.querySelector('.anPaisHere')){const b=document.createElement('button');b.type='button';b.className='anPaisHere';b.textContent='📍 Abrir la ficha'+(P.name?' de '+P.name:' de este lugar');b.style.margin='0 12px 10px';b.onclick=()=>{try{map.closePopup()}catch(_){}P.fn(...P.args)};el.appendChild(b);try{pop.update()}catch(_){}}}return true}
  return fromPopup0(pop,ks,f)}
@@ -31511,6 +31535,8 @@ async function runAna(c,metric){const U=anaUnits(c),G=window.__anambroGeographic
   if(!done||!val)throw Error(st||'el cálculo no terminó');
   c.ana=[{l:lab.trim(),v:val},...(c.ana||[]).filter(r=>r.l!==lab.trim())]}
  catch(e){c.anaErr='No se pudo calcular: '+(e.message||e)}
+ // la ficha no pinta mapas temáticos: se deja el mapa como estaba (sin coropletas, sin fondo de atlas, sin resaltados)
+ try{G.clear?.()}catch(_){}try{P.reset?.()}catch(_){}try{$('geoGeneralClear')?.click()}catch(_){}setTimeout(()=>{try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}},100);setTimeout(()=>{try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}},900);
  c.anaBusy='';if(cur===c)render()}
 /* ---------- Globo 3D ---------- */
 // Lo que el globo necesita de la vista de la unidad: su contorno y los pisos (panes) de las capas que se recortan a ella
