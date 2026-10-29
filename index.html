@@ -20401,6 +20401,7 @@ body #viewModeBadge{top:calc(var(--anambro-header-height,118px) + 8px)!important
   provCheck:{name:'Provincias',p:61,get:()=>[typeof adminProv!=='undefined'?adminProv:null]},
   munSpainCheck:{name:'Municipios · España',p:62,get:()=>[typeof adminMun!=='undefined'?adminMun:null]},
   toponymyCheck:{name:'Toponimia · IGN',p:72,get:()=>[typeof toponymy!=='undefined'?toponymy:null]},
+  worldRoadsCheck:{name:'Carreteras y ferrocarriles · mundo',p:57,get:()=>[window.anambroRedes?.layer?.()]},
   worldHillshadeCheck:{name:'Sombras del relieve · mundo',p:34,get:()=>[window.anambroSombras?.layer?.()]},
   canaryHypsometryCheck:{name:'Hipsométrico · Canarias · GRAFCAN 2026',p:33,get:()=>[window.__anambroCanaryHypsometry?.layer?.()]},
   canaryIndigenousTerritoriesCheck:{name:'Organización territorial indígena · Canarias',p:46,get:()=>[window.__anambroIndigenousTerritories?.layer?.()]},
@@ -30581,6 +30582,43 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 </script>
+<script id="anambro-r53-redes-js">
+/* ANAMBRO · Carreteras principales y ferrocarriles del mundo (Natural Earth 1:10 m, dominio público).
+   Archivos por país o grupo de países (data/redes): solo se descargan los de los países que se ven. */
+(function(){'use strict';
+if(typeof L==='undefined'||typeof map==='undefined')return;
+const $=id=>document.getElementById(id);
+const BIG=new Set(['AUS','BRA','CAN','CHN','DEU','RUS','USA']);
+const J={};const getG=k=>J[k]||(J[k]=fetch('data/redes/'+k+'.json?v=2026-10-29',{cache:'force-cache'}).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).catch(e=>{delete J[k];throw e}));
+async function country(iso){iso=String(iso||'').toUpperCase();const g=await getG(BIG.has(iso)?iso:iso[0]);return g[iso]||null}
+// estilo de atlas: autopistas con casing, carreteras principales y secundarias más finas, ferrocarril negro con traviesas
+const ST={1:[{color:'#6b3b10',weight:4.2,opacity:.9},{color:'#f5b041',weight:2.4,opacity:1}],2:[{color:'#7a5a2a',weight:3,opacity:.75},{color:'#fbe3a1',weight:1.6,opacity:1}],3:[{color:'#8a7a5a',weight:1.1,opacity:.8}]};
+function pane(){if(!map.getPane('anRedPane')){const p=map.createPane('anRedPane');p.style.zIndex=455;p.style.pointerEvents='none'}return 'anRedPane'}
+let R=null;function rnd(){return R||(R=L.canvas({pane:pane(),padding:.3}))}
+const toLL=c=>typeof c[0][0]==='number'?[c.map(p=>[p[1],p[0]])]:c.map(l=>l.map(p=>[p[1],p[0]]));
+function draw(d,grp){if(!d)return;const r=rnd();
+ const by={1:[],2:[],3:[]};for(const [k,c] of d.r||[])by[k]?.push(...toLL(c));
+ for(const k of [3,2,1])for(const st of ST[k])if(by[k].length)grp.addLayer(L.polyline(by[k],{...st,renderer:r,pane:pane(),interactive:false,lineCap:'round',lineJoin:'round'}));
+ const rail=[];for(const [,c] of d.f||[])rail.push(...toLL(c));
+ if(rail.length){grp.addLayer(L.polyline(rail,{color:'#1f1f1f',weight:2.2,opacity:.9,renderer:r,pane:pane(),interactive:false}));grp.addLayer(L.polyline(rail,{color:'#ffffff',weight:1.1,opacity:.95,dashArray:'5 5',renderer:r,pane:pane(),interactive:false}))}}
+// capa mundial (Capas › Mundo): países a la vista
+const W={on:false,grp:null,done:new Set(),busy:false};
+let CI=null;async function countryIndex(){if(CI)return CI;const g=await (typeof loadCountries==='function'?loadCountries():fetch('data/admin/paises_50m.json').then(r=>r.json()));
+ CI=(g.features||[]).map(f=>{const p=f.properties||{};const iso=(p.ISO_A3&&p.ISO_A3!=='-99')?p.ISO_A3:p.ADM0_A3;let b=[180,90,-180,-90];const w=a=>{if(typeof a[0]==='number'){b[0]=Math.min(b[0],a[0]);b[1]=Math.min(b[1],a[1]);b[2]=Math.max(b[2],a[0]);b[3]=Math.max(b[3],a[1])}else a.forEach(w)};w(f.geometry.coordinates);return {iso,b}});return CI}
+async function refresh(){if(!W.on||W.busy)return;if(map.getZoom()<4){st('Acércate (escala de país o región) para ver las carreteras y ferrocarriles.');return}
+ W.busy=true;try{const vb=map.getBounds(),I=await countryIndex();const want=I.filter(c=>c.iso&&!(c.b[2]<vb.getWest()||c.b[0]>vb.getEast()||c.b[3]<vb.getSouth()||c.b[1]>vb.getNorth())).map(c=>c.iso).filter(i=>!W.done.has(i));
+  for(const iso of want){W.done.add(iso);try{const d=await country(iso);if(W.on)draw(d,W.grp)}catch(_){}}st('Carreteras principales y ferrocarriles · Natural Earth 1:10 m.')}finally{W.busy=false}}
+const st=t=>{const e=$('worldRoadsStatus');if(e)e.textContent=t};
+function set(on){W.on=on;pane();if(on){if(!W.grp)W.grp=L.layerGroup();W.grp.addTo(map);refresh()}else if(W.grp){map.removeLayer(W.grp)}}
+function ui(){const host=$('worldRiversCheck')?.closest('label');if(!host||$('worldRoadsCheck'))return;
+ const w=document.createElement('div');w.innerHTML='<label><input id="worldRoadsCheck" type="checkbox"/> <b>Carreteras principales y ferrocarriles · mundo</b></label><div class="layerSubBlock"><small><span style="display:inline-block;width:18px;height:4px;background:#f5b041;border:1px solid #6b3b10;vertical-align:middle"></span> autopista · <span style="display:inline-block;width:18px;height:3px;background:#fbe3a1;border:1px solid #7a5a2a;vertical-align:middle"></span> carretera principal · <span style="display:inline-block;width:18px;height:1px;background:#8a7a5a;vertical-align:middle"></span> secundaria · <span style="display:inline-block;width:18px;height:3px;background:repeating-linear-gradient(90deg,#1f1f1f 0 5px,#fff 5px 10px);border:1px solid #1f1f1f;vertical-align:middle"></span> ferrocarril. Natural Earth 1:10 m (dominio público). En España, mejor las capas del IGN.</small><br><small id="worldRoadsStatus">Capa desactivada.</small></div>';
+ const box=host.nextElementSibling?.classList?.contains('layerSubBlock')?host.nextElementSibling:host;box.after(...w.childNodes);
+ $('worldRoadsCheck').addEventListener('change',e=>set(e.target.checked))}
+ui();map.on('moveend',()=>{if(W.on)refresh()});
+window.anambroRedes={country,draw,set,layer:()=>W.grp,pane:'anRedPane'};
+})();
+
+</script>
 <script id="anambro-r53-globo-js">
 /* ANAMBRO · Globo 3D: las capas que el navegador dibuja por su cuenta también en el globo.
    - Capas calculadas en teselas (L.GridLayer: hipsometría y sombras mundiales, red hidrográfica, áreas protegidas WDPA…):
@@ -30596,7 +30634,7 @@ const dbg=window.__anambroGlobo={items:()=>[...B.values()].map(b=>b.kind+':'+b.n
 // panes cuyos dibujos vectoriales no tienen versión 3D propia
 const VEC_PANES=new Set(['physicalLabelsPane','worldRiversPane','worldRiverLabelsPane','worldMajorRiverLabelsPane',
  // vista de la unidad desde su ficha: contorno, subdivisiones, nombres, ciudades, estaciones, punto más alto
- 'anPaisLine','anPaisSub','anPaisLbl','anPaisPts']);
+ 'anPaisLine','anPaisSub','anPaisLbl','anPaisPts','anRedPane']);
 // capas cuyo dibujo está en el piso común: se toman por su casilla
 const VEC_IDS=['spainReliefToponymsCheck','spainRiversCheck','mitecoPotentialCheck'];
 // capas en teselas propias (sin otra versión en el globo) y fotos georreferenciadas
@@ -30637,9 +30675,11 @@ function vectorPrims(group){const C=Cesium,v=gv();const K=Math.max(1,Math.ceil(n
   const o=ch.options||{};
   // copias del mundo a ±360° (solo sirven en el mapa plano)
   if(ch.getBounds){try{const b=ch.getBounds();if(b.getWest()>180||b.getEast()<-180)return}catch(_){}}
+  if(ch instanceof L.Marker&&o.anPt){const ll=ch.getLatLng(),q=o.anPt;n++;pts.add({position:C.Cartesian3.fromDegrees(ll.lng,ll.lat,30),pixelSize:q.px,color:col(q.fill,1),outlineColor:col(q.stroke||'#fff',1),outlineWidth:q.cap?2.5:1.5,disableDepthTestDistance:Number.POSITIVE_INFINITY});
+   if(q.label)lab.add({position:C.Cartesian3.fromDegrees(ll.lng,ll.lat,30),text:q.label,font:'600 12px system-ui, sans-serif',fillColor:C.Color.fromCssColorString('#3b1d0c'),outlineColor:C.Color.WHITE,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,pixelOffset:new C.Cartesian2(10,-10),horizontalOrigin:C.HorizontalOrigin.LEFT,disableDepthTestDistance:Number.POSITIVE_INFINITY});return}
   if(ch instanceof L.Marker){const ll=ch.getLatLng();const ic=o.icon?.options||{};const t=txt(ic.html)||ch.getTooltip?.()?.getContent?.()&&txt(ch.getTooltip().getContent());if(!t)return;n++;
-   lab.add({position:C.Cartesian3.fromDegrees(ll.lng,ll.lat,30),text:t,font:'600 12px system-ui, sans-serif',fillColor:C.Color.fromCssColorString('#13202e'),outlineColor:C.Color.WHITE,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,verticalOrigin:C.VerticalOrigin.CENTER,horizontalOrigin:C.HorizontalOrigin.CENTER,disableDepthTestDistance:2e6,translucencyByDistance:new C.NearFarScalar(1.5e6,1,2.2e7,0)});return}
-  if(ch instanceof L.CircleMarker){const ll=ch.getLatLng();n++;pts.add({position:C.Cartesian3.fromDegrees(ll.lng,ll.lat,20),pixelSize:Math.max(3,(o.radius||5)*2),color:col(o.fillColor||o.color,o.fillOpacity??.6),outlineColor:col(o.color,o.opacity??1),outlineWidth:Math.min(2,o.weight??1)});return}
+   const cen=/anLblC\b|anLblC /.test(String(ic.className||''))||!/anLbl/.test(String(ic.className||''));const cityL=/anLblCity|anLblSt/.test(String(ic.className||''));lab.add({position:C.Cartesian3.fromDegrees(ll.lng,ll.lat,30),text:t,horizontalOrigin:cen?C.HorizontalOrigin.CENTER:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(cen?0:(cityL?9:6),0),font:'600 12px system-ui, sans-serif',fillColor:C.Color.fromCssColorString('#13202e'),outlineColor:C.Color.WHITE,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,verticalOrigin:C.VerticalOrigin.CENTER,disableDepthTestDistance:Number.POSITIVE_INFINITY,translucencyByDistance:new C.NearFarScalar(1.5e6,1,2.2e7,0)});return}
+  if(ch instanceof L.CircleMarker){const ll=ch.getLatLng();n++;pts.add({disableDepthTestDistance:Number.POSITIVE_INFINITY,position:C.Cartesian3.fromDegrees(ll.lng,ll.lat,20),pixelSize:Math.max(3,(o.radius||5)*2),color:col(o.fillColor||o.color,o.fillOpacity??.6),outlineColor:col(o.color,o.opacity??1),outlineWidth:Math.min(2,o.weight??1)});return}
   if(ch instanceof L.Polygon){const lls=ch.getLatLngs();const P=Array.isArray(lls[0])&&Array.isArray(lls[0][0])?lls:[lls];
    for(const pg of P){const outer=Array.isArray(pg[0])?pg[0]:pg;if(!outer||outer.length<3)continue;n++;
     const ring=thin(outer,K).map(p=>[p.lng,p.lat]);if(ring.length<3)continue;
@@ -30989,7 +31029,7 @@ const PANE_STD=new Set(['tilePane','overlayPane','shadowPane','markerPane','tool
 let enpR=null;function relocateEnp(){try{if(typeof enpGroups==='undefined')return;if(!map.getPane('anEnpPane')){const p=map.createPane('anEnpPane');p.style.zIndex=441}enpR=enpR||L.canvas({pane:'anEnpPane'});
  for(const g of Object.values(enpGroups||{}))g?.eachLayer?.(l=>{if(l.options.pane==='anEnpPane')return;l.options.pane='anEnpPane';l.options.renderer=enpR;if(map.hasLayer(l)){map.removeLayer(l);map.addLayer(l)}})}catch(e){console.warn('ENP',e)}}
 function panesOfId(id){const out=new Set(['anOrd_'+String(id).replace(/[^A-Za-z0-9_]/g,'_')]);if(id==='enpMaster'){relocateEnp();out.add('anEnpPane')}const A=window.__anActiveLayers;let ls=[];try{ls=(A?.layersFor(id)||[]).slice()}catch(_){}
- try{if(id==='anClimaMapCheck')ls.push(window.anambroClimaMap?.layer?.())}catch(_){}if(id==='anWdpaCheck')out.add('anWdpaPane');if(id==='anUrb_world'){out.add('anUrbEPane');out.add('anUrbLblPane')}
+ try{if(id==='anClimaMapCheck')ls.push(window.anambroClimaMap?.layer?.())}catch(_){}if(id==='anWdpaCheck')out.add('anWdpaPane');if(id==='__red'||id==='worldRoadsCheck')out.add('anRedPane');if(id==='anUrb_world'){out.add('anUrbEPane');out.add('anUrbLblPane')}
  try{const base=String(id).replace(/Check$/,'').toLowerCase();if(base.length>6)for(const n of Object.keys(map._panes||{}))if(!PANE_STD.has(n)&&n.toLowerCase().startsWith(base))out.add(n);if(id==='worldRiversCheck'){out.add('worldRiverLabelsPane');out.add('worldMajorRiverLabelsPane')}}catch(_){}
  const walk=l=>{if(!l)return;const pn=l.options?.pane;if(pn&&!PANE_STD.has(pn))out.add(pn);const rp=l.options?.renderer?.options?.pane;if(rp&&!PANE_STD.has(rp))out.add(rp);if(typeof l.eachLayer==='function'&&!(l instanceof L.Path))l.eachLayer(walk)};ls.forEach(walk);
  return [...out].map(n=>map.getPane(n)).filter(Boolean)}
@@ -31101,7 +31141,7 @@ async function subOn0(c){const key=c.key;DECO.busy=key;let arr=[];try{arr=await 
  if(!map.getPane('anPaisSub')){const p=map.createPane('anPaisSub');p.style.zIndex=694;p.style.pointerEvents='none'}
  const cross=c.f&&amGeom(c.f.geometry)!==c.f.geometry;if(cross)for(const r of arr){r.f=amF(r.f);let mx=-1e9;const w=a=>{if(typeof a[0]==='number')mx=Math.max(mx,a[0]);else a.forEach(w)};w(r.f.geometry.coordinates);if(mx<0){const sh=a=>{if(typeof a[0]==='number')a[0]+=360;else a.forEach(sh)};r.f={...r.f,geometry:JSON.parse(JSON.stringify(r.f.geometry))};sh(r.f.geometry.coordinates)}}
  DECO.arr=arr;const fc={type:'FeatureCollection',features:arr.map(r=>r.f)};
- DECO.subR=DECO.subR||L.canvas({pane:'anPaisSub',padding:.3});DECO.sub=L.layerGroup([L.geoJSON(fc,{pane:'anPaisSub',renderer:DECO.subR,interactive:false,style:{color:'#fff',weight:2.6,opacity:.55,fill:false}}),L.geoJSON(fc,{pane:'anPaisSub',renderer:DECO.subR,interactive:false,style:{color:'#0b3d91',weight:1.1,opacity:.85,dashArray:'5 3',fill:false}})]).addTo(map);DECO.subKey=key;
+ DECO.subR=DECO.subR||L.canvas({pane:'anPaisSub',padding:.3});DECO.sub=L.layerGroup([L.geoJSON(fc,{pane:'anPaisSub',renderer:DECO.subR,interactive:false,style:{color:'#fff',weight:3,opacity:.6,fill:false}}),L.geoJSON(fc,{pane:'anPaisSub',renderer:DECO.subR,interactive:false,style:{color:'#4a5f7a',weight:1.1,opacity:.95,fill:false}})]).addTo(map);DECO.subKey=key;
  refreshFicha();lblSet('sub',arr.map(r=>{const ll=lblPoint(r.f.geometry);if(!ll)return null;const a=areaKm2(r.f.geometry)||1;const nm=String(r.name||'').replace(/^(.+), (El|La|Los|Las|Lo|Les|Els|A|O|As|Os)$/,'$2 $1');return {ll,t:nm,cls:'anLblSub'+(c.kind==='W'||c.kind==='CA'&&key!=='CA05'?'':' anLblLow'),prio:60+Math.log10(a),center:true,click:()=>goSub(r,L.latLng(ll))}}).filter(Boolean))}
 function subOff(){if(DECO.sub){try{map.removeLayer(DECO.sub)}catch(_){}DECO.sub=null}DECO.subKey=null;DECO.arr=null;lblDel('sub')}
 // ir a una subdivisión (nombre en el mapa, clic dentro de ella o lista de la ficha)
@@ -31119,21 +31159,43 @@ function lblDraw(){if(typeof map==='undefined')return;if(!map.getPane('anPaisLbl
  // en el globo: los más importantes (el globo no los coloca evitando solapes)
  if(document.body.classList.contains('globe-mode')){for(const it of all.slice(0,90))LBL.layer.addLayer(L.marker(it.ll,{pane:'anPaisLbl',interactive:false,keyboard:false,icon:L.divIcon({className:'anLbl '+it.cls,html:'<span>'+esc(it.t)+'</span>',iconSize:null})}));return}
  for(const it of all){const p=map.latLngToContainerPoint(it.ll);if(p.x<-80||p.y<-30||p.x>sz.x+80||p.y>sz.y+30)continue;
-  const fs=it.cls==='anLblSub'?11.5:it.cls==='anLblCity'?12:10.5,w=String(it.t).length*fs*.56+10,h=fs+5;
+  const fs=/anLblSub/.test(it.cls)?11.5:/anLblC1/.test(it.cls)?13:/anLblCity/.test(it.cls)?11.5:/anLblRio/.test(it.cls)?11.5:10.5,w=String(it.t).length*fs*.56+10,h=fs+5;
   const x0=it.center?p.x-w/2:p.x+(it.dx||6),y0=p.y-h/2,bx=[x0,y0,x0+w,y0+h];
   if(boxes.some(q=>bx[0]<q[2]&&bx[2]>q[0]&&bx[1]<q[3]&&bx[3]>q[1]))continue;boxes.push(bx);
-  const m=L.marker(it.ll,{pane:'anPaisLbl',interactive:!!it.click,keyboard:false,icon:L.divIcon({className:'anLbl '+it.cls+(it.center?' anLblC':'')+(it.click?' anLblK':''),html:'<span'+(it.dx?' style="margin-left:'+it.dx+'px"':'')+'>'+esc(it.t)+'</span>',iconSize:null})});
+  let rot=0;if(it.rot){const A=map.latLngToContainerPoint([it.rot[0][1],it.rot[0][0]]),B=map.latLngToContainerPoint([it.rot[1][1],it.rot[1][0]]);rot=Math.atan2(B.y-A.y,B.x-A.x)*180/Math.PI;if(rot>90)rot-=180;if(rot<-90)rot+=180}
+  const m=L.marker(it.ll,{pane:'anPaisLbl',interactive:!!it.click,keyboard:false,icon:L.divIcon({className:'anLbl '+it.cls+(it.center?' anLblC':'')+(it.click?' anLblK':''),html:'<span style="'+(it.dx?'margin-left:'+it.dx+'px;':'')+(rot?'--r:'+rot.toFixed(1)+'deg':'')+'">'+esc(it.t)+'</span>',iconSize:null})});
   if(it.click){m.on('click',e=>{L.DomEvent.stop(e);if(toolActive()){map.fire('click',{latlng:e.latlng,layerPoint:e.layerPoint,containerPoint:e.containerPoint,originalEvent:e.originalEvent});return}it.click()});m.options.title='Abrir la ficha de '+it.t}LBL.layer.addLayer(m)}}
 // capas de ANAMBRO que se encienden con su casilla (y se apagan al quitarlas, si las encendió la ficha)
 const layerOn=id=>(c,it)=>{if(setCheck(id,true))it.undo.push(()=>setCheck(id,false))};
 function climaOn(cls){return (c,it)=>{const sel=$('anClimaMapCls');if(sel&&sel.value!==cls){const old=sel.value;sel.value=cls;sel.dispatchEvent(new Event('change',{bubbles:true}));it.undo.push(()=>{sel.value=old;sel.dispatchEvent(new Event('change',{bubbles:true}))})}if(setCheck('anClimaMapCheck',true))it.undo.push(()=>setCheck('anClimaMapCheck',false))}}
-function citiesOn(c,it){const L0=(c.cities||[]).slice().reverse(),mx=Math.max(...L0.map(r=>r[6][15]),1);
- for(const r of L0){const v=r[6][15],rad=Math.max(3,Math.sqrt(v/mx)*30);const col=v>=1e4?'#67000d':v>=5e3?'#a50f15':v>=1e3?'#de2d26':v>=500?'#fb6a4a':v>=300?'#fc9272':'#fcbba1';
-  const m=L.circleMarker([r[4],r[5]],{pane:'anPaisPts',radius:rad,color:r[3]?'#000':'#5a2a1a',weight:r[3]?2.4:.8,fillColor:col,fillOpacity:.85});tip(m,(r[3]?'⭐ ':'')+'<b>'+esc(window.anambroUrbano?.nice?.(r[1])||r[1])+'</b><br>'+big(v*1000)+' hab. (2025)');m.on('click',()=>window.anambroUrbano?.openCity?.(r));it.grp.addLayer(m)}
- lblSet('urb',L0.map(r=>({ll:[r[4],r[5]],t:window.anambroUrbano?.nice?.(r[1])||r[1],cls:'anLblCity',prio:30+Math.log10(Math.max(1,r[6][15]))+(r[3]?20:0),dx:Math.max(3,Math.sqrt(r[6][15]/mx)*30)+3})));it.undo.push(()=>lblDel('urb'))}
-async function stationsOn(c,it){await ensureSt(c);const CM=window.anambroClimaMap;for(const s of c.st||[]){const k=PK(s)._k?.code;const m=L.circleMarker([s.la??s.lat,s.lo??s.lon],{pane:'anPaisPts',radius:4,color:'#1d2733',weight:.6,fillColor:(CM?.KCOL||{})[k]||'#999',fillOpacity:.95});tip(m,'<b>'+esc(s.n)+'</b><br>'+esc(k||'')+' · '+nf(s.z)+' m');m.on('click',()=>window.anambroClima?.openStation(s,PKK(s)));it.grp.addLayer(m)}
- lblSet('st',(c.st||[]).map(s=>({ll:[s.la??s.lat,s.lo??s.lon],t:s.n,cls:'anLblSt',prio:10+Math.min(5,(s.z||0)/1000),dx:6})));it.undo.push(()=>lblDel('st'))}
-function peakOn(c,it){const W=c.wd;if(!W?.ll)return;const ic=L.divIcon({className:'anPaisPeak',html:'<span>▲</span><b>'+esc(W.hp)+(W.hpe!=null?' · '+nf(W.hpe)+' m':'')+'</b>',iconSize:null,iconAnchor:[9,16]});it.grp.addLayer(L.marker(W.ll,{icon:ic,pane:'anPaisPts'}));try{map.flyTo(W.ll,Math.max(map.getZoom(),8),{duration:1})}catch(_){}}
+/* Símbolos de la vista de la ficha, estilo atlas: puntos con volumen (degradado, borde blanco y sombra), tamaños por clases,
+   capital con su símbolo clásico, estaciones en rombo de su color Köppen y cumbre en triángulo. Son marcadores HTML:
+   no los recorta el lienzo del mapa y en el globo se dibujan como puntos que no se esconden bajo el relieve. */
+const CITY_CL=[[1e4,19,'#7f0000'],[5e3,16,'#a50f15'],[1e3,13,'#cb181d'],[500,10.5,'#ef3b2c'],[200,9,'#fb6a4a'],[0,7.5,'#fc9272']];
+function cityCl(v){for(const c of CITY_CL)if(v>=c[0])return c;return CITY_CL[CITY_CL.length-1]}
+function dotIcon(d,col,cap){return L.divIcon({className:'anSym anSymDot'+(cap?' anSymCap':''),html:'<i style="--c:'+col+';width:'+d+'px;height:'+d+'px"></i>',iconSize:[d,d],iconAnchor:[d/2,d/2]})}
+function citiesOn(c,it){const L0=(c.cities||[]).slice().reverse();
+ for(const r of L0){const v=r[6][15],[,d,col]=cityCl(v),cap=!!r[3],D=cap?d+4:d;
+  const m=L.marker([r[4],r[5]],{pane:'anPaisPts',icon:dotIcon(D,col,cap),anPt:{px:D,fill:col,stroke:'#fff',cap},zIndexOffset:Math.round(v/10)+(cap?1e6:0),keyboard:false});
+  tip(m,(cap?'⭐ ':'')+'<b>'+esc(window.anambroUrbano?.nice?.(r[1])||r[1])+'</b><br>'+big(v*1000)+' hab. (2025)');m.on('click',()=>window.anambroUrbano?.openCity?.(r));it.grp.addLayer(m)}
+ lblSet('urb',L0.map(r=>{const v=r[6][15],[,d]=cityCl(v),cap=!!r[3];return {ll:[r[4],r[5]],t:window.anambroUrbano?.nice?.(r[1])||r[1],cls:'anLblCity '+(cap?'anLblC1':v>=1e3?'anLblC1':v>=300?'anLblC2':'anLblC3'),prio:30+Math.log10(Math.max(1,v))+(cap?20:0),dx:(cap?d+4:d)/2+3}}));it.undo.push(()=>lblDel('urb'))}
+async function stationsOn(c,it){await ensureSt(c);const CM=window.anambroClimaMap;for(const s of c.st||[]){const k=PK(s)._k?.code,col=(CM?.KCOL||{})[k]||'#999';
+  const m=L.marker([s.la??s.lat,s.lo??s.lon],{pane:'anPaisPts',keyboard:false,icon:L.divIcon({className:'anSym anSymSt',html:'<i style="--c:'+col+'"></i>',iconSize:[11,11],iconAnchor:[5.5,5.5]}),anPt:{px:8,fill:col,stroke:'#fff',diamond:true}});
+  tip(m,'<b>'+esc(s.n)+'</b><br>'+esc(k||'')+' · '+nf(s.z)+' m');m.on('click',()=>window.anambroClima?.openStation(s,PKK(s)));it.grp.addLayer(m)}
+ lblSet('st',(c.st||[]).map(s=>({ll:[s.la??s.lat,s.lo??s.lon],t:s.n,cls:'anLblSt',prio:10+Math.min(5,(s.z||0)/1000),dx:9})));it.undo.push(()=>lblDel('st'))}
+function peakOn(c,it){const W=c.wd;if(!W?.ll)return;const ic=L.divIcon({className:'anPaisPeak',html:'<svg width="18" height="16" viewBox="0 0 18 16"><path d="M9 1 17 15H1Z" fill="#6b3a1e" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 1 12 6.4 10.4 5.6 9 7 7.6 5.6 6 6.4Z" fill="#fff"/></svg><b>'+esc(W.hp)+(W.hpe!=null?'<small>'+nf(W.hpe)+' m</small>':'')+'</b>',iconSize:null,iconAnchor:[9,15]});it.grp.addLayer(L.marker(W.ll,{icon:ic,pane:'anPaisPts',anPt:{px:12,fill:'#6b3a1e',stroke:'#fff',label:W.hp+(W.hpe!=null?' · '+nf(W.hpe)+' m':'')}}));try{map.flyTo(W.ll,Math.max(map.getZoom(),8),{duration:1})}catch(_){}}
+/* Nombres de los ríos dentro de la unidad: el tramo más largo de cada río que la cruza, con el texto en la dirección del río */
+const RIOJ=()=>getJ('data/rios/rios_50m.json?v=2026-10-29b');
+async function riverLabels(c,it){const f=FX.c===c?(c.fHi||c.f):c.f;if(!f?.geometry)return;let R;try{R=await RIOJ()}catch(_){return}if(!FX.items.has('rios'))return;
+ const g=amGeom(f.geometry),b=bboxG(g),out=[],seen=new Map();
+ for(const r of R.features){const n=r.properties.n;if(!n)continue;const lines=r.geometry.type==='LineString'?[r.geometry.coordinates]:r.geometry.coordinates;
+  for(const ln of lines){let run=[];const flush=()=>{if(run.length>1){let len=0;for(let i=1;i<run.length;i++)len+=Math.hypot(run[i][0]-run[i-1][0],run[i][1]-run[i-1][1]);const o=seen.get(n);if(!o||len>o.len)seen.set(n,{len,run:run.slice(),rank:r.properties.r})}run=[]};
+   for(const p of ln){const ok=p[0]>=b[0]&&p[0]<=b[2]&&p[1]>=b[1]&&p[1]<=b[3]&&pip(p[0],p[1],g);if(ok)run.push(p);else flush()}flush()}}
+ for(const [n,o] of seen){if(o.len<.25)continue;let acc=0,half=o.len/2,k=1;for(;k<o.run.length;k++){const d=Math.hypot(o.run[k][0]-o.run[k-1][0],o.run[k][1]-o.run[k-1][1]);if(acc+d>=half)break;acc+=d}
+  const a=o.run[k-1],z=o.run[Math.min(k,o.run.length-1)],m=[(a[0]+z[0])/2,(a[1]+z[1])/2];
+  const i0=Math.max(0,k-3),i1=Math.min(o.run.length-1,k+2),p0=o.run[i0],p1=o.run[i1];
+  out.push({ll:[m[1],m[0]],t:n,cls:'anLblRio',prio:75-(o.rank||5)+Math.min(8,o.len*2),center:true,rot:[p0,p1]})}
+ lblSet('rio',out);it.undo.push(()=>lblDel('rio'))}
 const TZPAL=['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#1f78b4','#b2df8a','#fb9a99','#cab2d6','#fdbf6f'];
 // husos del país: cada desfase (hora oficial de hoy) con un color propio; fuera del país lo tapa la máscara gris
 async function zonesOn(c,it){if(!c.f)return;if(!c.tz)c.tz=await zones(c.f,iso2(c.iso)).catch(()=>[]);const offs=(c.tz||[]).map(x=>x.o),col={};offs.forEach((o,i)=>col[o]=TZPAL[i%TZPAL.length]);
@@ -31159,6 +31221,7 @@ function scopeOf(c){const k=String(c?.key||'');if(k==='W:ESP')return 'esp+can';
 const LAYERS={
  hyps:{can:['canaryHypsometryCheck'],esp:['spainHypsometryCheck'],world:['worldHypsometryCheck']},
  somb:{can:['worldHillshadeCheck'],esp:['worldHillshadeCheck'],world:['worldHillshadeCheck']},
+ red:{can:['sg_tr_viar','sg_tr_carr','sg_tr_fc'],esp:['sg_tr_viar','sg_tr_carr','sg_tr_fc']},
  rios:{esp:['spainHydroNetworkCheck'],world:['worldRiversCheck']},
  geo:{can:['canaryGeologyCheck'],esp:['spainGeologyCheck'],world:['worldGeologyCheck']},
  vega:{can:['vegetationCheck'],esp:['mfeCheck']},
@@ -31174,7 +31237,10 @@ const layersOn=k=>(c,it)=>{const ids=(idsFor(k,c)||[]).filter(id=>$(id));it.ids=
 const FXDEF={
  hyps:{label:()=>'🏔️ relieve',on:layersOn('hyps')},
  somb:{label:()=>'⛰️ sombras',on:layersOn('somb')},
- rios:{label:()=>'💧 ríos',on:layersOn('rios')},
+ red:{label:()=>'🛣️ carreteras y ferrocarriles',on:async(c,it)=>{if(scopeOf(c)!=='world'){layersOn('red')(c,it);return}it.ids=['__red'];const R0=window.anambroRedes;if(!R0)return;const d=await R0.country(c.iso).catch(()=>null);if(!d){it.label='🛣️ sin datos de carreteras';return}R0.draw(d,it.grp)}},
+ rios:{label:()=>'💧 ríos',on:(c,it)=>{layersOn('rios')(c,it);
+   // los nombres del propio mapa mundial (en inglés y uno por río) se esconden: la ficha pone los suyos dentro del país
+   for(const pn of ['worldMajorRiverLabelsPane','worldRiverLabelsPane']){const P=map.getPane(pn);if(P){P.style.display='none';it.undo.push(()=>{P.style.display=''})}}setTimeout(()=>riverLabels(c,it),50)}},
  geo:{label:c=>({can:'🪨 geología de Canarias',esp:'🪨 geología de España (IGME)'})[scopeOf(c)]||'🪨 geología',on:layersOn('geo')},
  vega:{label:()=>'🌿 vegetación actual',on:layersOn('vega')},
  vegp:{label:()=>'🌳 vegetación potencial',on:layersOn('vegp')},
@@ -31200,20 +31266,24 @@ function mapsFor(c){const sc=scopeOf(c),sn=SUBNAME(c),out=[...(sn?[['sub','🧩 
  if(sc!=='world')out.push(['vega','🌿 Vegetación actual'],['vegp','🌳 Vegetación potencial'],['clof',sc==='esp'?'🌦️ Köppen':'🌦️ Köppen oficial (Atlas)']);
  if(sc==='can'||sc==='esp+can')out.push(['atl','🌡️ Atlas climático (temperatura, lluvia…)']);
  if(sc==='world')out.push(['kp','🌦️ Köppen'],['bio','🌳 Biomas']);
- out.push(['mi','🌡️ Miller'],['wdpa',sc==='world'?'🛡️ Áreas protegidas':'🛡️ Espacios protegidos'],['volc','🌋 Volcanes'],['sis','〰️ Terremotos'],['urb','🏙️ Ciudades'],['st','📡 Estaciones'],['hp','▲ Punto más alto'],['tz','🕐 Husos']);
- return out.filter(([k])=>{if(k==='hp')return !!(c.wd?.ll||c.peak?.ll);if(k==='clof'&&sc!=='world')return true;if(LAYERS[k]){const ids=idsFor(k,c);return !!(ids&&ids.some(id=>$(id)))}return true})}
-function mapsBlock(c){return '<div class="anPaisMaps"><b>🗺️ Ver en el mapa</b><small> (se pueden combinar; lo de '+esc(c.name)+' sale solo de '+esc(c.name)+')</small><div>'+mapsFor(c).map(([k,l])=>'<button type="button" data-pa="fx" data-arg="'+k+'" class="'+(isFx(k)?'on':'')+'">'+l+'</button>').join('')+'</div>'+subSelect(c)+legBlock(c)+'</div>'}
+ out.push(['mi','🌡️ Miller'],['wdpa',sc==='world'?'🛡️ Áreas protegidas':'🛡️ Espacios protegidos'],['volc','🌋 Volcanes'],['sis','〰️ Terremotos'],['urb','🏙️ Ciudades'],['red','🛣️ Carreteras y ferrocarriles'],['st','📡 Estaciones'],['hp','▲ Punto más alto'],['tz','🕐 Husos']);
+ return out.filter(([k])=>{if(k==='hp')return !!(c.wd?.ll||c.peak?.ll);if(k==='clof'&&sc!=='world')return true;if(k==='red'&&sc==='world')return true;if(LAYERS[k]){const ids=idsFor(k,c);return !!(ids&&ids.some(id=>$(id)))}return true})}
+function mapsBlock(c){return '<div class="anPaisMaps"><b>🗺️ Ver en el mapa</b><small> (se pueden combinar; lo de '+esc(c.name)+' sale solo de '+esc(c.name)+')</small><div>'+mapsFor(c).map(([k,l])=>'<button type="button" data-pa="fx" data-arg="'+k+'" class="'+(isFx(k)?'on':'')+'">'+l+'</button>').join('')+'</div>'+subSelect(c)+legBlock(c)+'<div class="anPaisPrint"><button type="button" data-pa="print">🖨️ Imprimir o guardar este mapa en PDF</button></div></div>'}
 // leyenda de lo que se está viendo en el mapa (la misma de «Leyenda activa»), dentro de la ficha
 // leyendas propias de cada capa (las del panel Capas); si una capa no tiene, su nombre
 // leyenda del Mapa Geológico de España 1:1.000.000 (IGME), el que se ve a escala de país, comunidad y provincia
 let G1M_LEG='',G1M_P=null;function loadG1M(){if(G1M_P)return G1M_P;G1M_P=getJ('data/geo/igme1m_leyenda.json?v=2026-10-29').then(L=>{G1M_LEG='<small>Mapa Geológico de España 1:1.000.000 · IGME (al acercarte, GEODE 1:50.000)</small>'+L.map(g=>'<div class="anPaisLegG"><b>'+esc(g.n)+'</b>'+g.i.map(([l,t,d])=>'<div class="anPaisLegR"><img alt="" src="data:'+t+';base64,'+d+'"><span>'+esc(l)+'</span></div>').join('')+'</div>').join('')}).catch(()=>{G1M_P=null});return G1M_P}
 const LEGID={anClimaMapCheck:'anClimaMapLegend',anAtlasCheck:'anAtlasLegend',spainGeologyCheck:'spainGeologyLegendWrap',canaryGeologyCheck:'canaryGeologyLegendWrap',worldGeologyCheck:'worldGeologyLegend',worldBiomesCheck:'worldBiomesLegend',worldHypsometryCheck:'worldHypsometryLegend',vegetationCheck:'vegetationLegendWrap',vegetationPotentialCanaryCheck:'vegetationLegendWrap',mitecoPotentialCheck:'vegetationLegendWrap',tzLegalOn:'tzLegend',anWdpaCheck:null};
-function legHTML(){const out=[],seen=new Set();for(const [k,it] of FX.items){const ids=it.ids||(FXIDS[k]?[FXIDS[k]]:[]);
+const OWNLEG={urb:()=>'<div class="anLegSym">'+[[1e4,'10 millones o más'],[1e3,'1 a 5 millones'],[300,'300.000 a 1 millón'],[0,'50.000 a 300.000']].map(([v,t])=>{const [,d,col]=cityCl(v);return '<span><i class="anSym anSymDot" style="display:inline-block"><i style="--c:'+col+';width:'+d+'px;height:'+d+'px"></i></i> '+t+'</span>'}).join('')+'<span><i class="anSym anSymDot anSymCap" style="display:inline-block"><i style="--c:#a50f15;width:15px;height:15px"></i></i> capital</span></div><small>Aglomeraciones urbanas (ONU, 2025)</small>',
+ red:()=>'<div class="anLegSym"><span><b style="display:inline-block;width:22px;height:5px;background:#f5b041;border:1px solid #6b3b10;vertical-align:middle"></b> autopista</span><span><b style="display:inline-block;width:22px;height:3px;background:#fbe3a1;border:1px solid #7a5a2a;vertical-align:middle"></b> carretera principal</span><span><b style="display:inline-block;width:22px;height:1px;background:#8a7a5a;vertical-align:middle"></b> secundaria</span><span><b style="display:inline-block;width:22px;height:3px;background:repeating-linear-gradient(90deg,#1f1f1f 0 5px,#fff 5px 10px);border:1px solid #1f1f1f;vertical-align:middle"></b> ferrocarril</span></div><small>Natural Earth 1:10 m</small>',
+ st:()=>'<div class="anLegSym"><span><i class="anSym anSymSt" style="display:inline-block"><i style="--c:#5aa64d"></i></i> estación climática (color: clima de Köppen)</span></div>',
+ hp:()=>'<div class="anLegSym"><span>▲ punto más alto</span></div>'};
+function legHTML(){const out=[],seen=new Set();for(const [k,it] of FX.items){if(OWNLEG[k]&&!(k==='red'&&scopeOf(FX.c)!=='world')){out.push('<div class="anPaisLegItem"><div class="anPaisLegT">'+esc(String(it.label).replace(/<[^>]+>/g,''))+'</div>'+OWNLEG[k]()+'</div>');continue}const ids=(it.ids||(FXIDS[k]?[FXIDS[k]]:[])).filter(x=>x!=='__red');
   for(const id of ids){const lid=LEGID[id];let h='';
    if(id==='anWdpaCheck')h=window.anambroWdpa?.legendHTML?.()||'';
    else if((id==='spainGeologyCheck'||id==='canaryGeologyCheck')&&map.getZoom()<12){h=G1M_LEG||'<small>cargando la leyenda…</small>';if(!G1M_LEG)loadG1M()}
    else if(id==='mfeCheck'){const b=$('mfeCheck')?.closest('label')?.nextElementSibling;h=b?.innerHTML||''}
-   else if(lid){const e=$(lid);if(e&&!seen.has(lid)){seen.add(lid);h=e.innerHTML}}
+   else if(lid){const e=$(lid);if(e&&!seen.has(lid)){seen.add(lid);const k=e.cloneNode(true);k.removeAttribute('id');k.style.display='';k.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));h=k.outerHTML}}
    if(!h){const n=window.__anActiveLayers?.META?.[id]?.name;if(n)h='<b>'+esc(n)+'</b>'}
    if(h&&h.trim())out.push('<div class="anPaisLegItem"><div class="anPaisLegT">'+esc(it.label.replace(/<[^>]+>/g,''))+'</div>'+h+'</div>')}}
  return out.join('')}
@@ -31244,7 +31314,7 @@ function win(){let w=$('anPaisWin');if(w){placeWin(w);return w}w=document.create
 const TABS=[['res','📍 Resumen'],['pob','👥 Población'],['ciu','🏙️ Ciudades'],['cli','🌦️ Clima'],['eco','💶 Economía y sociedad'],['ter','🗺️ Territorio'],['ana','🧮 Analizar']];
 function act(a,arg){const L=window.anambroLugar,k=cur.key;
  if(a==='up'){openKey(arg);return}if(a==='mun'){openKey('M'+arg);return}
- if(a==='pyr')window.anambroPiramide?.open(k,[{k,l:cur.name},...(cur.chain||[])]);else if(a==='urb'){toggleFx('urb',cur)}else if(a==='ga'){cur.tab='ana';render()}else if(a==='anarun'){const sl=$('anPaisWin')?.querySelector('[data-ana]');if(sl)runAna(cur,sl.value)}else if(a==='anapanel')L?.gaFor(k,cur.name);else if(a==='reg')L?.regionsOf(cur.iso);
+ if(a==='pyr')window.anambroPiramide?.open(k,[{k,l:cur.name},...(cur.chain||[])]);else if(a==='urb'){toggleFx('urb',cur)}else if(a==='ga'){cur.tab='ana';render()}else if(a==='print'){printUnit(cur)}else if(a==='anarun'){const sl=$('anPaisWin')?.querySelector('[data-ana]');if(sl)runAna(cur,sl.value)}else if(a==='anapanel')L?.gaFor(k,cur.name);else if(a==='reg')L?.regionsOf(cur.iso);
  else if(a==='topo'){try{togglePanel('searchPanel')}catch(_){}const i=$('searchQ');if(i){i.value=cur.name;try{searchPlace()}catch(_){}}}
  else if(a==='net'){try{window.anambroLugar?.urbanOf(cur.key,cur.name,cur.f)}catch(_){}}
  else if(a==='zoom'&&cur.f){try{map.flyToBounds(cBounds(cur.f),{duration:.8})}catch(_){}}
@@ -31622,6 +31692,25 @@ async function runAna(c,metric){const U=anaUnits(c),G=window.__anambroGeographic
  // la ficha no pinta mapas temáticos: se deja el mapa como estaba (sin coropletas, sin fondo de atlas, sin resaltados)
  try{G.clear?.()}catch(_){}try{P.reset?.()}catch(_){}try{$('geoGeneralClear')?.click()}catch(_){}setTimeout(()=>{try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}},100);setTimeout(()=>{try{window.dispatchEvent(new Event('anambro:thematic-sync'))}catch(_){}},900);
  c.anaBusy='';if(cur===c)render()}
+/* Imprimir desde la ficha: el editor de impresión de ANAMBRO con el encuadre de la unidad, su nombre como título,
+   lo que se ve en el mapa y su leyenda */
+async function printUnit(c){if(!c)return;if(FX.key!==c.key){ensureFocus(c,false)}
+ try{map.fitBounds(cBounds(c.fHi||c.f),{padding:[20,20],animate:false})}catch(_){}
+ $('anPaisWin')?.classList.add('hidden');await new Promise(r=>setTimeout(r,900));
+ if(typeof openLayoutEditor!=='function')return;openLayoutEditor('map');
+ const items=[...FX.items.values()].map(it=>String(it.label).replace(/<[^>]+>/g,'').replace(/^[^\p{L}]+/u,'').trim()).filter(Boolean);
+ const title=c.name+(items.length?' · '+items.join(', '):'');
+ setTimeout(()=>{const ti=$('layoutTitleInput'),tb=$('layoutTitleBox');if(ti){ti.value=title;ti.dispatchEvent(new Event('input',{bubbles:true}))}if(tb)tb.textContent=title;
+  const h=legHTML();if(!h)return;let n=0;const put=()=>{const lc=$('layoutLegendContent');if(lc&&!lc.querySelector('.anPaisPrintLeg')){const d=document.createElement('div');d.className='anPaisPrintLeg';d.innerHTML=h;lc.prepend(d)}if(++n<40&&$('layoutOverlay')?.classList.contains('open'))setTimeout(put,500)};put()},600)}
+// al exportar (html2canvas no aplica recortes ni filtros CSS): fuera de la unidad, un velo gris claro dibujado como polígono
+function printMaskOn(){const [c,f]=decoUnit();if(!c||!f?.geometry)return null;const g=amGeom(f.geometry),P=g.type==='Polygon'?[g.coordinates]:g.coordinates;
+ const holes=[];for(const pp of P)holes.push(pp[0].map(([x,y])=>[y,x]));const vb=map.getBounds().pad(.5),outer=[[Math.max(-85,vb.getSouth()),vb.getWest()],[Math.max(-85,vb.getSouth()),vb.getEast()],[Math.min(85,vb.getNorth()),vb.getEast()],[Math.min(85,vb.getNorth()),vb.getWest()]];
+ if(!map.getPane('anPaisMask')){const a=map.createPane('anPaisMask');a.style.zIndex=695;a.style.pointerEvents='none'}
+ const l=L.polygon([outer,...holes],{pane:'anPaisMask',renderer:L.svg({pane:'anPaisMask',padding:.05}),stroke:false,fillColor:'#e9ecef',fillOpacity:.82,interactive:false}).addTo(map);return l}
+try{const base=typeof layoutExportLegendHTML==='function'?layoutExportLegendHTML:null;window.layoutExportLegendHTML=function(){const own=FX.c&&FX.items.size?'<div class="anPaisPrintLeg">'+legHTML()+'</div>':'';const rest=base?base.apply(this,arguments):(typeof activeLegendHTML==='function'?activeLegendHTML():'');return own+rest};try{layoutExportLegendHTML=window.layoutExportLegendHTML}catch(_){}}catch(_){}
+// la composición captura el mapa al abrirse: el velo se pone al abrirla (si hay una ficha en el mapa) y se quita al cerrarla
+let PMASK=null;try{if(typeof openLayoutEditor==='function'){const prevO=openLayoutEditor;window.openLayoutEditor=openLayoutEditor=function(mode){if(mode!=='profile'&&!PMASK)PMASK=printMaskOn();return prevO.apply(this,arguments)}}
+ const ov=document.getElementById('layoutOverlay');if(ov)new MutationObserver(()=>{if(!ov.classList.contains('open')&&PMASK){try{map.removeLayer(PMASK)}catch(_){}PMASK=null}}).observe(ov,{attributes:true,attributeFilter:['class']})}catch(e){console.warn('Impresión',e)}
 /* ---------- Globo 3D ---------- */
 // Lo que el globo necesita de la vista de la unidad: su contorno y los pisos (panes) de las capas que se recortan a ella
 function unitView(){const [c,f]=decoUnit();if(!c||!f?.geometry)return null;const panesN=new Set();
@@ -31635,7 +31724,7 @@ async function fromGlobe(ll){if(toolActive())return false;ll=L.latLng(ll.lat,ll.
  if(on('countriesCheck')||on('countryLabelsCheck')||(FX.c||(cur&&!$('anPaisWin')?.classList.contains('hidden')))){try{const g=await loadCountries();const x=(g.features||[]).find(q=>q.geometry&&pip(ll.lng,ll.lat,q.geometry));const iso=x&&humanCountryCode(x.properties||{});if(iso){open(iso,x);return true}}catch(e){console.warn('Globo · país',e)}}
  return false}
 try{if(typeof showGlobePoint==='function'){const orig=showGlobePoint;window.showGlobePoint=async function(ll,pos){const r=orig.apply(this,arguments);try{if(!window.__anPickOn&&ll)fromGlobe(ll)}catch(_){}return r}}}catch(_){}
-window.anambroPais={open,openUnit,openKey,fromPopup,fromGlobe,unitView,cityView,get deco(){return {inMap:!!(DECO.sub&&map.hasLayer(DECO.sub)),lblIn:!!(LBL.layer&&map.hasLayer(LBL.layer)),lblN:LBL.layer?.getLayers().length,subKey:DECO.subKey,arr:DECO.arr?.length,subOn:DECO.subOn,busy:DECO.busy,sub:!!DECO.sub,unit:decoUnit()[0]?.key,lbl:Object.keys(LBL.g)}},get fxCount(){let n=0;for(const it of FX.items.values())n+=it.grp.getLayers().length;return n},get fxItems(){return [...FX.items.keys()]},get fxOn(){return !!FX.mask},exit:exitFocus,show:(what)=>({urb:showCities,st:showStations,hp:showPeak,tz:showZones})[what]?.(cur),get cur(){return cur}};
+window.anambroPais={open,openUnit,openKey,fromPopup,fromGlobe,unitView,cityView,get deco(){return {rio:(LBL.g.rio||[]).map(x=>x.t+'@'+x.ll.map(v=>v.toFixed(1))).join(';'),inMap:!!(DECO.sub&&map.hasLayer(DECO.sub)),lblIn:!!(LBL.layer&&map.hasLayer(LBL.layer)),lblN:LBL.layer?.getLayers().length,subKey:DECO.subKey,arr:DECO.arr?.length,subOn:DECO.subOn,busy:DECO.busy,sub:!!DECO.sub,unit:decoUnit()[0]?.key,lbl:Object.keys(LBL.g)}},get fxCount(){let n=0;for(const it of FX.items.values())n+=it.grp.getLayers().length;return n},get fxItems(){return [...FX.items.keys()]},get fxOn(){return !!FX.mask},exit:exitFocus,show:(what)=>({urb:showCities,st:showStations,hp:showPeak,tz:showZones})[what]?.(cur),get cur(){return cur}};
 })();
 
 </script>
@@ -32043,6 +32132,34 @@ html body .panel:not(.hidden){animation:anPop .28s var(--an-ease)}
 .anPaisLegG{margin:4px 0}
 .anPaisLegR{display:flex;align-items:center;gap:6px;font-size:11.5px;line-height:1.2;margin:2px 0}
 .anPaisLegR img{width:18px;height:12px;flex:none}
+/* Símbolos de la ficha · estilo atlas */
+.anSym{background:none;border:0}
+.anSymDot i{display:block;border-radius:50%;background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.75) 0 14%,transparent 42%),var(--c);border:1.6px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45),0 0 0 .6px rgba(0,0,0,.35);box-sizing:border-box}
+.anSymCap i{border:2px solid #fff;box-shadow:0 0 0 1.6px #2a0a0a,0 2px 5px rgba(0,0,0,.5);position:relative}
+.anSymCap i::after{content:"";position:absolute;inset:28%;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.anSymSt i{display:block;width:7px;height:7px;margin:2px;transform:rotate(45deg);background:var(--c);border:1.4px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45),0 0 0 .5px rgba(0,0,0,.4);box-sizing:border-box}
+.anPaisPeak{display:flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:0}
+.anPaisPeak svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+.anPaisPeak b{font:600 12px/1.1 system-ui,sans-serif;color:#3b1d0c;text-shadow:0 0 2px #fff,0 0 3px #fff,0 0 4px #fff;background:none;box-shadow:none;padding:0;display:flex;flex-direction:column}
+.anPaisPeak b small{font-weight:500;font-size:10.5px;color:#6b3a1e}
+.anLbl span{transform:translateY(-50%) rotate(var(--r,0deg));transform-origin:0 50%}
+.anLblC span{transform:translate(-50%,-50%) rotate(var(--r,0deg));transform-origin:50% 50%}
+.anLblSub span{font:600 10.5px/1.1 Georgia,"Times New Roman",serif;color:#33475e;letter-spacing:.14em;text-transform:uppercase;font-variant:small-caps}
+.anLblSub.anLblLow span{font:600 11.5px/1.1 Georgia,"Times New Roman",serif;letter-spacing:.03em;text-transform:none;color:#33475e}
+.anLblCity span{font:700 11.5px/1.1 system-ui,-apple-system,"Segoe UI",sans-serif;color:#2a1410}
+.anLblC1 span{font-size:13px;font-weight:800;letter-spacing:.01em}
+.anLblC2 span{font-size:11.5px;font-weight:700}
+.anLblC3 span{font-size:10.5px;font-weight:600;color:#3d2a26}
+.anLblSt span{font:italic 500 10px/1.1 system-ui,sans-serif;color:#2b3a46}
+.anLblRio span{font:italic 600 11.5px/1.1 Georgia,"Times New Roman",serif;color:#1d5f9e;letter-spacing:.06em;text-shadow:0 0 2px #fff,0 0 3px #fff,0 0 4px #fff}
+
+.leaflet-zoom-anim .anSym,.leaflet-zoom-anim .anLbl{transition:none}
+.anPaisPrint{margin-top:8px}
+.anPaisPrint button{border:0;border-radius:14px;padding:6px 12px;background:#123a5c;color:#fff;font-weight:600;font-size:12.5px;cursor:pointer}
+.anPaisPrintLeg{margin-bottom:6px;font-size:11px}
+.anPaisPrintLeg .anPaisLegT{font-size:11.5px}
+.anLegSym{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:11.5px;margin:2px 0}
+.anLegSym span{display:inline-flex;align-items:center;gap:5px}
 </style>
 </body>
 </html>
