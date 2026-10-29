@@ -6147,7 +6147,12 @@ const MFE_FORMATION_COLORS={"Encinar":"#518b45","Alcornocal":"#698c57","Melojar"
 const MFE25_URL='https://iepnb.gob.es/geoserver/foto_fija_mfe/wms';
 const MFE25_SLD="<StyledLayerDescriptor version=\"1.0.0\" xmlns=\"http://www.opengis.net/sld\" xmlns:ogc=\"http://www.opengis.net/ogc\"><NamedLayer><Name>ff_uso</Name><UserStyle><FeatureTypeStyle><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*encinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#518b45</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*alcornocal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#698c57</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*melojar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#a18e59</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*quejigar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#b8a065</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*coscojar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#919f40</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*sabinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#80a18f</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*pinar*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#4b8e78</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*hayed*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#7d9ab5</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*robledal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#8d9c67</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*ribereñ*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#5e9cb8</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*matorral*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#bba279</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ogc:Filter><ogc:Or><ogc:PropertyIsLike wildCard=\"*\" singleChar=\"?\" escape=\"!\" matchCase=\"false\"><ogc:PropertyName>descr_forarb</ogc:PropertyName><ogc:Literal>*pastizal*</ogc:Literal></ogc:PropertyIsLike></ogc:Or></ogc:Filter><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#d4c38b</CssParameter></Fill></PolygonSymbolizer></Rule><Rule><ElseFilter/><PolygonSymbolizer><Fill><CssParameter name=\"fill\">#a9a9a9</CssParameter><CssParameter name=\"fill-opacity\">0.0</CssParameter></Fill></PolygonSymbolizer></Rule></FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>";
 const mfeCurrent=L.tileLayer.wms(MFE25_URL,{noWrap:true,layers:'ff_uso',format:'image/png',transparent:true,version:'1.1.1',sld_body:MFE25_SLD,opacity:.80,maxZoom:19,attribution:'Mapa Forestal de España · © MITECO (IEPNB)'});
-delete mfeCurrent.wmsParams.sld_body;mfeCurrent.wmsParams.styles='';
+delete mfeCurrent.wmsParams.sld_body;
+(function(){const R=20037508.342789244,M={W:-9.843749999999998*R/180,E:5.625000000000013*R/180,N:R*Math.log(Math.tan(Math.PI/4+44.087585028245165*Math.PI/360))/Math.PI,S:R*Math.log(Math.tan(Math.PI/4+35.4606699514953*Math.PI/360))/Math.PI},IM={};
+ const img=z=>IM[z]||(IM[z]=new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src='data/veg/mfe_z'+z+'.png?v=2026-10-29'}));
+ const orig=mfeCurrent.createTile;mfeCurrent.createTile=function(c,done){if(c.z>8)return orig.call(this,c,done);const cv=document.createElement('canvas');cv.width=cv.height=256;
+  img(Math.max(6,Math.min(8,c.z))).then(i=>{if(i){const n=2**c.z,s=2*R/n,x0=-R+c.x*s,y0=R-c.y*s,kx=i.naturalWidth/(M.E-M.W),ky=i.naturalHeight/(M.N-M.S);const g=cv.getContext('2d');g.imageSmoothingEnabled=c.z<6;g.drawImage(i,(x0-M.W)*kx,(M.N-y0)*ky,s*kx,s*ky,0,0,256,256)}done(null,cv)});return cv}})();
+mfeCurrent.wmsParams.styles='';
 (function(){const orig=mfeCurrent.getTileUrl;mfeCurrent.getTileUrl=function(c){if(c.z>=7)return orig.call(this,c);const w0=this.wmsParams.width,h0=this.wmsParams.height,k=Math.min(8,2**(7-c.z));this.wmsParams.width=this.wmsParams.height=256*k;try{return orig.call(this,c)}finally{this.wmsParams.width=w0;this.wmsParams.height=h0}}})();
 const vegetation=L.layerGroup([vegetationCanary]);
 let vegetationLoaded=false,vegetationLoading=null,vegetationFeatures=[];
@@ -30575,7 +30580,7 @@ const gv=()=>(typeof globeViewer!=='undefined'&&globeViewer&&window.Cesium&&docu
 const B=new Map();// L.stamp(capa) -> {kind,lyr|prim,ver}
 const dbg=window.__anambroGlobo={items:()=>[...B.values()].map(b=>b.kind+':'+b.name)};
 // panes cuyos dibujos vectoriales no tienen versión 3D propia
-const VEC_PANES=new Set(['physicalLabelsPane','worldRiversPane','worldRiverLabelsPane','worldMajorRiverLabelsPane','anOrd_gridCheck',
+const VEC_PANES=new Set(['physicalLabelsPane','worldRiversPane','worldRiverLabelsPane','worldMajorRiverLabelsPane',
  // vista de la unidad desde su ficha: contorno, subdivisiones, nombres, ciudades, estaciones, punto más alto
  'anPaisLine','anPaisSub','anPaisLbl','anPaisPts']);
 // capas cuyo dibujo está en el piso común: se toman por su casilla
@@ -30692,11 +30697,15 @@ function uvClear(){const v=typeof globeViewer!=='undefined'?globeViewer:null;for
 function uvSync(){const v=gv(),view=window.anambroPais?.unitView?.();if(!v||!view){if(UV.key)uvClear();return}
  if(UV.key!==view.key||UV.geom!==view.geom)uvClear();UV.key=view.key;UV.geom=view.geom;
  const L0=v.imageryLayers,clipU=leafletUrlsIn(view.clipPanes),mine=new Set([...B.values()].filter(b=>b.lyr&&view.clipPanes.includes(b.name)).map(b=>b.lyr));
- const clones=new Set(UV.clones.values());
+ const clones=new Set(UV.clones.values());let topBase=null;
+ for(let i=0;i<L0.length;i++){const l=L0.get(i);if(!clones.has(l)&&l.show&&l.alpha>0.05&&isBase(l))topBase=l}
+ for(const [orig,cl] of [...UV.clones]){if(isBase(orig)&&orig!==topBase){try{L0.remove(cl,true)}catch(_){}UV.clones.delete(orig);clones.delete(cl)}}
  for(let i=0;i<L0.length;i++){const l=L0.get(i);if(clones.has(l))continue;
   const base=isBase(l),u=provUrl(l.imageryProvider);
   const clip=!base&&(mine.has(l)||clipU.some(c=>c.u&&u.indexOf(c.u)>=0&&(!c.ly||decodeURIComponent(u+' '+(l.imageryProvider?.layers||'')).indexOf(c.ly.split(',')[0])>=0||String(l.imageryProvider?.layers||'').indexOf(c.ly.split(',')[0])>=0)));
   if(base){if(!UV.gray.has(l)){l.saturation=0;l.brightness=1.05;UV.gray.add(l)}}
+  // en color dentro de la unidad solo se repite la imagen de fondo visible de más arriba (no los fondos tapados ni los del atlas)
+  if(base&&l!==topBase)continue;
   if((base||clip)&&!UV.clones.has(l)){try{const cl=new Cesium.ImageryLayer(maskProvider(l.imageryProvider,view.geom),{alpha:l.alpha,show:true});L0.add(cl,L0.indexOf(l)+1);if(clip)l.show=false;UV.clones.set(l,cl);i++}catch(e){console.warn('Globo · recorte',e)}}}
  // clones cuyo original ya no está
  for(const [orig,cl] of [...UV.clones]){if(!L0.contains(orig)){try{L0.remove(cl,true)}catch(_){}UV.clones.delete(orig)}else{cl.alpha=orig.alpha}}
@@ -30704,6 +30713,17 @@ function uvSync(){const v=gv(),view=window.anambroPais?.unitView?.();if(!v||!vie
 let tu=null;const uvLater=()=>{clearTimeout(tu);tu=setTimeout(uvSync,400)};
 document.addEventListener('anambro-unitview',uvLater);map.on('layeradd layerremove',()=>setTimeout(uvLater,900));
 try{new MutationObserver(uvLater).observe(document.body,{attributes:true,attributeFilter:['class']})}catch(_){}
+/* ---- red geográfica en el globo (la del mapa 2D solo cubre la vista plana): meridianos y paralelos cada 10°, ecuador, trópicos y círculos polares ---- */
+let GRAT=null;function gratSync(){const v=gv(),on=!!document.getElementById('gridCheck')?.checked;
+ if((!v||!on)&&GRAT){try{(typeof globeViewer!=='undefined'?globeViewer:v)?.scene.primitives.remove(GRAT)}catch(_){}GRAT=null}
+ if(!v||!on||GRAT)return;const C=Cesium,pc=new C.PolylineCollection(),add=(pts,col,w)=>pc.add({positions:C.Cartesian3.fromDegreesArrayHeights(pts.flatMap(([x,y])=>[x,y,12000])),width:w,material:C.Material.fromType('Color',{color:col})});
+ const wht=C.Color.WHITE.withAlpha(.55);
+ for(let lo=-180;lo<180;lo+=10){const pts=[];for(let la=-80;la<=80;la+=2)pts.push([lo,la]);add(pts,wht,1)}
+ const par=(la,col,w)=>{const pts=[];for(let lo=-180;lo<=180;lo+=2)pts.push([lo,la]);add(pts,col,w)};
+ for(let la=-80;la<=80;la+=10)if(la)par(la,wht,1);
+ par(0,C.Color.fromCssColorString('#e04a2a').withAlpha(.9),2);for(const t of [23.44,-23.44])par(t,C.Color.fromCssColorString('#f2c230').withAlpha(.9),1.6);for(const t of [66.56,-66.56])par(t,C.Color.fromCssColorString('#5ec8f2').withAlpha(.9),1.6);
+ GRAT=v.scene.primitives.add(pc);v.scene.requestRender()}
+document.addEventListener('change',e=>{if(e.target?.id==='gridCheck')setTimeout(gratSync,50)},true);try{new MutationObserver(()=>setTimeout(gratSync,300)).observe(document.body,{attributes:true,attributeFilter:['class']})}catch(_){}
 window.anambroGlobo={sync,refresh,items:dbg.items,uvSync,uv:()=>({key:UV.key,clones:UV.clones.size,gray:UV.gray.size})};
 })();
 
@@ -30757,6 +30777,12 @@ function ui(){const anchor=$('worldHypsometryStatus');if(!anchor||$('worldHillsh
  $('worldHillshadeAlt').addEventListener('input',e=>{S.alt=+e.target.value;$('worldHillshadeAltV').textContent=S.alt+'°'});
  $('worldHillshadeAlt').addEventListener('change',redraw)}
 ui();
+// también en «Relieve» de España y de Canarias: la misma capa (casillas sincronizadas)
+function proxies(){const m=$('worldHillshadeCheck');if(!m)return;for(const id of ['spainHypsometryCheck','canaryHypsometryCheck']){const host=$(id)?.closest('label');if(!host||$(id+'_somb'))continue;
+  const l=document.createElement('label');l.innerHTML='<input id="'+id+'_somb" type="checkbox"/> <b>Sombras del relieve (modelo de sombras)</b>';host.after(l);const c=l.querySelector('input');c.checked=m.checked;
+  c.addEventListener('change',()=>{if(m.checked!==c.checked){m.checked=c.checked;m.dispatchEvent(new Event('change',{bubbles:true}))}})}
+ m.addEventListener('change',()=>{for(const id of ['spainHypsometryCheck_somb','canaryHypsometryCheck_somb']){const c=$(id);if(c)c.checked=m.checked}})}
+proxies();
 window.anambroSombras={layer:()=>S.layer,set,get state(){return {...S,layer:!!S.layer}}};
 })();
 
@@ -31109,7 +31135,7 @@ const FXDEF={
  hyps:{label:()=>'🏔️ relieve',on:layersOn('hyps')},
  somb:{label:()=>'⛰️ sombras',on:layersOn('somb')},
  rios:{label:()=>'💧 ríos',on:layersOn('rios')},
- geo:{label:c=>({can:'🪨 geología de Canarias',esp:'🪨 geología GEODE (IGME)'})[scopeOf(c)]||'🪨 geología',on:layersOn('geo')},
+ geo:{label:c=>({can:'🪨 geología de Canarias',esp:'🪨 geología de España (IGME)'})[scopeOf(c)]||'🪨 geología',on:layersOn('geo')},
  vega:{label:()=>'🌿 vegetación actual',on:layersOn('vega')},
  vegp:{label:()=>'🌳 vegetación potencial',on:layersOn('vegp')},
  clof:{label:c=>scopeOf(c)==='can'?'🌦️ Köppen oficial (Atlas Climático de Canarias)':scopeOf(c)==='esp+can'?'🌦️ Köppen (TerraClimate; en Canarias, Atlas oficial)':'🌦️ Köppen-Geiger (TerraClimate 1991–2020)',on:(c,it)=>{layersOn('clof')(c,it);
@@ -31136,7 +31162,23 @@ function mapsFor(c){const sc=scopeOf(c),sn=SUBNAME(c),out=[...(sn?[['sub','🧩 
  if(sc==='world')out.push(['kp','🌦️ Köppen'],['bio','🌳 Biomas']);
  out.push(['mi','🌡️ Miller'],['wdpa',sc==='world'?'🛡️ Áreas protegidas':'🛡️ Espacios protegidos'],['volc','🌋 Volcanes'],['sis','〰️ Terremotos'],['urb','🏙️ Ciudades'],['st','📡 Estaciones'],['hp','▲ Punto más alto'],['tz','🕐 Husos']);
  return out.filter(([k])=>{if(k==='hp')return !!(c.wd?.ll||c.peak?.ll);if(k==='clof'&&sc!=='world')return true;if(LAYERS[k]){const ids=idsFor(k,c);return !!(ids&&ids.some(id=>$(id)))}return true})}
-function mapsBlock(c){return '<div class="anPaisMaps"><b>🗺️ Ver en el mapa</b><small> (se pueden combinar; lo de '+esc(c.name)+' sale solo de '+esc(c.name)+')</small><div>'+mapsFor(c).map(([k,l])=>'<button type="button" data-pa="fx" data-arg="'+k+'" class="'+(isFx(k)?'on':'')+'">'+l+'</button>').join('')+'</div>'+subSelect(c)+'</div>'}
+function mapsBlock(c){return '<div class="anPaisMaps"><b>🗺️ Ver en el mapa</b><small> (se pueden combinar; lo de '+esc(c.name)+' sale solo de '+esc(c.name)+')</small><div>'+mapsFor(c).map(([k,l])=>'<button type="button" data-pa="fx" data-arg="'+k+'" class="'+(isFx(k)?'on':'')+'">'+l+'</button>').join('')+'</div>'+subSelect(c)+legBlock(c)+'</div>'}
+// leyenda de lo que se está viendo en el mapa (la misma de «Leyenda activa»), dentro de la ficha
+// leyendas propias de cada capa (las del panel Capas); si una capa no tiene, su nombre
+// leyenda del Mapa Geológico de España 1:1.000.000 (IGME), el que se ve a escala de país, comunidad y provincia
+let G1M_LEG='',G1M_P=null;function loadG1M(){if(G1M_P)return G1M_P;G1M_P=getJ('data/geo/igme1m_leyenda.json?v=2026-10-29').then(L=>{G1M_LEG='<small>Mapa Geológico de España 1:1.000.000 · IGME (al acercarte, GEODE 1:50.000)</small>'+L.map(g=>'<div class="anPaisLegG"><b>'+esc(g.n)+'</b>'+g.i.map(([l,t,d])=>'<div class="anPaisLegR"><img alt="" src="data:'+t+';base64,'+d+'"><span>'+esc(l)+'</span></div>').join('')+'</div>').join('')}).catch(()=>{G1M_P=null});return G1M_P}
+const LEGID={anClimaMapCheck:'anClimaMapLegend',anAtlasCheck:'anAtlasLegend',spainGeologyCheck:'spainGeologyLegendWrap',canaryGeologyCheck:'canaryGeologyLegendWrap',worldGeologyCheck:'worldGeologyLegend',worldBiomesCheck:'worldBiomesLegend',worldHypsometryCheck:'worldHypsometryLegend',vegetationCheck:'vegetationLegendWrap',vegetationPotentialCanaryCheck:'vegetationLegendWrap',mitecoPotentialCheck:'vegetationLegendWrap',tzLegalOn:'tzLegend',anWdpaCheck:null};
+function legHTML(){const out=[],seen=new Set();for(const [k,it] of FX.items){const ids=it.ids||(FXIDS[k]?[FXIDS[k]]:[]);
+  for(const id of ids){const lid=LEGID[id];let h='';
+   if(id==='anWdpaCheck')h=window.anambroWdpa?.legendHTML?.()||'';
+   else if((id==='spainGeologyCheck'||id==='canaryGeologyCheck')&&map.getZoom()<12){h=G1M_LEG||'<small>cargando la leyenda…</small>';if(!G1M_LEG)loadG1M()}
+   else if(id==='mfeCheck'){const b=$('mfeCheck')?.closest('label')?.nextElementSibling;h=b?.innerHTML||''}
+   else if(lid){const e=$(lid);if(e&&!seen.has(lid)){seen.add(lid);h=e.innerHTML}}
+   if(!h){const n=window.__anActiveLayers?.META?.[id]?.name;if(n)h='<b>'+esc(n)+'</b>'}
+   if(h&&h.trim())out.push('<div class="anPaisLegItem"><div class="anPaisLegT">'+esc(it.label.replace(/<[^>]+>/g,''))+'</div>'+h+'</div>')}}
+ return out.join('')}
+function legBlock(c){if(!(FX.key===c.key&&FX.items.size))return '';const h=legHTML();return '<details class="anPaisLeg" open><summary>🗂️ Leyenda de lo que ves en el mapa</summary><div class="anPaisLegIn">'+(h||'<small>cargando…</small>')+'</div></details>'}
+setInterval(()=>{if(!FX.items.size)return;const el=$('anPaisWin')?.querySelector('.anPaisLegIn');if(!el)return;const h=legHTML();if(h&&el.innerHTML!==h)el.innerHTML=h},2000);
 const FXIDS={kp:'anClimaMapCheck',mi:'anClimaMapCheck'};
 // carga diferida: estaciones (solo al abrir Clima o «Estaciones» en el mapa) e IDH (solo al abrir Economía)
 function ensureSt(c){if(c.st||c.stP)return c.stP;c.stP=(async()=>{try{const db=await window.anambroClima.load(climaZones(c));
@@ -31950,6 +31992,15 @@ html body .panel:not(.hidden){animation:anPop .28s var(--an-ease)}
 .anPaisAnaRow select{flex:1;min-width:0;padding:5px;border-radius:8px;border:1px solid #b9c7d6}
 .anPaisAnaRow button{border:0;border-radius:14px;padding:6px 12px;background:#123a5c;color:#fff;font-weight:700;cursor:pointer}
 .anPaisAnaRow button[disabled]{opacity:.5}
+.anPaisLeg{margin-top:8px;border-top:1px solid #d8e2ec;padding-top:6px}
+.anPaisLeg summary{cursor:pointer;font-weight:700;font-size:12.5px;color:#123a5c}
+.anPaisLegIn{max-height:220px;overflow:auto;font-size:12px;margin-top:4px}
+.anPaisLegIn img{max-width:100%}
+.anPaisLegItem{margin:4px 0 8px}
+.anPaisLegT{font-weight:700;font-size:12px;color:#123a5c;margin-bottom:2px}
+.anPaisLegG{margin:4px 0}
+.anPaisLegR{display:flex;align-items:center;gap:6px;font-size:11.5px;line-height:1.2;margin:2px 0}
+.anPaisLegR img{width:18px;height:12px;flex:none}
 </style>
 </body>
 </html>
