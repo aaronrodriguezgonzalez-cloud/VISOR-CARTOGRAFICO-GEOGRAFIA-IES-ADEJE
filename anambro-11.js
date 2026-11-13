@@ -5,7 +5,7 @@
 (function(){
 "use strict";
 if(typeof map==="undefined"||typeof L==="undefined")return;
-var BASE=new URL("./",location.href).href, V="20261112";
+var BASE=new URL("./",location.href).href, V="20261112c";
 var $=function(id){return document.getElementById(id);};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
 var fmtN=function(n){try{return Math.round(n).toLocaleString("es-ES");}catch(e){return String(n);}};
@@ -97,7 +97,7 @@ function prep(fc){
     var polys=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[];
     var parts=[],W=180,S=90,E=-180,N=-90;
     polys.forEach(function(rings){var w=180,s=90,e=-180,n=-90;rings[0].forEach(function(p){if(p[0]<w)w=p[0];if(p[0]>e)e=p[0];if(p[1]<s)s=p[1];if(p[1]>n)n=p[1];});parts.push({r:rings,b:[w,s,e,n]});if(w<W)W=w;if(e>E)E=e;if(s<S)S=s;if(n>N)N=n;});
-    var o={i:feats.length,id:f.properties.id,lp:f.properties.lp,a:f.properties.a,parts:parts,b:[W,S,E,N]};
+    var o={i:feats.length,id:f.properties.id,lp:f.properties.lp,a:f.properties.a,add:f.properties.add?1:0,parts:parts,b:[W,S,E,N]};
     feats.push(o);
     for(var cx=Math.floor((W+180)/CELL);cx<=Math.floor((E+180)/CELL);cx++)for(var cy=Math.floor((S+90)/CELL);cy<=Math.floor((N+90)/CELL);cy++){var k=cx+","+cy;(grid[k]||(grid[k]=[])).push(o.i);}
   });
@@ -217,7 +217,7 @@ function detHit(lat,lng){
   if(!DET.idx||!LAYERS.act||map.getZoom()<DET.MINZ&&!document.body.classList.contains("globe-mode"))return undefined;
   var cs=detChunksFor(lng,lat,lng,lat);if(!cs.length)return undefined;var v=DET.chunks[cs[0][4]];if(!v||v.then)return undefined;
   var c=query(v.ix,lng-1e-6,lat-1e-6,lng+1e-6,lat+1e-6).sort(function(a,b){return b.a-a.a;});
-  for(var k=c.length-1;k>=0;k--)if(inFeat(c[k],lng,lat)){var id=c[k].id;return IX.act.feats.filter(function(f){return f.id===id;})[0]||null;}
+  for(var k=c.length-1;k>=0;k--)if(inFeat(c[k],lng,lat)){var id=c[k].id,ad=c[k].add;var same=IX.act.feats.filter(function(f){return f.id===id;});return same.filter(function(f){return f.add===ad;})[0]||same[0]||null;}
   return null;
 }
 function layerFor(key){
@@ -273,7 +273,7 @@ function langCard(f,key){
   h+='<div class="anLgRadio" data-lng-radio="'+esc(key)+'|'+esc(f.id)+'"><button type="button" class="anLgBtn" data-lng-act="radios">📻 Escuchar emisoras de esta zona</button></div>';
   h+='<div class="anLgBtns">'+(d.c&&WHERE_OK(d.c)?'<button type="button" class="anLgBtn" data-lng-act="where" data-code="'+esc(d.c)+'">🌍 ¿Dónde se habla '+esc(d.n.toLowerCase())+'?</button>':"")+
     '<a class="anLgBtn" href="https://glottolog.org/resource/languoid/id/'+esc(f.id)+'" target="_blank" rel="noopener">Glottolog ↗</a></div>';
-  if(d.add)h+='<div class="anLgNote" style="border:0;margin-top:8px">⚠️ '+esc(d.add)+"</div>";
+  if(f.add||d.add)h+='<div class="anLgNote" style="border:0;margin-top:8px">⚠️ '+esc(f.id==="gali1258"?"Área de Galicia añadida por ANAMBRO: el atlas de Asher y Moseley (versión Glottography) no la recoge.":"Área completada por ANAMBRO: el atlas de Asher y Moseley no la recoge en su versión digital; se le asigna la lengua principal del territorio (Unicode CLDR y Glottolog).")+"</div>";
   h+='<div class="anLgNote">'+(key==="pre"?"Áreas tradicionales de Asher y Moseley (2007) para América y Australia, aproximadamente en la época del contacto europeo.":"Áreas de Asher y Moseley (2007, Atlas of the World’s Languages) en la versión libre de Glottography.")+" Clasificación y vitalidad: Glottolog. Las áreas son aproximadas y en muchas zonas conviven varias lenguas.</div></div></div>";
   return h;
 }
