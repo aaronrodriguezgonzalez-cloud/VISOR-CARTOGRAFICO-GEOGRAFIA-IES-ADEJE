@@ -1297,18 +1297,53 @@ function toggleLegend(){
 </div>
 <link rel="stylesheet" href="css/anambro-9.css?v=ee9a84a1"><script src="js/anambro-9.js?v=86698986"></script><script src="js/anambro-10.js?v=aaad967e"></script><script src="anambro-11.js?v=20261112c"></script><script src="anambro-12.js?v=20261112b"></script><script src="anambro-13.js?v=20261112b"></script>
 <script>
-/* ANAMBRO · Juegos de clima dentro del Juego territorial (2026-11-16) */
+/* ANAMBRO · Menú «Juegos»: Juego territorial, ¿Qué clima es? y Paisaje y clima, cada uno desplegable (2026-11-16) */
 (function(){
-  function poner(){
-    var p=document.getElementById("territorialGamePanel");
-    if(!p||p.querySelector("#anClimaJuegos"))return;
-    var c=document.createElement("div");c.id="anClimaJuegos";c.className="gameV044Card";
-    c.innerHTML='<b>🌦️ Juegos de clima</b>'+
-      '<button type="button" class="action" style="display:block;width:100%;margin:6px 0 4px;text-align:left" onclick="openAnambroExplanation(\'juego-climas.html\',\'¿Qué clima es? · El «¿Quién es quién?» de los climogramas\')">📊 ¿Qué clima es? · climogramas (PAU, Canarias)</button>'+
-      '<button type="button" class="action" style="display:block;width:100%;margin:4px 0;text-align:left" onclick="openAnambroExplanation(\'juego-paisajes.html\',\'Paisaje y clima\')">🌿 Paisaje y clima · fotos y climogramas</button>';
-    var h=p.querySelector("h3");if(h)h.insertAdjacentElement("afterend",c);else p.prepend(c);
+  var JUEGOS=[
+    {id:"anJuegoClimas",icono:"📊",titulo:"¿Qué clima es?",desc:"El «¿Quién es quién?» de los climogramas: pregunta al climograma y descarta tipos de clima. España (tabla PAU), Canarias y el mundo (Köppen-Geiger y Miller).",url:"juego-climas.html",ventana:"¿Qué clima es? · El «¿Quién es quién?» de los climogramas"},
+    {id:"anJuegoPaisajes",icono:"🌿",titulo:"Paisaje y clima",desc:"Relaciona cada paisaje vegetal con su climograma, en España y en el mundo.",url:"juego-paisajes.html",ventana:"Paisaje y clima"}
+  ];
+  function css(){
+    if(document.getElementById("anJuegosCss"))return;
+    var s=document.createElement("style");s.id="anJuegosCss";
+    s.textContent="#territorialGamePanel details.anJuego{border:1px solid rgba(127,127,127,.35);border-radius:10px;margin:8px 0;padding:0 10px}"+
+      "#territorialGamePanel details.anJuego>summary{cursor:pointer;font-weight:700;padding:9px 0;list-style:none}"+
+      "#territorialGamePanel details.anJuego>summary::-webkit-details-marker{display:none}"+
+      "#territorialGamePanel details.anJuego>summary:before{content:'▸ ';display:inline-block;width:1.1em}"+
+      "#territorialGamePanel details.anJuego[open]>summary:before{content:'▾ '}"+
+      "#territorialGamePanel details.anJuego>.anJuegoCuerpo{padding:0 0 10px}"+
+      "#territorialGamePanel .anJuegoDesc{font-size:13px;opacity:.85;margin:0 0 8px}";
+    document.head.appendChild(s);
   }
-  new MutationObserver(poner).observe(document.body,{childList:true,subtree:true});
+  function etiquetas(){
+    var b=document.querySelector('[data-hub="game"]');if(b&&b.textContent!=="🎮 Juegos")b.textContent="🎮 Juegos";
+    var t=document.getElementById("territorialGameToolBtn");if(t&&!/Juegos$/.test(t.textContent.trim()))t.innerHTML="<span>🎮</span> Juegos";
+    document.querySelectorAll(".mLabel").forEach(function(l){if(l.textContent==="Juego territorial")l.textContent="Juegos"});
+  }
+  function poner(){
+    etiquetas();
+    var p=document.getElementById("territorialGamePanel");
+    if(!p||p.querySelector("#anJuegoTerritorial"))return;
+    css();
+    var h=p.querySelector("h3");if(h)h.textContent="🎮 Juegos";
+    // 1) Juego territorial: sus controles de siempre, dentro de un desplegable
+    var d=document.createElement("details");d.className="anJuego";d.id="anJuegoTerritorial";d.open=true;
+    d.innerHTML='<summary>🗺️ Juego territorial</summary><div class="anJuegoCuerpo"></div>';
+    var cuerpo=d.querySelector(".anJuegoCuerpo");
+    Array.prototype.slice.call(p.childNodes).forEach(function(n){if(n!==h)cuerpo.appendChild(n)});
+    if(h)h.insertAdjacentElement("afterend",d);else p.prepend(d);
+    // 2) y 3) Juegos de clima
+    var ant=d;
+    JUEGOS.forEach(function(j){
+      var e=document.createElement("details");e.className="anJuego";e.id=j.id;
+      e.innerHTML='<summary>'+j.icono+' '+j.titulo+'</summary><div class="anJuegoCuerpo"><p class="anJuegoDesc">'+j.desc+'</p><button type="button" class="action" style="width:100%">▶ Jugar</button></div>';
+      e.querySelector("button").addEventListener("click",function(){if(typeof openAnambroExplanation==="function")openAnambroExplanation(j.url,j.ventana);else window.open(j.url,"_blank")});
+      ant.insertAdjacentElement("afterend",e);ant=e;
+    });
+    // un solo desplegable abierto a la vez
+    p.querySelectorAll("details.anJuego").forEach(function(x){x.addEventListener("toggle",function(){if(x.open)p.querySelectorAll("details.anJuego").forEach(function(y){if(y!==x)y.open=false})})});
+  }
+  new MutationObserver(poner).observe(document.documentElement,{childList:true,subtree:true});
   document.addEventListener("DOMContentLoaded",poner);setTimeout(poner,1500);
 })();
 </script>
