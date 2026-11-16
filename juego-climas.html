@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Qué clima es? · Juego de climogramas · ANAMBRO</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+:root{--azul:#17324d;--acento:#2e86de;--fondo:#f3f6f9;--borde:#d5dee7;--ok:#1e8449;--mal:#c0392b;--duda:#d68910}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;color:#1d2a36;background:var(--fondo);line-height:1.4}
+header{background:var(--azul);color:#fff;padding:10px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+header h1{font-size:20px;margin:0}
+header .sub{font-size:14px;opacity:.85}
+.marcador{margin-left:auto;display:flex;gap:14px;font-size:15px;font-weight:600}
+.marcador span{background:rgba(255,255,255,.14);padding:4px 10px;border-radius:14px}
+main{max-width:1400px;margin:0 auto;padding:14px}
+.panel{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:14px}
+h2{font-size:18px;margin:0 0 8px;color:var(--azul)}
+h3{font-size:16px;margin:12px 0 6px;color:var(--azul)}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--acento);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:600}
+.btn:hover{filter:brightness(1.08)}
+.btn.sec{background:#e8eef4;color:var(--azul)}
+.btn:disabled{opacity:.45;cursor:default}
+/* Portada */
+#inicio{max-width:880px;margin:20px auto}
+.opciones{display:grid;gap:14px;margin:14px 0}
+.opcion b{display:block;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--borde);background:#fff;border-radius:10px;padding:8px 12px;text-align:left;max-width:100%}
+.chip small{display:block;color:#5b6b7a;font-size:13px}
+.chip.on{border-color:var(--acento);background:#eaf3fd}
+.chip:disabled{opacity:.45}
+.nota{font-size:14px;color:#5b6b7a}
+/* Juego */
+#juego{display:none;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px}
+@media (max-width:980px){#juego{grid-template-columns:1fr}}
+#climograma svg{width:100%;height:auto;display:block}
+table.datos{border-collapse:collapse;width:100%;font-size:14px;margin-top:8px}
+table.datos th,table.datos td{border:1px solid var(--borde);padding:4px 3px;text-align:center}
+table.datos th{background:#eef3f8}
+table.datos td.hl,table.datos th.hl{background:#fff2b3;font-weight:700}
+.resumenAnual{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:8px;font-size:15px}
+.preguntas{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.preg{border:1px solid var(--borde);background:#f8fbfe;border-radius:9px;padding:8px 10px;text-align:left;font-size:15px;color:#1d2a36}
+.preg:hover:not(:disabled){border-color:var(--acento);background:#eaf3fd}
+.preg.hecha{background:#eef1f4;color:#6b7a88;cursor:default}
+.preg.sugerida{border:2px solid var(--acento);background:#eaf3fd;box-shadow:0 0 0 3px #2e86de22}
+.preg .resp{font-weight:700;margin-left:4px}
+.preg .resp.si{color:var(--ok)} .preg .resp.no{color:var(--mal)}
+.guia{background:#eaf3fd;border-left:4px solid var(--acento);padding:8px 12px;border-radius:6px;margin:8px 0;font-size:15px}
+#registro{margin-top:10px;max-height:240px;overflow:auto;font-size:15px}
+#registro div{padding:6px 8px;border-bottom:1px solid #eef1f4}
+#registro div:first-child{background:#fffbe6}
+.pistas{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+/* Tarjetas */
+#tablero{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px}
+.carta{position:relative;border:2px solid var(--borde);border-radius:12px;background:#fff;padding:9px 10px 10px;cursor:pointer;transition:transform .55s ease,opacity .55s ease,filter .55s;transform-origin:50% 100%;min-height:180px;display:flex;flex-direction:column}
+.carta:hover{border-color:var(--acento)}
+.carta .franja{height:8px;border-radius:5px;margin-bottom:6px}
+.carta .cod{font-size:20px;font-weight:800;color:var(--azul)}
+.carta .nom{font-size:15px;font-weight:700;margin-bottom:4px}
+.carta .letras{font-size:13px;color:#3d4f61;margin-bottom:4px}
+.carta .rasgos{font-size:13.5px;color:#3d4f61}
+.carta svg{width:100%;height:62px;margin-top:auto}
+.carta .info{position:absolute;top:6px;right:6px;border:0;background:#e8eef4;color:var(--azul);border-radius:50%;width:28px;height:28px;font-weight:800}
+.carta.cae{animation:tumbar .7s ease;opacity:.6;filter:grayscale(1);cursor:default;background:#f2f2f2}
+.carta.cae::after{content:"✗";position:absolute;right:12px;bottom:6px;font-size:54px;font-weight:900;color:#c0392b;opacity:.55}
+.carta.cae:hover{border-color:var(--borde)}
+.carta.duda{transform:rotate(-2.5deg);border-color:var(--duda);background:#fffaf0}
+@keyframes tumbar{0%{transform:perspective(600px) rotateX(0)}50%{transform:perspective(600px) rotateX(85deg)}100%{transform:perspective(600px) rotateX(0)}}
+.carta .motivo{display:none;font-size:13px;margin-top:4px;padding:4px 6px;border-radius:6px}
+.carta.cae .motivo{display:block;background:#fdecea;color:var(--mal)}
+.carta.duda .motivo{display:block;background:#fef5e7;color:#9a6100}
+.carta.acierto{border-color:var(--ok);box-shadow:0 0 0 4px #1e844933}
+/* Modal */
+.velo{position:fixed;inset:0;background:rgba(10,25,40,.55);display:none;align-items:center;justify-content:center;z-index:2000;padding:12px}
+.velo.on{display:flex}
+.modal{background:#fff;border-radius:14px;max-width:960px;width:100%;max-height:92vh;overflow:auto;padding:18px 20px}
+.modal .cierra{float:right}
+#mapaRevel{height:280px;border-radius:10px;margin:10px 0}
+.revelGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.revelGrid{grid-template-columns:1fr}}
+table.acf{border-collapse:collapse;width:100%;font-size:14px}
+table.acf th,table.acf td{border:1px solid var(--borde);padding:5px;text-align:left}
+table.acf th{background:#eef3f8}
+.pasos li{margin-bottom:5px}
+.fuente{font-size:13px;color:#5b6b7a;margin-top:10px}
+.puntos{font-size:22px;font-weight:800;color:var(--ok)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--azul);color:#fff;padding:10px 18px;border-radius:10px;font-size:15px;z-index:3000;display:none;max-width:90vw}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🌦️ ¿Qué clima es?</h1><div class="sub">El «¿Quién es quién?» de los climogramas · ANAMBRO</div></div>
+  <div class="marcador" id="marcador" style="display:none"><span id="mRonda"></span><span id="mPuntos"></span><span id="mTotal"></span></div>
+</header>
+<main>
+  <section id="inicio" class="panel">
+    <h2>Cómo se juega</h2>
+    <p>Verás un <b>climograma misterioso</b>: todos sus datos, pero no dónde está la estación. En el tablero tienes las <b>tarjetas de los tipos de clima</b>. Hazle <b>preguntas</b> al climograma; con cada respuesta caerán las tarjetas que ya no encajan. Cuando lo tengas claro, <b>pulsa la tarjeta</b> que creas correcta. Cuantas menos preguntas y pistas necesites, más puntos.</p>
+    <div class="opciones">
+      <div class="opcion"><b>1. Ámbito y clasificación</b><div class="chips" data-grupo="ambito">
+        <button class="chip on" data-v="pen">🇪🇸 Península, Baleares, Ceuta y Melilla<small>Tabla de tipos de la PAU (4 tipos)</small></button>
+        <button class="chip" data-v="can">🌋 Canarias<small>Köppen-Geiger del Atlas Climático de Canarias (6 tipos)</small></button>
+      </div></div>
+      <div class="opcion"><b>2. Preguntas</b><div class="chips" data-grupo="modo">
+        <button class="chip on" data-v="libre">🧠 Libres<small>Tú decides qué preguntar y en qué orden</small></button>
+        <button class="chip" data-v="guiado">🧭 Guiadas<small>Se sigue paso a paso el razonamiento de la clasificación</small></button>
+      </div></div>
+      <div class="opcion"><b>3. Dificultad</b><div class="chips" data-grupo="nivel">
+        <button class="chip on" data-v="tipico">⭐ Típicos<small>Estaciones que encajan claramente en su tipo</small></button>
+        <button class="chip" data-v="frontera">⭐⭐ Fronterizos<small>Climas de transición, cerca de los límites</small></button>
+      </div><div class="nota" id="notaNivel"></div></div>
+    </div>
+    <p class="nota">Puntuación por climograma: empiezas con 100 · cada pregunta −10 · cada pista −15 · cada tarjeta equivocada −20 (mínimo 10 si aciertas). Una partida son 5 climogramas.</p>
+    <button class="btn" id="btnEmpezar" disabled>Cargando datos…</button>
+  </section>
+
+  <section id="juego">
+    <div class="panel">
+      <h2>Climograma misterioso <span class="nota" id="periodo">· normales 1991–2020</span></h2>
+      <div id="climograma"></div>
+      <div id="tablaDatos"></div>
+      <div class="pistas">
+        <button class="btn sec" id="pistaAlt">🏔️ Pista: altitud (−15)</button>
+        <button class="btn sec" id="pistaZona">📍 Pista: provincia (−15)</button>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h2>Pregúntale al climograma</h2>
+        <div id="guia" class="guia" style="display:none"></div>
+        <div class="preguntas" id="preguntas"></div>
+        <div id="registro"></div>
+      </div>
+      <div class="panel" style="margin-top:14px">
+        <h2>Tablero · <span class="nota">pulsa la tarjeta que creas correcta · ⓘ para ver su ficha</span></h2>
+        <div id="tablero"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="velo" id="velo"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script>
+"use strict";
+/* =========================================================
+   Datos y utilidades
+   ========================================================= */
+const MESES=["E","F","M","A","M","J","J","A","S","O","N","D"];
+const MESES_L=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const fmt=(v,d=1)=>Number(v).toLocaleString("es-ES",{minimumFractionDigits:d,maximumFractionDigits:d});
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function barajar(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function toast(t){const e=$("toast");e.innerHTML=t;e.style.display="block";clearTimeout(toast._t);toast._t=setTimeout(()=>e.style.display="none",2600)}
+
+/* Estadísticos de un climograma (mismos criterios que la ficha de ANAMBRO) */
+function stats(T,P,lat){
+  const north=lat>=0, S=[0,0,0,1,1,1,1,1,1,0,0,0].map(x=>north?!!x:!x); // semestre cálido
+  const MAT=T.reduce((a,b)=>a+b,0)/12, MAP=P.reduce((a,b)=>a+b,0);
+  const Tw=Math.max(...T), Tc=Math.min(...T), amp=Tw-Tc;
+  const secos=[];T.forEach((t,i)=>{if(P[i]<2*t)secos.push(i)});
+  const Ps=P.reduce((a,p,i)=>a+(S[i]?p:0),0), Pw=MAP-Ps;
+  const Psdry=Math.min(...P.filter((p,i)=>S[i])), Pwwet=Math.max(...P.filter((p,i)=>!S[i]));
+  const Pswet=Math.max(...P.filter((p,i)=>S[i])), Pwdry=Math.min(...P.filter((p,i)=>!S[i]));
+  let Pth, regimen;
+  if(MAP>0&&Pw>=0.7*MAP){Pth=2*MAT;regimen="invierno"}else if(MAP>0&&Ps>=0.7*MAP){Pth=2*MAT+28;regimen="verano"}else{Pth=2*MAT+14;regimen="repartida"}
+  const umbral=10*Pth; // mm
+  const m10=T.filter(t=>t>=10).length;
+  return{MAT,MAP,Tw,Tc,amp,secos,nSecos:secos.length,Ps,Pw,Psdry,Pwwet,Pswet,Pwdry,Pth,umbral,regimen,m10,iTw:T.indexOf(Tw),iTc:T.indexOf(Tc),iPsdry:P.indexOf(Psdry),iPwwet:P.indexOf(Pwwet)};
+}
+/* Köppen-Geiger (mismo algoritmo que ANAMBRO / scripts/clima/classify.py) */
+function koppen(T,P,lat){
+  const s=stats(T,P,lat);
+  if(s.Tw<10)return s.Tw>0?"ET":"EF";
+  if(s.MAP<s.umbral)return(s.MAP<s.umbral/2?"BW":"BS")+(s.MAT>=18?"h":"k");
+  if(s.Tc>=18){const Pdry=Math.min(...P);return Pdry>=60?"Af":Pdry>=100-s.MAP/25?"Am":"Aw"}
+  const G=s.Tc>0?"C":"D";
+  const L2=(s.Psdry<40&&s.Psdry<s.Pwwet/3)?"s":(s.Pwdry<s.Pswet/10?"w":"f");
+  const L3=s.Tw>=22?"a":(s.m10>=4?"b":(G==="D"&&s.Tc<-38?"d":"c"));
+  return G+L2+L3;
+}
+
+/* ---------- Clasificación 1: tabla PAU (Península y Baleares) — idéntica a la de ANAMBRO ---------- */
+const PAU=[
+ {k:"Oceánico",c:"#2e86de",Tm:[12,16],amp:[0,12],ampTxt:"baja (< 12 °C)",P:[900,2000],dry:[0,0],dryTxt:"ninguno",veg:"Bosque caducifolio (roble, haya, fresno)",geo:"Costa norte y noroeste de la península",
+  rasgos:"Temperaturas suaves todo el año y lluvias abundantes y regulares, sin sequía estival."},
+ {k:"Mediterráneo continental",c:"#e1a400",Tm:[10,15],amp:[17,99],ampTxt:"alta (≥ 17 °C)",P:[300,600],dry:[2,4],dryTxt:"de 2 a 4",veg:"Matorral y bosque esclerófilo (encina, pino carrasco, jara)",geo:"Interior peninsular, submesetas norte y sur",
+  rasgos:"Inviernos fríos y veranos calurosos (gran amplitud), lluvias escasas y verano seco."},
+ {k:"Mediterráneo",c:"#f0643c",Tm:[15,20],amp:[12,17],ampTxt:"media (12–17 °C)",P:[300,800],dry:[2,4],dryTxt:"de 2 a 4",veg:"Bosque esclerófilo (encina, alcornoque, pino piñonero)",geo:"Costa mediterránea, sur peninsular",
+  rasgos:"Inviernos suaves y veranos cálidos, lluvias moderadas e irregulares y verano seco."},
+ {k:"Montaña",c:"#7d5a50",Tm:[-99,10],amp:[17,99],ampTxt:"alta (≥ 17 °C)",P:[1000,9999],dry:[0,2],dryTxt:"ninguno o 1–2",veg:"Bosque de montaña y pradera alpina (pino silvestre, abeto, matorral de alta montaña)",geo:"Zonas altas (Pirineos, Sierra Nevada, Cordillera Cantábrica)",
+  rasgos:"Temperaturas bajas, inviernos muy fríos y precipitaciones muy superiores a las del entorno."}
+];
+const TOL={Tm:2,amp:2,P:150,dry:1};
+function fe(v,[a,b],tol){if(v>=a&&v<=b)return 1;const d=v<a?a-v:v-b;return Math.max(0,1-d/tol)}
+function ajustePAU(T,P){
+  const s=stats(T,P,40);
+  const r=PAU.map(t=>{const f={Tm:fe(s.MAT,t.Tm,TOL.Tm),amp:fe(s.amp,t.amp,TOL.amp),P:fe(s.MAP,t.P,TOL.P),dry:fe(s.nSecos,t.dry,TOL.dry)};
+    return{t,f,tot:(f.Tm+2*f.amp+f.P+2*f.dry)/6}}).sort((a,b)=>b.tot-a.tot);
+  return{r,best:r[0],second:r[1],trans:r[1].tot>=r[0].tot-.12,s};
+}
+const intTxt={
+  Tm:t=>t.Tm[0]<-50?"< 10 °C":t.Tm.join("–")+" °C",
+  amp:t=>t.ampTxt,
+  P:t=>t.P[1]>5000?"muy superior al entorno (≥ 1000 mm)":fmt(t.P[0],0)+"–"+fmt(t.P[1],0)+" mm",
+  dry:t=>t.dryTxt
+};
+const CRIT_NOM={Tm:"temperatura media anual",amp:"amplitud térmica",P:"precipitación anual",dry:"meses secos"};
+/* Preguntas PAU: umbral sobre una variable; una tarjeta sigue en pie si su intervalo es compatible con la respuesta */
+const PREG_PAU=[
+ {id:"seco1",crit:"dry",txt:"¿Hay algún mes seco (P < 2T)?",thr:1,op:">=",
+  guia:"Empezamos por la sequía: en el climograma, un mes es seco cuando la barra de precipitación queda por debajo de la línea de temperatura (P < 2T). Separa los climas sin sequía estival (oceánico, montaña) de los mediterráneos."},
+ {id:"amp17",crit:"amp",txt:"¿La amplitud térmica es de 17 °C o más?",thr:17,op:">=",
+  guia:"La amplitud térmica (mes más cálido − mes más frío) mide la continentalidad: el mar suaviza las temperaturas; el interior y la montaña las extreman."},
+ {id:"amp12",crit:"amp",txt:"¿La amplitud térmica es menor de 12 °C?",thr:12,op:"<",
+  guia:"Una amplitud menor de 12 °C indica una fuerte influencia marítima: es la del clima oceánico."},
+ {id:"tm10",crit:"Tm",txt:"¿La temperatura media anual es menor de 10 °C?",thr:10,op:"<",
+  guia:"Por debajo de 10 °C de media anual solo encontramos el clima de montaña: la temperatura baja con la altitud."},
+ {id:"tm15",crit:"Tm",txt:"¿La temperatura media anual es de 15 °C o más?",thr:15,op:">=",
+  guia:"Con 15 °C o más de media separamos el mediterráneo (costero, inviernos suaves) del mediterráneo continental (interior, inviernos fríos)."},
+ {id:"p900",crit:"P",txt:"¿Llueven 900 mm o más al año?",thr:900,op:">=",
+  guia:"Más de 900 mm al año es propio de la España húmeda: el norte oceánico y las montañas."},
+ {id:"p600",crit:"P",txt:"¿Llueven menos de 600 mm al año?",thr:600,op:"<",
+  guia:"Menos de 600 mm es lo habitual en el interior peninsular, alejado de la influencia de las borrascas atlánticas."},
+ {id:"seco2",crit:"dry",txt:"¿Hay 2 o más meses secos?",thr:2,op:">=",
+  guia:"Los climas mediterráneos tienen al menos 2 meses secos en verano; la montaña, como mucho uno o dos."}
+];
+function valorCrit(s,crit){return crit==="Tm"?s.MAT:crit==="amp"?s.amp:crit==="P"?s.MAP:s.nSecos}
+function cumple(v,q){return q.op===">="?v>=q.thr:v<q.thr}
+function compatibleIntervalo([a,b],q,resp){ // ¿existe algún valor del intervalo con la misma respuesta?
+  if(q.op===">=")return resp?b>=q.thr:a<q.thr;
+  return resp?a<q.thr:b>=q.thr;
+}
+
+/* ---------- Clasificación 2: Köppen-Geiger del Atlas Climático de Canarias ---------- */
+const KCAN=[
+ {k:"BWh",c:"#ff0000",nom:"Desértico cálido",letras:[["B","seco"],["W","desierto"],["h","cálido (T media ≥ 18 °C)"]],rasgos:"Lluvias escasísimas, menos de la mitad del umbral de aridez; temperaturas cálidas todo el año.",geo:"Costas y medianías bajas de las islas orientales y del sur de las occidentales",veg:"Tabaibal-cardonal",
+  esp:{arido:true,desierto:true,calido:true,helada:null,tw22:null,veranoSeco:null,m10:null}},
+ {k:"BSh",c:"#f5a500",nom:"Estepario cálido",letras:[["B","seco"],["S","estepa (semiárido)"],["h","cálido (T media ≥ 18 °C)"]],rasgos:"Semiárido: por debajo del umbral de aridez, pero por encima de la mitad; temperaturas cálidas.",geo:"Medianías bajas y costas algo más lluviosas",veg:"Tabaibal-cardonal y bosque termófilo",
+  esp:{arido:true,desierto:false,calido:true,helada:null,tw22:null,veranoSeco:null,m10:null}},
+ {k:"BSk",c:"#ffdc64",nom:"Estepario frío",letras:[["B","seco"],["S","estepa (semiárido)"],["k","fresco (T media < 18 °C)"]],rasgos:"Semiárido y más fresco: T media anual por debajo de 18 °C.",geo:"Medianías de vertientes secas (sotavento)",veg:"Bosque termófilo y pinar",
+  esp:{arido:true,desierto:false,calido:false,helada:null,tw22:null,veranoSeco:null,m10:null}},
+ {k:"Csa",c:"#ffff00",nom:"Mediterráneo de verano cálido",letras:[["C","templado (mes más frío > 0 °C)"],["s","verano seco"],["a","verano cálido (mes más cálido ≥ 22 °C)"]],rasgos:"Supera el umbral de aridez; lluvias de invierno, verano seco y caluroso.",geo:"Medianías y vertientes húmedas a menor altitud",veg:"Bosque termófilo, monteverde",
+  esp:{arido:false,desierto:false,calido:null,helada:false,tw22:true,veranoSeco:true,m10:null}},
+ {k:"Csb",c:"#c8c800",nom:"Mediterráneo de verano templado",letras:[["C","templado (mes más frío > 0 °C)"],["s","verano seco"],["b","verano templado (mes más cálido < 22 °C, 4 o más meses ≥ 10 °C)"]],rasgos:"Supera el umbral de aridez; verano seco pero fresco, típico de las medianías altas y del mar de nubes.",geo:"Medianías altas, monteverde y pinar",veg:"Monteverde (laurisilva y fayal-brezal) y pinar",
+  esp:{arido:false,desierto:false,calido:null,helada:false,tw22:false,veranoSeco:true,m10:true}},
+ {k:"Dsc",c:"#963296",nom:"Continental de verano seco y fresco",letras:[["D","frío (mes más frío ≤ 0 °C)"],["s","verano seco"],["c","verano corto y fresco (menos de 4 meses ≥ 10 °C)"]],rasgos:"El mes más frío baja de 0 °C: solo en las cumbres más altas.",geo:"Alta montaña de Tenerife (Las Cañadas y el Teide)",veg:"Matorral de alta montaña (retamar)",
+  esp:{arido:false,desierto:false,calido:null,helada:true,tw22:false,veranoSeco:true,m10:false}}
+];
+const PREG_CAN=[
+ {id:"arido",txt:"¿Es un clima árido (P anual < umbral de aridez)?",
+  f:s=>s.MAP<s.umbral,
+  det:s=>`Umbral de aridez = 20 × T media${s.regimen==="repartida"?" + 140":s.regimen==="verano"?" + 280":""} = ${fmt(s.umbral,0)} mm (lluvias ${s.regimen==="invierno"?"de invierno":s.regimen==="verano"?"de verano":"repartidas"}). P anual = ${fmt(s.MAP,0)} mm.`,
+  guia:"El primer paso de Köppen: ¿llueve menos de lo que el calor evapora? El umbral de aridez depende de la temperatura media y de cuándo llueve. Si la precipitación anual no lo alcanza, el clima es seco (B)."},
+ {id:"desierto",txt:"¿Es desértico (P anual < mitad del umbral)?",
+  f:s=>s.MAP<s.umbral/2,
+  det:s=>`Mitad del umbral = ${fmt(s.umbral/2,0)} mm. P anual = ${fmt(s.MAP,0)} mm.`,
+  guia:"Dentro de los climas secos, si llueve menos de la mitad del umbral es un desierto (BW); si no, una estepa o clima semiárido (BS)."},
+ {id:"calido",txt:"¿La temperatura media anual es de 18 °C o más?",
+  f:s=>s.MAT>=18,
+  det:s=>`T media anual = ${fmt(s.MAT)} °C.`,
+  guia:"La tercera letra de los climas secos: h (cálido) si la T media anual es de 18 °C o más; k (fresco) si es menor."},
+ {id:"helada",txt:"¿El mes más frío tiene 0 °C o menos?",
+  f:s=>s.Tc<=0,
+  det:s=>`Mes más frío (${MESES_L[s.iTc]}): ${fmt(s.Tc)} °C.`,
+  guia:"Si no es seco, la temperatura del mes más frío separa los climas templados (C, por encima de 0 °C) de los fríos (D, 0 °C o menos)."},
+ {id:"veranoSeco",txt:"¿Tiene el verano seco?",
+  f:s=>s.Psdry<40&&s.Psdry<s.Pwwet/3,
+  det:s=>`Mes más seco del verano (${MESES_L[s.iPsdry]}): ${fmt(s.Psdry)} mm; mes más lluvioso del invierno (${MESES_L[s.iPwwet]}): ${fmt(s.Pwwet)} mm. Verano seco si el primero es < 40 mm y menor que un tercio del segundo (${fmt(s.Pwwet/3)} mm).`,
+  guia:"La segunda letra de los climas templados: s si el verano es seco (régimen mediterráneo), f si llueve todo el año, w si el invierno es seco."},
+ {id:"tw22",txt:"¿El mes más cálido llega a 22 °C?",
+  f:s=>s.Tw>=22,
+  det:s=>`Mes más cálido (${MESES_L[s.iTw]}): ${fmt(s.Tw)} °C.`,
+  guia:"La tercera letra: a si el verano es cálido (mes más cálido ≥ 22 °C)."},
+ {id:"m10",txt:"¿Hay 4 o más meses con 10 °C o más?",
+  f:s=>s.m10>=4,
+  det:s=>`Meses con T ≥ 10 °C: ${s.m10}.`,
+  guia:"Si el verano no llega a 22 °C: b (templado) si hay al menos 4 meses de 10 °C o más; c (corto y fresco) si hay menos."}
+];
+
+/* =========================================================
+   Carga de datos
+   ========================================================= */
+const DB={pen:[],penFront:[],can:[],fuentes:{}};
+async function cargar(){
+  const [esp,can,meta]=await Promise.all([
+    fetch("data/clima/normales_esp.json").then(r=>r.json()),
+    fetch("data/clima/normales_can.json").then(r=>r.json()),
+    fetch("data/clima/canarias/atlas_meta.json").then(r=>r.json())
+  ]);
+  DB.fuentes=Object.assign({},esp.src||{},can.src||{});
+  const ok=p=>p&&Array.isArray(p.T)&&Array.isArray(p.P)&&p.T.length===12&&p.P.length===12&&p.T.every(Number.isFinite)&&p.P.every(Number.isFinite);
+  for(const s of esp.s){
+    if(s.la>27.5&&s.la<29.6&&s.lo>-18.4&&s.lo<-13.3)continue;
+    const p=s.p?.["9120"]; if(!ok(p))continue;
+    const a=ajustePAU(p.T,p.P);
+    const e={st:s,T:p.T,P:p.P,src:p.src,tipo:a.best.t.k,aj:a};
+    if(a.best.tot>=.85&&!a.trans)DB.pen.push(e);
+    // Fronterizos: ningún criterio del tipo correcto (ni del segundo, si es de transición) puede estar del todo fuera (✗),
+    // así sus tarjetas solo se inclinan («en el límite») y nunca caen
+    else if(a.best.tot>=.6&&Object.values(a.best.f).every(f=>f>0)&&(!a.trans||Object.values(a.second.f).every(f=>f>0)))DB.penFront.push(e);
+  }
+  // Köppen oficial del Atlas (PNG de datos: R,G = valor + 32768; B = 255 si hay dato)
+  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src="data/clima/canarias/atlas_dato_kp.png"});
+  const cv=document.createElement("canvas");cv.width=img.width;cv.height=img.height;const cx=cv.getContext("2d",{willReadFrequently:true});cx.drawImage(img,0,0);
+  const [W0,S0,E0,N0]=meta.bbox,R=meta.res,KP=meta.vars.kp.classes;
+  const atlas=(la,lo)=>{const c=Math.floor((lo-W0)/R),r=Math.floor((N0-la)/R);if(c<0||r<0||c>=img.width||r>=img.height)return null;
+    const d=cx.getImageData(c,r,1,1).data;if(d[2]!==255)return null;const v=((d[0]<<8)|d[1])-32768;return KP[v-1]||null};
+  DB.atlasSrc=meta.src;
+  for(const s of can.s){
+    const p=s.p?.["9120"]; if(!ok(p))continue;
+    const of=atlas(s.la,s.lo), calc=koppen(p.T,p.P,s.la);
+    // Solo estaciones en las que los datos de la estación y el Atlas coinciden: así las preguntas nunca contradicen la solución
+    if(of&&of===calc)DB.can.push({st:s,T:p.T,P:p.P,src:p.src,tipo:of});
+  }
+  // Climogramas tipo (media de las estaciones típicas de cada tipo) para las miniaturas de las tarjetas
+  DB.tipoMedio={};
+  const acum=(lista)=>{const g={};for(const e of lista){(g[e.tipo]=g[e.tipo]||[]).push(e)}
+    for(const[k,v]of Object.entries(g))DB.tipoMedio[k]={T:MESES.map((_,i)=>v.reduce((a,e)=>a+e.T[i],0)/v.length),P:MESES.map((_,i)=>v.reduce((a,e)=>a+e.P[i],0)/v.length),n:v.length}};
+  acum(DB.pen);acum(DB.can);
+}
+
+/* =========================================================
+   Climograma ombrotérmico (modelo PAU: P = 2T)
+   ========================================================= */
+function climogramaSVG(T,P,{mini=false,hl=null}={}){
+  const W=mini?200:660,H=mini?62:380, m=mini?{l:4,r:4,t:4,b:4}:{l:58,r:58,t:22,b:42};
+  const w=W-m.l-m.r,h=H-m.t-m.b;
+  let tMax=Math.max(10,Math.ceil(Math.max(...T,Math.max(...P)/2)/10)*10);
+  let tMin=Math.min(0,Math.floor(Math.min(...T)/5)*5);
+  const yT=v=>m.t+h*(1-(v-tMin)/(tMax-tMin));
+  const bw=w/12, x=i=>m.l+bw*i+bw/2;
+  let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Climograma">`;
+  if(!mini){
+    for(let v=tMin;v<=tMax;v+=(tMax-tMin>60?20:10)){
+      g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${yT(v)}" y2="${yT(v)}" stroke="#e3e9ef"/>`;
+      g+=`<text x="${m.l+w+6}" y="${yT(v)+5}" font-size="14" fill="#c0392b">${v}</text>`;
+      if(v>=0)g+=`<text x="${m.l-6}" y="${yT(v)+5}" font-size="14" fill="#1f5fa8" text-anchor="end">${2*v}</text>`;
+    }
+    g+=`<text x="16" y="${m.t+h/2}" font-size="14" fill="#1f5fa8" transform="rotate(-90 16 ${m.t+h/2})" text-anchor="middle">Precipitación (mm)</text>`;
+    g+=`<text x="${W-14}" y="${m.t+h/2}" font-size="14" fill="#c0392b" transform="rotate(90 ${W-14} ${m.t+h/2})" text-anchor="middle">Temperatura (°C)</text>`;
+  }
+  P.forEach((p,i)=>{const y0=yT(0),y1=yT(p/2);
+    const isHl=hl&&hl.meses&&hl.meses.includes(i);
+    g+=`<rect x="${x(i)-bw*0.36}" y="${Math.min(y0,y1)}" width="${bw*0.72}" height="${Math.abs(y0-y1)}" fill="${isHl&&hl.tipo==="P"?"#f1c40f":"#4a90d9"}" ${isHl&&hl.tipo==="P"?'stroke="#b7950b" stroke-width="2"':""}/>`});
+  g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${yT(0)}" y2="${yT(0)}" stroke="#7b8a99"/>`;
+  g+=`<polyline points="${T.map((t,i)=>x(i)+","+yT(t)).join(" ")}" fill="none" stroke="#c0392b" stroke-width="${mini?2:3}"/>`;
+  if(!mini){
+    T.forEach((t,i)=>{const isHl=hl&&hl.meses&&hl.meses.includes(i)&&hl.tipo==="T";
+      g+=`<circle cx="${x(i)}" cy="${yT(t)}" r="${isHl?8:4}" fill="${isHl?"#f1c40f":"#c0392b"}" stroke="${isHl?"#7d6608":"none"}" stroke-width="2"/>`});
+    MESES.forEach((n,i)=>g+=`<text x="${x(i)}" y="${m.t+h+22}" font-size="15" text-anchor="middle" fill="#334">${n}</text>`);
+    g+=`<rect x="${m.l}" y="${m.t}" width="${w}" height="${h}" fill="none" stroke="#7b8a99"/>`;
+    if(hl&&hl.linea!=null){const y=yT(hl.linea);g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${y}" y2="${y}" stroke="#f39c12" stroke-width="2.5" stroke-dasharray="7 5"/><text x="${m.l+8}" y="${y-6}" font-size="14" font-weight="700" fill="#b9770e">${esc(hl.lineaTxt||"")}</text>`}
+  }
+  return g+"</svg>";
+}
+function tablaDatos(T,P,hl){
+  const c=(i,t)=>hl&&hl.meses&&hl.meses.includes(i)&&(!hl.tipo||hl.tipo===t)?' class="hl"':"";
+  let h='<table class="datos"><thead><tr><th>Mes</th>'+MESES.map((m,i)=>`<th>${m}</th>`).join("")+'<th>Año</th></tr></thead><tbody>';
+  h+='<tr><th>T (°C)</th>'+T.map((t,i)=>`<td${c(i,"T")}>${fmt(t)}</td>`).join("")+`<td${hl&&hl.anual==="T"?' class="hl"':""}><b>${fmt(T.reduce((a,b)=>a+b,0)/12)}</b></td></tr>`;
+  h+='<tr><th>P (mm)</th>'+P.map((p,i)=>`<td${c(i,"P")}>${fmt(p)}</td>`).join("")+`<td${hl&&hl.anual==="P"?' class="hl"':""}><b>${fmt(P.reduce((a,b)=>a+b,0),0)}</b></td></tr>`;
+  return h+"</tbody></table>";
+}
+
+/* =========================================================
+   Estado de la partida
+   ========================================================= */
+const CFG={ambito:"pen",modo:"libre",nivel:"tipico"};
+const RONDAS=5;
+let G=null; // estado de la partida
+function nuevaPartida(){
+  let pool=CFG.ambito==="can"?DB.can:(CFG.nivel==="frontera"?DB.penFront:DB.pen);
+  // Reparto equilibrado entre tipos para que no salgan siempre los más frecuentes
+  const porTipo={};for(const e of pool)(porTipo[e.tipo]=porTipo[e.tipo]||[]).push(e);
+  const tipos=barajar(Object.keys(porTipo)); const elegidas=[];
+  let i=0;while(elegidas.length<RONDAS&&tipos.length){const t=tipos[i%tipos.length];const lista=porTipo[t];
+    const cand=barajar(lista).find(e=>!elegidas.includes(e));if(cand)elegidas.push(cand);i++;if(i>200)break}
+  G={rondas:barajar(elegidas),n:0,total:0,hist:[]};
+  $("inicio").style.display="none";$("juego").style.display="grid";$("marcador").style.display="flex";
+  ronda();
+}
+function ronda(){
+  const e=G.rondas[G.n];
+  G.e=e;G.s=stats(e.T,e.P,e.st.la);G.puntos=100;G.hechas=[];G.pistas=[];G.fallos=[];G.estado={};G.fin=false;
+  const tipos=CFG.ambito==="can"?KCAN:PAU;
+  tipos.forEach(t=>G.estado[t.k]={st:"pie",motivo:""});
+  $("registro").innerHTML="";
+  $("pistaAlt").disabled=false;$("pistaZona").disabled=false;
+  $("pistaZona").textContent=CFG.ambito==="can"?"📍 Pista: provincia (−15)":"📍 Pista: provincia (−15)";
+  dibujarClimograma(null);pintarPreguntas();pintarTablero();marcador();
+}
+function marcador(){
+  $("mRonda").textContent=`Climograma ${G.n+1}/${G.rondas.length}`;
+  $("mPuntos").textContent=`Este: ${Math.max(10,G.puntos)} pts`;
+  $("mTotal").textContent=`Total: ${G.total} pts`;
+}
+function dibujarClimograma(hl){
+  $("climograma").innerHTML=climogramaSVG(G.e.T,G.e.P,{hl});
+  $("tablaDatos").innerHTML=tablaDatos(G.e.T,G.e.P,hl);
+}
+function preguntasActuales(){return CFG.ambito==="can"?PREG_CAN:PREG_PAU}
+/* ¿Descartaría algo esta pregunta entre las tarjetas en pie? (para el modo guiado) */
+function discrimina(q){
+  const enPie=Object.entries(G.estado).filter(([k,v])=>v.st!=="cae").map(([k])=>k);
+  if(CFG.ambito==="can"){
+    const vs=enPie.map(k=>KCAN.find(t=>t.k===k).esp[q.id]);
+    const def=new Set(vs.filter(v=>v!==null));
+    return def.size>1||(def.size===1&&vs.includes(null));
+  }
+  const r=[true,false].map(resp=>enPie.filter(k=>compatibleIntervalo(PAU.find(t=>t.k===k)[q.crit],q,resp)).length);
+  return r[0]<enPie.length||r[1]<enPie.length;
+}
+function sugerida(){
+  if(CFG.modo!=="guiado")return null;
+  const enPie=Object.values(G.estado).filter(v=>v.st!=="cae").length;
+  if(enPie<=1)return null;
+  return preguntasActuales().find(q=>!G.hechas.includes(q.id)&&discrimina(q))||null;
+}
+function pintarPreguntas(){
+  const sug=sugerida();
+  $("preguntas").innerHTML=preguntasActuales().map(q=>{
+    const h=G.hechas.includes(q.id);const resp=h?respuesta(q):null;
+    const dis=h||G.fin||(CFG.modo==="guiado"&&sug&&q.id!==sug.id);
+    return `<button class="preg${h?" hecha":""}${sug&&q.id===sug.id?" sugerida":""}" data-q="${q.id}" ${dis?"disabled":""}>${esc(q.txt)}${h?`<span class="resp ${resp?"si":"no"}">${resp?"Sí":"No"}</span>`:""}</button>`}).join("");
+  const gd=$("guia");
+  if(CFG.modo==="guiado"&&!G.fin){
+    const enPie=Object.values(G.estado).filter(v=>v.st!=="cae").length;
+    if(sug){gd.style.display="block";gd.innerHTML=`<b>🧭 Siguiente paso:</b> ${esc(sug.guia)}`}
+    else{gd.style.display="block";gd.innerHTML=enPie===1?"<b>🧭 Solo queda una tarjeta en pie.</b> Púlsala para comprobarlo.":"<b>🧭 Las preguntas ya no descartan más.</b> Compara las tarjetas que quedan (las inclinadas están en el límite) y elige."}
+  }else gd.style.display="none";
+}
+function respuesta(q){return CFG.ambito==="can"?q.f(G.s):cumple(valorCrit(G.s,q.crit),q)}
+
+function preguntar(id){
+  if(G.fin||G.hechas.includes(id))return;
+  const q=preguntasActuales().find(x=>x.id===id);
+  G.hechas.push(id);G.puntos-=10;
+  const resp=respuesta(q);
+  let detalle,hl={};
+  if(CFG.ambito==="can"){
+    detalle=q.det(G.s);
+    const s=G.s;
+    hl=id==="calido"?{anual:"T"}:id==="helada"?{meses:[s.iTc],tipo:"T"}:id==="tw22"?{meses:[s.iTw],tipo:"T",linea:22,lineaTxt:"22 °C"}:id==="m10"?{meses:G.e.T.map((t,i)=>t>=10?i:-1).filter(i=>i>=0),tipo:"T",linea:10,lineaTxt:"10 °C"}:
+       id==="veranoSeco"?{meses:[s.iPsdry,s.iPwwet],tipo:"P"}:{anual:"P"};
+    const caidas=[];
+    for(const t of KCAN){const est=G.estado[t.k];if(est.st==="cae")continue;const v=t.esp[id];
+      if(v!==null&&v!==resp){est.st="cae";est.motivo=`✗ ${q.txt.replace(/^¿|\?$/g,"")}: ${t.k} necesita «${v?"sí":"no"}».`;caidas.push(t.k)}}
+    logPregunta(q,resp,detalle,caidas,[]);
+  }else{
+    const v=valorCrit(G.s,q.crit),s=G.s;
+    detalle=q.crit==="Tm"?`T media anual = ${fmt(s.MAT)} °C.`:q.crit==="amp"?`Amplitud = ${fmt(s.Tw)} °C (${MESES_L[s.iTw]}) − ${fmt(s.Tc)} °C (${MESES_L[s.iTc]}) = ${fmt(s.amp)} °C.`:
+      q.crit==="P"?`P anual = ${fmt(s.MAP,0)} mm.`:`Meses secos (P < 2T): ${s.nSecos}${s.nSecos?" ("+s.secos.map(i=>MESES_L[i]).join(", ")+")":""}.`;
+    hl=q.crit==="Tm"?{anual:"T"}:q.crit==="amp"?{meses:[s.iTc,s.iTw],tipo:"T"}:q.crit==="P"?{anual:"P"}:{meses:s.secos,tipo:"P"};
+    const caidas=[],dudas=[];
+    for(const t of PAU){const est=G.estado[t.k];if(est.st==="cae")continue;
+      if(!compatibleIntervalo(t[q.crit],q,resp)){
+        const f=fe(v,t[q.crit],TOL[q.crit]);
+        if(f>0){if(est.st!=="duda"){est.st="duda";est.motivo=""}est.motivo+=`≈ ${CRIT_NOM[q.crit]} en el límite: ${t.k} pide ${intTxt[q.crit](t)}. `;dudas.push(t.k)}
+        else{est.st="cae";est.motivo=`✗ ${CRIT_NOM[q.crit]}: ${t.k} pide ${intTxt[q.crit](t)}.`;caidas.push(t.k)}
+      }}
+    logPregunta(q,resp,detalle,caidas,dudas);
+  }
+  dibujarClimograma(hl);pintarPreguntas();pintarTablero();marcador();
+}
+function logPregunta(q,resp,det,caidas,dudas){
+  const d=document.createElement("div");
+  d.innerHTML=`<b>${esc(q.txt)}</b> → <b style="color:${resp?"var(--ok)":"var(--mal)"}">${resp?"Sí":"No"}</b><br>${det}`+
+   (caidas.length?`<br>⬇️ Caen: <b>${caidas.map(esc).join(", ")}</b>`:"")+(dudas.length?`<br>↘️ En el límite: <b>${dudas.map(esc).join(", ")}</b>`:"")+
+   (!caidas.length&&!dudas.length?`<br><i>Esta pregunta no ha descartado ninguna tarjeta.</i>`:"");
+  $("registro").prepend(d);
+}
+function pista(cual){
+  if(G.fin||G.pistas.includes(cual))return;
+  G.pistas.push(cual);G.puntos-=15;
+  const st=G.e.st;let t;
+  if(cual==="alt"){t=`🏔️ La estación está a <b>${fmt(st.z,0)} m</b> de altitud.`;$("pistaAlt").disabled=true}
+  else{t=`📍 Provincia: <b>${esc(st.pr||"—")}</b>.`;$("pistaZona").disabled=true}
+  const d=document.createElement("div");d.innerHTML=t;$("registro").prepend(d);marcador();
+}
+function pintarTablero(){
+  const tipos=CFG.ambito==="can"?KCAN:PAU;
+  $("tablero").innerHTML=tipos.map(t=>{
+    const est=G.estado[t.k],tm=DB.tipoMedio[t.k];
+    const cuerpo=CFG.ambito==="can"
+      ?`<div class="cod">${t.k}</div><div class="nom">${esc(t.nom)}</div><div class="letras">${t.letras.map(([l,s])=>`<b>${l}</b> = ${esc(s)}`).join(" · ")}</div><div class="rasgos">${esc(t.rasgos)}</div>`
+      :`<div class="nom" style="font-size:17px">${esc(t.k)}</div><div class="rasgos">🌡️ T media: ${intTxt.Tm(t)}<br>↕️ Amplitud: ${intTxt.amp(t)}<br>🌧️ P anual: ${intTxt.P(t)}<br>☀️ Meses secos: ${intTxt.dry(t)}</div>`;
+    return `<div class="carta${est.st==="cae"?" cae":est.st==="duda"?" duda":""}" data-k="${esc(t.k)}" tabindex="0">
+      <button class="info" data-info="${esc(t.k)}" title="Ficha del tipo">i</button>
+      <div class="franja" style="background:${t.c}"></div>${cuerpo}
+      ${tm?climogramaSVG(tm.T,tm.P,{mini:true}):'<div class="nota" style="margin-top:auto">Sin estación de la red en este tipo (alta montaña).</div>'}
+      <div class="motivo">${esc(est.motivo)}</div></div>`}).join("");
+}
+function elegir(k){
+  if(G.fin)return;
+  const est=G.estado[k];if(est.st==="cae"){toast("Esa tarjeta ya ha caído: "+esc(est.motivo));return}
+  const e=G.e;
+  const validas=CFG.ambito==="pen"&&CFG.nivel==="frontera"&&e.aj.trans?[e.tipo,e.aj.second.t.k]:[e.tipo];
+  if(validas.includes(k)){
+    G.fin=true;const pts=Math.max(10,G.puntos);G.total+=pts;G.hist.push({e,pts,k});
+    document.querySelector(`.carta[data-k="${CSS.escape(k)}"]`)?.classList.add("acierto");
+    marcador();setTimeout(()=>revelar(true,k,pts),500);
+  }else{
+    G.puntos-=20;G.fallos.push(k);
+    est.st="cae";est.motivo="✗ "+porQueNo(k);
+    const d=document.createElement("div");d.innerHTML=`❌ <b>No es ${esc(k)}.</b> ${esc(porQueNo(k))}`;$("registro").prepend(d);
+    pintarTablero();pintarPreguntas();marcador();
+  }
+}
+function porQueNo(k){
+  const s=G.s;
+  if(CFG.ambito==="can"){const t=KCAN.find(x=>x.k===k);
+    const fallan=PREG_CAN.filter(q=>t.esp[q.id]!==null&&t.esp[q.id]!==q.f(s)).map(q=>`${q.txt.replace(/^¿|\?$/g,"").toLowerCase()} → ${q.f(s)?"sí":"no"}, y ${k} pide «${t.esp[q.id]?"sí":"no"}»`);
+    return fallan.length?"Falla en: "+fallan.join("; ")+".":"No encaja."}
+  const t=PAU.find(x=>x.k===k);const v={Tm:s.MAT,amp:s.amp,P:s.MAP,dry:s.nSecos};
+  const txt={Tm:`T media ${fmt(s.MAT)} °C`,amp:`amplitud ${fmt(s.amp)} °C`,P:`P anual ${fmt(s.MAP,0)} mm`,dry:`${s.nSecos} meses secos`};
+  const fallan=Object.keys(TOL).filter(c=>fe(v[c],t[c],TOL[c])<1).map(c=>`${txt[c]} (pide ${intTxt[c](t)})`);
+  return fallan.length?"No cumple: "+fallan.join("; ")+".":"Encaja peor que otra tarjeta.";
+}
+
+/* =========================================================
+   Revelación
+   ========================================================= */
+let mapaRev=null;
+function revelar(ok,k,pts){
+  const e=G.e,st=e.st,s=G.s;
+  const src=DB.fuentes[e.src]?.t||e.src||"";
+  let expl="";
+  if(CFG.ambito==="pen"){
+    const a=e.aj;const xt=f=>f>=1?"✓":f>0?"≈":"✗";
+    expl=`<h3>La tabla de la PAU</h3><table class="acf"><thead><tr><th>Tipo</th><th>T media</th><th>Amplitud</th><th>P anual</th><th>Meses secos</th><th>Ajuste</th></tr></thead><tbody>`+
+      a.r.map(r=>`<tr${r===a.best?' style="font-weight:700;background:#f4f8fb"':""}><td><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${r.t.c};margin-right:5px"></span>${esc(r.t.k)}</td><td>${xt(r.f.Tm)} ${intTxt.Tm(r.t)}</td><td>${xt(r.f.amp)} ${r.t.ampTxt}</td><td>${xt(r.f.P)} ${intTxt.P(r.t)}</td><td>${xt(r.f.dry)} ${r.t.dryTxt}</td><td>${fmt(r.tot*100,0)} %</td></tr>`).join("")+
+      `</tbody></table><p class="nota">✓ cumple · ≈ cerca del límite · ✗ no cumple. La amplitud térmica y los meses secos pesan el doble, porque son los rasgos que mejor separan los climas de España en el climograma.</p>
+      <p>Esta estación: T media <b>${fmt(s.MAT)} °C</b> · amplitud <b>${fmt(s.amp)} °C</b> · P anual <b>${fmt(s.MAP,0)} mm</b> · meses secos <b>${s.nSecos}</b>${s.nSecos?" ("+s.secos.map(i=>MESES_L[i]).join(", ")+")":""}.</p>`+
+      (a.trans?`<p>⚖️ Es un <b>clima de transición</b> entre <b>${esc(a.best.t.k)}</b> y <b>${esc(a.second.t.k)}</b>: en el examen habría que justificarlo así.</p>`:"");
+  }else{
+    const t=KCAN.find(x=>x.k===e.tipo);
+    const pasos=[];const q=id=>PREG_CAN.find(x=>x.id===id);
+    pasos.push(q("arido").det(s)+(q("arido").f(s)?" → <b>B</b> (seco).":" → no es seco."));
+    if(q("arido").f(s)){pasos.push(q("desierto").det(s)+(q("desierto").f(s)?" → <b>W</b> (desierto).":" → <b>S</b> (estepa)."));pasos.push(q("calido").det(s)+(q("calido").f(s)?" → <b>h</b> (cálido).":" → <b>k</b> (fresco)."))}
+    else{pasos.push(q("helada").det(s)+(q("helada").f(s)?" → <b>D</b> (frío).":" → <b>C</b> (templado)."));pasos.push(q("veranoSeco").det(s)+(q("veranoSeco").f(s)?" → <b>s</b> (verano seco).":" → no tiene verano seco."));
+      pasos.push(q("tw22").det(s)+(q("tw22").f(s)?" → <b>a</b> (verano cálido).":" → no llega a 22 °C."));if(!q("tw22").f(s))pasos.push(q("m10").det(s)+(q("m10").f(s)?" → <b>b</b> (verano templado).":" → <b>c</b> (verano corto y fresco)."))}
+    expl=`<h3>Paso a paso de Köppen-Geiger</h3><ol class="pasos">${pasos.map(p=>`<li>${p}</li>`).join("")}</ol>
+      <p>Resultado: <b>${t.k} · ${esc(t.nom)}</b> (${t.letras.map(([l,x])=>`<b>${l}</b> = ${esc(x)}`).join(" · ")}).</p>
+      <p class="nota">Tipo oficial según el Atlas Climático de Canarias, que coincide con el calculado con los datos de la estación.</p>`;
+  }
+  const tipoObj=(CFG.ambito==="can"?KCAN:PAU).find(t=>t.k===e.tipo);
+  $("modal").innerHTML=`<button class="btn sec cierra" id="btnSig">${G.n+1<G.rondas.length?"Siguiente climograma ▶":"Ver resultado final ▶"}</button>
+    <h2>✅ ¡Correcto! Es <b>${esc(CFG.ambito==="can"?tipoObj.k+" · "+tipoObj.nom:tipoObj.k)}</b>${k!==e.tipo?` <span class="nota">(aceptado como clima de transición; el que mejor encaja es ${esc(e.tipo)})</span>`:""}</h2>
+    <div class="puntos">+${pts} puntos</div>
+    <div class="nota">${G.hechas.length} pregunta${G.hechas.length===1?"":"s"} · ${G.pistas.length} pista${G.pistas.length===1?"":"s"} · ${G.fallos.length} fallo${G.fallos.length===1?"":"s"}</div>
+    <div class="revelGrid"><div>
+      <h3>📍 ${esc(st.n)}</h3>
+      <div>${esc(st.pr?st.pr+" · ":"")}${esc(st.cn||"")} · ${fmt(st.z,0)} m · ${fmt(Math.abs(st.la),3)}° ${st.la>=0?"N":"S"}, ${fmt(Math.abs(st.lo),3)}° ${st.lo>=0?"E":"O"}</div>
+      <div id="mapaRevel"></div>
+      <div class="nota">🗺️ ${esc(tipoObj.geo)} · 🌳 ${esc(tipoObj.veg)}</div>
+    </div><div>${expl}</div></div>
+    <div class="fuente">Datos: ${esc(src)} · normales 1991–2020${CFG.ambito==="can"?" · Tipos: "+esc(DB.atlasSrc):""} · Imagen: Esri, Maxar, Earthstar Geographics.</div>`;
+  $("velo").classList.add("on");
+  $("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
+  setTimeout(()=>{
+    if(mapaRev){mapaRev.remove();mapaRev=null}
+    mapaRev=L.map("mapaRevel",{zoomControl:true,attributionControl:true}).setView([st.la,st.lo],CFG.ambito==="can"?8:5);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:18,attribution:"Esri, Maxar, Earthstar Geographics"}).addTo(mapaRev);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:18}).addTo(mapaRev);
+    L.circleMarker([st.la,st.lo],{radius:9,color:"#fff",weight:3,fillColor:tipoObj.c,fillOpacity:1}).addTo(mapaRev).bindTooltip(st.n,{permanent:true,direction:"top",offset:[0,-8]});
+    setTimeout(()=>mapaRev.flyTo([st.la,st.lo],CFG.ambito==="can"?10:8,{duration:1.6}),400);
+  },60);
+}
+function siguiente(){
+  G.n++;
+  if(G.n<G.rondas.length){ronda();return}
+  const max=G.rondas.length*100,pct=G.total/max;
+  const nivel=pct>=.85?"🏆 ¡Sobresaliente! Lees los climogramas como un geógrafo.":pct>=.7?"🥈 ¡Notable! Muy buen razonamiento.":pct>=.5?"🥉 Bien: vas por buen camino.":"📚 Hay que repasar los criterios: prueba el modo guiado.";
+  $("modal").innerHTML=`<h2>Fin de la partida</h2><div class="puntos">${G.total} / ${max} puntos</div><p style="font-size:18px">${nivel}</p>
+    <table class="acf"><thead><tr><th>#</th><th>Estación</th><th>Tipo</th><th>Puntos</th></tr></thead><tbody>${G.hist.map((h,i)=>`<tr><td>${i+1}</td><td>${esc(h.e.st.n)}</td><td>${esc(h.e.tipo)}</td><td>${h.pts}</td></tr>`).join("")}</tbody></table>
+    <p><button class="btn" id="btnOtra">Jugar otra partida</button> <button class="btn sec" id="btnMenu">Cambiar opciones</button></p>`;
+  $("velo").classList.add("on");
+  $("btnOtra").onclick=()=>{$("velo").classList.remove("on");nuevaPartida()};
+  $("btnMenu").onclick=()=>{$("velo").classList.remove("on");$("juego").style.display="none";$("marcador").style.display="none";$("inicio").style.display="block"};
+}
+function ficha(k){
+  const can=CFG.ambito==="can";const t=(can?KCAN:PAU).find(x=>x.k===k);const tm=DB.tipoMedio[k];
+  $("modal").innerHTML=`<button class="btn sec cierra" id="btnCierra">Cerrar ✕</button>
+    <h2><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${t.c};margin-right:6px"></span>${esc(can?t.k+" · "+t.nom:t.k)}</h2>
+    ${can?`<p>${t.letras.map(([l,x])=>`<b>${l}</b> = ${esc(x)}`).join("<br>")}</p>`:`<table class="acf"><tr><th>T media anual</th><td>${intTxt.Tm(t)}</td></tr><tr><th>Amplitud térmica</th><td>${intTxt.amp(t)}</td></tr><tr><th>Precipitación anual</th><td>${intTxt.P(t)}</td></tr><tr><th>Meses secos (P &lt; 2T)</th><td>${intTxt.dry(t)}</td></tr></table>`}
+    <p>${esc(t.rasgos)}</p><p>🗺️ <b>Dónde:</b> ${esc(t.geo)}<br>🌳 <b>Vegetación:</b> ${esc(t.veg)}</p>
+    ${tm?`<h3>Climograma tipo <span class="nota">(media de ${tm.n} estaciones típicas)</span></h3>${climogramaSVG(tm.T,tm.P)}`:""}`;
+  $("velo").classList.add("on");$("btnCierra").onclick=()=>$("velo").classList.remove("on");
+}
+
+/* =========================================================
+   Eventos
+   ========================================================= */
+document.querySelectorAll(".chips").forEach(g=>g.addEventListener("click",ev=>{
+  const b=ev.target.closest(".chip");if(!b||b.disabled)return;
+  g.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===b));CFG[g.dataset.grupo]=b.dataset.v;actualizarOpciones()}));
+function actualizarOpciones(){
+  const can=CFG.ambito==="can";
+  document.querySelectorAll('[data-grupo="nivel"] .chip').forEach(c=>{c.disabled=can&&c.dataset.v==="frontera"});
+  if(can&&CFG.nivel==="frontera"){CFG.nivel="tipico";document.querySelectorAll('[data-grupo="nivel"] .chip').forEach(c=>c.classList.toggle("on",c.dataset.v==="tipico"))}
+  $("notaNivel").textContent=can?"En Canarias solo se usan estaciones en las que sus datos y el Atlas dan el mismo tipo, para que las preguntas nunca contradigan la solución.":"";
+}
+$("btnEmpezar").onclick=nuevaPartida;
+$("preguntas").addEventListener("click",ev=>{const b=ev.target.closest(".preg");if(b&&!b.disabled)preguntar(b.dataset.q)});
+$("tablero").addEventListener("click",ev=>{const i=ev.target.closest(".info");if(i){ev.stopPropagation();ficha(i.dataset.info);return}
+  const c=ev.target.closest(".carta");if(c)elegir(c.dataset.k)});
+$("pistaAlt").onclick=()=>pista("alt");$("pistaZona").onclick=()=>pista("zona");
+$("velo").addEventListener("click",ev=>{if(ev.target===$("velo")&&!$("btnSig")&&!$("btnOtra"))$("velo").classList.remove("on")});
+cargar().then(()=>{$("btnEmpezar").disabled=false;$("btnEmpezar").textContent="▶ Empezar partida";actualizarOpciones();
+  window.__juegoClimas={DB,stats,koppen,ajustePAU};
+}).catch(err=>{console.error(err);$("btnEmpezar").textContent="No se pudieron cargar los datos climáticos";});
+</script>
+</body>
+</html>
