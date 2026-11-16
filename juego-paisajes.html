@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paisaje y clima · Juego · ANAMBRO</title>
+<style>
+:root{--azul:#17324d;--acento:#2e86de;--fondo:#f3f6f9;--borde:#d5dee7;--ok:#1e8449;--mal:#c0392b}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;color:#1d2a36;background:var(--fondo);line-height:1.4}
+header{background:var(--azul);color:#fff;padding:10px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+header h1{font-size:20px;margin:0} header .sub{font-size:14px;opacity:.85}
+.marcador{margin-left:auto;display:flex;gap:14px;font-size:15px;font-weight:600}
+.marcador span{background:rgba(255,255,255,.14);padding:4px 10px;border-radius:14px}
+main{max-width:1400px;margin:0 auto;padding:14px}
+.panel{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:14px}
+h2{font-size:18px;margin:0 0 8px;color:var(--azul)} h3{font-size:16px;margin:12px 0 6px;color:var(--azul)}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--acento);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:600}
+.btn.sec{background:#e8eef4;color:var(--azul)} .btn:disabled{opacity:.45;cursor:default}
+#inicio{max-width:900px;margin:20px auto}
+.opciones{display:grid;gap:14px;margin:14px 0}
+.opcion b{display:block;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--borde);background:#fff;border-radius:10px;padding:8px 12px;text-align:left}
+.chip small{display:block;color:#5b6b7a;font-size:13px}
+.chip.on{border-color:var(--acento);background:#eaf3fd}
+.nota{font-size:14px;color:#5b6b7a}
+#carga{margin-top:8px}
+#juego{display:none}
+.pregunta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px}
+@media (max-width:980px){.pregunta{grid-template-columns:1fr}}
+.foto{position:relative;border-radius:10px;overflow:hidden;background:#dde5ec}
+.foto img{width:100%;display:block;max-height:460px;object-fit:cover}
+.credito{font-size:12.5px;color:#5b6b7a;margin-top:4px}
+.credito a{color:#5b6b7a}
+.opcionesResp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.opcionesResp{grid-template-columns:1fr}}
+.resp{border:2px solid var(--borde);border-radius:12px;background:#fff;padding:8px;text-align:left;position:relative;transition:transform .2s}
+.resp:hover:not(:disabled){border-color:var(--acento);transform:translateY(-2px)}
+.resp .letra{position:absolute;top:6px;left:8px;background:var(--azul);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:800;z-index:2}
+.resp svg{width:100%;height:auto;display:block}
+.resp img{width:100%;height:190px;object-fit:cover;border-radius:8px;display:block}
+.resp.mal{border-color:var(--mal);opacity:.55;filter:grayscale(.7)}
+.resp.bien{border-color:var(--ok);box-shadow:0 0 0 4px #1e844933}
+.resp .porque{display:none;font-size:13.5px;margin-top:6px;color:var(--mal)}
+.resp.mal .porque{display:block}
+table.datos{border-collapse:collapse;width:100%;font-size:14px;margin-top:6px}
+table.datos th,table.datos td{border:1px solid var(--borde);padding:3px 2px;text-align:center}
+table.datos th{background:#eef3f8}
+.velo{position:fixed;inset:0;background:rgba(10,25,40,.55);display:none;align-items:center;justify-content:center;z-index:2000;padding:12px}
+.velo.on{display:flex}
+.modal{background:#fff;border-radius:14px;max-width:1000px;width:100%;max-height:92vh;overflow:auto;padding:18px 20px}
+.modal .cierra{float:right}
+.revelGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.revelGrid{grid-template-columns:1fr}}
+.puntos{font-size:22px;font-weight:800;color:var(--ok)}
+.tag{display:inline-block;background:#eef3f8;border-radius:12px;padding:2px 10px;font-size:14px;margin:2px 4px 2px 0}
+table.acf{border-collapse:collapse;width:100%;font-size:14px} table.acf th,table.acf td{border:1px solid var(--borde);padding:5px;text-align:left} table.acf th{background:#eef3f8}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🌿 Paisaje y clima</h1><div class="sub">Relaciona cada paisaje vegetal con su climograma · ANAMBRO</div></div>
+  <div class="marcador" id="marcador" style="display:none"><span id="mRonda"></span><span id="mTotal"></span></div>
+</header>
+<main>
+  <section id="inicio" class="panel">
+    <h2>Cómo se juega</h2>
+    <p>La vegetación es el mejor «termómetro» y «pluviómetro» de un lugar. Verás <b>una foto del paisaje vegetal</b> de un lugar y tendrás que elegir <b>su climograma</b> entre cuatro (o al revés). Todas las fotos son <b>del propio lugar</b> o de su entorno, y cada climograma es el de una estación meteorológica real de ese sitio.</p>
+    <div class="opciones">
+      <div class="opcion"><b>1. Ámbito</b><div class="chips" data-grupo="ambito">
+        <button class="chip on" data-v="esp">🇪🇸 España (PAU) y Canarias<small>Oceánico, mediterráneos, montaña y los pisos de vegetación de Tenerife</small></button>
+        <button class="chip" data-v="mundo">🌍 Biomas del mundo<small>Selva, sabana, desiertos, estepa, taiga, tundra…</small></button>
+        <button class="chip" data-v="todo">🗺️ Todo mezclado</button>
+      </div></div>
+      <div class="opcion"><b>2. Modo</b><div class="chips" data-grupo="modo">
+        <button class="chip on" data-v="foto">📷 → 📊 De la foto al climograma<small>Ves el paisaje y eliges su climograma</small></button>
+        <button class="chip" data-v="clima">📊 → 📷 Del climograma a la foto<small>Ves el climograma y eliges su paisaje</small></button>
+      </div></div>
+    </div>
+    <p class="nota">Puntuación: 100 puntos si aciertas a la primera, 50 a la segunda y 20 a la tercera. Una partida son 8 rondas.</p>
+    <button class="btn" id="btnEmpezar" disabled>Cargando fotos…</button>
+    <div id="carga" class="nota"></div>
+  </section>
+
+  <section id="juego">
+    <div class="panel">
+      <h2 id="enunciado"></h2>
+      <div class="pregunta">
+        <div id="estimulo"></div>
+        <div><div class="opcionesResp" id="respuestas"></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="velo" id="velo"><div class="modal" id="modal"></div></div>
+
+<script>
+"use strict";
+const LUGARES=[{"id": "coruna", "est": "A Coruña", "amb": "esp", "grupo": "PAU", "bioma": "Bosque caducifolio atlántico (fraga)", "lugar": "Fragas do Eume (A Coruña)", "files": ["Fragas do Eume.jpg"], "wiki": [["es", "Fragas do Eume"]], "porque": "Lluvias abundantes y repartidas todo el año (unos 1000 mm, sin meses secos) y temperaturas suaves, sin heladas fuertes ni calor extremo. El robledal de carballo (Quercus robur), con castaños, abedules, helechos y musgos, necesita humedad constante y no soporta la sequía estival.", "T": [11.0, 11.2, 12.5, 13.4, 15.5, 17.7, 19.3, 19.9, 18.8, 16.5, 13.3, 11.8], "P": [120.8, 88.5, 87.6, 86.9, 66.4, 45.7, 31.2, 40.7, 57.0, 120.7, 149.9, 122.3], "la": 43.366, "lo": -8.421, "z": 58, "cn": "España", "per": "1991–2020", "src": "AEMET · Agencia Estatal de Meteorología · valores normales 1991-2020 (AEMET OpenData)", "nombre": "A Coruña"}, {"id": "madrid", "est": "Madrid, Retiro", "amb": "esp", "grupo": "PAU", "bioma": "Encinar y dehesa (bosque mediterráneo)", "lugar": "Monte de El Pardo (Madrid)", "files": ["Monte de el Pardo (3267248078).jpg"], "wiki": [["es", "Monte de El Pardo"]], "porque": "Pocas lluvias (unos 400 mm), verano seco y caluroso e inviernos fríos. La encina tiene hojas pequeñas, duras y coriáceas (esclerófilas) que pierden poca agua: resiste a la vez la sequía del verano y las heladas del interior.", "T": [6.5, 8.0, 11.3, 13.6, 17.5, 22.8, 26.2, 25.7, 21.0, 15.4, 10.0, 7.0], "P": [32.0, 33.5, 35.3, 46.1, 48.3, 19.6, 9.2, 10.4, 23.6, 64.2, 52.2, 42.4], "la": 40.412, "lo": -3.678, "z": 667, "cn": "España", "per": "1991–2020", "src": "AEMET · Agencia Estatal de Meteorología · valores normales 1991-2020 (AEMET OpenData)", "nombre": "Madrid, Retiro"}, {"id": "jerez", "est": "Jerez de la Frontera Aeropuerto", "amb": "esp", "grupo": "PAU", "bioma": "Alcornocal (bosque mediterráneo)", "lugar": "Los Alcornocales (Cádiz)", "files": [], "wiki": [["es", "Parque natural de Los Alcornocales"], ["en", "Los Alcornocales Natural Park"]], "porque": "Inviernos suaves, verano largo y seco, pero más lluvia que en el interior por la cercanía del Atlántico. El alcornoque es un árbol esclerófilo de climas sin heladas fuertes; su gruesa corteza (el corcho) lo protege del calor y del fuego.", "T": [10.8, 12.0, 14.5, 16.5, 19.8, 23.3, 26.0, 26.5, 23.5, 19.8, 14.8, 12.0], "P": [66.6, 50.4, 53.9, 47.9, 33.7, 8.2, 0.5, 2.4, 30.4, 83.6, 82.5, 85.8], "la": 36.751, "lo": -6.056, "z": 27, "cn": "España", "per": "1991–2020", "src": "AEMET · Agencia Estatal de Meteorología · valores normales 1991-2020 (AEMET OpenData)", "nombre": "Jerez de la Frontera"}, {"id": "navacerrada", "est": "Puerto de Navacerrada", "amb": "esp", "grupo": "PAU", "bioma": "Pinar de pino silvestre y pastizal de montaña", "lugar": "Valsaín, Sierra de Guadarrama", "files": ["Pinar del valle de Valsaín.JPG"], "wiki": [["es", "Montes de Valsaín"]], "porque": "A casi 1900 m la temperatura media no llega a 8 °C, el invierno es largo y nevado y llueve mucho más que en la Meseta (más de 1200 mm). El pino silvestre aguanta el frío y el peso de la nieve; más arriba solo quedan matorrales almohadillados y pastos.", "T": [-0.1, 0.1, 2.4, 4.2, 8.3, 13.7, 17.4, 17.3, 12.8, 7.8, 2.8, 1.1], "P": [143.0, 118.6, 118.2, 127.5, 119.8, 51.2, 18.1, 30.7, 61.1, 169.6, 173.9, 149.9], "la": 40.793, "lo": -4.011, "z": 1894, "cn": "España", "per": "1991–2020", "src": "AEMET · Agencia Estatal de Meteorología · valores normales 1991-2020 (AEMET OpenData)", "nombre": "Puerto de Navacerrada"}, {"id": "stacruz", "est": "Sta.Cruz de Tenerife", "amb": "esp", "grupo": "Canarias", "bioma": "Tabaibal-cardonal (matorral suculento)", "lugar": "Costas del sur y del este de Tenerife", "files": [], "wiki": [["es", "Euphorbia canariensis"], ["es", "Malpaís de Güímar"]], "porque": "Muy poca lluvia (unos 220 mm), casi todos los meses secos y calor suave todo el año. Cardones y tabaibas son plantas suculentas: guardan agua en sus tallos y las tabaibas pierden las hojas en la estación seca.", "T": [18.3, 18.4, 19.0, 19.9, 21.3, 23.2, 25.2, 25.8, 25.1, 23.6, 21.4, 19.5], "P": [28.8, 33.7, 37.8, 10.3, 3.5, 0.6, 0.1, 3.5, 4.5, 24.4, 35.8, 36.8], "la": 28.463, "lo": -16.255, "z": 35, "cn": "España", "per": "1991–2020", "src": "AEMET · Agencia Estatal de Meteorología · valores normales 1991-2020 (AEMET OpenData)", "nombre": "Santa Cruz de Tenerife"}, {"id": "laguna", "est": "San Cristóbal de la Laguna,Llano de los Loros", "amb": "esp", "grupo": "Canarias", "bioma": "Laurisilva (monteverde)", "lugar": "Macizo de Anaga (Tenerife)", "files": [], "wiki": [["es", "Parque rural de Anaga"], ["es", "Macizo de Anaga"], ["es", "Laurisilva"]], "porque": "En las medianías del norte, el alisio forma el mar de nubes: más de 900 mm de lluvia, nieblas que dejan agua al chocar con los árboles («lluvia horizontal») y temperaturas suaves. El verano es seco, pero la humedad de la niebla lo amortigua: un bosque siempre verde de hojas lauroides, relicto de hace millones de años.", "T": [12.3, 11.9, 12.9, 13.3, 14.9, 16.5, 18.8, 21.2, 19.4, 18.2, 15.0, 13.7], "P": [113.5, 147.0, 92.9, 67.3, 35.9, 29.8, 22.3, 18.0, 18.4, 111.2, 188.9, 92.1], "la": 28.5264, "lo": -16.2803, "z": 868, "cn": "España", "per": "1991–2020", "src": "AEMET · series mensuales (AEMET OpenData); normal calculada por ANAMBRO con los criterios de la OMM", "nombre": "La Laguna (Llano de los Loros)"}, {"id": "vilaflor", "est": "Vilaflor (Vilaflor)", "amb": "esp", "grupo": "Canarias", "bioma": "Pinar canario", "lugar": "Corona Forestal, Vilaflor (Tenerife)", "files": [], "wiki": [["es", "Pinus canariensis"], ["es", "Parque natural de la Corona Forestal"]], "porque": "Por encima del mar de nubes, en la vertiente sur: lluvia moderada (unos 430 mm), verano seco y soleado y más frío en invierno. El pino canario, con acículas largas que «peinan» la niebla y una corteza gruesa que resiste el fuego, domina estas laderas.", "T": [9.9, 10.2, 11.7, 11.8, 14.0, 17.5, 22.4, 22.4, 18.3, 15.4, 12.4, 10.8], "P": [26.4, 108.0, 49.8, 29.3, 2.4, 1.8, 4.1, 9.7, 14.3, 50.8, 46.6, 87.0], "la": 28.1442, "lo": -16.6281, "z": 1258, "cn": "España", "per": "1991–2020", "src": "Cabildo de Tenerife · red agrometeorológica AgroCabildo (datos abiertos)", "nombre": "Vilaflor"}, {"id": "izana", "est": "Izaña", "amb": "esp", "grupo": "Canarias", "bioma": "Matorral de alta montaña (retamar del Teide)", "lugar": "Las Cañadas del Teide", "files": [], "wiki": [["es", "Spartocytisus supranubius"], ["es", "Parque nacional del Teide"]], "porque": "A más de 2300 m, por encima del mar de nubes: aire muy seco, insolación intensa, heladas frecuentes en invierno y verano seco. Ya no hay árboles: la retama del Teide forma matas redondeadas que resisten el frío, el viento y la sequía.", "T": [4.7, 4.7, 6.5, 8.2, 10.8, 14.6, 18.5, 18.3, 14.7, 11.0, 7.7, 5.9], "P": [55.6, 49.7, 44.0, 18.8, 3.8, 0.5, 0.0, 9.5, 5.6, 33.1, 50.6, 60.3], "la": 28.309, "lo": -16.499, "z": 2371, "cn": "España", "per": "1991–2020", "src": "AEMET · Agencia Estatal de Meteorología · valores normales 1991-2020 (AEMET OpenData)", "nombre": "Izaña"}, {"id": "antofagasta", "est": "Antofagasta", "amb": "mundo", "grupo": "Desierto", "bioma": "Desierto costero", "lugar": "Desierto de Atacama (Chile)", "files": ["Atacama Desert between Antofagasta and Taltal.jpg"], "wiki": [["es", "Desierto de Atacama"]], "porque": "Apenas 4 mm de lluvia al año: la corriente fría de Humboldt enfría el aire en superficie y casi nunca llueve, aunque las temperaturas sean suaves por el océano. Sin agua no hay vegetación: suelo desnudo, con algunas plantas que viven solo de la niebla costera (camanchaca).", "T": [20.2, 20.2, 19.1, 17.3, 15.7, 14.5, 13.8, 14.0, 14.6, 15.6, 17.1, 18.7], "P": [0.0, 0.0, 0.8, 0.1, 0.2, 1.5, 0.4, 0.8, 0.2, 0.2, 0.1, 0.1], "la": -23.454, "lo": -70.445, "z": 112, "cn": "Chile", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI", "nombre": "Antofagasta"}, {"id": "cherrapunji", "est": "Cherrapunji", "amb": "mundo", "grupo": "Monzón", "bioma": "Bosque subtropical húmedo de montaña", "lugar": "Colinas Khasi, Meghalaya (India)", "files": ["Cherrapunjee Rain Forests (7158995367).jpg", "Cherrapunjee Rain Forests (7344204344).jpg"], "wiki": [["en", "Meghalaya subtropical forests"]], "porque": "Uno de los lugares más lluviosos del planeta: el monzón de verano choca con las colinas Khasi y descarga más de 11 000 mm al año, casi todo entre mayo y septiembre. Con tanta agua y temperaturas templadas por la altitud crece un bosque denso y siempre verde, con musgos, helechos y puentes de raíces vivas.", "T": [11.9, 13.8, 16.8, 18.6, 19.6, 20.4, 20.5, 20.9, 20.8, 19.6, 16.6, 13.5], "P": [15.5, 53.7, 364.1, 792.4, 1297.1, 2608.1, 2665.4, 1768.7, 1089.7, 461.4, 49.3, 10.2], "la": 25.25, "lo": 91.733, "z": 1313, "cn": "India", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI", "nombre": "Cherrapunji"}, {"id": "manaus", "est": "Manaus", "amb": "mundo", "grupo": "Ecuatorial", "bioma": "Selva ecuatorial (pluvisilva)", "lugar": "Amazonía, Manaos (Brasil)", "files": ["Amazon Manaus forest.jpg"], "wiki": [["es", "Selva amazónica"]], "porque": "Calor constante (unos 27 °C, con una amplitud mínima) y más de 2300 mm de lluvia. Sin estación fría ni sequía marcada, la vegetación crece sin parar en varios estratos: árboles de más de 40 m, lianas y epífitas. Es el bioma con más biodiversidad del planeta.", "T": [26.6, 26.6, 26.6, 26.7, 27.0, 27.3, 27.5, 28.2, 28.6, 28.5, 28.0, 27.2], "P": [305.6, 296.8, 320.9, 331.0, 233.3, 117.2, 67.1, 56.1, 79.0, 113.9, 188.0, 253.5], "la": -3.103, "lo": -60.016, "z": 61, "cn": "Brasil", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI", "nombre": "Manaos"}, {"id": "jakutsk", "est": "Jakutsk", "amb": "mundo", "grupo": "Boreal", "bioma": "Taiga (bosque boreal de alerces)", "lugar": "Yakutia (Siberia, Rusia)", "files": [], "wiki": [["en", "East Siberian taiga"], ["en", "Northeast Siberian taiga"], ["es", "Taiga"]], "porque": "El clima más continental del mundo: inviernos por debajo de −35 °C, veranos cortos que rozan los 20 °C y menos de 250 mm de lluvia. Solo resisten coníferas como el alerce, que pierde sus acículas en invierno, sobre un suelo helado (permafrost) que solo se deshiela en superficie en verano.", "T": [-36.9, -32.9, -19.1, -3.7, 8.0, 17.0, 19.9, 15.6, 6.4, -6.9, -25.9, -37.0], "P": [9.7, 8.5, 6.3, 7.9, 20.1, 29.5, 40.1, 37.1, 29.6, 18.6, 16.9, 8.5], "la": 62.017, "lo": 129.717, "z": 98, "cn": "Rusia", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI", "nombre": "Yakutsk"}, {"id": "utqiagvik", "est": "Ak Utqiagvik Formerly Barrow 4 en", "nombre": "Utqiaġvik (Barrow)", "amb": "mundo", "grupo": "Polar", "bioma": "Tundra ártica", "lugar": "Costa ártica de Alaska (EE. UU.)", "files": [], "wiki": [["en", "Arctic coastal tundra"], ["es", "Tundra"]], "porque": "Ningún mes llega a 10 °C: el verano es demasiado frío y corto para los árboles. Sobre el permafrost solo crecen musgos, líquenes, hierbas y arbustos enanos; en verano el deshielo superficial llena el paisaje de charcas.", "T": [-24.8, -25.0, -24.4, -16.3, -5.9, 1.3, 4.6, 3.9, 0.8, -6.0, -14.9, -21.8], "P": [6.4, 6.7, 7.6, 6.6, 11.0, 10.6, 24.5, 28.1, 18.9, 16.0, 9.2, 11.6], "la": 71.321, "lo": -156.611, "z": 5, "cn": "Estados Unidos", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI"}, {"id": "ulan", "est": "Ulaan-Baator", "nombre": "Ulán Bator", "amb": "mundo", "grupo": "Estepa", "bioma": "Estepa", "lugar": "Mongolia", "files": ["Mongolian steppe.jpg"], "wiki": [["en", "Mongolian–Manchurian grassland"]], "porque": "Clima continental frío y seco: inviernos muy fríos, veranos templados y menos de 300 mm de lluvia, concentrada en verano. Hay agua para las hierbas, pero no para un bosque: una inmensa pradera de gramíneas sin árboles.", "T": [-21.3, -16.2, -6.7, 3.0, 10.3, 16.6, 19.0, 16.6, 10.0, 0.9, -10.6, -19.0], "P": [2.1, 2.8, 4.6, 8.4, 21.7, 47.2, 74.5, 65.4, 27.9, 8.6, 6.3, 3.5], "la": 47.918, "lo": 106.848, "z": 1303, "cn": "Mongolia", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI"}, {"id": "darwin", "est": "Darwin Airport", "nombre": "Darwin", "amb": "mundo", "grupo": "Sabana", "bioma": "Sabana tropical", "lugar": "Norte de Australia", "files": [], "wiki": [["en", "Arnhem Land tropical savanna"], ["en", "Kakadu National Park"]], "porque": "Calor todo el año y lluvias muy abundantes, pero solo en la estación húmeda (noviembre–abril); el resto del año es casi totalmente seco. Esa larga sequía impide la selva: hierbas altas con árboles dispersos (eucaliptos) adaptados a la sequía y al fuego.", "T": [28.5, 28.3, 28.5, 28.6, 27.3, 25.6, 25.2, 25.9, 28.0, 29.3, 29.6, 29.3], "P": [470.7, 412.4, 313.7, 105.1, 20.7, 2.2, 0.9, 0.8, 14.3, 68.9, 143.5, 279.3], "la": -12.424, "lo": 130.893, "z": 30, "cn": "Australia", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI"}, {"id": "kano", "est": "Kano", "amb": "mundo", "grupo": "Sabana", "bioma": "Sabana sudanesa", "lugar": "Norte de Nigeria", "files": [], "wiki": [["en", "West Sudanian savanna"]], "porque": "Temperaturas altas todo el año y una estación de lluvias de unos cuatro meses (junio–septiembre), seguida de una larga estación seca: pastizal de hierbas altas con árboles dispersos, como baobabs y acacias.", "T": [21.3, 24.7, 28.8, 32.0, 31.8, 29.2, 26.9, 25.9, 27.1, 27.7, 25.0, 21.9], "P": [0.0, 0.0, 0.3, 14.0, 70.1, 160.4, 306.9, 400.4, 175.2, 21.8, 0.0, 0.0], "la": 12.05, "lo": 8.53, "z": 474, "cn": "Nigeria", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI", "nombre": "Kano"}, {"id": "riyadh", "est": "Riyadh", "nombre": "Riad", "amb": "mundo", "grupo": "Desierto", "bioma": "Desierto cálido", "lugar": "Desierto arábigo (Arabia Saudí)", "files": [], "wiki": [["en", "Arabian Desert"]], "porque": "Unos 100 mm de lluvia al año y veranos muy calurosos (más de 35 °C de media): la evaporación supera con creces la lluvia. Arena, roca y vegetación muy dispersa de arbustos y plantas efímeras que solo brotan tras las raras lluvias.", "T": [14.6, 17.5, 21.5, 27.2, 33.0, 36.0, 36.8, 36.9, 33.7, 28.5, 21.4, 16.4], "P": [15.4, 6.1, 21.1, 24.3, 5.4, 0.0, 0.0, 0.5, 0.0, 1.0, 11.4, 14.7], "la": 24.711, "lo": 46.738, "z": 620, "cn": "Arabia Saudí", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI"}, {"id": "berlin", "est": "Berlin / Dahlem", "nombre": "Berlín", "amb": "mundo", "grupo": "Templado", "bioma": "Bosque templado mixto (pino, roble, haya)", "lugar": "Brandeburgo (Alemania)", "files": [], "wiki": [["en", "Central European mixed forests"]], "porque": "Clima templado con influencia continental: inviernos fríos, veranos templados y lluvias moderadas (unos 580 mm) repartidas todo el año, sin sequía. Bosque mixto de pinos, robles, hayas y abedules; los caducifolios pierden la hoja en invierno.", "T": [1.0, 1.9, 4.9, 10.0, 14.3, 17.4, 19.4, 18.9, 14.5, 9.6, 5.1, 2.0], "P": [47.0, 35.7, 40.8, 28.9, 53.8, 58.8, 77.0, 62.2, 45.8, 44.6, 42.2, 45.6], "la": 52.454, "lo": 13.302, "z": 51, "cn": "Alemania", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI"}, {"id": "losangeles", "est": "Los Angeles Downtown/Usc", "nombre": "Los Ángeles", "amb": "mundo", "grupo": "Mediterráneo", "bioma": "Chaparral (matorral mediterráneo)", "lugar": "California (EE. UU.)", "files": [], "wiki": [["en", "California chaparral and woodlands"], ["en", "Chaparral"]], "porque": "Clima de tipo mediterráneo, tan seco que Köppen ya lo clasifica como estepario (BSh): inviernos suaves con algo de lluvia y veranos largos, secos y soleados. Como el matorral mediterráneo de España, el chaparral tiene arbustos de hojas pequeñas y duras, adaptados a la sequía estival y a los incendios.", "T": [15.1, 15.3, 16.5, 17.9, 19.2, 21.0, 23.3, 24.0, 23.4, 21.0, 17.6, 14.6], "P": [83.7, 92.5, 56.7, 17.5, 8.0, 2.2, 0.6, 0.1, 3.4, 14.8, 19.8, 63.0], "la": 34.0236, "lo": -118.2911, "z": 55, "cn": "Estados Unidos", "per": "1991–2020", "src": "NOAA NCEI · GHCN-Daily (Global Summary of the Month); normal 1991–2020 calculada por ANAMBRO con los criterios de la OMM"}, {"id": "lapaz", "est": "La Paz / Alto", "nombre": "El Alto (La Paz)", "amb": "mundo", "grupo": "Montaña", "bioma": "Puna (pastizal de alta montaña tropical)", "lugar": "Altiplano (Bolivia)", "files": [], "wiki": [["en", "Central Andean wet puna"], ["es", "Puna (región)"]], "porque": "A más de 4000 m en plena zona tropical: la temperatura media no llega a 8 °C y hiela casi todas las noches, con lluvias en verano. La altitud, no la latitud, explica este clima frío: pastos duros en macolla (ichu) y arbustos bajos, sin árboles.", "T": [9.5, 9.5, 9.0, 8.2, 6.5, 5.3, 5.1, 6.0, 7.4, 8.9, 10.0, 9.8], "P": [138.5, 108.6, 83.4, 31.3, 9.0, 5.5, 7.5, 9.3, 24.5, 43.9, 50.2, 106.0], "la": -16.5167, "lo": -68.1833, "z": 4058, "cn": "Bolivia", "per": "1991–2020", "src": "Meteostat · normales climáticas (fuente secundaria)"}, {"id": "ushuaia", "est": "Ushuaia Aerodrome", "nombre": "Ushuaia", "amb": "mundo", "grupo": "Boreal", "bioma": "Bosque subantártico de lengas", "lugar": "Tierra del Fuego (Argentina)", "files": [], "wiki": [["en", "Magellanic subpolar forests"]], "porque": "Frío y húmedo todo el año, con veranos frescos (ningún mes llega a 10 °C, por eso Köppen lo clasifica como tundra, ET) pero inviernos suaves por la influencia del océano. Esa suavidad y la humedad constante permiten bosques de hayas australes (lenga, ñire), justo en el límite del frío para los árboles.", "T": [9.5, 9.4, 8.4, 6.2, 4.3, 2.5, 2.3, 2.9, 4.3, 6.2, 7.4, 8.6], "P": [45.2, 34.6, 38.3, 47.0, 35.3, 42.5, 35.8, 38.4, 30.5, 28.4, 38.9, 43.0], "la": -54.84, "lo": -68.303, "z": 57, "cn": "Argentina", "per": "1991–2020", "src": "Organización Meteorológica Mundial (OMM) · normales climatológicas, distribuidas por NOAA NCEI"}];
+const MESES=["E","F","M","A","M","J","J","A","S","O","N","D"];
+const MESES_L=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const fmt=(v,d=1)=>Number(v).toLocaleString("es-ES",{minimumFractionDigits:d,maximumFractionDigits:d});
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function barajar(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- Clima: estadísticos, Köppen y tabla PAU (mismos criterios que ANAMBRO) ---------- */
+function stats(T,P,lat){
+  const north=lat>=0,S=[0,0,0,1,1,1,1,1,1,0,0,0].map(x=>north?!!x:!x);
+  const MAT=T.reduce((a,b)=>a+b,0)/12,MAP=P.reduce((a,b)=>a+b,0),Tw=Math.max(...T),Tc=Math.min(...T);
+  const secos=[];T.forEach((t,i)=>{if(P[i]<2*t)secos.push(i)});
+  const Ps=P.reduce((a,p,i)=>a+(S[i]?p:0),0),Pw=MAP-Ps;
+  const Psdry=Math.min(...P.filter((p,i)=>S[i])),Pwwet=Math.max(...P.filter((p,i)=>!S[i])),Pswet=Math.max(...P.filter((p,i)=>S[i])),Pwdry=Math.min(...P.filter((p,i)=>!S[i]));
+  const Pth=(MAP>0&&Pw>=.7*MAP)?2*MAT:(MAP>0&&Ps>=.7*MAP)?2*MAT+28:2*MAT+14;
+  return{MAT,MAP,Tw,Tc,amp:Tw-Tc,secos,Psdry,Pwwet,Pswet,Pwdry,umbral:10*Pth,m10:T.filter(t=>t>=10).length};
+}
+const KNOM={Af:"Ecuatorial",Am:"Tropical monzónico",Aw:"Tropical de sabana",BWh:"Desértico cálido",BWk:"Desértico frío",BSh:"Estepario cálido",BSk:"Estepario frío",Csa:"Mediterráneo de verano cálido",Csb:"Mediterráneo de verano templado",Csc:"Mediterráneo de verano fresco",Cwa:"Subtropical con invierno seco",Cwb:"Templado de altura con invierno seco",Cwc:"Templado frío de altura con invierno seco",Cfa:"Subtropical húmedo",Cfb:"Oceánico",Cfc:"Oceánico subpolar",Dsa:"Continental de verano seco y cálido",Dsb:"Continental de verano seco y templado",Dsc:"Subártico de verano seco",Dsd:"Subártico de verano seco e invierno extremo",Dwa:"Continental de invierno seco y verano cálido",Dwb:"Continental de invierno seco y verano templado",Dwc:"Subártico de invierno seco",Dwd:"Subártico de invierno seco y extremo",Dfa:"Continental húmedo de verano cálido",Dfb:"Continental húmedo de verano templado",Dfc:"Subártico",Dfd:"Subártico de invierno extremo",ET:"Polar de tundra",EF:"Polar de hielos perpetuos"};
+function koppen(T,P,lat){
+  const s=stats(T,P,lat);
+  if(s.Tw<10)return s.Tw>0?"ET":"EF";
+  if(s.MAP<s.umbral)return(s.MAP<s.umbral/2?"BW":"BS")+(s.MAT>=18?"h":"k");
+  if(s.Tc>=18){const d=Math.min(...P);return d>=60?"Af":d>=100-s.MAP/25?"Am":"Aw"}
+  const G=s.Tc>0?"C":"D",L2=(s.Psdry<40&&s.Psdry<s.Pwwet/3)?"s":(s.Pwdry<s.Pswet/10?"w":"f");
+  return G+L2+(s.Tw>=22?"a":s.m10>=4?"b":(G==="D"&&s.Tc<-38?"d":"c"));
+}
+const PAU=[{k:"Oceánico",Tm:[12,16],amp:[0,12],P:[900,2000],dry:[0,0]},{k:"Mediterráneo continental",Tm:[10,15],amp:[17,99],P:[300,600],dry:[2,4]},{k:"Mediterráneo",Tm:[15,20],amp:[12,17],P:[300,800],dry:[2,4]},{k:"Montaña",Tm:[-99,10],amp:[17,99],P:[1000,9999],dry:[0,2]}];
+function fe(v,[a,b],t){if(v>=a&&v<=b)return 1;const d=v<a?a-v:v-b;return Math.max(0,1-d/t)}
+function tipoPAU(T,P){const s=stats(T,P,40),n=s.secos.length;
+  const r=PAU.map(t=>({k:t.k,tot:(fe(s.MAT,t.Tm,2)+2*fe(s.amp,t.amp,2)+fe(s.MAP,t.P,150)+2*fe(n,t.dry,1))/6})).sort((a,b)=>b.tot-a.tot);
+  return r[0].tot>=.6?r[0].k+(r[1].tot>=r[0].tot-.12?" (transición a "+r[1].k.toLowerCase()+")":""):null}
+
+/* ---------- Climograma (modelo PAU, P = 2T; escala de P reducida ×10 por encima de 200 mm si hace falta) ---------- */
+function climogramaSVG(T,P,{mini=false}={}){
+  const W=mini?330:660,H=mini?210:380,m=mini?{l:34,r:30,t:10,b:24}:{l:58,r:58,t:22,b:42},fs=mini?12:14;
+  const w=W-m.l-m.r,h=H-m.t-m.b;
+  const corte=Math.max(...P)>300; // escala partida
+  const Pb=200,fP=p=>corte&&p>Pb?Pb+(p-Pb)/10:p; // valor «equivalente» en mm de la escala normal
+  let tMax=Math.max(10,Math.ceil(Math.max(...T,fP(Math.max(...P))/2)/10)*10),tMin=Math.min(0,Math.floor(Math.min(...T)/10)*10);
+  const yT=v=>m.t+h*(1-(v-tMin)/(tMax-tMin)),yP=p=>yT(fP(p)/2);
+  const bw=w/12,x=i=>m.l+bw*i+bw/2;
+  let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Climograma">`;
+  const paso=(tMax-tMin)>80?20:10;
+  for(let v=Math.ceil(tMin/paso)*paso;v<=tMax;v+=paso){
+    g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${yT(v)}" y2="${yT(v)}" stroke="#e3e9ef"/>`;
+    g+=`<text x="${m.l+w+5}" y="${yT(v)+4}" font-size="${fs}" fill="#c0392b">${v}</text>`;
+    if(v>=0){const pv=2*v;const lab=corte&&pv>Pb?Pb+(pv-Pb)*10:pv;g+=`<text x="${m.l-5}" y="${yT(v)+4}" font-size="${fs}" fill="#1f5fa8" text-anchor="end">${lab}</text>`}
+  }
+  if(corte){const y=yT(Pb/2);g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${y}" y2="${y}" stroke="#1f5fa8" stroke-dasharray="4 4"/><text x="${m.l+4}" y="${y-4}" font-size="${fs-1}" fill="#1f5fa8">P: escala ×10 por encima de ${Pb} mm</text>`}
+  P.forEach((p,i)=>{const y0=yT(0),y1=yP(p);g+=`<rect x="${x(i)-bw*.36}" y="${Math.min(y0,y1)}" width="${bw*.72}" height="${Math.abs(y0-y1)}" fill="#4a90d9"/>`});
+  g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${yT(0)}" y2="${yT(0)}" stroke="#7b8a99"/>`;
+  g+=`<polyline points="${T.map((t,i)=>x(i)+","+yT(t)).join(" ")}" fill="none" stroke="#c0392b" stroke-width="${mini?2.5:3}"/>`;
+  T.forEach((t,i)=>g+=`<circle cx="${x(i)}" cy="${yT(t)}" r="${mini?2.5:4}" fill="#c0392b"/>`);
+  MESES.forEach((n,i)=>g+=`<text x="${x(i)}" y="${m.t+h+(mini?16:22)}" font-size="${fs}" text-anchor="middle" fill="#334">${n}</text>`);
+  g+=`<rect x="${m.l}" y="${m.t}" width="${w}" height="${h}" fill="none" stroke="#7b8a99"/>`;
+  if(!mini){g+=`<text x="16" y="${m.t+h/2}" font-size="14" fill="#1f5fa8" transform="rotate(-90 16 ${m.t+h/2})" text-anchor="middle">Precipitación (mm)</text><text x="${W-14}" y="${m.t+h/2}" font-size="14" fill="#c0392b" transform="rotate(90 ${W-14} ${m.t+h/2})" text-anchor="middle">Temperatura (°C)</text>`}
+  return g+"</svg>";
+}
+function resumen(l){const s=stats(l.T,l.P,l.la);return`T media ${fmt(s.MAT)} °C · amplitud ${fmt(s.amp)} °C · P ${fmt(s.MAP,0)} mm`}
+function tablaDatos(T,P){
+  return '<table class="datos"><tr><th></th>'+MESES.map(m=>`<th>${m}</th>`).join("")+'<th>Año</th></tr>'+
+  '<tr><th>T</th>'+T.map(t=>`<td>${fmt(t)}</td>`).join("")+`<td><b>${fmt(T.reduce((a,b)=>a+b,0)/12)}</b></td></tr>`+
+  '<tr><th>P</th>'+P.map(p=>`<td>${fmt(p,0)}</td>`).join("")+`<td><b>${fmt(P.reduce((a,b)=>a+b,0),0)}</b></td></tr></table>`;
+}
+
+/* ---------- Fotos: Wikimedia Commons en directo (autor y licencia leídos de la propia ficha del archivo) ---------- */
+const API_C="https://commons.wikimedia.org/w/api.php";
+const limpiar=h=>{const d=document.createElement("div");d.innerHTML=h||"";return d.textContent.trim().replace(/\s+/g," ")};
+async function infoArchivos(nombres){
+  if(!nombres.length)return[];
+  const u=API_C+"?action=query&format=json&origin=*&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1100&iiextmetadatafilter=Artist|LicenseShortName|Credit&titles="+encodeURIComponent(nombres.map(n=>"File:"+n).join("|"));
+  const r=await fetch(u).then(r=>r.json());
+  const pags=Object.values(r?.query?.pages||{});
+  const norm=new Map((r?.query?.normalized||[]).map(n=>[n.to,n.from]));
+  const out=[];
+  for(const n of nombres){
+    const p=pags.find(p=>p.title==="File:"+n||norm.get(p.title)==="File:"+n||p.title.replace(/_/g," ")==("File:"+n).replace(/_/g," "));
+    const ii=p?.imageinfo?.[0];if(!ii||p.missing!==undefined)continue;
+    const md=ii.extmetadata||{};
+    out.push({src:ii.thumburl||ii.url,pagina:ii.descriptionurl,autor:limpiar(md.Artist?.value)||limpiar(md.Credit?.value)||"autor en Wikimedia Commons",licencia:limpiar(md.LicenseShortName?.value)||"ver ficha",archivo:n});
+  }
+  return out;
+}
+async function imagenArticulo(lang,titulo){
+  const u=`https://${lang}.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=name&titles=${encodeURIComponent(titulo)}`;
+  const r=await fetch(u).then(r=>r.json());
+  const p=Object.values(r?.query?.pages||{})[0];return p?.pageimage?p.pageimage.replace(/_/g," "):null;
+}
+async function cargarFotos(l){
+  const clave="anambro.paisajes.fotos.v1."+l.id;
+  try{const c=JSON.parse(localStorage.getItem(clave)||"null");if(c&&c.t>Date.now()-7*864e5&&c.f.length)return c.f}catch(e){}
+  let nombres=l.files.slice();
+  for(const[lang,t]of l.wiki){if(nombres.length>=2)break;try{const n=await imagenArticulo(lang,t);if(n&&!nombres.includes(n)&&!/\.svg$/i.test(n))nombres.push(n)}catch(e){}}
+  let f=[];try{f=await infoArchivos(nombres)}catch(e){console.warn("Commons",l.id,e)}
+  if(f.length)try{localStorage.setItem(clave,JSON.stringify({t:Date.now(),f}))}catch(e){}
+  return f;
+}
+function credito(f,l){return`📷 <a href="${esc(f.pagina)}" target="_blank" rel="noopener">${esc(f.autor)}</a> · ${esc(f.licencia)} · Wikimedia Commons${l?" · "+esc(l.lugar):""}`}
+
+/* ---------- Partida ---------- */
+const CFG={ambito:"esp",modo:"foto"};const RONDAS=8;let G=null;
+function lugaresAmbito(){return LUGARES.filter(l=>l.fotos&&l.fotos.length&&(CFG.ambito==="todo"||l.amb===CFG.ambito))}
+function nuevaPartida(){
+  const pool=lugaresAmbito();
+  if(pool.length<4){alert("No se han podido cargar suficientes fotos para este ámbito. Comprueba la conexión con Wikimedia Commons.");return}
+  const rondas=[];while(rondas.length<RONDAS){rondas.push(...barajar(pool))}
+  G={rondas:rondas.slice(0,RONDAS),n:0,total:0,hist:[]};
+  $("inicio").style.display="none";$("juego").style.display="block";$("marcador").style.display="flex";ronda();
+}
+function ronda(){
+  const l=G.rondas[G.n],pool=lugaresAmbito().filter(x=>x!==l);
+  // distractores: preferimos lugares de otro grupo de vegetación para que la pregunta sea justa
+  const otros=barajar(pool.filter(x=>x.grupo!==l.grupo||x.bioma!==l.bioma)).slice(0,3);
+  G.l=l;G.opc=barajar([l,...otros]);G.intentos=0;G.fin=false;G.fotoIdx=Math.floor(Math.random()*l.fotos.length);
+  $("mRonda").textContent=`Ronda ${G.n+1}/${G.rondas.length}`;$("mTotal").textContent=`Total: ${G.total} pts`;
+  if(CFG.modo==="foto"){
+    $("enunciado").textContent="¿Cuál es el climograma de este paisaje?";
+    const f=l.fotos[G.fotoIdx];
+    $("estimulo").innerHTML=`<div class="foto"><img src="${esc(f.src)}" alt="Paisaje vegetal misterioso"></div><div class="credito">📷 ${esc(f.autor)} · ${esc(f.licencia)} · Wikimedia Commons</div>`+
+      (l.fotos.length>1?`<button class="btn sec" style="margin-top:6px" id="otraFoto">Ver otra foto del mismo lugar</button>`:"");
+    $("respuestas").innerHTML=G.opc.map((o,i)=>`<button class="resp" data-i="${i}"><span class="letra">${"ABCD"[i]}</span>${climogramaSVG(o.T,o.P,{mini:true})}<div class="porque"></div></button>`).join("");
+    const b=$("otraFoto");if(b)b.onclick=()=>{G.fotoIdx=(G.fotoIdx+1)%l.fotos.length;const f=l.fotos[G.fotoIdx];$("estimulo").querySelector("img").src=f.src;$("estimulo").querySelector(".credito").innerHTML=`📷 ${esc(f.autor)} · ${esc(f.licencia)} · Wikimedia Commons`};
+  }else{
+    $("enunciado").textContent="¿Qué paisaje vegetal corresponde a este climograma?";
+    $("estimulo").innerHTML=climogramaSVG(l.T,l.P)+tablaDatos(l.T,l.P);
+    $("respuestas").innerHTML=G.opc.map((o,i)=>`<button class="resp" data-i="${i}"><span class="letra">${"ABCD"[i]}</span><img src="${esc(o.fotos[0].src)}" alt="Paisaje ${"ABCD"[i]}"><div class="porque"></div></button>`).join("");
+  }
+}
+function explicaFallo(o,l){
+  const so=stats(o.T,o.P,o.la),sl=stats(l.T,l.P,l.la);
+  if(CFG.modo==="foto")return`No: este climograma es de un lugar con ${resumen(o)}; no encaja con ese paisaje.`;
+  return`No: ese paisaje (${o.bioma.toLowerCase()}) necesita otro clima. Fíjate en la lluvia y en el mes más frío del climograma.`;
+}
+function responder(i){
+  if(G.fin)return;const o=G.opc[i],l=G.l,btn=document.querySelector(`.resp[data-i="${i}"]`);
+  if(btn.disabled)return;G.intentos++;
+  if(o===l){
+    G.fin=true;btn.classList.add("bien");const pts=G.intentos===1?100:G.intentos===2?50:G.intentos===3?20:0;
+    G.total+=pts;G.hist.push({l,pts});$("mTotal").textContent=`Total: ${G.total} pts`;setTimeout(()=>revelar(pts),450);
+  }else{btn.classList.add("mal");btn.disabled=true;btn.querySelector(".porque").textContent=explicaFallo(o,l)}
+}
+function revelar(pts){
+  const l=G.l,s=stats(l.T,l.P,l.la),k=koppen(l.T,l.P,l.la),pau=l.amb==="esp"&&l.grupo==="PAU"?tipoPAU(l.T,l.P):null;
+  const f=l.fotos[G.fotoIdx]||l.fotos[0];
+  $("modal").innerHTML=`<button class="btn sec cierra" id="btnSig">${G.n+1<G.rondas.length?"Siguiente ▶":"Ver resultado ▶"}</button>
+   <h2>${pts?"✅":"ℹ️"} ${esc(l.bioma)} · ${esc(l.nombre)}</h2><div class="puntos">+${pts} puntos</div>
+   <div class="revelGrid"><div><div class="foto"><img src="${esc(f.src)}" alt="${esc(l.bioma)}"></div><div class="credito">${credito(f,l)}</div>
+     <p><span class="tag">📍 ${esc(l.lugar)}</span><span class="tag">🌡️ Estación: ${esc(l.nombre)}${l.cn?" ("+esc(l.cn)+")":""} · ${fmt(l.z,0)} m</span></p></div>
+   <div>${climogramaSVG(l.T,l.P)}
+     <table class="acf"><tr><th>T media anual</th><td>${fmt(s.MAT)} °C</td><th>Amplitud</th><td>${fmt(s.amp)} °C</td></tr>
+     <tr><th>P anual</th><td>${fmt(s.MAP,0)} mm</td><th>Meses secos (P &lt; 2T)</th><td>${s.secos.length}${s.secos.length?" ("+s.secos.map(i=>MESES_L[i]).join(", ")+")":""}</td></tr>
+     <tr><th>Köppen-Geiger</th><td colspan="3"><b>${k}</b> · ${esc(KNOM[k]||"")}${pau?`<br>Tabla PAU: <b>${esc(pau)}</b>`:""}</td></tr></table>
+     <h3>¿Por qué este paisaje con este clima?</h3><p>${esc(l.porque)}</p></div></div>
+   <p class="nota">Datos climáticos: ${esc(l.src)} · normales ${esc(l.per)}. Fotografía: Wikimedia Commons (autor y licencia indicados).</p>`;
+  $("velo").classList.add("on");$("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
+}
+function siguiente(){
+  G.n++;if(G.n<G.rondas.length){ronda();return}
+  const max=G.rondas.length*100,pct=G.total/max;
+  const nivel=pct>=.85?"🏆 ¡Sobresaliente! Lees el paisaje como un geógrafo.":pct>=.7?"🥈 ¡Notable!":pct>=.5?"🥉 Bien.":"📚 Repasa la relación entre lluvia, temperatura y vegetación, y vuelve a intentarlo.";
+  $("modal").innerHTML=`<h2>Fin de la partida</h2><div class="puntos">${G.total} / ${max} puntos</div><p style="font-size:18px">${nivel}</p>
+   <table class="acf"><tr><th>#</th><th>Paisaje</th><th>Lugar</th><th>Puntos</th></tr>${G.hist.map((h,i)=>`<tr><td>${i+1}</td><td>${esc(h.l.bioma)}</td><td>${esc(h.l.nombre)}</td><td>${h.pts}</td></tr>`).join("")}</table>
+   <p><button class="btn" id="btnOtra">Otra partida</button> <button class="btn sec" id="btnMenu">Cambiar opciones</button></p>`;
+  $("velo").classList.add("on");
+  $("btnOtra").onclick=()=>{$("velo").classList.remove("on");nuevaPartida()};
+  $("btnMenu").onclick=()=>{$("velo").classList.remove("on");$("juego").style.display="none";$("marcador").style.display="none";$("inicio").style.display="block"};
+}
+
+/* ---------- Eventos y arranque ---------- */
+document.querySelectorAll(".chips").forEach(g=>g.addEventListener("click",ev=>{const b=ev.target.closest(".chip");if(!b)return;
+  g.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===b));CFG[g.dataset.grupo]=b.dataset.v}));
+$("btnEmpezar").onclick=nuevaPartida;
+$("respuestas").addEventListener("click",ev=>{const b=ev.target.closest(".resp");if(b)responder(+b.dataset.i)});
+(async()=>{
+  let hechos=0;
+  await Promise.all(LUGARES.map(async l=>{l.fotos=await cargarFotos(l);hechos++;$("carga").textContent=`Fotos cargadas: ${hechos}/${LUGARES.length}`}));
+  const sin=LUGARES.filter(l=>!l.fotos.length);
+  $("carga").textContent=sin.length?`Sin foto disponible ahora mismo (no saldrán en el juego): ${sin.map(l=>l.nombre).join(", ")}.`:"Todas las fotos están listas.";
+  $("btnEmpezar").disabled=false;$("btnEmpezar").textContent="▶ Empezar partida";
+  window.__paisajes={LUGARES,koppen,stats,tipoPAU};
+})();
+</script>
+</body>
+</html>

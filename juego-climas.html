@@ -334,12 +334,12 @@ function climogramaSVG(T,P,{mini=false,hl=null}={}){
   const W=mini?200:660,H=mini?62:380, m=mini?{l:4,r:4,t:4,b:4}:{l:58,r:58,t:22,b:42};
   const w=W-m.l-m.r,h=H-m.t-m.b;
   let tMax=Math.max(10,Math.ceil(Math.max(...T,Math.max(...P)/2)/10)*10);
-  let tMin=Math.min(0,Math.floor(Math.min(...T)/5)*5);
+  let tMin=Math.min(0,Math.floor(Math.min(...T)/10)*10);
   const yT=v=>m.t+h*(1-(v-tMin)/(tMax-tMin));
   const bw=w/12, x=i=>m.l+bw*i+bw/2;
   let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Climograma">`;
   if(!mini){
-    for(let v=tMin;v<=tMax;v+=(tMax-tMin>60?20:10)){
+    for(let st=(tMax-tMin>60?20:10),v=Math.ceil(tMin/st)*st;v<=tMax;v+=st){
       g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${yT(v)}" y2="${yT(v)}" stroke="#e3e9ef"/>`;
       g+=`<text x="${m.l+w+6}" y="${yT(v)+5}" font-size="14" fill="#c0392b">${v}</text>`;
       if(v>=0)g+=`<text x="${m.l-6}" y="${yT(v)+5}" font-size="14" fill="#1f5fa8" text-anchor="end">${2*v}</text>`;
