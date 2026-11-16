@@ -1296,5 +1296,21 @@ function toggleLegend(){
   <div id="anambroMobileWorkActions"></div>
 </div>
 <link rel="stylesheet" href="css/anambro-9.css?v=ee9a84a1"><script src="js/anambro-9.js?v=86698986"></script><script src="js/anambro-10.js?v=aaad967e"></script><script src="anambro-11.js?v=20261112c"></script><script src="anambro-12.js?v=20261112b"></script><script src="anambro-13.js?v=20261112b"></script>
+<script>
+/* ANAMBRO · Juegos de clima dentro del Juego territorial (2026-11-16) */
+(function(){
+  function poner(){
+    var p=document.getElementById("territorialGamePanel");
+    if(!p||p.querySelector("#anClimaJuegos"))return;
+    var c=document.createElement("div");c.id="anClimaJuegos";c.className="gameV044Card";
+    c.innerHTML='<b>🌦️ Juegos de clima</b>'+
+      '<button type="button" class="action" style="display:block;width:100%;margin:6px 0 4px;text-align:left" onclick="openAnambroExplanation(\'juego-climas.html\',\'¿Qué clima es? · El «¿Quién es quién?» de los climogramas\')">📊 ¿Qué clima es? · climogramas (PAU, Canarias)</button>'+
+      '<button type="button" class="action" style="display:block;width:100%;margin:4px 0;text-align:left" onclick="openAnambroExplanation(\'juego-paisajes.html\',\'Paisaje y clima\')">🌿 Paisaje y clima · fotos y climogramas</button>';
+    var h=p.querySelector("h3");if(h)h.insertAdjacentElement("afterend",c);else p.prepend(c);
+  }
+  new MutationObserver(poner).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener("DOMContentLoaded",poner);setTimeout(poner,1500);
+})();
+</script>
 </body>
 </html>
