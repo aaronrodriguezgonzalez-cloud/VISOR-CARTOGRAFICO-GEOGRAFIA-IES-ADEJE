@@ -1,0 +1,430 @@
+{
+  "_instrucciones": [
+    "Pega en 'vegetacion' y 'agrario' los enlaces de Wikimedia Commons de cada foto (https://commons.wikimedia.org/wiki/File:Nombre.jpg) o solo el nombre del archivo, entre comillas y separados por comas.",
+    "Cada estación tiene sus propias fotos: deben ser del lugar indicado en 'lugar_foto' o de su entorno, para que la foto corresponda al climograma.",
+    "El autor y la licencia se leen solos de la ficha de Commons. Una estación sin fotos no sale en el juego.",
+    "No cambies los identificadores (es_oce_1, mu_a1_2…): unen las fotos con su climograma."
+  ],
+  "climas": {
+    "es_oce": {
+      "clima": "Oceánico",
+      "vegetacion": "Bosque caducifolio atlántico: robledal de carballo, hayedo, castañar; landas de brezo y tojo",
+      "agrario": "Prados de siega y campos cerrados con setos (bocage), ganadería de leche, minifundio, maíz forrajero",
+      "estaciones": {
+        "es_oce_1": {
+          "estacion": "A Coruña",
+          "lugar_foto": "Fragas do Eume",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "es_oce_2": {
+          "estacion": "Oviedo",
+          "lugar_foto": "Asturias central",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "es_con": {
+      "clima": "Mediterráneo continental",
+      "vegetacion": "Encinar (carrasca), quejigar, sabinar en los páramos; matorral de retama y tomillo",
+      "agrario": "Campos abiertos de cereal de secano y barbecho, viñedo; dehesa hacia el oeste",
+      "estaciones": {
+        "es_con_1": {
+          "estacion": "Valladolid",
+          "lugar_foto": "Tierra de Campos y páramos",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "es_con_2": {
+          "estacion": "Madrid",
+          "lugar_foto": "Monte de El Pardo",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "es_med": {
+      "clima": "Mediterráneo",
+      "vegetacion": "Encinar y alcornocal, pinar de pino carrasco; maquia y garriga (lentisco, coscoja, palmito)",
+      "agrario": "Cereal, olivo y vid en secano, a menudo en bancales; huerta y regadío en el litoral (cítricos, hortalizas)",
+      "estaciones": {
+        "es_med_1": {
+          "estacion": "Jerez de la Frontera",
+          "lugar_foto": "Los Alcornocales y la campiña de Jerez",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "es_mon": {
+      "clima": "Montaña",
+      "vegetacion": "Pisos de vegetación: robledal o encinar abajo; hayedo o pinar silvestre; pino negro; pastizal alpino arriba",
+      "agrario": "Prados de siega y pastos de verano, ganadería, trashumancia",
+      "estaciones": {
+        "es_mon_1": {
+          "estacion": "Puerto de Navacerrada",
+          "lugar_foto": "Pinar de Valsaín y Peñalara",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "ca_bwh": {
+      "clima": "BWh · desértico cálido",
+      "vegetacion": "Cardonal-tabaibal",
+      "agrario": "Plataneras e invernaderos en la costa; enarenados de La Geria en Lanzarote",
+      "estaciones": {
+        "ca_bwh_1": {
+          "estacion": "Santa Cruz de Tenerife",
+          "lugar_foto": "Costa de Anaga y Malpaís de Güímar",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "ca_bwh_2": {
+          "estacion": "Tenerife Sur",
+          "lugar_foto": "Costa sur de Tenerife",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "ca_bwh_3": {
+          "estacion": "Lanzarote",
+          "lugar_foto": "La Geria y malpaíses de Lanzarote",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "ca_bsh": {
+      "clima": "BSh · estepario cálido",
+      "vegetacion": "Límite alto del cardonal y bosque termófilo (sabinar, acebuchal, dragos)",
+      "agrario": "Bancales de antiguo secano, viña, frutales",
+      "estaciones": {
+        "ca_bsh_1": {
+          "estacion": "Tacoronte",
+          "lugar_foto": "Medianías de Tacoronte-Acentejo",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "ca_csa": {
+      "clima": "Csa · mediterráneo de verano cálido",
+      "vegetacion": "Pinar canario de la vertiente sur",
+      "agrario": "Medianías: viña, papas, almendros en bancales",
+      "estaciones": {
+        "ca_csa_1": {
+          "estacion": "Vilaflor",
+          "lugar_foto": "Pinar de Vilaflor",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "ca_csb": {
+      "clima": "Csb · mediterráneo de verano templado",
+      "vegetacion": "Laurisilva y fayal-brezal (monteverde)",
+      "agrario": "Medianías altas del norte: papas, huertas, castañeros",
+      "estaciones": {
+        "ca_csb_1": {
+          "estacion": "La Laguna (Llano de los Loros)",
+          "lugar_foto": "Anaga",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "ca_alt": {
+      "clima": "Alta montaña (Csb en Izaña, Dsc en las cumbres)",
+      "vegetacion": "Retamar y codesar del Teide",
+      "agrario": "Sin agricultura",
+      "estaciones": {
+        "ca_alt_1": {
+          "estacion": "Izaña",
+          "lugar_foto": "Las Cañadas del Teide",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_a1": {
+      "clima": "A1 · Ecuatorial (Af)",
+      "vegetacion": "Selva ecuatorial (pluvisilva)",
+      "agrario": "Agricultura itinerante de roza y quema; plantaciones de palma, cacao, caucho",
+      "estaciones": {
+        "mu_a1_1": {
+          "estacion": "Manaos",
+          "lugar_foto": "Amazonía",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_a1_2": {
+          "estacion": "Iquitos",
+          "lugar_foto": "Amazonía peruana",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_a1_3": {
+          "estacion": "Singapur",
+          "lugar_foto": "Selva de Singapur y Malasia",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_a2": {
+      "clima": "A2 · Tropical marítimo (alisios)",
+      "vegetacion": "Selva tropical de los alisios, manglar",
+      "agrario": "Plantaciones de caña de azúcar, plátano, café",
+      "estaciones": {
+        "mu_a2_1": {
+          "estacion": "Toamasina (Tamatave)",
+          "lugar_foto": "Costa este de Madagascar",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_a2_2": {
+          "estacion": "La Habana",
+          "lugar_foto": "Cuba",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_a3": {
+      "clima": "A3 · Tropical continental (Aw)",
+      "vegetacion": "Sabana",
+      "agrario": "Ganadería extensiva; mijo, sorgo, cacahuete, algodón",
+      "estaciones": {
+        "mu_a3_1": {
+          "estacion": "Kano",
+          "lugar_foto": "Norte de Nigeria",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_a3_2": {
+          "estacion": "Darwin",
+          "lugar_foto": "Norte de Australia",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_mon": {
+      "clima": "Asia monzónica (Aw/Am)",
+      "vegetacion": "Bosque monzónico",
+      "agrario": "Arrozal inundado, terrazas",
+      "estaciones": {
+        "mu_mon_1": {
+          "estacion": "Daca",
+          "lugar_foto": "Delta del Ganges",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_mon_2": {
+          "estacion": "Calcuta",
+          "lugar_foto": "Bengala Occidental",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_b1": {
+      "clima": "B1 · Mediterráneo (Cs)",
+      "vegetacion": "Maquia, garriga, chaparral, fynbos",
+      "agrario": "Cereal, olivo y vid; regadío",
+      "estaciones": {
+        "mu_b1_1": {
+          "estacion": "Perth",
+          "lugar_foto": "Suroeste de Australia",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_b1_2": {
+          "estacion": "Ciudad del Cabo",
+          "lugar_foto": "Fynbos de El Cabo",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_b1_3": {
+          "estacion": "Atenas",
+          "lugar_foto": "Ática",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_b2": {
+      "clima": "B2 · Tipo chino (Cfa)",
+      "vegetacion": "Bosque subtropical húmedo siempreverde, bambú",
+      "agrario": "Arrozal intensivo, té",
+      "estaciones": {
+        "mu_b2_1": {
+          "estacion": "Fuzhou",
+          "lugar_foto": "Fujian (China)",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_b2_2": {
+          "estacion": "Kagoshima",
+          "lugar_foto": "Kyūshū (Japón)",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_c1": {
+      "clima": "C1 · Marítimo (Cfb)",
+      "vegetacion": "Bosque caducifolio de roble y haya, landas",
+      "agrario": "Prados, bocage, ganadería de leche",
+      "estaciones": {
+        "mu_c1_1": {
+          "estacion": "Brest",
+          "lugar_foto": "Bretaña",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_c1_2": {
+          "estacion": "Bergen",
+          "lugar_foto": "Costa oeste de Noruega",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_c2": {
+      "clima": "C2 · Continental templado (Dfa/Dfb)",
+      "vegetacion": "Bosque mixto; pradera en lo más seco",
+      "agrario": "Grandes campos de maíz, soja y trigo",
+      "estaciones": {
+        "mu_c2_1": {
+          "estacion": "Chicago",
+          "lugar_foto": "Medio Oeste (Corn Belt)",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_c2_2": {
+          "estacion": "Kiev",
+          "lugar_foto": "Ucrania central",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_d1": {
+      "clima": "D1 · Frío marítimo (Dfc de costa)",
+      "vegetacion": "Bosque boreal costero de abedul y coníferas",
+      "agrario": "Pastos y algo de ganadería",
+      "estaciones": {
+        "mu_d1_1": {
+          "estacion": "Tromsø",
+          "lugar_foto": "Norte de Noruega",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_d2": {
+      "clima": "D2 · Frío continental (Dfc/Dfd)",
+      "vegetacion": "Taiga",
+      "agrario": "Casi nula: explotación forestal",
+      "estaciones": {
+        "mu_d2_1": {
+          "estacion": "Yakutsk",
+          "lugar_foto": "Yakutia (Siberia)",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_est": {
+      "clima": "Estepa (BSk/BSh)",
+      "vegetacion": "Estepa de gramíneas",
+      "agrario": "Cereal de secano extensivo, pastoreo nómada",
+      "estaciones": {
+        "mu_est_1": {
+          "estacion": "Ulán Bator",
+          "lugar_foto": "Estepa mongola",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_est_2": {
+          "estacion": "Niamey",
+          "lugar_foto": "Sahel",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_e": {
+      "clima": "E · Polar (ET)",
+      "vegetacion": "Tundra: musgos, líquenes, arbustos enanos",
+      "agrario": "Ninguno; pastoreo de renos",
+      "estaciones": {
+        "mu_e_1": {
+          "estacion": "Utqiaġvik (Alaska)",
+          "lugar_foto": "Costa ártica de Alaska",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_f1": {
+      "clima": "F1 · Desierto cálido (BWh)",
+      "vegetacion": "Desierto, vegetación dispersa",
+      "agrario": "Oasis con palmeras datileras",
+      "estaciones": {
+        "mu_f1_1": {
+          "estacion": "Riad",
+          "lugar_foto": "Desierto arábigo",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_f1_2": {
+          "estacion": "Antofagasta",
+          "lugar_foto": "Desierto de Atacama",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_f2": {
+      "clima": "F2 · Desierto frío (BWk)",
+      "vegetacion": "Estepa desértica, matorral",
+      "agrario": "Oasis de regadío, pastoreo",
+      "estaciones": {
+        "mu_f2_1": {
+          "estacion": "Kashgar",
+          "lugar_foto": "Cuenca del Tarim",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_f2_2": {
+          "estacion": "Dalanzadgad",
+          "lugar_foto": "Desierto del Gobi",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    },
+    "mu_g": {
+      "clima": "G · Montaña (Cwb/Cwc)",
+      "vegetacion": "Pisos de vegetación; puna y páramo en los trópicos",
+      "agrario": "Andenes y terrazas: papa, quinoa; llamas y alpacas",
+      "estaciones": {
+        "mu_g_1": {
+          "estacion": "El Alto (La Paz)",
+          "lugar_foto": "Altiplano boliviano",
+          "vegetacion": [],
+          "agrario": []
+        },
+        "mu_g_2": {
+          "estacion": "Cuzco",
+          "lugar_foto": "Valle Sagrado",
+          "vegetacion": [],
+          "agrario": []
+        }
+      }
+    }
+  }
+}

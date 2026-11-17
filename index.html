@@ -1297,11 +1297,15 @@ function toggleLegend(){
 </div>
 <link rel="stylesheet" href="css/anambro-9.css?v=ee9a84a1"><script src="js/anambro-9.js?v=86698986"></script><script src="js/anambro-10.js?v=aaad967e"></script><script src="anambro-11.js?v=20261112c"></script><script src="anambro-12.js?v=20261112b"></script><script src="anambro-13.js?v=20261112b"></script>
 <script>
-/* ANAMBRO · Menú «Juegos»: Juego territorial, ¿Qué clima es? y Paisaje y clima, cada uno desplegable (2026-11-16) */
+/* ANAMBRO · Menú «Juegos»: Juego territorial, juegos de clima y juegos de países, cada uno desplegable (2026-11-16) */
 (function(){
   var JUEGOS=[
     {id:"anJuegoClimas",icono:"📊",titulo:"¿Qué clima es?",desc:"El «¿Quién es quién?» de los climogramas: pregunta al climograma y descarta tipos de clima. España (tabla PAU), Canarias y el mundo (Köppen-Geiger y Miller).",url:"juego-climas.html",ventana:"¿Qué clima es? · El «¿Quién es quién?» de los climogramas"},
-    {id:"anJuegoPaisajes",icono:"🌿",titulo:"Paisaje y clima",desc:"Relaciona cada paisaje vegetal con su climograma, en España y en el mundo.",url:"juego-paisajes.html",ventana:"Paisaje y clima"}
+    {id:"anJuegoPaisajes",icono:"🌿",titulo:"Paisaje y clima",desc:"Relaciona cada paisaje con su climograma: vegetación natural y paisaje agrario, en España, Canarias y el mundo.",url:"juego-paisajes.html",ventana:"Paisaje y clima"},
+    {id:"anJuegoCapitales",icono:"🏛️",titulo:"Capitales",desc:"Elige la capital de cada país entre cuatro o localiza en el mapa el país de una capital.",url:"juego-paises.html?tipo=capitales",ventana:"Capitales del mundo"},
+    {id:"anJuegoIdiomas",icono:"🗣️",titulo:"Idiomas oficiales",desc:"¿Qué idioma es oficial en cada país? Elige entre cuatro o localiza en el mapa los países donde se habla.",url:"juego-paises.html?tipo=idiomas",ventana:"Idiomas oficiales"},
+    {id:"anJuegoMonedas",icono:"💰",titulo:"Monedas",desc:"La moneda de cada país: elige entre cuatro o localiza en el mapa dónde se usa.",url:"juego-paises.html?tipo=monedas",ventana:"Monedas del mundo"},
+    {id:"anJuegoBanderas",icono:"🚩",titulo:"Banderas",desc:"¿De qué país es esta bandera? Elige entre cuatro o pulsa el país en el mapa.",url:"juego-paises.html?tipo=banderas",ventana:"Banderas del mundo"}
   ];
   function css(){
     if(document.getElementById("anJuegosCss"))return;
