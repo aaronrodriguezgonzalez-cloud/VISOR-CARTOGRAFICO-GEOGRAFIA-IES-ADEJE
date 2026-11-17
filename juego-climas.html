@@ -703,6 +703,19 @@ function porQueNo(k){
 /* =========================================================
    Revelación
    ========================================================= */
+
+/* ---------- Llevar al mapa de ANAMBRO ---------- */
+function verEnAnambro(op){
+  const P=window.parent;
+  let PM=null;try{PM=P&&P!==window?P.eval("typeof map!=='undefined'?map:null"):null}catch(e){}
+  if(!PM||!PM.addLayer||!P.L){alert("Para ir al mapa, abre el juego desde el menú Juegos de ANAMBRO.");return}
+  try{if(P.__anJuegoMarca)PM.removeLayer(P.__anJuegoMarca)}catch(e){}
+  const g=P.L.featureGroup();
+  P.L.circleMarker([op.lat,op.lon],{radius:9,color:"#fff",weight:3,fillColor:"#c0392b",fillOpacity:1}).bindPopup(op.html||"").addTo(g);
+  g.addTo(PM);P.__anJuegoMarca=g;
+  try{P.closeAnambroExplanation&&P.closeAnambroExplanation()}catch(e){}
+  setTimeout(()=>{try{PM.flyTo([op.lat,op.lon],op.zoom||10,{duration:1.5})}catch(e){}setTimeout(()=>g.eachLayer(l=>{try{l.openPopup()}catch(e){}}),1800)},300);
+}
 let mapaRev=null;
 /* Mapa de climas de España (imagen de 2048 × 1360 px), georreferenciado con puntos de costa:
    península y Baleares con un ajuste de segundo grado; recuadro de Canarias con un ajuste afín */
@@ -756,6 +769,7 @@ function revelar(ok,k,pts){
     <div class="nota">${G.hechas.length} pregunta${G.hechas.length===1?"":"s"} · ${G.pistas.length} pista${G.pistas.length===1?"":"s"} · ${G.fallos.length} fallo${G.fallos.length===1?"":"s"}</div>
     <div class="revelGrid"><div>
       <h3>📍 ${esc(st.n)}</h3>
+      <button class="btn sec" id="btnVerAnb" style="margin:2px 0 6px">🗺️ Ver en el mapa de ANAMBRO</button>
       <div>${esc(st.pr?st.pr+" · ":st.adm?st.adm+" · ":"")}${esc(st.cn||"")} · ${fmt(st.z,0)} m · ${fmt(Math.abs(st.la),3)}° ${st.la>=0?"N":"S"}, ${fmt(Math.abs(st.lo),3)}° ${st.lo>=0?"E":"O"}</div>
       ${CFG.ambito==="pen"||CFG.ambito==="can"||CFG.ambito==="esc"||(st.iso==="ES"&&(st.la>27&&st.la<44.5))?`<h3>🗺️ En el mapa de climas de España</h3>${mapaClimasEsp(st)}<h3>🛰️ Vista aérea</h3>`:""}
       <div id="mapaRevel"></div>
@@ -764,6 +778,7 @@ function revelar(ok,k,pts){
     <div class="fuente">Datos: ${esc(src)} · normales 1991–2020${CFG.ambito==="can"?" · Tipos: "+esc(DB.atlasSrc):""}${conDonde()&&st.adm?" · Divisiones administrativas: World Bank Global Administrative Divisions":""} · Imagen: Esri, Maxar, Earthstar Geographics.</div>`;
   $("velo").classList.add("on");
   $("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
+  $("btnVerAnb").onclick=()=>verEnAnambro({lat:st.la,lon:st.lo,zoom:esMundo()?8:10,html:`<b>${esc(st.n)}</b><br>${esc(esTarj()&&tipoObj.nom!==tipoObj.k?tipoObj.k+" · "+tipoObj.nom:tipoObj.k)}<br><small>${fmt(st.z||0,0)} m · normales 1991–2020</small>`});
   setTimeout(()=>{
     if(mapaRev){mapaRev.remove();mapaRev=null}
     mapaRev=L.map("mapaRevel",{zoomControl:true,attributionControl:true}).setView([st.la,st.lo],CFG.ambito==="can"?8:esMundo()?3:5);

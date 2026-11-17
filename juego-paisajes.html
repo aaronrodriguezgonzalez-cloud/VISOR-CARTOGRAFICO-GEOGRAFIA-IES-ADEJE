@@ -211,6 +211,19 @@ function mapaClimasEsp(st){
     </svg></div>`;
 }
 
+
+/* ---------- Llevar al mapa de ANAMBRO ---------- */
+function verEnAnambro(op){
+  const P=window.parent;
+  let PM=null;try{PM=P&&P!==window?P.eval("typeof map!=='undefined'?map:null"):null}catch(e){}
+  if(!PM||!PM.addLayer||!P.L){alert("Para ir al mapa, abre el juego desde el menú Juegos de ANAMBRO.");return}
+  try{if(P.__anJuegoMarca)PM.removeLayer(P.__anJuegoMarca)}catch(e){}
+  const g=P.L.featureGroup();
+  P.L.circleMarker([op.lat,op.lon],{radius:9,color:"#fff",weight:3,fillColor:"#c0392b",fillOpacity:1}).bindPopup(op.html||"").addTo(g);
+  g.addTo(PM);P.__anJuegoMarca=g;
+  try{P.closeAnambroExplanation&&P.closeAnambroExplanation()}catch(e){}
+  setTimeout(()=>{try{PM.flyTo([op.lat,op.lon],op.zoom||10,{duration:1.5})}catch(e){}setTimeout(()=>g.eachLayer(l=>{try{l.openPopup()}catch(e){}}),1800)},300);
+}
 /* ---------- Fotos elegidas por el profesor (juego-paisajes-fotos.json) ---------- */
 let FOTOS={};
 async function fotosEstacion(e,tipo){
@@ -280,6 +293,7 @@ function revelar(pts){
   $("modal").innerHTML=`<button class="btn sec cierra" id="btnSig">${G.n+1<G.rondas.length?"Siguiente ▶":"Ver resultado ▶"}</button>
    <h2>${pts?"✅":"ℹ️"} ${esc(c.clima)} · ${esc(e.n)}</h2><div class="puntos">${pts?"+"+pts+" puntos":"Sin puntos en esta ronda"}</div>
    <div class="revelGrid"><div>${fotoHTML(G.tipo==="agrario"?fa:fv,G.tipo)}${fotoHTML(G.tipo==="agrario"?fv:fa,G.tipo==="agrario"?"vegetacion":"agrario")}
+     <button class="btn sec" id="btnVerAnb" style="margin:8px 0 2px">🗺️ Ver en el mapa de ANAMBRO</button>
      <p><span class="tag">📍 ${esc(e.lugar)}</span><span class="tag">🌡️ Estación: ${esc(e.n)} (${esc(e.cn)}) · ${fmt(e.z||0,0)} m</span></p>
      ${enEsp?mapaClimasEsp({n:e.n,la:e.la,lo:e.lo}):""}</div>
    <div>${climogramaSVG(e.T,e.P)}
@@ -290,6 +304,7 @@ function revelar(pts){
      <h3>🚜 Paisaje agrario: ${esc(c.agr)}</h3><p>${esc(c.pa)}</p></div></div>
    <p class="nota">Datos climáticos: ${esc(e.src)} · normales ${esc(e.per)}. Fotografías: Wikimedia Commons (autor y licencia indicados).</p>`;
   $("velo").classList.add("on");$("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
+  $("btnVerAnb").onclick=()=>verEnAnambro({lat:e.la,lon:e.lo,zoom:10,html:`<b>${esc(e.n)}</b><br>${esc(c.clima)}<br><small>${esc(e.lugar)}</small>`});
 }
 function siguiente(){
   G.n++;if(G.n<G.rondas.length){ronda();return}
