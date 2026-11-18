@@ -1538,6 +1538,72 @@
      "et": "Cardonal-tabaibal",
      "lugar": "Tenerife",
      "cont": ""
+    },
+    {
+     "f": "Euphorbia canariensis - Barranco de Fataga.jpg",
+     "et": "Cardonal",
+     "lugar": "Barranco de Fataga (Gran Canaria)",
+     "cont": ""
+    },
+    {
+     "f": "Macizo de Anaga 04.jpg",
+     "et": "Cardonal-tabaibal",
+     "lugar": "Macizo de Anaga (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "La Palma - Garafía - Vía Puerto de Garafía + Euphorbia balsamifera + Euphorbia canariensis 04 ies.jpg",
+     "et": "Cardonal",
+     "lugar": "Garafía (La Palma)",
+     "cont": ""
+    },
+    {
+     "f": "La Palma - Fuencaliente - Carretera General Las Caletas - Euphorbia regis-jubae 07 ies.jpg",
+     "et": "Tabaibal",
+     "lugar": "Fuencaliente (La Palma)",
+     "cont": ""
+    },
+    {
+     "f": "Euphorbia balsamifera - Lanzarote - 02.JPG",
+     "et": "Tabaibal dulce",
+     "lugar": "Lanzarote",
+     "cont": ""
+    },
+    {
+     "f": "Biosphere Reserve La Gomera 14.jpg",
+     "et": "Tabaibal",
+     "lugar": "La Gomera",
+     "cont": ""
+    },
+    {
+     "f": "Pájara - FV-30 - Euphorbia balsamifera 05 ies.jpg",
+     "et": "Tabaibal dulce",
+     "lugar": "Pájara (Fuerteventura)",
+     "cont": ""
+    },
+    {
+     "f": "Pájara - FV-30 - Euphorbia balsamifera 03 ies.jpg",
+     "et": "Tabaibal dulce",
+     "lugar": "Pájara (Fuerteventura)",
+     "cont": ""
+    },
+    {
+     "f": "Pájara - FV-30 - Euphorbia balsamifera 01 ies.jpg",
+     "et": "Tabaibal dulce",
+     "lugar": "Pájara (Fuerteventura)",
+     "cont": ""
+    },
+    {
+     "f": "Euphorbia handiensis - Jandía - 01.jpg",
+     "et": "Cardonal de cardón de Jandía",
+     "lugar": "Jandía (Fuerteventura)",
+     "cont": ""
+    },
+    {
+     "f": "Euphorbia handiensis - Gran Valle - 02.jpg",
+     "et": "Cardonal de cardón de Jandía",
+     "lugar": "Gran Valle, Jandía (Fuerteventura)",
+     "cont": ""
     }
    ],
    "agrario": [
@@ -1589,9 +1655,45 @@
      "cont": ""
     },
     {
-     "f": "Barranco de los Cernícalos FSV 4 9 2010.JPG",
-     "et": "Bosque termófilo de barranco",
-     "lugar": "Barranco de los Cernícalos (Gran Canaria)",
+     "f": "Palmeral en la Viña Vieja (San Andrés, Tenerife).JPG",
+     "et": "Palmeral",
+     "lugar": "San Andrés (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "El Palmeral junto a La Gran Casona en La Rambla de Castro.jpg",
+     "et": "Palmeral",
+     "lugar": "La Rambla, Los Realejos (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Rambla de Castro-Palmeral.JPG",
+     "et": "Palmeral",
+     "lugar": "Rambla de Castro (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Dracaena draco en el macizo de Anaga 02.jpg",
+     "et": "Dragos en el bosque termófilo",
+     "lugar": "Macizo de Anaga (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Palmeral de Cabo Verde - panoramio.jpg",
+     "et": "Palmeral",
+     "lugar": "Cabo Verde, Moya (Gran Canaria)",
+     "cont": ""
+    },
+    {
+     "f": "WLM14ES - Necrópolis de Arteara - rvr (1).jpg",
+     "et": "Palmeral",
+     "lugar": "Arteara, Fataga (Gran Canaria)",
+     "cont": ""
+    },
+    {
+     "f": "Valle Gran Rey - WLE Spain 2015.jpg",
+     "et": "Palmeral",
+     "lugar": "Valle Gran Rey (La Gomera)",
      "cont": ""
     }
    ],
@@ -1671,6 +1773,36 @@
      "f": "Camino por el Fayal-Brezal.jpg",
      "et": "Fayal-brezal",
      "lugar": "Canarias",
+     "cont": ""
+    },
+    {
+     "f": "Los Tilos 1 - panoramio.jpg",
+     "et": "Laurisilva",
+     "lugar": "Los Tilos de Moya (Gran Canaria)",
+     "cont": ""
+    },
+    {
+     "f": "Árboles tila en el Laurisilva de Los Tilos.jpg",
+     "et": "Laurisilva",
+     "lugar": "Los Tilos de Moya (Gran Canaria)",
+     "cont": ""
+    },
+    {
+     "f": "Sendero en Los Tilos 2 - panoramio.jpg",
+     "et": "Laurisilva",
+     "lugar": "Los Tilos de Moya (Gran Canaria)",
+     "cont": ""
+    },
+    {
+     "f": "Barranco de la Virgen, Gran Canaria.jpg",
+     "et": "Laurisilva de barranco",
+     "lugar": "Barranco de la Virgen (Gran Canaria)",
+     "cont": ""
+    },
+    {
+     "f": "Mountain landscape near Monte del Agua, Tenerife, Canary Islands.jpg",
+     "et": "Monteverde",
+     "lugar": "Monte del Agua (Tenerife)",
      "cont": ""
     }
    ],
