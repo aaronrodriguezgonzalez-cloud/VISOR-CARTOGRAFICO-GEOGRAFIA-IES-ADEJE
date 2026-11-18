@@ -133,6 +133,36 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 </style>
+<style id="fichaNueva">/* ===== Ficha de solución ===== */
+.modal{max-width:1080px;padding:0;overflow:auto}
+.revCab{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:14px 20px;color:#fff;position:sticky;top:0;z-index:5}
+.revCab.ok{background:linear-gradient(120deg,#1e8449,#27ae60)} .revCab.ko{background:linear-gradient(120deg,#7b8a99,#5b6b7a)}
+.revRes{font-size:20px;font-weight:800} .revPts{font-size:15px;opacity:.95}
+.revTit{text-align:center;line-height:1.15} .revTit small{display:block;font-size:13px;opacity:.9;text-transform:uppercase;letter-spacing:.6px} .revTit b{font-size:24px}
+.revCab .btn{background:#fff;color:var(--azul);box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.revPar{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 20px 6px;align-items:start}
+.revFig{margin:0} .revFig .foto img{max-height:340px;height:340px;object-fit:cover}
+.revFig figcaption{font-size:12.5px;color:#5b6b7a;margin-top:4px} .revFig figcaption a{color:#5b6b7a}
+.revClim svg{width:100%;height:auto;display:block;border:1px solid var(--borde);border-radius:10px;background:#fff}
+.cifras{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.cifras span{background:#eef3f8;border-radius:10px;padding:6px 4px;text-align:center;font-size:12px;color:#4a6178;line-height:1.2}
+.cifras b{display:block;font-size:16px;color:var(--azul)}
+.revLugar{display:grid;grid-template-columns:1fr 1.1fr;gap:16px;margin:10px 20px;padding:12px;background:#f6f9fc;border:1px solid var(--borde);border-radius:14px;align-items:center}
+.revEst{font-size:16px} .revLugar .ubica{margin:6px 0 4px;font-size:14.5px}
+.revLugar #mapaRevel{height:200px;margin:0}
+.revTarj{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:6px 20px 4px}
+.tarj{border:1px solid var(--borde);border-radius:14px;padding:10px 14px;background:#fff}
+.tarj h3{margin:2px 0 6px;font-size:15.5px} .tarj p{margin:0;font-size:14.5px}
+.tarj .mini{display:flex;gap:10px;margin-top:8px;align-items:center} .tarj .mini img{width:120px;height:80px;object-fit:cover;border-radius:8px;flex:none}
+.tarj .mini small{font-size:12px;color:#5b6b7a} .tarj .mini a{color:#5b6b7a}
+.modal > .nota{padding:4px 20px 16px;text-align:left!important}
+@media (max-width:820px){.revPar,.revLugar,.revTarj{grid-template-columns:1fr}.revCab{grid-template-columns:1fr auto}.revTit{grid-column:1/-1;order:3}.cifras{grid-template-columns:repeat(3,1fr)}}
+.revNota{font-size:13px;opacity:.95;margin-top:2px}
+.revStats{padding:8px 20px 0;color:#4a6178;font-size:14px;text-align:center}
+.revPar{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+.revExpl h3:first-child{margin-top:0}
+.revPar:has(> :only-child){grid-template-columns:1fr}
+</style>
 </head>
 <body>
 <header>
@@ -799,20 +829,28 @@ function revelar(ok,k,pts){
       <p class="nota">Tipo oficial según el Atlas Climático de Canarias, que coincide con el calculado con los datos de la estación.</p>`;
   }
   const tipoObj=TIPOS().find(t=>t.k===e.tipo);
-  $("modal").innerHTML=`<button class="btn sec cierra" id="btnSig">${G.n+1<G.rondas.length?"Siguiente climograma ▶":"Ver resultado final ▶"}</button>
-    <h2>✅ ¡Correcto! Es <b>${esc(esTarj()&&tipoObj.nom!==tipoObj.k?tipoObj.k+" · "+tipoObj.nom:tipoObj.k)}</b>${k!==e.tipo?` <span class="nota">(aceptado como clima de transición; el que mejor encaja es ${esc(e.tipo)})</span>`:""}</h2>
-    <div class="puntos">+${pts} puntos</div>
-    <div class="nota">${G.hechas.length} pregunta${G.hechas.length===1?"":"s"} · ${G.pistas.length} pista${G.pistas.length===1?"":"s"} · ${G.fallos.length} fallo${G.fallos.length===1?"":"s"}</div>
-    <div class="revelGrid"><div>
-      <h3>📍 ${esc(st.n)}</h3>
-      <button class="btn sec" id="btnVerAnb" style="margin:2px 0 6px">🗺️ Ver en el mapa de ANAMBRO</button>
-      <div>${esc(st.pr?st.pr+" · ":st.adm?st.adm+" · ":"")}${esc(st.cn||"")} · ${fmt(st.z,0)} m · ${fmt(Math.abs(st.la),3)}° ${st.la>=0?"N":"S"}, ${fmt(Math.abs(st.lo),3)}° ${st.lo>=0?"E":"O"}</div>
-      <div class="ubica">🌍 ${esc(st.cn||"España")} · ${(()=>{const c=(!st.cn||st.cn==="España")?(st.la<30&&st.lo<-13?"océano Atlántico, frente a África (Canarias)":"Europa"):(st.cont==="Islas del océano"?"islas oceánicas":st.cont);return c?esc(c)+" · ":""})()}hemisferio ${st.la>=0?"norte":"sur"} y ${st.lo>=0?"oriental":"occidental"}</div>
-      ${CFG.ambito==="pen"||CFG.ambito==="can"||CFG.ambito==="esc"||(st.iso==="ES"&&(st.la>27&&st.la<44.5))?`<h3>🗺️ En el mapa de climas de España</h3>${mapaClimasEsp(st)}<h3>🛰️ Vista aérea</h3>`:""}
-      <div id="mapaRevel"></div>
-      ${tipoObj.geo?`<div class="nota">🗺️ ${esc(tipoObj.geo)} · 🌳 ${esc(tipoObj.veg)}</div>`:""}
-    </div><div>${expl}</div></div>
-    <div class="fuente">Datos: ${esc(src)} · normales 1991–2020${CFG.ambito==="can"?" · Tipos: "+esc(DB.atlasSrc):""}${conDonde()&&st.adm?" · Divisiones administrativas: World Bank Global Administrative Divisions":""} · Imagen: Esri, Maxar, Earthstar Geographics.</div>`;
+  const nomTipo=esc(esTarj()&&tipoObj.nom!==tipoObj.k?tipoObj.k+" · "+tipoObj.nom:tipoObj.k);
+  const enEsp=CFG.ambito==="pen"||CFG.ambito==="can"||CFG.ambito==="esc"||(st.iso==="ES"&&(st.la>27&&st.la<44.5));
+  const cont=(()=>{const c=(!st.cn||st.cn==="España")?(st.la<30&&st.lo<-13?"océano Atlántico, frente a África (Canarias)":"Europa"):(st.cont==="Islas del océano"?"islas oceánicas":st.cont);return c?esc(c)+" · ":""})();
+  $("modal").innerHTML=`
+   <div class="revCab ok">
+     <div><div class="revRes">✅ ¡Correcto!</div><div class="revPts">+${pts} puntos</div></div>
+     <div class="revTit"><small>${CFG.ambito==="pen"?"Clima (tabla PAU)":CFG.ambito==="mk"||CFG.ambito==="can"?"Köppen-Geiger":CFG.ambito==="mm"?"Miller":"Clima"}</small><b>${nomTipo}</b>${k!==e.tipo?`<div class="revNota">Aceptado como clima de transición; el que mejor encaja es ${esc(e.tipo)}</div>`:""}</div>
+     <button class="btn" id="btnSig">${G.n+1<G.rondas.length?"Siguiente ▶":"Ver resultado ▶"}</button>
+   </div>
+   <div class="revStats">❓ ${G.hechas.length} pregunta${G.hechas.length===1?"":"s"} · 💡 ${G.pistas.length} pista${G.pistas.length===1?"":"s"} · ❌ ${G.fallos.length} fallo${G.fallos.length===1?"":"s"}</div>
+   <div class="revLugar">
+     <div class="revLugarTxt"><div class="revEst">🌡️ <b>${esc(st.n)}</b>${st.pr?" · "+esc(st.pr):st.adm?" · "+esc(st.adm):""} · ⛰️ ${fmt(st.z,0)} m</div>
+       <div class="ubica">🌍 <b>${esc(st.cn||"España")}</b> · ${cont}hemisferio ${st.la>=0?"norte":"sur"} y ${st.lo>=0?"oriental":"occidental"} · ${fmt(Math.abs(st.la),2)}° ${st.la>=0?"N":"S"}, ${fmt(Math.abs(st.lo),2)}° ${st.lo>=0?"E":"O"}</div>
+       ${tipoObj.geo?`<div class="nota" style="text-align:left">🗺️ ${esc(tipoObj.geo)}<br>🌳 ${esc(tipoObj.veg)}</div>`:""}
+       <button class="btn sec" id="btnVerAnb" style="margin-top:8px">🗺️ Abrir en el visor ANAMBRO</button></div>
+     <div id="mapaRevel"></div>
+   </div>
+   <div class="revPar">
+     <div class="revExpl">${expl}</div>
+     ${enEsp?`<div><h3>🗺️ En el mapa de climas de España</h3>${mapaClimasEsp(st)}</div>`:""}
+   </div>
+   <div class="fuente" style="padding:4px 20px 16px">Datos: ${esc(src)} · normales 1991–2020${CFG.ambito==="can"?" · Tipos: "+esc(DB.atlasSrc):""}${conDonde()&&st.adm?" · Divisiones administrativas: World Bank Global Administrative Divisions":""} · Imagen: Esri, Maxar, Earthstar Geographics.</div>`;
   $("velo").classList.add("on");
   $("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
   $("btnVerAnb").onclick=()=>verEnAnambro({lat:st.la,lon:st.lo,zoom:esMundo()?8:10,html:`<b>${esc(st.n)}</b><br>${esc(esTarj()&&tipoObj.nom!==tipoObj.k?tipoObj.k+" · "+tipoObj.nom:tipoObj.k)}<br><small>${fmt(st.z||0,0)} m · normales 1991–2020</small>`});

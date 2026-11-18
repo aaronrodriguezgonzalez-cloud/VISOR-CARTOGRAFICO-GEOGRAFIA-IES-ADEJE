@@ -1,637 +1,1777 @@
 {
-  "_instrucciones": [
-    "Pega en 'vegetacion' y 'agrario' los enlaces de Wikimedia Commons de cada foto (https://commons.wikimedia.org/wiki/File:Nombre.jpg) o solo el nombre del archivo, entre comillas y separados por comas.",
-    "Cada estación tiene sus propias fotos: deben mostrar la formación vegetal (un bosque, un matorral, una estepa…, no una planta suelta) o el paisaje agrario típicos de su clima; a ser posible del lugar indicado en 'lugar_foto' o de su región.",
-    "El autor y la licencia se leen solos de la ficha de Commons. Una estación sin fotos no sale en el juego.",
-    "No cambies los identificadores (es_oce_1, mu_a1_2…): unen las fotos con su climograma."
-  ],
-  "climas": {
-    "es_oce": {
-      "clima": "Oceánico",
-      "vegetacion": "Bosque caducifolio atlántico: robledal de carballo, hayedo, castañar; landas de brezo y tojo",
-      "agrario": "Prados de siega y campos cerrados con setos (bocage), ganadería de leche, minifundio, maíz forrajero",
-      "estaciones": {
-        "es_oce_1": {
-          "estacion": "A Coruña",
-          "lugar_foto": "Fragas do Eume",
-          "vegetacion": [
-            "Arboles de Fragas do Eume.jpg",
-            "10 Fraga do Eume 1.jpg"
-          ],
-          "agrario": [
-            "Abelairasfurco.jpg",
-            "Adai, Adai, O Páramo.jpg"
-          ]
-        },
-        "es_oce_2": {
-          "estacion": "Oviedo",
-          "lugar_foto": "Asturias central",
-          "vegetacion": [
-            "Parque Natural de Redes 1991 02.jpg",
-            "Hayedo.jpg"
-          ],
-          "agrario": [
-            "Asturias 1979 05.jpg",
-            "Asturias 1979 08.jpg"
-          ]
-        }
-      }
+ "_instrucciones": [
+  "Fotos del juego Paisaje y clima, agrupadas por categoría: clima de la tabla PAU (España), piso de vegetación potencial de GRAFCAN (Canarias) y bioma RESOLVE de la capa BIOMAS (mundo).",
+  "Cada foto: f = nombre del archivo en Wikimedia Commons (o su enlace); et = tipo de paisaje que se muestra encima de la foto; lugar = dónde se tomó; cont = continente (sirve para elegir, si se puede, una foto del mismo continente que la estación).",
+  "Criterio: la foto debe mostrar la formación vegetal o el paisaje agrario típico (un pinar, no un pino), con licencia libre."
+ ],
+ "categorias": {
+  "mu_tca": {
+   "nombre": "Bosques templados caducifolios y mixtos",
+   "vegetacion": [
+    {
+     "f": "Forest covered hills on Yakushima.jpg",
+     "et": "Bosque templado siempreverde",
+     "lugar": "Yakushima (Japón)",
+     "cont": "Asia"
     },
-    "es_con": {
-      "clima": "Mediterráneo continental",
-      "vegetacion": "Encinar (carrasca), quejigar, sabinar en los páramos; matorral de retama y tomillo",
-      "agrario": "Campos abiertos de cereal de secano y barbecho, viñedo; dehesa hacia el oeste",
-      "estaciones": {
-        "es_con_1": {
-          "estacion": "Valladolid",
-          "lugar_foto": "Tierra de Campos y páramos",
-          "vegetacion": [
-            "Sabinar de Calatañazor - 02 (26 de marzo de 2016, Calatañazor).jpg"
-          ],
-          "agrario": [
-            "Vistas desde el castillo - panoramio (1).jpg",
-            "TIERRA DE CAMPOS - panoramio (1).jpg"
-          ]
-        },
-        "es_con_2": {
-          "estacion": "Madrid",
-          "lugar_foto": "Monte de El Pardo",
-          "vegetacion": [
-            "DehesaViejaValdeolmos C140687 - C140696-1.jpg",
-            "DehesaViejaValdeolmos C140676 - C140684-1.jpg"
-          ],
-          "agrario": [
-            "Parque Lineal del Manzanares - Section II - Ampliacion 2023 - Madrid 09.jpg",
-            "Parque Lineal del Manzanares - Section II - Ampliacion 2023 - Madrid 01.jpg"
-          ]
-        }
-      }
+    {
+     "f": "Foret du cranou (3).jpg",
+     "et": "Bosque caducifolio atlántico",
+     "lugar": "Bosque de Cranou (Francia)",
+     "cont": "Europa"
     },
-    "es_med": {
-      "clima": "Mediterráneo",
-      "vegetacion": "Encinar y alcornocal, pinar de pino carrasco; maquia y garriga (lentisco, coscoja, palmito)",
-      "agrario": "Cereal, olivo y vid en secano, a menudo en bancales; huerta y regadío en el litoral (cítricos, hortalizas)",
-      "estaciones": {
-        "es_med_1": {
-          "estacion": "Jerez de la Frontera",
-          "lugar_foto": "Los Alcornocales y la campiña de Jerez",
-          "vegetacion": [
-            "Alcornocales 042.jpg",
-            "Alcornocales 047.jpg"
-          ],
-          "agrario": [
-            "Campiña - IMG 20180520 144250 356.jpg",
-            "Puesta de sol Viñedos en Jerez de la Frontera - P1240095.jpg"
-          ]
-        }
-      }
+    {
+     "f": "Gfp-illinois-starved-rock-state-park-late-afternoon-sun.jpg",
+     "et": "Bosque caducifolio",
+     "lugar": "Starved Rock (Illinois, EE. UU.)",
+     "cont": "América del Norte"
     },
-    "es_mon": {
-      "clima": "Montaña",
-      "vegetacion": "Pisos de vegetación: robledal o encinar abajo; hayedo o pinar silvestre; pino negro; pastizal alpino arriba",
-      "agrario": "Prados de siega y pastos de verano, ganadería, trashumancia",
-      "estaciones": {
-        "es_mon_1": {
-          "estacion": "Puerto de Navacerrada",
-          "lugar_foto": "Pinar de Valsaín y Peñalara",
-          "vegetacion": [
-            "El Espinar, la Garganta 1974 04.jpg",
-            "Berrostegieta - Pinar 01.jpg"
-          ],
-          "agrario": [
-            "La Hiruela, Porrejón.jpg"
-          ]
-        }
-      }
+    {
+     "f": "Huy, red beech forest in the Huy Mountains.jpg",
+     "et": "Hayedo",
+     "lugar": "Montes Huy (Alemania)",
+     "cont": "Europa"
     },
-    "ca_bwh": {
-      "clima": "BWh · desértico cálido",
-      "vegetacion": "Cardonal-tabaibal",
-      "agrario": "Plataneras e invernaderos en la costa; enarenados de La Geria en Lanzarote",
-      "estaciones": {
-        "ca_bwh_1": {
-          "estacion": "Santa Cruz de Tenerife",
-          "lugar_foto": "Costa de Anaga y Malpaís de Güímar",
-          "vegetacion": [
-            "Tabaibal cardonal malpais Güímar.jpg",
-            "Euphorbia canariensis - Macizo de Anaga.jpg"
-          ],
-          "agrario": [
-            "A0182 Tenerife, banana plantations aerial view.jpg",
-            "Tenerife 1977 29.jpg"
-          ]
-        },
-        "ca_bwh_2": {
-          "estacion": "Tenerife Sur",
-          "lugar_foto": "Costa sur de Tenerife",
-          "vegetacion": [
-            "Malpaís de Rasca, mataparda 22 febrero 2007.jpg"
-          ],
-          "agrario": [
-            "A0468 Tenerife, Banana plantations and Adeje aerial view.jpg",
-            "A0353 Tenerife, Banana plantations aerial view.jpg"
-          ]
-        },
-        "ca_bwh_3": {
-          "estacion": "Lanzarote",
-          "lugar_foto": "La Geria y malpaíses de Lanzarote",
-          "vegetacion": [
-            "Haría - MNLC - Lugar Diseminado Maguez-LZ-1 - Euphorbia balsamifera-Monte Corona 01 ies.jpg"
-          ],
-          "agrario": [
-            "Vineyards La Geria IMGP1903.jpg",
-            "Bodega Suárez - Diama - La Geria - Lanzarote - BS05.jpg"
-          ]
-        }
-      }
+    {
+     "f": "Beech forest, Ehrenbach, foliage against sun.jpg",
+     "et": "Hayedo en otoño",
+     "lugar": "Ehrenbach (Alemania)",
+     "cont": "Europa"
     },
-    "ca_bsh": {
-      "clima": "BSh · estepario cálido",
-      "vegetacion": "Límite alto del cardonal y bosque termófilo (sabinar, acebuchal, dragos)",
-      "agrario": "Bancales de antiguo secano, viña, frutales",
-      "estaciones": {
-        "ca_bsh_1": {
-          "estacion": "Tacoronte",
-          "lugar_foto": "Medianías de Tacoronte-Acentejo",
-          "vegetacion": [
-            "El Sabinar.JPG"
-          ],
-          "agrario": [
-            "Tenerife 1977 12.jpg",
-            "Viñas en Taganana (Tenerife).JPG"
-          ]
-        }
-      }
+    {
+     "f": "Ancient Beech Forest in the Jasmund National Park.jpg",
+     "et": "Hayedo",
+     "lugar": "P. N. Jasmund (Alemania)",
+     "cont": "Europa"
     },
-    "ca_csa": {
-      "clima": "Csa · mediterráneo de verano cálido",
-      "vegetacion": "Pinar canario de la vertiente sur",
-      "agrario": "Medianías: viña, papas, almendros en bancales",
-      "estaciones": {
-        "ca_csa_1": {
-          "estacion": "Vilaflor",
-          "lugar_foto": "Pinar de Vilaflor",
-          "vegetacion": [
-            "Corona Forestal en lo alto de La Orotava.JPG",
-            "Sombrero de Chasna.jpg"
-          ],
-          "agrario": []
-        }
-      }
+    {
+     "f": "Valdivian temperate rainforest.JPG",
+     "et": "Bosque templado lluvioso valdiviano",
+     "lugar": "Sur de Chile",
+     "cont": "América del Sur"
     },
-    "ca_csb": {
-      "clima": "Csb · mediterráneo de verano templado",
-      "vegetacion": "Laurisilva y fayal-brezal (monteverde)",
-      "agrario": "Medianías altas del norte: papas, huertas, castañeros",
-      "estaciones": {
-        "ca_csb_1": {
-          "estacion": "La Laguna (Llano de los Loros)",
-          "lugar_foto": "Anaga",
-          "vegetacion": [
-            "Laurisilva en Anaga.jpg",
-            "Path - Anaga (26531298689).jpg"
-          ],
-          "agrario": [
-            "Huertas en Taborno (Tenerife).JPG",
-            "Chinamada Terrassenfelder.jpg"
-          ]
-        }
-      }
+    {
+     "f": "Temperate Rainforest, Lake St Clair Cradle Mountain National Park, Tasmania.jpg",
+     "et": "Bosque templado lluvioso",
+     "lugar": "Cradle Mountain (Tasmania, Australia)",
+     "cont": "Oceanía"
     },
-    "ca_alt": {
-      "clima": "Alta montaña (Csb en Izaña, Dsc en las cumbres)",
-      "vegetacion": "Retamar y codesar del Teide",
-      "agrario": "Sin agricultura",
-      "estaciones": {
-        "ca_alt_1": {
-          "estacion": "Izaña",
-          "lugar_foto": "Las Cañadas del Teide",
-          "vegetacion": [
-            "Tenerife 1977 23.jpg",
-            "Tf2.04 La Palma, Montaña de las Lajas.jpg"
-          ],
-          "agrario": []
-        }
-      }
+    {
+     "f": "2024-10-22 11 13 56 Autumn view south along the Appalachian Trail within Abram S. Hewitt State Forest in West Milford Township, Passaic County, New Jersey.jpg",
+     "et": "Bosque caducifolio en otoño",
+     "lugar": "Apalaches (EE. UU.)",
+     "cont": "América del Norte"
     },
-    "mu_a1": {
-      "clima": "A1 · Ecuatorial (Af)",
-      "vegetacion": "Selva ecuatorial (pluvisilva)",
-      "agrario": "Agricultura itinerante de roza y quema; plantaciones de palma, cacao, caucho",
-      "estaciones": {
-        "mu_a1_1": {
-          "estacion": "Manaos",
-          "lugar_foto": "Amazonía",
-          "vegetacion": [
-            "Amazon rainforest manaus APA Margem Esquerda do Rio Negro - panoramio.jpg",
-            "Amazon Manaus forest.jpg"
-          ],
-          "agrario": []
-        },
-        "mu_a1_2": {
-          "estacion": "Iquitos",
-          "lugar_foto": "Amazonía peruana",
-          "vegetacion": [
-            "Tamshiyacu Tahuayo Regional Conservation Area Iquitos Amazon Rainforest Peru.jpg"
-          ],
-          "agrario": []
-        },
-        "mu_a1_3": {
-          "estacion": "Singapur",
-          "lugar_foto": "Selva de Singapur y Malasia",
-          "vegetacion": [
-            "View upslope from Catchment Path on Bukit Timah Hill, Singapore.jpg"
-          ],
-          "agrario": [
-            "Kunak-District Sabah Oil-palm-plantation-01.jpg"
-          ]
-        }
-      }
+    {
+     "f": "Forest of deciduous broad-leaved tree in Yoro Mountains.jpg",
+     "et": "Bosque caducifolio",
+     "lugar": "Montes Yoro (Japón)",
+     "cont": "Asia"
     },
-    "mu_a2": {
-      "clima": "A2 · Tropical marítimo (alisios)",
-      "vegetacion": "Selva tropical de los alisios, manglar",
-      "agrario": "Plantaciones de caña de azúcar, plátano, café",
-      "estaciones": {
-        "mu_a2_1": {
-          "estacion": "Toamasina (Tamatave)",
-          "lugar_foto": "Costa este de Madagascar",
-          "vegetacion": [
-            "Montane rainforest, Montagne d'Ambre National Park, Madagascar (15757731991).jpg",
-            "Rivière dans la forêt humide de Madagascar (87130).jpg"
-          ],
-          "agrario": [
-            "Anja Reserve 02.jpg",
-            "Ancien lac royal aménagé en rizière entre Fonohasina et Ambohidrabiby.JPG"
-          ]
-        },
-        "mu_a2_2": {
-          "estacion": "La Habana",
-          "lugar_foto": "Cuba",
-          "vegetacion": [
-            "Cuba 2018 IMG 2111 (45090084485).jpg",
-            "Country landscape, Sancti Spíritus province.jpg"
-          ],
-          "agrario": [
-            "SB088 Tobacco fied Viñales.jpg",
-            "Tobacco Fields and Curing Huts - Viñales - Cuba (5289713310).jpg"
-          ]
-        }
-      }
-    },
-    "mu_a3": {
-      "clima": "A3 · Tropical continental (Aw)",
-      "vegetacion": "Sabana",
-      "agrario": "Ganadería extensiva; mijo, sorgo, cacahuete, algodón",
-      "estaciones": {
-        "mu_a3_1": {
-          "estacion": "Kano",
-          "lugar_foto": "Norte de Nigeria",
-          "vegetacion": [
-            "Savanna vegetation.jpg",
-            "SudanRegionGambia.jpg"
-          ],
-          "agrario": [
-            "Niger millet Koremairwa 1214.jpg",
-            "Millet farm.jpg"
-          ]
-        },
-        "mu_a3_2": {
-          "estacion": "Darwin",
-          "lugar_foto": "Norte de Australia",
-          "vegetacion": [
-            "Bush in Mataranka, Northern Territory, Australia.jpg"
-          ],
-          "agrario": []
-        }
-      }
-    },
-    "mu_mon": {
-      "clima": "Asia monzónica (Aw/Am)",
-      "vegetacion": "Bosque monzónico",
-      "agrario": "Arrozal inundado, terrazas",
-      "estaciones": {
-        "mu_mon_1": {
-          "estacion": "Daca",
-          "lugar_foto": "Delta del Ganges",
-          "vegetacion": [
-            "Sal forest, Gazipur, Bangladesh in winter.jpg",
-            "Sal forest at Gazipur, Bangladesh in winter.jpg"
-          ],
-          "agrario": [
-            "Bangladesh Village Landscape (36143248590).jpg"
-          ]
-        },
-        "mu_mon_2": {
-          "estacion": "Calcuta",
-          "lugar_foto": "Bengala Occidental",
-          "vegetacion": [
-            "Sundarban Mudflats during low tide, Sundarban Tiger Reserve, West Bengal, India 02.jpg"
-          ],
-          "agrario": [
-            "Paddy fields on the outskirts of West Bengal, enroute to Orissa.jpg",
-            "Paddy field in West Bengal.jpg"
-          ]
-        }
-      }
-    },
-    "mu_b1": {
-      "clima": "B1 · Mediterráneo (Cs)",
-      "vegetacion": "Maquia, garriga, chaparral, fynbos",
-      "agrario": "Cereal, olivo y vid; regadío",
-      "estaciones": {
-        "mu_b1_1": {
-          "estacion": "Perth",
-          "lugar_foto": "Suroeste de Australia",
-          "vegetacion": [
-            "Banksia menziesii habitat (7344835952).jpg",
-            "B telmatiaea 21 gnangarra brightened.jpg"
-          ],
-          "agrario": [
-            "Wheatbelt panorama - JarrahTree.jpg",
-            "Wheatbelt panorama-2.JPG"
-          ]
-        },
-        "mu_b1_2": {
-          "estacion": "Ciudad del Cabo",
-          "lugar_foto": "Fynbos de El Cabo",
-          "vegetacion": [
-            "View up slopes of Table Mountain to summit.jpg",
-            "Table Mountain, Cape Town (P1050298).jpg"
-          ],
-          "agrario": [
-            "Stellenbosch vineyards.jpg",
-            "Stellenbosch Vineyard.jpg"
-          ]
-        },
-        "mu_b1_3": {
-          "estacion": "Atenas",
-          "lugar_foto": "Ática",
-          "vegetacion": [
-            "Landscape near Athens - 7.jpg",
-            "Φρύγανα στο Όρος Κακόβουλο (Κύθνος).jpg"
-          ],
-          "agrario": [
-            "Naxos Olive Groves.jpg",
-            "Olive grove on Mongonisi.jpg"
-          ]
-        }
-      }
-    },
-    "mu_b2": {
-      "clima": "B2 · Tipo chino (Cfa)",
-      "vegetacion": "Bosque subtropical húmedo siempreverde, bambú",
-      "agrario": "Arrozal intensivo, té",
-      "estaciones": {
-        "mu_b2_1": {
-          "estacion": "Fuzhou",
-          "lugar_foto": "Fujian (China)",
-          "vegetacion": [
-            "Wuyishan naturereserve.jpg"
-          ],
-          "agrario": []
-        },
-        "mu_b2_2": {
-          "estacion": "Kagoshima",
-          "lugar_foto": "Kyūshū (Japón)",
-          "vegetacion": [
-            "Forest covered hills on Yakushima.jpg",
-            "Forest on Yakushima from Route 592.jpg"
-          ],
-          "agrario": [
-            "知覧町茶畑 20150922 - panoramio.jpg",
-            "Tea Plantation in Nansatsu Plateau.jpg"
-          ]
-        }
-      }
-    },
-    "mu_c1": {
-      "clima": "C1 · Marítimo (Cfb)",
-      "vegetacion": "Bosque caducifolio de roble y haya, landas",
-      "agrario": "Prados, bocage, ganadería de leche",
-      "estaciones": {
-        "mu_c1_1": {
-          "estacion": "Brest",
-          "lugar_foto": "Bretaña",
-          "vegetacion": [
-            "Foret du cranou (3).jpg"
-          ],
-          "agrario": [
-            "Foret Du Cranou 29 (68425689).jpeg"
-          ]
-        },
-        "mu_c1_2": {
-          "estacion": "Bergen",
-          "lugar_foto": "Costa oeste de Noruega",
-          "vegetacion": [
-            "NorwegianScotsPineForest Os Hordaland.jpg",
-            "Luster, Norway - 2017.jpg"
-          ],
-          "agrario": [
-            "Geiranger fjord, abandoned farm, July 2013.jpg",
-            "Fjord Farm Houses - 2013.08 - panoramio.jpg"
-          ]
-        }
-      }
-    },
-    "mu_c2": {
-      "clima": "C2 · Continental templado (Dfa/Dfb)",
-      "vegetacion": "Bosque mixto; pradera en lo más seco",
-      "agrario": "Grandes campos de maíz, soja y trigo",
-      "estaciones": {
-        "mu_c2_1": {
-          "estacion": "Chicago",
-          "lugar_foto": "Medio Oeste (Corn Belt)",
-          "vegetacion": [
-            "Gfp-illinois-starved-rock-state-park-late-afternoon-sun.jpg",
-            "Shawnee National Forest- Garden of the Gods.jpg"
-          ],
-          "agrario": [
-            "Corn fields near Royal, Illinois (cropped).jpg",
-            "Cornfield - panoramio.jpg"
-          ]
-        },
-        "mu_c2_2": {
-          "estacion": "Kiev",
-          "lugar_foto": "Ucrania central",
-          "vegetacion": [
-            "Північний Лісостеп (Україна, село Витачів).jpg",
-            "Volodars'ko-Volyns'kyi district, Zhytomyrs'ka oblast, Ukraine - panoramio (13).jpg"
-          ],
-          "agrario": [
-            "Cumulonimbus storm clouds over sunflower field Ukraine.jpg",
-            "Sunflower field in Kosharka.jpg"
-          ]
-        }
-      }
-    },
-    "mu_d1": {
-      "clima": "D1 · Frío marítimo (Dfc de costa)",
-      "vegetacion": "Bosque boreal costero de abedul y coníferas",
-      "agrario": "Pastos y algo de ganadería",
-      "estaciones": {
-        "mu_d1_1": {
-          "estacion": "Tromsø",
-          "lugar_foto": "Norte de Noruega",
-          "vegetacion": [
-            "Forêt de bouleaux dans le parc de Telegrafbukta.jpg",
-            "Kåfjord Oksfjellet lub 2025-07-18.jpg"
-          ],
-          "agrario": [
-            "Holmen Bauernhof lub 2025-07-18 img02.jpg",
-            "Hinnøya Kvæfjord lub 2025-07-19.jpg"
-          ]
-        }
-      }
-    },
-    "mu_d2": {
-      "clima": "D2 · Frío continental (Dfc/Dfd)",
-      "vegetacion": "Taiga",
-      "agrario": "Casi nula: explotación forestal",
-      "estaciones": {
-        "mu_d2_1": {
-          "estacion": "Yakutsk",
-          "lugar_foto": "Yakutia (Siberia)",
-          "vegetacion": [
-            "В окрестностях Нижнего Бестяха.JPG",
-            "Марь 001.JPG"
-          ],
-          "agrario": [
-            "The Yakut horses on a meadow, Namski uluus, Yakutia, Siberia, Лошади на лугу (Намский улус) - panoramio.jpg",
-            "The yakut horses, Namski uluus, Yakutia, Siberia - Лошади на протоке Лены - panoramio.jpg"
-          ]
-        }
-      }
-    },
-    "mu_est": {
-      "clima": "Estepa (BSk/BSh)",
-      "vegetacion": "Estepa de gramíneas",
-      "agrario": "Cereal de secano extensivo, pastoreo nómada",
-      "estaciones": {
-        "mu_est_1": {
-          "estacion": "Ulán Bator",
-          "lugar_foto": "Estepa mongola",
-          "vegetacion": [
-            "Mongolian steppe.jpg",
-            "Grasslands-menggu.jpg"
-          ],
-          "agrario": [
-            "Settlement on the Mongolian steppes (2541042210).jpg"
-          ]
-        },
-        "mu_est_2": {
-          "estacion": "Niamey",
-          "lugar_foto": "Sahel",
-          "vegetacion": [
-            "Sahel forest near Kayes Mali.jpg"
-          ],
-          "agrario": [
-            "Niger, N'Gonga (5), sale of millet on market day.jpg"
-          ]
-        }
-      }
-    },
-    "mu_e": {
-      "clima": "E · Polar (ET)",
-      "vegetacion": "Tundra: musgos, líquenes, arbustos enanos",
-      "agrario": "Ninguno; pastoreo de renos",
-      "estaciones": {
-        "mu_e_1": {
-          "estacion": "Utqiaġvik (Alaska)",
-          "lugar_foto": "Costa ártica de Alaska",
-          "vegetacion": [
-            "Arctic tundra in July.jpg",
-            "Alaska tundra and thaw lakes.jpg"
-          ],
-          "agrario": []
-        }
-      }
-    },
-    "mu_f1": {
-      "clima": "F1 · Desierto cálido (BWh)",
-      "vegetacion": "Desierto, vegetación dispersa",
-      "agrario": "Oasis con palmeras datileras",
-      "estaciones": {
-        "mu_f1_1": {
-          "estacion": "Riad",
-          "lugar_foto": "Desierto arábigo",
-          "vegetacion": [
-            "Rub al Khali 002.JPG",
-            "Ar-Rub' Al-Khali (Oman) kz01.jpg"
-          ],
-          "agrario": [
-            "Crop fields in Saudi Arabia Dec 02 2012.jpg"
-          ]
-        },
-        "mu_f1_2": {
-          "estacion": "Antofagasta",
-          "lugar_foto": "Desierto de Atacama",
-          "vegetacion": [
-            "Paisaje cerca de Calama, Chile, 2016-02-01, DD 83.JPG"
-          ],
-          "agrario": []
-        }
-      }
-    },
-    "mu_f2": {
-      "clima": "F2 · Desierto frío (BWk)",
-      "vegetacion": "Estepa desértica, matorral",
-      "agrario": "Oasis de regadío, pastoreo",
-      "estaciones": {
-        "mu_f2_1": {
-          "estacion": "Kashgar",
-          "lugar_foto": "Cuenca del Tarim",
-          "vegetacion": [
-            "Taklamakan-d40.jpg",
-            "Taklamakan-d43.jpg"
-          ],
-          "agrario": [
-            "Oasis on Highway G312 Xinjiang, China - panoramio.jpg",
-            "Turpan-jiaohe-oasis-lateral-d01.jpg"
-          ]
-        },
-        "mu_f2_2": {
-          "estacion": "Dalanzadgad",
-          "lugar_foto": "Desierto del Gobi",
-          "vegetacion": [
-            "Gobi, krajobraz pustyni (23).jpg"
-          ],
-          "agrario": [
-            "Camels in Gobi Desert 01.jpg",
-            "Camel in Gobi Desert 01.jpg"
-          ]
-        }
-      }
-    },
-    "mu_g": {
-      "clima": "G · Montaña (Cwb/Cwc)",
-      "vegetacion": "Pisos de vegetación; puna y páramo en los trópicos",
-      "agrario": "Andenes y terrazas: papa, quinoa; llamas y alpacas",
-      "estaciones": {
-        "mu_g_1": {
-          "estacion": "El Alto (La Paz)",
-          "lugar_foto": "Altiplano boliviano",
-          "vegetacion": [
-            "Romanceor Altiplano 1.jpg",
-            "Solimana2005SztucznyScynk.jpg"
-          ],
-          "agrario": [
-            "Productive quinoa field, Uyuni, Bolivia.JPG",
-            "Plowing of quinoa field, Uyuni, Bolivia.JPG"
-          ]
-        },
-        "mu_g_2": {
-          "estacion": "Cuzco",
-          "lugar_foto": "Valle Sagrado",
-          "vegetacion": [
-            "La Puna 1994 01.jpg"
-          ],
-          "agrario": [
-            "The Sacred Valley, Peru-2 (8445855270).jpg",
-            "Incan terraces at Moray and a beautiful skyline.jpg"
-          ]
-        }
-      }
+    {
+     "f": "Hakkoda Mountains, Part II- Foothills - Hakkoda6915.jpg",
+     "et": "Bosque caducifolio en otoño",
+     "lugar": "Montes Hakkoda (Japón)",
+     "cont": "Asia"
     }
+   ],
+   "agrario": [
+    {
+     "f": "知覧町茶畑 20150922 - panoramio.jpg",
+     "et": "Plantaciones de té",
+     "lugar": "Chiran (Japón)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Tea Plantation in Nansatsu Plateau.jpg",
+     "et": "Plantaciones de té",
+     "lugar": "Kagoshima (Japón)",
+     "cont": "Asia"
+    }
+   ]
+  },
+  "mu_tco": {
+   "nombre": "Bosques templados de coníferas",
+   "vegetacion": [
+    {
+     "f": "NorwegianScotsPineForest Os Hordaland.jpg",
+     "et": "Pinar costero",
+     "lugar": "Os (Noruega)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Лес из закарпатской ели смереки - Forest of the Carpathian spruce Smereka (10233566135).jpg",
+     "et": "Bosque de abeto rojo (pícea)",
+     "lugar": "Cárpatos (Ucrania)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Carpathian coniferous forest (54015526818).jpg",
+     "et": "Bosque de coníferas",
+     "lugar": "Cárpatos",
+     "cont": "Europa"
+    },
+    {
+     "f": "MKr344756 Bergmischwald (Allgäu).jpg",
+     "et": "Bosque mixto de montaña con coníferas",
+     "lugar": "Allgäu (Alemania)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Herbst am Watzmann.jpg",
+     "et": "Bosque de coníferas de montaña",
+     "lugar": "Watzmann, Alpes (Alemania)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Forest Canyon, Rocky Mountain National Park.jpg",
+     "et": "Bosque de coníferas de montaña",
+     "lugar": "Montañas Rocosas (Colorado, EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Fir forest, Teberda Valley, Karachay-Cherkessia.jpg",
+     "et": "Abetal",
+     "lugar": "Valle de Teberda, Cáucaso (Rusia)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Fir and beech forest in Kurdzhips Canyon, Mezmay, Western Caucasus, Russia.jpg",
+     "et": "Bosque de abeto y haya",
+     "lugar": "Cáucaso occidental (Rusia)",
+     "cont": "Europa"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Geiranger fjord, abandoned farm, July 2013.jpg",
+     "et": "Granja de fiordo",
+     "lugar": "Geiranger (Noruega)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Fjord Farm Houses - 2013.08 - panoramio.jpg",
+     "et": "Granjas de fiordo",
+     "lugar": "Noruega",
+     "cont": "Europa"
+    }
+   ]
+  },
+  "mu_tun": {
+   "nombre": "Tundra",
+   "vegetacion": [
+    {
+     "f": "Arctic tundra in July.jpg",
+     "et": "Tundra en verano",
+     "lugar": "Alaska (EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Alaska tundra and thaw lakes.jpg",
+     "et": "Tundra con lagos de deshielo",
+     "lugar": "Alaska (EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Nunavut tundra -a.jpg",
+     "et": "Tundra ártica",
+     "lugar": "Nunavut (Canadá)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Truelove Lowlands Devon Island.jpg",
+     "et": "Tundra ártica",
+     "lugar": "Isla Devon (Nunavut, Canadá)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Tundra Stream (52641448490).jpg",
+     "et": "Tundra de valle glaciar",
+     "lugar": "Isla de Baffin (Canadá)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "The North Slope of Alaska.jpg",
+     "et": "Tundra ártica",
+     "lugar": "North Slope (Alaska, EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Siberian tundra 02.jpg",
+     "et": "Tundra arbustiva",
+     "lugar": "Siberia (Rusia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Tundra in Siberia.jpg",
+     "et": "Tundra con lagos",
+     "lugar": "Siberia (Rusia)",
+     "cont": "Asia"
+    }
+   ],
+   "agrario": []
+  },
+  "mu_des": {
+   "nombre": "Desiertos y matorrales xéricos",
+   "vegetacion": [
+    {
+     "f": "Rub al Khali 002.JPG",
+     "et": "Desierto de dunas (erg)",
+     "lugar": "Rub al-Jali (Arabia Saudí)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Ar-Rub' Al-Khali (Oman) kz01.jpg",
+     "et": "Desierto de dunas (erg)",
+     "lugar": "Rub al-Jali (Omán)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Paisaje cerca de Calama, Chile, 2016-02-01, DD 83.JPG",
+     "et": "Desierto de Atacama",
+     "lugar": "Calama (Chile)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Taklamakan-d40.jpg",
+     "et": "Desierto de dunas",
+     "lugar": "Taklamakán (China)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Gobi, krajobraz pustyni (23).jpg",
+     "et": "Desierto pedregoso (Gobi)",
+     "lugar": "Gobi (Mongolia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Western Desert, Sahara Desert, Egypt.jpg",
+     "et": "Desierto rocoso y de arena",
+     "lugar": "Desierto Occidental (Egipto)",
+     "cont": "África"
+    },
+    {
+     "f": "Dunes of Morocco-Sahara.jpg",
+     "et": "Desierto de dunas (erg)",
+     "lugar": "Merzouga, Sáhara (Marruecos)",
+     "cont": "África"
+    },
+    {
+     "f": "Libya 4985 Tadrart Acacus Luca Galuzzi 2007.jpg",
+     "et": "Desierto de dunas y roca",
+     "lugar": "Tadrart Acacus, Sáhara (Libia)",
+     "cont": "África"
+    },
+    {
+     "f": "Chihuahuan Desert 01.jpg",
+     "et": "Matorral desértico de gobernadora",
+     "lugar": "Desierto de Chihuahua (EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Región Centro Desierto de Coahuila (México).jpg",
+     "et": "Matorral desértico",
+     "lugar": "Coahuila (México)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "2013-07-07 15 41 55 Great Basin Sagebrush steppe along Three Creek Road, in Owyhee County, southwestern Idaho.jpg",
+     "et": "Estepa de artemisa",
+     "lugar": "Gran Cuenca (EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Succulent Karoo of Biedow River Valley (39918214640).jpg",
+     "et": "Karoo suculento",
+     "lugar": "Valle del Biedouw (Sudáfrica)",
+     "cont": "África"
+    },
+    {
+     "f": "Suráfrica, Goegap 01.jpg",
+     "et": "Matorral suculento",
+     "lugar": "Goegap, Namaqualand (Sudáfrica)",
+     "cont": "África"
+    },
+    {
+     "f": "Karro PICT0936.JPG",
+     "et": "Karoo con árboles carcaj",
+     "lugar": "Karoo (Sudáfrica)",
+     "cont": "África"
+    },
+    {
+     "f": "Paisaje en el desierto de Atacama, Chile, 2016-02-06, DD 16.JPG",
+     "et": "Desierto de Atacama",
+     "lugar": "Atacama (Chile)",
+     "cont": "América del Sur"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Crop fields in Saudi Arabia Dec 02 2012.jpg",
+     "et": "Regadío circular con agua fósil",
+     "lugar": "Arabia Saudí",
+     "cont": "Asia"
+    },
+    {
+     "f": "Oasis on Highway G312 Xinjiang, China - panoramio.jpg",
+     "et": "Oasis",
+     "lugar": "Xinjiang (China)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Turpan-jiaohe-oasis-lateral-d01.jpg",
+     "et": "Oasis de Turfán",
+     "lugar": "Xinjiang (China)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Camels in Gobi Desert 01.jpg",
+     "et": "Pastoreo nómada de camellos",
+     "lugar": "Gobi (Mongolia)",
+     "cont": "Asia"
+    }
+   ]
+  },
+  "mu_med": {
+   "nombre": "Bosques y matorrales mediterráneos",
+   "vegetacion": [
+    {
+     "f": "Banksia menziesii habitat (7344835952).jpg",
+     "et": "Matorral de banksias (kwongan)",
+     "lugar": "Perth (Australia)",
+     "cont": "Oceanía"
+    },
+    {
+     "f": "View up slopes of Table Mountain to summit.jpg",
+     "et": "Fynbos",
+     "lugar": "Ciudad del Cabo (Sudáfrica)",
+     "cont": "África"
+    },
+    {
+     "f": "Landscape near Athens - 7.jpg",
+     "et": "Garriga (frígana)",
+     "lugar": "Ática (Grecia)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Φρύγανα στο Όρος Κακόβουλο (Κύθνος).jpg",
+     "et": "Frígana",
+     "lugar": "Kythnos (Grecia)",
+     "cont": "Europa"
+    },
+    {
+     "f": "California Coastal Sage Scrub and Chaparral in Wildomar 1.jpg",
+     "et": "Chaparral y matorral costero",
+     "lugar": "Wildomar (California, EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Chaparral1.jpg",
+     "et": "Chaparral",
+     "lugar": "California (EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Chaparral-covered hills near the Sonoma–Mendocino county line, California.jpg",
+     "et": "Chaparral y encinar",
+     "lugar": "Sonoma (California, EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Chile, Región Metropolitana, Sabana mediterránea (28136853560).jpg",
+     "et": "Espinal (sabana mediterránea)",
+     "lugar": "Región Metropolitana (Chile)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Bosque esclerófilo, Chile 001 — Inao Vásquez.jpg",
+     "et": "Bosque esclerófilo (matorral chileno)",
+     "lugar": "Chile central",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Vor-Vlacherna Arcadia Greece.jpg",
+     "et": "Maquia y encinas",
+     "lugar": "Arcadia (Grecia)",
+     "cont": "Europa"
+    },
+    {
+     "f": "MAL Mallee 1 Clyde Hill NR III-2011.jpg",
+     "et": "Mallee",
+     "lugar": "Australia Meridional",
+     "cont": "Oceanía"
+    },
+    {
+     "f": "Garrigue à La Couronne (commune de Martigues, Bouches-du-Rhône, France).JPG",
+     "et": "Garriga",
+     "lugar": "Martigues (Francia)",
+     "cont": "Europa"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Wheatbelt panorama - JarrahTree.jpg",
+     "et": "Campos de trigo",
+     "lugar": "Wheatbelt (Australia)",
+     "cont": "Oceanía"
+    },
+    {
+     "f": "Stellenbosch vineyards.jpg",
+     "et": "Viñedos",
+     "lugar": "Stellenbosch (Sudáfrica)",
+     "cont": "África"
+    },
+    {
+     "f": "Naxos Olive Groves.jpg",
+     "et": "Olivar",
+     "lugar": "Naxos (Grecia)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Olive grove on Mongonisi.jpg",
+     "et": "Olivar",
+     "lugar": "Paxos (Grecia)",
+     "cont": "Europa"
+    }
+   ]
+  },
+  "mu_tpa": {
+   "nombre": "Pastizales, sabanas y matorrales templados",
+   "vegetacion": [
+    {
+     "f": "Mongolian steppe.jpg",
+     "et": "Estepa",
+     "lugar": "Mongolia",
+     "cont": "Asia"
+    },
+    {
+     "f": "Grasslands-menggu.jpg",
+     "et": "Estepa",
+     "lugar": "Mongolia Interior (China)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Північний Лісостеп (Україна, село Витачів).jpg",
+     "et": "Estepa arbolada (lesostep)",
+     "lugar": "Vytachiv (Ucrania)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Shortgrass prairie P6060630.jpg",
+     "et": "Pradera de hierba corta",
+     "lugar": "Grandes Llanuras (EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Western Shortgrass Prairie, Dawes County, Nebraska.jpg",
+     "et": "Pradera de hierba corta",
+     "lugar": "Nebraska (EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Steppe of western Kazakhstan in the early spring.jpg",
+     "et": "Estepa",
+     "lugar": "Oeste de Kazajistán",
+     "cont": "Asia"
+    },
+    {
+     "f": "Kazakhstan steppe Zhambyl Province (4).jpg",
+     "et": "Estepa",
+     "lugar": "Zhambyl (Kazajistán)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Morning on the Patagonian Steppe.jpg",
+     "et": "Estepa patagónica",
+     "lugar": "Patagonia (Argentina)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Patagonian Steppe (3260842962).jpg",
+     "et": "Estepa patagónica",
+     "lugar": "Patagonia (Argentina)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Spring Ukrainian steppe - panoramio.jpg",
+     "et": "Estepa arbolada",
+     "lugar": "Ucrania",
+     "cont": "Europa"
+    },
+    {
+     "f": "Mongolian nature steppe and mountain.jpg",
+     "et": "Estepa",
+     "lugar": "Mongolia",
+     "cont": "Asia"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Cumulonimbus storm clouds over sunflower field Ukraine.jpg",
+     "et": "Campos de girasol",
+     "lugar": "Ucrania",
+     "cont": "Europa"
+    },
+    {
+     "f": "Sunflower field in Kosharka.jpg",
+     "et": "Campos de girasol",
+     "lugar": "Kosharka (Ucrania)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Corn fields near Royal, Illinois (cropped).jpg",
+     "et": "Campos de maíz (Corn Belt)",
+     "lugar": "Illinois (EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Settlement on the Mongolian steppes (2541042210).jpg",
+     "et": "Ganadería nómada",
+     "lugar": "Mongolia",
+     "cont": "Asia"
+    }
+   ]
+  },
+  "mu_thu": {
+   "nombre": "Bosques tropicales y subtropicales húmedos",
+   "vegetacion": [
+    {
+     "f": "Amazon rainforest manaus APA Margem Esquerda do Rio Negro - panoramio.jpg",
+     "et": "Selva amazónica",
+     "lugar": "Manaos (Brasil)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Amazon Manaus forest.jpg",
+     "et": "Selva amazónica",
+     "lugar": "Manaos (Brasil)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Tamshiyacu Tahuayo Regional Conservation Area Iquitos Amazon Rainforest Peru.jpg",
+     "et": "Selva amazónica",
+     "lugar": "Iquitos (Perú)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "View upslope from Catchment Path on Bukit Timah Hill, Singapore.jpg",
+     "et": "Selva tropical",
+     "lugar": "Bukit Timah (Singapur)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Montane rainforest, Montagne d'Ambre National Park, Madagascar (15757731991).jpg",
+     "et": "Selva tropical de montaña",
+     "lugar": "Montagne d'Ambre (Madagascar)",
+     "cont": "África"
+    },
+    {
+     "f": "Rivière dans la forêt humide de Madagascar (87130).jpg",
+     "et": "Selva tropical húmeda",
+     "lugar": "Madagascar",
+     "cont": "África"
+    },
+    {
+     "f": "Wuyishan naturereserve.jpg",
+     "et": "Bosque subtropical siempreverde",
+     "lugar": "Montes Wuyi (China)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Amazon rainforest treetops in Tena, Ecuador.jpg",
+     "et": "Selva amazónica",
+     "lugar": "Tena (Ecuador)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Amazon rainforest near Puerto Maldonado.jpg",
+     "et": "Selva amazónica",
+     "lugar": "Puerto Maldonado (Perú)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Primary rainforest in Sangha Trinational.jpg",
+     "et": "Selva ecuatorial",
+     "lugar": "Sangha (Congo)",
+     "cont": "África"
+    },
+    {
+     "f": "Rainforest - Ituri (20874628148).jpg",
+     "et": "Selva ecuatorial",
+     "lugar": "Ituri (R. D. del Congo)",
+     "cont": "África"
+    },
+    {
+     "f": "Borneo rainforest.jpg",
+     "et": "Selva tropical",
+     "lugar": "Borneo (Malasia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "BorneoRainforest DSC 9267.JPG",
+     "et": "Selva tropical",
+     "lugar": "Borneo (Malasia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Rwenzori tropical montane forest.jpg",
+     "et": "Selva tropical de montaña",
+     "lugar": "Rwenzori (Uganda)",
+     "cont": "África"
+    },
+    {
+     "f": "Cerro Chato volcano path through the lush cloud forest Fortuna Costa Rica 20Dec2007.jpg",
+     "et": "Bosque nuboso",
+     "lugar": "Volcán Cerro Chato (Costa Rica)",
+     "cont": "América del Norte"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Kunak-District Sabah Oil-palm-plantation-01.jpg",
+     "et": "Plantación de palma aceitera",
+     "lugar": "Sabah (Malasia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Anja Reserve 02.jpg",
+     "et": "Arrozales en terrazas",
+     "lugar": "Madagascar",
+     "cont": "África"
+    },
+    {
+     "f": "Ancien lac royal aménagé en rizière entre Fonohasina et Ambohidrabiby.JPG",
+     "et": "Arrozales",
+     "lugar": "Madagascar",
+     "cont": "África"
+    },
+    {
+     "f": "SB088 Tobacco fied Viñales.jpg",
+     "et": "Tabacales",
+     "lugar": "Viñales (Cuba)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Bangladesh Village Landscape (36143248590).jpg",
+     "et": "Arrozales y aldea",
+     "lugar": "Bangladés",
+     "cont": "Asia"
+    },
+    {
+     "f": "Paddy fields on the outskirts of West Bengal, enroute to Orissa.jpg",
+     "et": "Arrozales del monzón",
+     "lugar": "Bengala Occidental (India)",
+     "cont": "Asia"
+    }
+   ]
+  },
+  "mu_tsa": {
+   "nombre": "Pastizales, sabanas y matorrales tropicales",
+   "vegetacion": [
+    {
+     "f": "Savanna vegetation.jpg",
+     "et": "Sabana",
+     "lugar": "África occidental",
+     "cont": "África"
+    },
+    {
+     "f": "SudanRegionGambia.jpg",
+     "et": "Sabana sudanesa",
+     "lugar": "Gambia",
+     "cont": "África"
+    },
+    {
+     "f": "Bush in Mataranka, Northern Territory, Australia.jpg",
+     "et": "Sabana arbolada",
+     "lugar": "Mataranka (Australia)",
+     "cont": "Oceanía"
+    },
+    {
+     "f": "Sahel forest near Kayes Mali.jpg",
+     "et": "Sabana saheliana",
+     "lugar": "Kayes (Malí)",
+     "cont": "África"
+    },
+    {
+     "f": "Acacia Tree Savanna Serengeti Nov26 A7CR 16374.jpg",
+     "et": "Sabana de acacias",
+     "lugar": "Serengeti (Tanzania)",
+     "cont": "África"
+    },
+    {
+     "f": "Serengeti-Landscape-2012.JPG",
+     "et": "Sabana de acacias",
+     "lugar": "Serengeti (Tanzania)",
+     "cont": "África"
+    },
+    {
+     "f": "Cerrado - Parque Nacional Chapada dos veadeiros.jpg",
+     "et": "Cerrado (sabana arbolada)",
+     "lugar": "Chapada dos Veadeiros (Brasil)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Cerrado landscape.jpg",
+     "et": "Cerrado",
+     "lugar": "Brasil",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Llanos del Guarico.jpg",
+     "et": "Sabana de los Llanos",
+     "lugar": "Guárico (Venezuela)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Llanos, Elorza, Venezuela (Unsplash).jpg",
+     "et": "Sabana de los Llanos",
+     "lugar": "Elorza (Venezuela)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Tabletop country of the Katherine Flora Basin.jpg",
+     "et": "Sabana arbolada tropical",
+     "lugar": "Katherine (Australia)",
+     "cont": "Oceanía"
+    },
+    {
+     "f": "Miombo in Niassa Plateau.JPG",
+     "et": "Bosque abierto de miombo",
+     "lugar": "Meseta de Niassa (Mozambique)",
+     "cont": "África"
+    },
+    {
+     "f": "Flickr - ggallice - Miombo woodland.jpg",
+     "et": "Bosque abierto de miombo",
+     "lugar": "África austral",
+     "cont": "África"
+    },
+    {
+     "f": "Chaco Boreal Paraguay.jpg",
+     "et": "Sabana del Chaco",
+     "lugar": "Chaco Boreal (Paraguay)",
+     "cont": "América del Sur"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Niger millet Koremairwa 1214.jpg",
+     "et": "Campos de mijo",
+     "lugar": "Níger",
+     "cont": "África"
+    },
+    {
+     "f": "Millet farm.jpg",
+     "et": "Campos de mijo",
+     "lugar": "África occidental",
+     "cont": "África"
+    }
+   ]
+  },
+  "mu_inu": {
+   "nombre": "Pastizales y sabanas inundables",
+   "vegetacion": [
+    {
+     "f": "Everglades Sawgrass Prairie Moni3.JPG",
+     "et": "Pradera inundable de juncia",
+     "lugar": "Everglades (Florida, EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Chibaish Marches, Iraq - An Nasiriyah.jpg",
+     "et": "Marismas de Mesopotamia",
+     "lugar": "Chibayish (Irak)",
+     "cont": "Asia"
+    },
+    {
+     "f": "The marshes of Iraq.jpg",
+     "et": "Marismas de carrizo",
+     "lugar": "Mesopotamia (Irak)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Pantanal, Mato Grosso, Brasil.jpg",
+     "et": "Llanura inundable del Pantanal",
+     "lugar": "Mato Grosso (Brasil)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Barotse Floodplain near Mongu city aerial panoramic view.jpg",
+     "et": "Llanura inundable",
+     "lugar": "Barotse (Zambia)",
+     "cont": "África"
+    },
+    {
+     "f": "A great view of the flood plains of Baroste.jpg",
+     "et": "Llanura inundable",
+     "lugar": "Barotse (Zambia)",
+     "cont": "África"
+    },
+    {
+     "f": "Okavango Delta, Botswana3.jpg",
+     "et": "Delta interior inundable",
+     "lugar": "Delta del Okavango (Botsuana)",
+     "cont": "África"
+    }
+   ],
+   "agrario": []
+  },
+  "mu_mon": {
+   "nombre": "Pastizales y matorrales de montaña",
+   "vegetacion": [
+    {
+     "f": "Romanceor Altiplano 1.jpg",
+     "et": "Puna (altiplano)",
+     "lugar": "Altiplano (Bolivia)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "La Puna 1994 01.jpg",
+     "et": "Puna",
+     "lugar": "Andes",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Colors of Altiplano Boliviano 4340m Bolivia Luca Galuzzi 2006.jpg",
+     "et": "Puna (altiplano)",
+     "lugar": "Altiplano (Bolivia)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Summer Paradise - Flickr - Jaykhuang.jpg",
+     "et": "Pradera alpina de alta montaña",
+     "lugar": "Meseta tibetana (China)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Tigray (in explore) - Flickr - Rod Waddington.jpg",
+     "et": "Pastizales de las tierras altas",
+     "lugar": "Tigray (Etiopía)",
+     "cont": "África"
+    },
+    {
+     "f": "Dizi Highlands, Sth Ethiopia (50647997717).jpg",
+     "et": "Tierras altas etíopes",
+     "lugar": "Dizi (Etiopía)",
+     "cont": "África"
+    },
+    {
+     "f": "Tweeling hills.jpg",
+     "et": "Pastizal del Highveld",
+     "lugar": "Estado Libre (Sudáfrica)",
+     "cont": "África"
+    },
+    {
+     "f": "Paramo de oceta.jpg",
+     "et": "Páramo con frailejones",
+     "lugar": "Páramo de Ocetá (Colombia)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "PARAMO CHILES CUMBAL.jpg",
+     "et": "Páramo",
+     "lugar": "Chiles-Cumbal (Colombia-Ecuador)",
+     "cont": "América del Sur"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Productive quinoa field, Uyuni, Bolivia.JPG",
+     "et": "Campos de quinua",
+     "lugar": "Uyuni (Bolivia)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "The Sacred Valley, Peru-2 (8445855270).jpg",
+     "et": "Andenes y cultivos del Valle Sagrado",
+     "lugar": "Cuzco (Perú)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Incan terraces at Moray and a beautiful skyline.jpg",
+     "et": "Andenes incas",
+     "lugar": "Moray (Perú)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Sheep at Old Lapthal on 20240630 133525 4250M.jpg",
+     "et": "Pastoreo de altura",
+     "lugar": "Ladakh, 4.250 m (India)",
+     "cont": "Asia"
+    }
+   ]
+  },
+  "mu_man": {
+   "nombre": "Manglares",
+   "vegetacion": [
+    {
+     "f": "Sundarban Mudflats during low tide, Sundarban Tiger Reserve, West Bengal, India 02.jpg",
+     "et": "Manglar del Sundarbans",
+     "lugar": "Bengala Occidental (India)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Dense Mangrove Forest of the Sundarban Tiger Reserve during High Tide, West Bengal, India 03.jpg",
+     "et": "Manglar",
+     "lugar": "Sundarbans (India)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Sundarban Mangrove forest 14.jpg",
+     "et": "Manglar",
+     "lugar": "Sundarbans (India)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Mangroves, Parnaiba River.jpg",
+     "et": "Manglar",
+     "lugar": "Delta del Parnaíba (Brasil)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Mangrove forest in Loxahatchee, Florida.jpg",
+     "et": "Manglar (raíces zancudas)",
+     "lugar": "Loxahatchee (Florida, EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Mangrove forest Islamorada FL.jpg",
+     "et": "Manglar",
+     "lugar": "Islamorada (Florida, EE. UU.)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Langkawi Mangrove Forest.jpg",
+     "et": "Manglar",
+     "lugar": "Langkawi (Malasia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Mangrove île du Saloum Sénégal.jpg",
+     "et": "Manglar",
+     "lugar": "Sine Saloum (Senegal)",
+     "cont": "África"
+    },
+    {
+     "f": "Mangrove des îles du saloum au Sénégal 17.jpg",
+     "et": "Manglar",
+     "lugar": "Sine Saloum (Senegal)",
+     "cont": "África"
+    },
+    {
+     "f": "Mangrove - Cooktown, Queensland, Australia.jpg",
+     "et": "Manglar",
+     "lugar": "Cooktown, Queensland (Australia)",
+     "cont": "Oceanía"
+    }
+   ],
+   "agrario": []
+  },
+  "mu_tcn": {
+   "nombre": "Bosques tropicales y subtropicales de coníferas",
+   "vegetacion": [
+    {
+     "f": "Pinus hartwegii forest.jpg",
+     "et": "Pinar de montaña tropical",
+     "lugar": "Centro de México",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Misty Chir Pine woods in Ranikhet.jpg",
+     "et": "Pinar de pino chir",
+     "lugar": "Ranikhet, Himalaya (India)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Bosque de pino-encino en Chimaltenango.jpg",
+     "et": "Bosque de pino y encino",
+     "lugar": "Chimaltenango (Guatemala)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Bosque de Valle de Bravo.jpg",
+     "et": "Bosque de pino y encino",
+     "lugar": "Valle de Bravo (México)",
+     "cont": "América del Norte"
+    }
+   ],
+   "agrario": []
+  },
+  "mu_tse": {
+   "nombre": "Bosques tropicales y subtropicales secos",
+   "vegetacion": [
+    {
+     "f": "Sal forest, Gazipur, Bangladesh in winter.jpg",
+     "et": "Bosque monzónico (bosque de sal)",
+     "lugar": "Gazipur (Bangladés)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Sal forest at Gazipur, Bangladesh in winter.jpg",
+     "et": "Bosque monzónico (bosque de sal)",
+     "lugar": "Gazipur (Bangladés)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Dry deciduous forest in Parambikulam JEG7461.jpg",
+     "et": "Bosque monzónico en la estación seca",
+     "lugar": "Parambikulam (India)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Road through the caatinga - Estrada cruzando a caatinga no sertão da Bahia.jpg",
+     "et": "Caatinga",
+     "lugar": "Nordeste (Brasil)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Caatinga em Uauá, Bahia.jpg",
+     "et": "Caatinga",
+     "lugar": "Uauá, Bahía (Brasil)",
+     "cont": "América del Sur"
+    },
+    {
+     "f": "Chamela-Cuixmala DryForest.JPG",
+     "et": "Bosque tropical seco caducifolio",
+     "lugar": "Chamela (Jalisco, México)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Madagascar dry deciduous forests - Dry season.jpg",
+     "et": "Bosque seco caducifolio en la estación seca",
+     "lugar": "Oeste de Madagascar",
+     "cont": "África"
+    },
+    {
+     "f": "Western Dry Deciduous Forest, Ankarafantsika National Park, Madagascar (4026813379).jpg",
+     "et": "Bosque seco caducifolio",
+     "lugar": "Ankarafantsika (Madagascar)",
+     "cont": "África"
+    },
+    {
+     "f": "Forest, Santa Criz Dept, Bolivia.jpg",
+     "et": "Bosque seco chiquitano",
+     "lugar": "Santa Cruz (Bolivia)",
+     "cont": "América del Sur"
+    }
+   ],
+   "agrario": []
+  },
+  "mu_bor": {
+   "nombre": "Bosques boreales / taiga",
+   "vegetacion": [
+    {
+     "f": "Forêt de bouleaux dans le parc de Telegrafbukta.jpg",
+     "et": "Abedular boreal",
+     "lugar": "Tromsø (Noruega)",
+     "cont": "Europa"
+    },
+    {
+     "f": "В окрестностях Нижнего Бестяха.JPG",
+     "et": "Taiga de alerces",
+     "lugar": "Yakutia (Rusia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Марь 001.JPG",
+     "et": "Taiga con turbera (mar')",
+     "lugar": "Yakutia (Rusia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Ergaki, Siberian pine forest, Spruce forest, Taiga wilderness, Sayan Mountains, Siberia, Russia.jpg",
+     "et": "Taiga de pino siberiano y abeto",
+     "lugar": "Montes Sayanes (Siberia, Rusia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Lake Baikal, Siberian mixed taiga forest, Siberia, Russia.jpg",
+     "et": "Taiga mixta",
+     "lugar": "Lago Baikal (Siberia, Rusia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Boreal forest.JPG",
+     "et": "Taiga de pícea negra",
+     "lugar": "Quebec (Canadá)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Boreal Forest and Lake.jpg",
+     "et": "Taiga del escudo canadiense",
+     "lugar": "Canadá",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Trail into taiga, Inuvik, NT.jpg",
+     "et": "Taiga",
+     "lugar": "Inuvik (Territorios del Noroeste, Canadá)",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Sweden0504 4.JPG",
+     "et": "Taiga escandinava",
+     "lugar": "Suecia",
+     "cont": "Europa"
+    },
+    {
+     "f": "Luirojärvi from Sokosti.JPG",
+     "et": "Taiga",
+     "lugar": "Laponia (Finlandia)",
+     "cont": "Europa"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "The Yakut horses on a meadow, Namski uluus, Yakutia, Siberia, Лошади на лугу (Намский улус) - panoramio.jpg",
+     "et": "Ganadería de caballos yakutos",
+     "lugar": "Yakutia (Rusia)",
+     "cont": "Asia"
+    },
+    {
+     "f": "Holmen Bauernhof lub 2025-07-18 img02.jpg",
+     "et": "Granja ártica",
+     "lugar": "Tromsø (Noruega)",
+     "cont": "Europa"
+    }
+   ]
+  },
+  "mu_hie": {
+   "nombre": "Roca y hielo",
+   "vegetacion": [
+    {
+     "f": "A view of Antarctica’s ice sheet and mountains.jpeg",
+     "et": "Casquete de hielo antártico",
+     "lugar": "Antártida",
+     "cont": "Antártida"
+    },
+    {
+     "f": "The surface of the Greenland Ice Sheet.jpg",
+     "et": "Casquete de hielo",
+     "lugar": "Groenlandia",
+     "cont": "América del Norte"
+    },
+    {
+     "f": "Antarctic Ice Shelf Loss Comes From Underneath (9036164848).jpg",
+     "et": "Plataforma de hielo",
+     "lugar": "Antártida Occidental",
+     "cont": "Antártida"
+    },
+    {
+     "f": "Ice-and-mountains.jpg",
+     "et": "Montañas y glaciares",
+     "lugar": "Antártida",
+     "cont": "Antártida"
+    },
+    {
+     "f": "Antarctica Landscape.jpg",
+     "et": "Costa helada",
+     "lugar": "Península Antártica",
+     "cont": "Antártida"
+    }
+   ],
+   "agrario": []
+  },
+  "es_oce": {
+   "nombre": "Oceánico",
+   "vegetacion": [
+    {
+     "f": "Arboles de Fragas do Eume.jpg",
+     "et": "Bosque atlántico (carballeira)",
+     "lugar": "Fragas do Eume (A Coruña)",
+     "cont": "Europa"
+    },
+    {
+     "f": "10 Fraga do Eume 1.jpg",
+     "et": "Bosque atlántico (carballeira)",
+     "lugar": "Fragas do Eume (A Coruña)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Parque Natural de Redes 1991 02.jpg",
+     "et": "Hayedo",
+     "lugar": "Parque Natural de Redes (Asturias)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Hayedo.jpg",
+     "et": "Hayedo",
+     "lugar": "",
+     "cont": "Europa"
+    },
+    {
+     "f": "Carballeira de Barcia, Lalín 2.JPG",
+     "et": "Robledal de carballo (carballeira)",
+     "lugar": "Lalín (Pontevedra)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Carballeira de Santa Susana1.JPG",
+     "et": "Robledal de carballo (carballeira)",
+     "lugar": "Santiago de Compostela (A Coruña)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Navarra, hayedos 1990 10.jpg",
+     "et": "Hayedo",
+     "lugar": "Navarra",
+     "cont": "Europa"
+    },
+    {
+     "f": "Hayedo de la Biescona 04.JPG",
+     "et": "Hayedo",
+     "lugar": "La Biescona, Sierra del Sueve (Asturias)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Hayedo-sueve.jpg",
+     "et": "Hayedo",
+     "lugar": "Sierra del Sueve (Asturias)",
+     "cont": "Europa"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Abelairasfurco.jpg",
+     "et": "Prados y campos cerrados",
+     "lugar": "Galicia",
+     "cont": "Europa"
+    },
+    {
+     "f": "Adai, Adai, O Páramo.jpg",
+     "et": "Prados y campos cerrados",
+     "lugar": "O Páramo (Lugo)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Asturias 1979 05.jpg",
+     "et": "Prados de siega",
+     "lugar": "Asturias",
+     "cont": "Europa"
+    },
+    {
+     "f": "Asturias 1979 08.jpg",
+     "et": "Prados de siega",
+     "lugar": "Asturias",
+     "cont": "Europa"
+    }
+   ]
+  },
+  "es_con": {
+   "nombre": "Mediterráneo continental",
+   "vegetacion": [
+    {
+     "f": "Sabinar de Calatañazor - 02 (26 de marzo de 2016, Calatañazor).jpg",
+     "et": "Sabinar de páramo",
+     "lugar": "Calatañazor (Soria)",
+     "cont": "Europa"
+    },
+    {
+     "f": "DehesaViejaValdeolmos C140687 - C140696-1.jpg",
+     "et": "Encinar de interior",
+     "lugar": "Valdeolmos (Madrid)",
+     "cont": "Europa"
+    },
+    {
+     "f": "DehesaViejaValdeolmos C140676 - C140684-1.jpg",
+     "et": "Encinar de interior",
+     "lugar": "Valdeolmos (Madrid)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Toledo (provincia) 1982 02.jpg",
+     "et": "Encinar de interior",
+     "lugar": "Montes de Toledo (Toledo)",
+     "cont": "Europa"
+    },
+    {
+     "f": "San Martín de Pusa (2005) 02.jpg",
+     "et": "Encinar de interior",
+     "lugar": "San Martín de Pusa (Toledo)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Ciudad Real (provincia) 1981 01.jpg",
+     "et": "Encinar de interior",
+     "lugar": "Ciudad Real",
+     "cont": "Europa"
+    },
+    {
+     "f": "Pinar del Quiebrajano.jpg",
+     "et": "Pinar de pino carrasco",
+     "lugar": "Quiebrajano (Jaén)",
+     "cont": "Europa"
+    },
+    {
+     "f": "SIERRA MÁGINA. PINAR DE CÁNAVA. PINOS CARRASCO CENTENARIOS.jpg",
+     "et": "Pinar de pino carrasco",
+     "lugar": "Sierra Mágina (Jaén)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Cistus ladanifer - Sierra de Ayllón 1977 02.jpg",
+     "et": "Jaral",
+     "lugar": "Sierra de Ayllón (Segovia-Guadalajara)",
+     "cont": "Europa"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Vistas desde el castillo - panoramio (1).jpg",
+     "et": "Campos de cereal de secano",
+     "lugar": "Meseta norte",
+     "cont": "Europa"
+    },
+    {
+     "f": "TIERRA DE CAMPOS - panoramio (1).jpg",
+     "et": "Campos de cereal de secano",
+     "lugar": "Tierra de Campos",
+     "cont": "Europa"
+    }
+   ]
+  },
+  "es_med": {
+   "nombre": "Mediterráneo",
+   "vegetacion": [
+    {
+     "f": "Alcornocales 042.jpg",
+     "et": "Alcornocal",
+     "lugar": "P. N. Los Alcornocales (Cádiz)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Alcornocales 047.jpg",
+     "et": "Alcornocal",
+     "lugar": "P. N. Los Alcornocales (Cádiz)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Alcornocal.jpg",
+     "et": "Alcornocal",
+     "lugar": "Andalucía",
+     "cont": "Europa"
+    },
+    {
+     "f": "Alcornocal y areniscas.jpg",
+     "et": "Alcornocal",
+     "lugar": "P. N. Los Alcornocales (Cádiz)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Los Alcornocales 03.jpg",
+     "et": "Alcornocal",
+     "lugar": "P. N. Los Alcornocales (Cádiz)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Los alcornocales, cádiz.jpg",
+     "et": "Alcornocal y matorral mediterráneo",
+     "lugar": "P. N. Los Alcornocales (Cádiz)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Pinar de Hinojos, Parque Natural de Doñana.jpg",
+     "et": "Pinar de pino piñonero",
+     "lugar": "Hinojos, Doñana (Huelva)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Pinus pinea forest Doñana.jpg",
+     "et": "Pinar de pino piñonero",
+     "lugar": "Doñana (Huelva)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Pinus pinea Doñana 2.jpg",
+     "et": "Pinar de pino piñonero",
+     "lugar": "Doñana (Huelva)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Mallorca - Un bosque de encinas cerca de Campanet - panoramio.jpg",
+     "et": "Encinar litoral",
+     "lugar": "Campanet (Mallorca)",
+     "cont": "Europa"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Campiña - IMG 20180520 144250 356.jpg",
+     "et": "Campiña de cereal y olivar",
+     "lugar": "Campiña andaluza",
+     "cont": "Europa"
+    },
+    {
+     "f": "Puesta de sol Viñedos en Jerez de la Frontera - P1240095.jpg",
+     "et": "Viñedo",
+     "lugar": "Jerez de la Frontera (Cádiz)",
+     "cont": "Europa"
+    }
+   ]
+  },
+  "es_mon": {
+   "nombre": "Montaña",
+   "vegetacion": [
+    {
+     "f": "El Espinar, la Garganta 1974 04.jpg",
+     "et": "Pinar de pino silvestre",
+     "lugar": "El Espinar (Segovia)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Berrostegieta - Pinar 01.jpg",
+     "et": "Pinar de pino silvestre",
+     "lugar": "Berrostegieta (Álava)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Pinar Sierra de Guadarrama 2005-09-13.JPG",
+     "et": "Pinar de pino silvestre",
+     "lugar": "Sierra de Guadarrama (Madrid-Segovia)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Piornal circo de gredos 01.jpg",
+     "et": "Piornal de alta montaña",
+     "lugar": "Circo de Gredos (Ávila)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Piornal circo de gredos 03.jpg",
+     "et": "Piornal de alta montaña",
+     "lugar": "Circo de Gredos (Ávila)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Pirineos Oscenses 1993 15.jpg",
+     "et": "Pinar de pino negro",
+     "lugar": "Pirineo oscense (Huesca)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Pirineos Oscenses 1993 08.jpg",
+     "et": "Pinar de montaña",
+     "lugar": "Pirineo oscense (Huesca)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Altos Pirineos 1981 41.jpg",
+     "et": "Pino negro y matorral de alta montaña",
+     "lugar": "Pirineos",
+     "cont": "Europa"
+    },
+    {
+     "f": "Pirineos Oscenses 1981 10.jpg",
+     "et": "Pradera alpina",
+     "lugar": "Pirineo oscense (Huesca)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Picdumididuossau.jpg",
+     "et": "Pradera alpina",
+     "lugar": "Pic du Midi d'Ossau, Pirineos",
+     "cont": "Europa"
+    },
+    {
+     "f": "Valle de Arán 1981 19.jpg",
+     "et": "Abetal",
+     "lugar": "Valle de Arán (Lleida)",
+     "cont": "Europa"
+    },
+    {
+     "f": "Aragüés del Puerto (1982) 07.jpg",
+     "et": "Pradera alpina",
+     "lugar": "Aragüés del Puerto, Pirineo (Huesca)",
+     "cont": "Europa"
+    }
+   ],
+   "agrario": [
+    {
+     "f": "La Hiruela, Porrejón.jpg",
+     "et": "Prados y huertas de montaña",
+     "lugar": "La Hiruela (Madrid)",
+     "cont": "Europa"
+    }
+   ]
+  },
+  "ca_car": {
+   "nombre": "Cardonal-tabaibal (piso basal)",
+   "vegetacion": [
+    {
+     "f": "Tabaibal cardonal malpais Güímar.jpg",
+     "et": "Cardonal-tabaibal",
+     "lugar": "Malpaís de Güímar (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Euphorbia canariensis - Macizo de Anaga.jpg",
+     "et": "Cardonal",
+     "lugar": "Macizo de Anaga (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Malpaís de Rasca, mataparda 22 febrero 2007.jpg",
+     "et": "Tabaibal",
+     "lugar": "Malpaís de Rasca (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Haría - MNLC - Lugar Diseminado Maguez-LZ-1 - Euphorbia balsamifera-Monte Corona 01 ies.jpg",
+     "et": "Tabaibal dulce",
+     "lugar": "Haría (Lanzarote)",
+     "cont": ""
+    },
+    {
+     "f": "Malpaís de Güímar-Montaña de La Mar.jpg",
+     "et": "Tabaibal",
+     "lugar": "Malpaís de Güímar (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Rock Formation and Euphorbia canariensis on the Trail to the Itobal Groge, Tenerife, Spain.jpg",
+     "et": "Cardonal",
+     "lugar": "Tenerife",
+     "cont": ""
+    },
+    {
+     "f": "Tenerife Landscape R01.jpg",
+     "et": "Cardonal-tabaibal",
+     "lugar": "Tenerife",
+     "cont": ""
+    }
+   ],
+   "agrario": [
+    {
+     "f": "A0182 Tenerife, banana plantations aerial view.jpg",
+     "et": "Plataneras",
+     "lugar": "Tenerife",
+     "cont": ""
+    },
+    {
+     "f": "A0468 Tenerife, Banana plantations and Adeje aerial view.jpg",
+     "et": "Plataneras",
+     "lugar": "Adeje (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Vineyards La Geria IMGP1903.jpg",
+     "et": "Viñedo en hoyos de picón",
+     "lugar": "La Geria (Lanzarote)",
+     "cont": ""
+    },
+    {
+     "f": "Bodega Suárez - Diama - La Geria - Lanzarote - BS05.jpg",
+     "et": "Viñedo en hoyos de picón",
+     "lugar": "La Geria (Lanzarote)",
+     "cont": ""
+    }
+   ]
+  },
+  "ca_ter": {
+   "nombre": "Bosque termófilo",
+   "vegetacion": [
+    {
+     "f": "El Sabinar.JPG",
+     "et": "Sabinar",
+     "lugar": "El Sabinar (El Hierro)",
+     "cont": ""
+    },
+    {
+     "f": "Sabinar de El Hierro.jpg",
+     "et": "Sabinar",
+     "lugar": "El Sabinar (El Hierro)",
+     "cont": ""
+    },
+    {
+     "f": "El Sabinar, el bosque encantado de la Isla de El Hierro - Flickr - El Coleccionista de Instantes.jpg",
+     "et": "Sabinar",
+     "lugar": "El Sabinar (El Hierro)",
+     "cont": ""
+    },
+    {
+     "f": "Barranco de los Cernícalos FSV 4 9 2010.JPG",
+     "et": "Bosque termófilo de barranco",
+     "lugar": "Barranco de los Cernícalos (Gran Canaria)",
+     "cont": ""
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Viñas en Taganana (Tenerife).JPG",
+     "et": "Viñedo en bancales",
+     "lugar": "Taganana (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Tenerife 1977 12.jpg",
+     "et": "Viñedos y huertas de medianías",
+     "lugar": "Tenerife",
+     "cont": ""
+    }
+   ]
+  },
+  "ca_mon": {
+   "nombre": "Monteverde (laurisilva y fayal-brezal)",
+   "vegetacion": [
+    {
+     "f": "Laurisilva en Anaga.jpg",
+     "et": "Laurisilva",
+     "lugar": "Anaga (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Path - Anaga (26531298689).jpg",
+     "et": "Laurisilva",
+     "lugar": "Anaga (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Bosque de laurisilva en Anaga.jpg",
+     "et": "Laurisilva",
+     "lugar": "Anaga (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Tenerife, laurisilva (53140375801).jpg",
+     "et": "Laurisilva",
+     "lugar": "Anaga (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "DSC08859 El Pijaral (Anaga, Tenerife, Canarias).jpg",
+     "et": "Laurisilva",
+     "lugar": "El Pijaral, Anaga (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Bosque Encantado, Parque nacional de Garajonay, La Gomera, España, 2012-12-14, DD 19.jpg",
+     "et": "Laurisilva",
+     "lugar": "P. N. de Garajonay (La Gomera)",
+     "cont": ""
+    },
+    {
+     "f": "Laurisilva (Garajonay).jpg",
+     "et": "Laurisilva",
+     "lugar": "P. N. de Garajonay (La Gomera)",
+     "cont": ""
+    },
+    {
+     "f": "Fayal-brezal 001.JPG",
+     "et": "Fayal-brezal",
+     "lugar": "Canarias",
+     "cont": ""
+    },
+    {
+     "f": "Fayal-brezal de La Llanía (El Hierro).jpg",
+     "et": "Fayal-brezal",
+     "lugar": "La Llanía (El Hierro)",
+     "cont": ""
+    },
+    {
+     "f": "Camino por el Fayal-Brezal.jpg",
+     "et": "Fayal-brezal",
+     "lugar": "Canarias",
+     "cont": ""
+    }
+   ],
+   "agrario": [
+    {
+     "f": "Huertas en Taborno (Tenerife).JPG",
+     "et": "Huertas en bancales",
+     "lugar": "Taborno (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Chinamada Terrassenfelder.jpg",
+     "et": "Bancales de cultivo",
+     "lugar": "Chinamada (Tenerife)",
+     "cont": ""
+    }
+   ]
+  },
+  "ca_pin": {
+   "nombre": "Pinar canario",
+   "vegetacion": [
+    {
+     "f": "Corona Forestal en lo alto de La Orotava.JPG",
+     "et": "Pinar canario",
+     "lugar": "Corona Forestal (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Sombrero de Chasna.jpg",
+     "et": "Pinar canario",
+     "lugar": "Vilaflor (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Pinus canariensis forest.jpg",
+     "et": "Pinar canario",
+     "lugar": "Canarias",
+     "cont": ""
+    },
+    {
+     "f": "Pinus canariensis forest Caldera de Taburiente 5.jpg",
+     "et": "Pinar canario",
+     "lugar": "Caldera de Taburiente (La Palma)",
+     "cont": ""
+    },
+    {
+     "f": "Pinus canariensis Tenerife Chio TF-36 pine forest Los Hoyos IMG 4831.JPG",
+     "et": "Pinar canario",
+     "lugar": "Chío (Tenerife)",
+     "cont": ""
+    },
+    {
+     "f": "Pinar de Tamadaba II.JPG",
+     "et": "Pinar canario",
+     "lugar": "Tamadaba (Gran Canaria)",
+     "cont": ""
+    },
+    {
+     "f": "Teide and Pinus canariensis.jpg",
+     "et": "Pinar canario",
+     "lugar": "Ladera del Teide (Tenerife)",
+     "cont": ""
+    }
+   ],
+   "agrario": []
+  },
+  "ca_cum": {
+   "nombre": "Matorral de cumbre (retamar)",
+   "vegetacion": [
+    {
+     "f": "Tenerife 1977 23.jpg",
+     "et": "Retamar de cumbre",
+     "lugar": "Las Cañadas del Teide",
+     "cont": ""
+    },
+    {
+     "f": "Tf2.04 La Palma, Montaña de las Lajas.jpg",
+     "et": "Matorral de cumbre",
+     "lugar": "Cumbres de La Palma",
+     "cont": ""
+    },
+    {
+     "f": "El Retamar, výhled, Parque Nacional del Teide, Tenerife.jpg",
+     "et": "Retamar de cumbre",
+     "lugar": "El Retamar, Las Cañadas del Teide",
+     "cont": ""
+    },
+    {
+     "f": "El Retamar, výhled na El Sombrero a Pico Viejo a Sombrerito 01.jpg",
+     "et": "Retamar de cumbre",
+     "lugar": "El Retamar, Las Cañadas del Teide",
+     "cont": ""
+    },
+    {
+     "f": "Retama del Teide (Cytisus supranubius), parque nacional del Teide, Tenerife, España, 2022-01-07, DD 34.jpg",
+     "et": "Retamar de cumbre (retama del Teide)",
+     "lugar": "Las Cañadas del Teide",
+     "cont": ""
+    }
+   ],
+   "agrario": []
   }
+ }
 }
