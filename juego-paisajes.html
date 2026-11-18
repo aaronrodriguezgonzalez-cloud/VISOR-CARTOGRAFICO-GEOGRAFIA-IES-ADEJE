@@ -57,7 +57,11 @@ table.datos th{background:#eef3f8}
 .puntos{font-size:22px;font-weight:800;color:var(--ok)}
 .tag{display:inline-block;background:#eef3f8;border-radius:12px;padding:2px 10px;font-size:14px;margin:2px 4px 2px 0}
 table.acf{border-collapse:collapse;width:100%;font-size:14px} table.acf th,table.acf td{border:1px solid var(--borde);padding:5px;text-align:left} table.acf th{background:#eef3f8}
+#mapaRevel{height:230px;border-radius:10px;margin:8px 0}
+.ubica{margin:6px 0;font-size:15px}
 </style>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<script src="vendor/leaflet/leaflet.js"></script>
 <style id="estiloJuegos">
 /* ===== Aspecto renovado de los juegos (solo presentación; la mecánica no cambia) ===== */
 :root{--k1:#e21b3c;--k2:#1368ce;--k3:#d89e00;--k4:#26890c;--sombra:0 6px 18px rgba(23,50,77,.14)}
@@ -320,6 +324,10 @@ function responder(i){
     btn.querySelector(".porque").textContent=CFG.modo==="foto"?`No: este climograma es de ${o.n} (${o.clima.clima}).`:`No: esta foto es de ${o.lugar} (${o.clima.clima}).`;
     if(G.intentos>=3){G.fin=true;G.hist.push({e,pts:0,tipo:G.tipo});setTimeout(()=>revelar(0),700)}}
 }
+const CONT_PAIS={"Arabia Saudí":"Asia","Australia":"Oceanía","Bangladés":"Asia","Bolivia":"América del Sur","Brasil":"América del Sur","Chile":"América del Sur","China":"Asia","Cuba":"América Central y el Caribe","Francia":"Europa","Grecia":"Europa","India":"Asia","Japón":"Asia","Madagascar":"África","Mongolia":"Asia","Nigeria":"África","Noruega":"Europa","Níger":"África","Perú":"América del Sur","Singapur":"Asia","Sudáfrica":"África","Ucrania":"Europa","Estados Unidos":"América del Norte"};
+function continenteDe(cn,la,lo){if(cn==="España")return la<30&&lo<-13?"océano Atlántico, frente a África (Canarias)":"Europa";if(cn==="Rusia")return lo>=60?"Asia":"Europa";return CONT_PAIS[cn]||""}
+function ubicacionHTML(cn,la,lo){const c=continenteDe(cn,la,lo);return `🌍 <b>${esc(cn)}</b>${c?" · "+esc(c):""} · hemisferio ${la>=0?"norte":"sur"} y ${lo>=0?"oriental":"occidental"} · ${fmt(Math.abs(la),2)}° ${la>=0?"N":"S"}, ${fmt(Math.abs(lo),2)}° ${lo>=0?"E":"O"}`}
+let mapaRev=null;
 function revelar(pts){
   const e=G.e,c=e.clima,s=stats(e.T,e.P,e.la),k=koppen(e.T,e.P,e.la),pau=c.amb==="esp"?tipoPAU(e.T,e.P):null;
   const fv=e.fotos.vegetacion[0],fa=e.fotos.agrario[0];
@@ -328,18 +336,30 @@ function revelar(pts){
   $("modal").innerHTML=`<button class="btn sec cierra" id="btnSig">${G.n+1<G.rondas.length?"Siguiente ▶":"Ver resultado ▶"}</button>
    <h2>${pts?"✅":"ℹ️"} ${esc(c.clima)} · ${esc(e.n)}</h2><div class="puntos">${pts?"+"+pts+" puntos":"Sin puntos en esta ronda"}</div>
    <div class="revelGrid"><div>${fotoHTML(G.tipo==="agrario"?fa:fv,G.tipo)}${fotoHTML(G.tipo==="agrario"?fv:fa,G.tipo==="agrario"?"vegetacion":"agrario")}
-     <button class="btn sec" id="btnVerAnb" style="margin:8px 0 2px">🗺️ Ver en el mapa de ANAMBRO</button>
-     <p><span class="tag">📍 ${esc(e.lugar)}</span><span class="tag">🌡️ Estación: ${esc(e.n)} (${esc(e.cn)}) · ${fmt(e.z||0,0)} m</span></p>
      ${enEsp?mapaClimasEsp({n:e.n,la:e.la,lo:e.lo}):""}</div>
-   <div>${climogramaSVG(e.T,e.P)}
+   <div><p><span class="tag">📍 ${esc(e.lugar)}</span><span class="tag">🌡️ Estación: ${esc(e.n)} · ${fmt(e.z||0,0)} m</span></p>
+     <div class="ubica">${ubicacionHTML(e.cn,e.la,e.lo)}</div>
+     <div id="mapaRevel"></div>
+     <button class="btn sec" id="btnVerAnb" style="margin:2px 0 6px">🗺️ Abrir también en el visor ANAMBRO</button>
+     ${climogramaSVG(e.T,e.P)}
      <table class="acf"><tr><th>T media anual</th><td>${fmt(s.MAT)} °C</td><th>Amplitud</th><td>${fmt(s.amp)} °C</td></tr>
      <tr><th>P anual</th><td>${fmt(s.MAP,0)} mm</td><th>Meses secos (P &lt; 2T)</th><td>${s.secos.length}${s.secos.length?" ("+s.secos.map(i=>MESES_L[i]).join(", ")+")":""}</td></tr>
      <tr><th>Köppen-Geiger</th><td colspan="3"><b>${k}</b> · ${esc(KNOM[k]||"")}${pau?`<br>Tabla PAU: <b>${esc(pau)}</b>`:""}</td></tr></table>
      <h3>🌳 Vegetación: ${esc(c.veg)}</h3><p>${esc(c.pv)}</p>
      <h3>🚜 Paisaje agrario: ${esc(c.agr)}</h3><p>${esc(c.pa)}</p></div></div>
-   <p class="nota">Datos climáticos: ${esc(e.src)} · normales ${esc(e.per)}. Fotografías: Wikimedia Commons (autor y licencia indicados).</p>`;
+   <p class="nota">Datos climáticos: ${esc(e.src)} · normales ${esc(e.per)}. Fotografías: Wikimedia Commons (autor y licencia indicados). Mapa: Esri, Maxar, Earthstar Geographics.</p>`;
   $("velo").classList.add("on");$("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
   $("btnVerAnb").onclick=()=>verEnAnambro({lat:e.la,lon:e.lo,zoom:10,html:`<b>${esc(e.n)}</b><br>${esc(c.clima)}<br><small>${esc(e.lugar)}</small>`});
+  setTimeout(()=>{try{
+    if(mapaRev){mapaRev.remove();mapaRev=null}
+    if(typeof L==="undefined"||!$("mapaRevel"))return;
+    const can=e.cn==="España"&&e.la<30,esp=e.cn==="España";
+    mapaRev=L.map("mapaRevel",{zoomControl:true,attributionControl:true}).setView([e.la,e.lo],can?7:esp?5:3);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:18,attribution:"Esri, Maxar, Earthstar Geographics"}).addTo(mapaRev);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:18}).addTo(mapaRev);
+    L.circleMarker([e.la,e.lo],{radius:9,color:"#fff",weight:3,fillColor:"#e67e22",fillOpacity:1}).addTo(mapaRev).bindTooltip(e.n,{permanent:true,direction:"top",offset:[0,-8]});
+    setTimeout(()=>{try{mapaRev&&mapaRev.flyTo([e.la,e.lo],can?9:esp?7:5,{duration:1.6})}catch(_){}},400);
+  }catch(err){console.warn("Mapa del lugar",err)}},60);
 }
 function siguiente(){
   G.n++;if(G.n<G.rondas.length){ronda();return}
