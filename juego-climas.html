@@ -97,6 +97,41 @@ table.acf th{background:#eef3f8}
 .puntos{font-size:22px;font-weight:800;color:var(--ok)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--azul);color:#fff;padding:10px 18px;border-radius:10px;font-size:15px;z-index:3000;display:none;max-width:90vw}
 </style>
+<style id="estiloJuegos">
+/* ===== Aspecto renovado de los juegos (solo presentación; la mecánica no cambia) ===== */
+:root{--k1:#e21b3c;--k2:#1368ce;--k3:#d89e00;--k4:#26890c;--sombra:0 6px 18px rgba(23,50,77,.14)}
+body{background:radial-gradient(1200px 600px at 10% -10%,#e3eefa 0,transparent 60%),radial-gradient(900px 500px at 110% 10%,#e8f6ee 0,transparent 55%),var(--fondo)}
+header{background:linear-gradient(120deg,#17324d 0%,#1f4f7a 55%,#2e86de 100%);box-shadow:0 3px 12px rgba(0,0,0,.18);position:sticky;top:0;z-index:1500}
+header h1{font-size:22px;letter-spacing:.2px}
+.marcador span{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(2px)}
+.marcador .barraProg{display:inline-block;width:140px;height:10px;padding:0;border-radius:6px;background:rgba(255,255,255,.22);overflow:hidden;align-self:center}
+.marcador .barraProg i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7ed6a5,#f9e15b);transition:width .5s ease}
+.marcador .racha:empty{display:none}
+.panel{border:0;border-radius:16px;box-shadow:var(--sombra)}
+#inicio{border-top:6px solid var(--acento)}
+#inicio h2{font-size:24px}
+.opcion b{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:#4a6178}
+.chip{border-radius:14px;padding:10px 14px;font-weight:600;transition:transform .12s ease,box-shadow .12s ease,border-color .12s}
+.chip:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(46,134,222,.18)}
+.chip.on{background:linear-gradient(180deg,#f2f8ff,#e1efff);box-shadow:0 0 0 3px rgba(46,134,222,.18)}
+.btn{border-radius:12px;padding:12px 22px;font-size:17px;box-shadow:0 4px 0 #1b5f9e;transition:transform .08s ease,box-shadow .08s ease}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #1b5f9e}
+.btn.sec{box-shadow:0 4px 0 #c3cfdb}
+#btnEmpezar{font-size:20px;padding:14px 30px}
+/* Pantalla final */
+.velo{backdrop-filter:blur(3px)}
+.modal{border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:aparece .35s ease}
+.modal h2{font-size:22px}
+.modal .puntos{font-size:54px;text-align:center;margin:6px 0}
+.modal .puntos + p{text-align:center}
+.modal .nota{text-align:center}
+table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;color:#fff} table.acf tr:nth-child(even) td{background:#f6f9fc}
+@keyframes salta{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes sacude{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes aparece{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+</style>
 </head>
 <body>
 <header>

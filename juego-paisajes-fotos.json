@@ -1,7 +1,7 @@
 {
   "_instrucciones": [
     "Pega en 'vegetacion' y 'agrario' los enlaces de Wikimedia Commons de cada foto (https://commons.wikimedia.org/wiki/File:Nombre.jpg) o solo el nombre del archivo, entre comillas y separados por comas.",
-    "Cada estación tiene sus propias fotos: deben ser del lugar indicado en 'lugar_foto' o de su entorno, para que la foto corresponda al climograma.",
+    "Cada estación tiene sus propias fotos: deben mostrar la formación vegetal (un bosque, un matorral, una estepa…, no una planta suelta) o el paisaje agrario típicos de su clima; a ser posible del lugar indicado en 'lugar_foto' o de su región.",
     "El autor y la licencia se leen solos de la ficha de Commons. Una estación sin fotos no sale en el juego.",
     "No cambies los identificadores (es_oce_1, mu_a1_2…): unen las fotos con su climograma."
   ],
@@ -14,14 +14,26 @@
         "es_oce_1": {
           "estacion": "A Coruña",
           "lugar_foto": "Fragas do Eume",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Arboles de Fragas do Eume.jpg",
+            "10 Fraga do Eume 1.jpg"
+          ],
+          "agrario": [
+            "Abelairasfurco.jpg",
+            "Adai, Adai, O Páramo.jpg"
+          ]
         },
         "es_oce_2": {
           "estacion": "Oviedo",
           "lugar_foto": "Asturias central",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Parque Natural de Redes 1991 02.jpg",
+            "Hayedo.jpg"
+          ],
+          "agrario": [
+            "Asturias 1979 05.jpg",
+            "Asturias 1979 08.jpg"
+          ]
         }
       }
     },
@@ -33,14 +45,25 @@
         "es_con_1": {
           "estacion": "Valladolid",
           "lugar_foto": "Tierra de Campos y páramos",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Sabinar de Calatañazor - 02 (26 de marzo de 2016, Calatañazor).jpg"
+          ],
+          "agrario": [
+            "Vistas desde el castillo - panoramio (1).jpg",
+            "TIERRA DE CAMPOS - panoramio (1).jpg"
+          ]
         },
         "es_con_2": {
           "estacion": "Madrid",
           "lugar_foto": "Monte de El Pardo",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "DehesaViejaValdeolmos C140687 - C140696-1.jpg",
+            "DehesaViejaValdeolmos C140676 - C140684-1.jpg"
+          ],
+          "agrario": [
+            "Parque Lineal del Manzanares - Section II - Ampliacion 2023 - Madrid 09.jpg",
+            "Parque Lineal del Manzanares - Section II - Ampliacion 2023 - Madrid 01.jpg"
+          ]
         }
       }
     },
@@ -52,8 +75,14 @@
         "es_med_1": {
           "estacion": "Jerez de la Frontera",
           "lugar_foto": "Los Alcornocales y la campiña de Jerez",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Alcornocales 042.jpg",
+            "Alcornocales 047.jpg"
+          ],
+          "agrario": [
+            "Campiña - IMG 20180520 144250 356.jpg",
+            "Puesta de sol Viñedos en Jerez de la Frontera - P1240095.jpg"
+          ]
         }
       }
     },
@@ -65,8 +94,13 @@
         "es_mon_1": {
           "estacion": "Puerto de Navacerrada",
           "lugar_foto": "Pinar de Valsaín y Peñalara",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "El Espinar, la Garganta 1974 04.jpg",
+            "Berrostegieta - Pinar 01.jpg"
+          ],
+          "agrario": [
+            "La Hiruela, Porrejón.jpg"
+          ]
         }
       }
     },
@@ -78,20 +112,36 @@
         "ca_bwh_1": {
           "estacion": "Santa Cruz de Tenerife",
           "lugar_foto": "Costa de Anaga y Malpaís de Güímar",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Tabaibal cardonal malpais Güímar.jpg",
+            "Euphorbia canariensis - Macizo de Anaga.jpg"
+          ],
+          "agrario": [
+            "A0182 Tenerife, banana plantations aerial view.jpg",
+            "Tenerife 1977 29.jpg"
+          ]
         },
         "ca_bwh_2": {
           "estacion": "Tenerife Sur",
           "lugar_foto": "Costa sur de Tenerife",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Malpaís de Rasca, mataparda 22 febrero 2007.jpg"
+          ],
+          "agrario": [
+            "A0468 Tenerife, Banana plantations and Adeje aerial view.jpg",
+            "A0353 Tenerife, Banana plantations aerial view.jpg"
+          ]
         },
         "ca_bwh_3": {
           "estacion": "Lanzarote",
           "lugar_foto": "La Geria y malpaíses de Lanzarote",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Haría - MNLC - Lugar Diseminado Maguez-LZ-1 - Euphorbia balsamifera-Monte Corona 01 ies.jpg"
+          ],
+          "agrario": [
+            "Vineyards La Geria IMGP1903.jpg",
+            "Bodega Suárez - Diama - La Geria - Lanzarote - BS05.jpg"
+          ]
         }
       }
     },
@@ -103,8 +153,13 @@
         "ca_bsh_1": {
           "estacion": "Tacoronte",
           "lugar_foto": "Medianías de Tacoronte-Acentejo",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "El Sabinar.JPG"
+          ],
+          "agrario": [
+            "Tenerife 1977 12.jpg",
+            "Viñas en Taganana (Tenerife).JPG"
+          ]
         }
       }
     },
@@ -116,7 +171,10 @@
         "ca_csa_1": {
           "estacion": "Vilaflor",
           "lugar_foto": "Pinar de Vilaflor",
-          "vegetacion": [],
+          "vegetacion": [
+            "Corona Forestal en lo alto de La Orotava.JPG",
+            "Sombrero de Chasna.jpg"
+          ],
           "agrario": []
         }
       }
@@ -129,8 +187,14 @@
         "ca_csb_1": {
           "estacion": "La Laguna (Llano de los Loros)",
           "lugar_foto": "Anaga",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Laurisilva en Anaga.jpg",
+            "Path - Anaga (26531298689).jpg"
+          ],
+          "agrario": [
+            "Huertas en Taborno (Tenerife).JPG",
+            "Chinamada Terrassenfelder.jpg"
+          ]
         }
       }
     },
@@ -142,7 +206,10 @@
         "ca_alt_1": {
           "estacion": "Izaña",
           "lugar_foto": "Las Cañadas del Teide",
-          "vegetacion": [],
+          "vegetacion": [
+            "Tenerife 1977 23.jpg",
+            "Tf2.04 La Palma, Montaña de las Lajas.jpg"
+          ],
           "agrario": []
         }
       }
@@ -155,20 +222,29 @@
         "mu_a1_1": {
           "estacion": "Manaos",
           "lugar_foto": "Amazonía",
-          "vegetacion": [],
+          "vegetacion": [
+            "Amazon rainforest manaus APA Margem Esquerda do Rio Negro - panoramio.jpg",
+            "Amazon Manaus forest.jpg"
+          ],
           "agrario": []
         },
         "mu_a1_2": {
           "estacion": "Iquitos",
           "lugar_foto": "Amazonía peruana",
-          "vegetacion": [],
+          "vegetacion": [
+            "Tamshiyacu Tahuayo Regional Conservation Area Iquitos Amazon Rainforest Peru.jpg"
+          ],
           "agrario": []
         },
         "mu_a1_3": {
           "estacion": "Singapur",
           "lugar_foto": "Selva de Singapur y Malasia",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "View upslope from Catchment Path on Bukit Timah Hill, Singapore.jpg"
+          ],
+          "agrario": [
+            "Kunak-District Sabah Oil-palm-plantation-01.jpg"
+          ]
         }
       }
     },
@@ -180,14 +256,26 @@
         "mu_a2_1": {
           "estacion": "Toamasina (Tamatave)",
           "lugar_foto": "Costa este de Madagascar",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Montane rainforest, Montagne d'Ambre National Park, Madagascar (15757731991).jpg",
+            "Rivière dans la forêt humide de Madagascar (87130).jpg"
+          ],
+          "agrario": [
+            "Anja Reserve 02.jpg",
+            "Ancien lac royal aménagé en rizière entre Fonohasina et Ambohidrabiby.JPG"
+          ]
         },
         "mu_a2_2": {
           "estacion": "La Habana",
           "lugar_foto": "Cuba",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Cuba 2018 IMG 2111 (45090084485).jpg",
+            "Country landscape, Sancti Spíritus province.jpg"
+          ],
+          "agrario": [
+            "SB088 Tobacco fied Viñales.jpg",
+            "Tobacco Fields and Curing Huts - Viñales - Cuba (5289713310).jpg"
+          ]
         }
       }
     },
@@ -199,13 +287,21 @@
         "mu_a3_1": {
           "estacion": "Kano",
           "lugar_foto": "Norte de Nigeria",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Savanna vegetation.jpg",
+            "SudanRegionGambia.jpg"
+          ],
+          "agrario": [
+            "Niger millet Koremairwa 1214.jpg",
+            "Millet farm.jpg"
+          ]
         },
         "mu_a3_2": {
           "estacion": "Darwin",
           "lugar_foto": "Norte de Australia",
-          "vegetacion": [],
+          "vegetacion": [
+            "Bush in Mataranka, Northern Territory, Australia.jpg"
+          ],
           "agrario": []
         }
       }
@@ -218,14 +314,24 @@
         "mu_mon_1": {
           "estacion": "Daca",
           "lugar_foto": "Delta del Ganges",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Sal forest, Gazipur, Bangladesh in winter.jpg",
+            "Sal forest at Gazipur, Bangladesh in winter.jpg"
+          ],
+          "agrario": [
+            "Bangladesh Village Landscape (36143248590).jpg"
+          ]
         },
         "mu_mon_2": {
           "estacion": "Calcuta",
           "lugar_foto": "Bengala Occidental",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Sundarban Mudflats during low tide, Sundarban Tiger Reserve, West Bengal, India 02.jpg"
+          ],
+          "agrario": [
+            "Paddy fields on the outskirts of West Bengal, enroute to Orissa.jpg",
+            "Paddy field in West Bengal.jpg"
+          ]
         }
       }
     },
@@ -237,20 +343,38 @@
         "mu_b1_1": {
           "estacion": "Perth",
           "lugar_foto": "Suroeste de Australia",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Banksia menziesii habitat (7344835952).jpg",
+            "B telmatiaea 21 gnangarra brightened.jpg"
+          ],
+          "agrario": [
+            "Wheatbelt panorama - JarrahTree.jpg",
+            "Wheatbelt panorama-2.JPG"
+          ]
         },
         "mu_b1_2": {
           "estacion": "Ciudad del Cabo",
           "lugar_foto": "Fynbos de El Cabo",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "View up slopes of Table Mountain to summit.jpg",
+            "Table Mountain, Cape Town (P1050298).jpg"
+          ],
+          "agrario": [
+            "Stellenbosch vineyards.jpg",
+            "Stellenbosch Vineyard.jpg"
+          ]
         },
         "mu_b1_3": {
           "estacion": "Atenas",
           "lugar_foto": "Ática",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Landscape near Athens - 7.jpg",
+            "Φρύγανα στο Όρος Κακόβουλο (Κύθνος).jpg"
+          ],
+          "agrario": [
+            "Naxos Olive Groves.jpg",
+            "Olive grove on Mongonisi.jpg"
+          ]
         }
       }
     },
@@ -262,14 +386,22 @@
         "mu_b2_1": {
           "estacion": "Fuzhou",
           "lugar_foto": "Fujian (China)",
-          "vegetacion": [],
+          "vegetacion": [
+            "Wuyishan naturereserve.jpg"
+          ],
           "agrario": []
         },
         "mu_b2_2": {
           "estacion": "Kagoshima",
           "lugar_foto": "Kyūshū (Japón)",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Forest covered hills on Yakushima.jpg",
+            "Forest on Yakushima from Route 592.jpg"
+          ],
+          "agrario": [
+            "知覧町茶畑 20150922 - panoramio.jpg",
+            "Tea Plantation in Nansatsu Plateau.jpg"
+          ]
         }
       }
     },
@@ -281,14 +413,24 @@
         "mu_c1_1": {
           "estacion": "Brest",
           "lugar_foto": "Bretaña",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Foret du cranou (3).jpg"
+          ],
+          "agrario": [
+            "Foret Du Cranou 29 (68425689).jpeg"
+          ]
         },
         "mu_c1_2": {
           "estacion": "Bergen",
           "lugar_foto": "Costa oeste de Noruega",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "NorwegianScotsPineForest Os Hordaland.jpg",
+            "Luster, Norway - 2017.jpg"
+          ],
+          "agrario": [
+            "Geiranger fjord, abandoned farm, July 2013.jpg",
+            "Fjord Farm Houses - 2013.08 - panoramio.jpg"
+          ]
         }
       }
     },
@@ -300,14 +442,26 @@
         "mu_c2_1": {
           "estacion": "Chicago",
           "lugar_foto": "Medio Oeste (Corn Belt)",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Gfp-illinois-starved-rock-state-park-late-afternoon-sun.jpg",
+            "Shawnee National Forest- Garden of the Gods.jpg"
+          ],
+          "agrario": [
+            "Corn fields near Royal, Illinois (cropped).jpg",
+            "Cornfield - panoramio.jpg"
+          ]
         },
         "mu_c2_2": {
           "estacion": "Kiev",
           "lugar_foto": "Ucrania central",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Північний Лісостеп (Україна, село Витачів).jpg",
+            "Volodars'ko-Volyns'kyi district, Zhytomyrs'ka oblast, Ukraine - panoramio (13).jpg"
+          ],
+          "agrario": [
+            "Cumulonimbus storm clouds over sunflower field Ukraine.jpg",
+            "Sunflower field in Kosharka.jpg"
+          ]
         }
       }
     },
@@ -319,8 +473,14 @@
         "mu_d1_1": {
           "estacion": "Tromsø",
           "lugar_foto": "Norte de Noruega",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Forêt de bouleaux dans le parc de Telegrafbukta.jpg",
+            "Kåfjord Oksfjellet lub 2025-07-18.jpg"
+          ],
+          "agrario": [
+            "Holmen Bauernhof lub 2025-07-18 img02.jpg",
+            "Hinnøya Kvæfjord lub 2025-07-19.jpg"
+          ]
         }
       }
     },
@@ -332,8 +492,14 @@
         "mu_d2_1": {
           "estacion": "Yakutsk",
           "lugar_foto": "Yakutia (Siberia)",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "В окрестностях Нижнего Бестяха.JPG",
+            "Марь 001.JPG"
+          ],
+          "agrario": [
+            "The Yakut horses on a meadow, Namski uluus, Yakutia, Siberia, Лошади на лугу (Намский улус) - panoramio.jpg",
+            "The yakut horses, Namski uluus, Yakutia, Siberia - Лошади на протоке Лены - panoramio.jpg"
+          ]
         }
       }
     },
@@ -345,14 +511,23 @@
         "mu_est_1": {
           "estacion": "Ulán Bator",
           "lugar_foto": "Estepa mongola",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Mongolian steppe.jpg",
+            "Grasslands-menggu.jpg"
+          ],
+          "agrario": [
+            "Settlement on the Mongolian steppes (2541042210).jpg"
+          ]
         },
         "mu_est_2": {
           "estacion": "Niamey",
           "lugar_foto": "Sahel",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Sahel forest near Kayes Mali.jpg"
+          ],
+          "agrario": [
+            "Niger, N'Gonga (5), sale of millet on market day.jpg"
+          ]
         }
       }
     },
@@ -364,7 +539,10 @@
         "mu_e_1": {
           "estacion": "Utqiaġvik (Alaska)",
           "lugar_foto": "Costa ártica de Alaska",
-          "vegetacion": [],
+          "vegetacion": [
+            "Arctic tundra in July.jpg",
+            "Alaska tundra and thaw lakes.jpg"
+          ],
           "agrario": []
         }
       }
@@ -377,13 +555,20 @@
         "mu_f1_1": {
           "estacion": "Riad",
           "lugar_foto": "Desierto arábigo",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Rub al Khali 002.JPG",
+            "Ar-Rub' Al-Khali (Oman) kz01.jpg"
+          ],
+          "agrario": [
+            "Crop fields in Saudi Arabia Dec 02 2012.jpg"
+          ]
         },
         "mu_f1_2": {
           "estacion": "Antofagasta",
           "lugar_foto": "Desierto de Atacama",
-          "vegetacion": [],
+          "vegetacion": [
+            "Paisaje cerca de Calama, Chile, 2016-02-01, DD 83.JPG"
+          ],
           "agrario": []
         }
       }
@@ -396,14 +581,25 @@
         "mu_f2_1": {
           "estacion": "Kashgar",
           "lugar_foto": "Cuenca del Tarim",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Taklamakan-d40.jpg",
+            "Taklamakan-d43.jpg"
+          ],
+          "agrario": [
+            "Oasis on Highway G312 Xinjiang, China - panoramio.jpg",
+            "Turpan-jiaohe-oasis-lateral-d01.jpg"
+          ]
         },
         "mu_f2_2": {
           "estacion": "Dalanzadgad",
           "lugar_foto": "Desierto del Gobi",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Gobi, krajobraz pustyni (23).jpg"
+          ],
+          "agrario": [
+            "Camels in Gobi Desert 01.jpg",
+            "Camel in Gobi Desert 01.jpg"
+          ]
         }
       }
     },
@@ -415,14 +611,25 @@
         "mu_g_1": {
           "estacion": "El Alto (La Paz)",
           "lugar_foto": "Altiplano boliviano",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "Romanceor Altiplano 1.jpg",
+            "Solimana2005SztucznyScynk.jpg"
+          ],
+          "agrario": [
+            "Productive quinoa field, Uyuni, Bolivia.JPG",
+            "Plowing of quinoa field, Uyuni, Bolivia.JPG"
+          ]
         },
         "mu_g_2": {
           "estacion": "Cuzco",
           "lugar_foto": "Valle Sagrado",
-          "vegetacion": [],
-          "agrario": []
+          "vegetacion": [
+            "La Puna 1994 01.jpg"
+          ],
+          "agrario": [
+            "The Sacred Valley, Peru-2 (8445855270).jpg",
+            "Incan terraces at Moray and a beautiful skyline.jpg"
+          ]
         }
       }
     }
