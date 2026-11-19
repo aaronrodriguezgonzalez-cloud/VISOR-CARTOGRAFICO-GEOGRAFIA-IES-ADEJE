@@ -234,6 +234,7 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 <div class="toast" id="toast"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="anb-globo.js?v=20261119a"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
 <script>
 "use strict";
 /* =========================================================
@@ -860,7 +861,11 @@ function revelar(ok,k,pts){
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:18,attribution:"Esri, Maxar, Earthstar Geographics"}).addTo(mapaRev);
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:18}).addTo(mapaRev);
     L.circleMarker([st.la,st.lo],{radius:9,color:"#fff",weight:3,fillColor:tipoObj.c,fillOpacity:1}).addTo(mapaRev).bindTooltip(st.n,{permanent:true,direction:"top",offset:[0,-8]});
-    setTimeout(()=>mapaRev.flyTo([st.la,st.lo],CFG.ambito==="can"?10:esMundo()?6:8,{duration:1.6}),400);
+    // Globo ligero: gira hasta la estación y se acerca al mapa; luego el mapa vuela al punto
+    const volar=()=>{try{mapaRev&&mapaRev.flyTo([st.la,st.lo],CFG.ambito==="can"?10:esMundo()?6:8,{duration:1.6})}catch(_){}};
+    const globo=()=>window.AnbGlobo?AnbGlobo.mostrar($("mapaRevel"),{lat:st.la,lon:st.lo,color:tipoObj.c,nombre:st.n}).then(volar):setTimeout(volar,400);
+    globo();
+    if(window.AnbGlobo)AnbGlobo.boton($("mapaRevel"),()=>{try{mapaRev.setView([st.la,st.lo],CFG.ambito==="can"?8:esMundo()?3:5,{animate:false})}catch(_){}globo()});
   },60);
 }
 function siguiente(){
@@ -911,6 +916,58 @@ $("velo").addEventListener("click",ev=>{if(ev.target===$("velo")&&!$("btnSig")&&
 cargar().then(()=>{$("btnEmpezar").disabled=false;$("btnEmpezar").textContent="▶ Empezar partida";actualizarOpciones();
   window.__juegoClimas={DB,stats,koppen,ajustePAU};
 }).catch(err=>{console.error(err);$("btnEmpezar").textContent="No se pudieron cargar los datos climáticos";});
+</script>
+<style id="anSalidaCss">
+/* ===== Salir de la partida y volver al menú de Juegos ===== */
+.anSalida{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+header .marcador[style*="flex"] ~ .anSalida{margin-left:0}
+.anSalida button{font:inherit;font-size:15px;font-weight:700;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:6px 14px;min-height:38px;cursor:pointer;white-space:nowrap}
+.anSalida button:hover{background:rgba(255,255,255,.28)}
+.anSalida button[hidden]{display:none}
+</style>
+<script>
+/* ANAMBRO · Terminar la partida en cualquier momento y volver al menú «Juegos» (2026-11-19).
+   «Terminar partida» vuelve a la pantalla de opciones conservando las que estaban elegidas. */
+(function(){
+  const $=id=>document.getElementById(id);
+  const head=document.querySelector("header");if(!head||$("anSalida"))return;
+  const P=window.parent!==window?window.parent:null;
+  let enAnambro=false;try{enAnambro=!!(P&&typeof P.closeAnambroExplanation==="function")}catch(e){}
+  const caja=document.createElement("div");caja.className="anSalida";caja.id="anSalida";
+  caja.innerHTML='<button type="button" id="anTerminar" hidden title="Abandona la partida y vuelve a las opciones">⏹ Terminar partida</button>'+
+    (enAnambro?'<button type="button" id="anMenuJuegos" title="Cierra el juego y abre el menú Juegos de ANAMBRO">🎮 Menú de juegos</button>':"");
+  head.appendChild(caja);
+  const CLAVE="anambro.juego.opciones."+location.pathname+location.search;
+  function guardar(){
+    const o={chips:{},sel:{}};
+    document.querySelectorAll(".chips[data-grupo]").forEach(g=>{o.chips[g.dataset.grupo]=[...g.querySelectorAll(".chip.on")].map(c=>c.dataset.v)});
+    document.querySelectorAll("#inicio select[id]").forEach(s=>{o.sel[s.id]=s.value});
+    try{sessionStorage.setItem(CLAVE,JSON.stringify(o))}catch(e){}
+  }
+  function restaurar(){
+    let o=null;try{o=JSON.parse(sessionStorage.getItem(CLAVE)||"null");sessionStorage.removeItem(CLAVE)}catch(e){}
+    if(!o)return;
+    for(const g in o.chips||{})for(const v of o.chips[g]){const c=document.querySelector(`.chips[data-grupo="${g}"] .chip[data-v="${v}"]`);if(c&&!c.classList.contains("on")&&!c.disabled)c.click()}
+    const ids=Object.keys(o.sel||{});let i=0;
+    (function sigSel(){if(i>=ids.length)return;const s=$(ids[i]),v=o.sel[ids[i]];i++;
+      if(s&&[...s.options].some(x=>x.value===v)&&s.value!==v){s.value=v;s.dispatchEvent(new Event("change",{bubbles:true}))}
+      setTimeout(sigSel,150)})();
+  }
+  $("anTerminar").onclick=()=>{guardar();location.reload()};
+  if($("anMenuJuegos"))$("anMenuJuegos").onclick=()=>{
+    try{
+      const D=P.document,pan=D.getElementById("territorialGamePanel");
+      P.closeAnambroExplanation();
+      if(pan&&pan.classList.contains("hidden")&&typeof P.togglePanel==="function")P.togglePanel("territorialGamePanel");
+    }catch(e){console.warn("Menú de juegos",e)}
+  };
+  // «Terminar partida» solo se ve mientras hay una partida en marcha
+  const juego=$("juego"),ver=()=>{$("anTerminar").hidden=!juego||getComputedStyle(juego).display==="none"};
+  if(juego)new MutationObserver(ver).observe(juego,{attributes:true,attributeFilter:["style","class"]});
+  ver();
+  // se restauran cuando el juego ha terminado de cargar sus datos (botón «Empezar» activo)
+  let n=0;(function espera(){const b=$("btnEmpezar");if((b&&!b.disabled)||n++>300)setTimeout(restaurar,150);else setTimeout(espera,200)})();
+})();
 </script>
 </body>
 </html>

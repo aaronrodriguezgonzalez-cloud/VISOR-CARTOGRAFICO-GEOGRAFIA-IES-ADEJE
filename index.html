@@ -220,7 +220,7 @@
     <section class="hubCard"><b>📊 Atlas estadístico y análisis</b><button data-hub="atlas-world">🌍 Mundo · Banco Mundial / PNUD</button><button data-hub="atlas-eu">🇪🇺 Europa · Eurostat (regiones)</button><button data-hub="atlas-spain">🇪🇸 España · INE</button><button data-hub="atlas-canary">🏝️ Canarias · ISTAC</button><button data-hub="analysis">🧮 Análisis geográfico · indicadores, mapa derivado y CSV</button></section>
     <section class="hubCard"><b>🏛️ Historia y patrimonio</b><button data-hub="history">Fronteras históricas y acontecimientos · línea de tiempo</button><button data-hub="heritage">Patrimonio cultural de Canarias · BIC y arqueología insular</button><button data-hub="indigenous">🏺 Mundo indígena · particiones territoriales</button></section>
     <section class="hubCard"><b>🥾 Senderismo y campo</b><button data-hub="gps">Mi ubicación GPS</button><button data-hub="tracks">Crear, importar y exportar tracks GPX/KML</button><button data-hub="profile">Perfil territorial</button><button data-hub="measure">Medir distancias y superficies</button></section>
-    <section class="hubCard"><b>🎓 Aula y creación</b><button data-hub="political">Mapas políticos / mudos · actuales e históricos</button><button data-hub="game">🎮 Juego territorial</button><button data-hub="animations">📚 Biblioteca didáctica ANAMBRO</button><button data-hub="print">🖨️ Compositor cartográfico / PDF</button></section>
+    <section class="hubCard"><b>🎓 Aula y creación</b><button data-hub="political">Mapas políticos / mudos · actuales e históricos</button><button data-hub="game">🎮 Juegos</button><button data-hub="animations">📚 Biblioteca didáctica ANAMBRO</button><button data-hub="print">🖨️ Compositor cartográfico / PDF</button></section>
     <section class="hubCard hubWide"><b>ℹ️ Acerca de ANAMBRO</b><div class="hubRow"><button data-hub="welcome">👋 Bienvenido</button><button data-hub="sources">ⓘ Fuentes, licencias y créditos</button><button data-hub="radio">📻 Radio Garden · emisoras del mundo</button></div></section>
   </div>
 </div>
@@ -1275,7 +1275,7 @@ function toggleLegend(){
   <button id="anambroZoomOutBtn" type="button" aria-label="Alejar un nivel">−</button>
   <span id="anambroZoomModeHint" class="zoomModeHint">Zoom</span>
 </div>
-<link rel="stylesheet" href="css/anambro-7.css?v=4ce1b80e"><script src="anambro-7.js?v=20261117a"></script>
+<link rel="stylesheet" href="css/anambro-7.css?v=4ce1b80e"><script src="anambro-7.js?v=20261119a"></script>
 <div id="anambroMobileDock" aria-label="Accesos móviles de ANAMBRO">
   <button id="anambroMobileMenuBtn" class="mobileDockBtn" type="button" onclick="document.querySelector('.toolHubBtn')?.click()"><span>☰</span><span>Menú</span></button>
   <button id="anambroMobileLayersBtn" class="mobileDockBtn" type="button" onclick="typeof togglePanel==='function'&&togglePanel('layersPanel')"><span>🗂️</span><span>Capas</span></button>
@@ -1351,6 +1351,99 @@ function toggleLegend(){
   }
   new MutationObserver(poner).observe(document.documentElement,{childList:true,subtree:true});
   document.addEventListener("DOMContentLoaded",poner);setTimeout(poner,1500);
+})();
+</script>
+<script>
+/* ANAMBRO · Fichas flotantes (país o región, clima de una estación, tiempo): se pueden mover, plegar y
+   redimensionar en cualquier formato (ordenador, tableta, pizarra digital, móvil), con ratón o con el dedo (2026-11-19) */
+(function(){
+  var IDS=["anPaisWin","anClimaFicha","anTiempoWin"];
+  function css(){
+    if(document.getElementById("anVentCss"))return;
+    var s=document.createElement("style");s.id="anVentCss";
+    s.textContent=
+      ".anVentHead{touch-action:none;cursor:move}"+
+      ".anVentPleg{flex:none;width:36px;height:36px;border-radius:50%;border:0;background:#ffffff2e;color:inherit;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}"+
+      ".anVentPleg:hover{background:#ffffff55}"+
+      ".acfHead .anVentPleg{background:#17324d14;color:#17324d}.acfHead .anVentPleg:hover{background:#17324d26}"+
+      ".anVentRes{position:absolute;right:0;bottom:0;width:36px;height:36px;cursor:nwse-resize;touch-action:none;z-index:6;"+
+        "background:linear-gradient(135deg,transparent 0 52%,#6f8193 52% 57%,transparent 57% 68%,#6f8193 68% 73%,transparent 73% 84%,#6f8193 84% 89%,transparent 89%);border-bottom-right-radius:12px}"+
+      ".anVentPlegada>*:not(.anVentHead):not(.anVentPleg){display:none!important}"+
+      ".anVentPlegada{height:auto!important;min-height:0!important;max-height:none!important}";
+    document.head.appendChild(s);
+  }
+  function aFijo(w){ // pasa la ficha a coordenadas left/top para poder moverla y estirarla
+    var r=w.getBoundingClientRect();
+    w.style.transform="none";w.style.right="auto";w.style.bottom="auto";
+    w.style.left=Math.round(r.left)+"px";w.style.top=Math.round(r.top)+"px";
+  }
+  function encajar(w){ // nunca se pierde fuera de la pantalla
+    if(w.classList.contains("hidden")||!w.style.left)return;
+    var r=w.getBoundingClientRect();
+    var x=Math.max(80-r.width,Math.min(innerWidth-80,r.left)),y=Math.max(0,Math.min(innerHeight-48,r.top));
+    w.style.left=Math.round(x)+"px";w.style.top=Math.round(y)+"px";
+    // si se sale por abajo, se acorta para que la esquina de redimensionar quede siempre a mano
+    if(!w.classList.contains("anVentPlegada")&&y+r.height>innerHeight-4){w.style.height=Math.max(150,innerHeight-4-y)+"px";w.style.maxHeight="none"}
+  }
+  function plegar(w,si){
+    w.classList.toggle("anVentPlegada",si);
+    var b=w.querySelector(".anVentPleg");
+    if(b){b.textContent=si?"▾":"▴";b.title=si?"Desplegar la ficha":"Plegar la ficha (deja ver el mapa)";b.setAttribute("aria-expanded",si?"false":"true")}
+  }
+  function mejorar(w){
+    if(!w||w.dataset.anVent)return;
+    var head=w.querySelector(".anPaisHead,.acfHead");if(!head)return;
+    w.dataset.anVent="1";css();
+    // por encima de los botones flotantes (en móvil y tableta tapaban la cabecera y no se podía ni cerrar)
+    if((parseInt(getComputedStyle(w).zIndex,10)||0)<7000)w.style.zIndex="7000";
+    head.classList.add("anVentHead");
+    // Plegar / desplegar
+    var b=document.createElement("button");b.type="button";b.className="anVentPleg";
+    var cerrar=head.querySelector(".anPaisClose,.acfClose");
+    if(cerrar)head.insertBefore(b,cerrar);else head.appendChild(b);
+    b.addEventListener("click",function(ev){ev.stopPropagation();plegar(w,!w.classList.contains("anVentPlegada"))});
+    plegar(w,false);
+    // Mover (ratón y dedo, también en pantallas estrechas)
+    var arr=null;
+    w.addEventListener("pointerdown",function(ev){
+      if(!head.contains(ev.target)||ev.target.closest("button,select,input,a"))return;
+      ev.stopPropagation();ev.preventDefault();
+      aFijo(w);var r=w.getBoundingClientRect();arr={dx:ev.clientX-r.left,dy:ev.clientY-r.top,id:ev.pointerId};
+      try{head.setPointerCapture(ev.pointerId)}catch(e){}
+    },true);
+    head.addEventListener("pointermove",function(ev){
+      if(!arr||ev.pointerId!==arr.id)return;ev.stopPropagation();
+      w.dataset.dragged="1";
+      w.style.left=Math.round(Math.max(80-w.offsetWidth,Math.min(innerWidth-80,ev.clientX-arr.dx)))+"px";
+      w.style.top=Math.round(Math.max(0,Math.min(innerHeight-48,ev.clientY-arr.dy)))+"px";
+    },true);
+    var soltar=function(){if(arr){arr=null;encajar(w)}};head.addEventListener("pointerup",soltar);head.addEventListener("pointercancel",soltar);
+    // Doble toque en la cabecera: plegar / desplegar
+    head.addEventListener("dblclick",function(ev){if(ev.target.closest("button,select,input,a"))return;plegar(w,!w.classList.contains("anVentPlegada"))});
+    // Redimensionar desde la esquina inferior derecha
+    var res=document.createElement("div");res.className="anVentRes";res.title="Arrastra para cambiar el tamaño de la ficha";
+    w.appendChild(res);
+    var tam=null;
+    res.addEventListener("pointerdown",function(ev){
+      ev.stopPropagation();ev.preventDefault();aFijo(w);
+      var r=w.getBoundingClientRect();tam={x:ev.clientX,y:ev.clientY,w:r.width,h:r.height,top:r.top,left:r.left,id:ev.pointerId};
+      try{res.setPointerCapture(ev.pointerId)}catch(e){}
+    });
+    res.addEventListener("pointermove",function(ev){
+      if(!tam||ev.pointerId!==tam.id)return;ev.stopPropagation();
+      var nw=Math.max(280,Math.min(innerWidth-tam.left-4,tam.w+ev.clientX-tam.x));
+      var nh=Math.max(150,Math.min(innerHeight-tam.top-4,tam.h+ev.clientY-tam.y));
+      w.style.width=Math.round(nw)+"px";w.style.height=Math.round(nh)+"px";w.style.maxHeight="none";w.style.maxWidth="none";
+    });
+    var fin=function(){tam=null};res.addEventListener("pointerup",fin);res.addEventListener("pointercancel",fin);
+    // Al abrir otra ficha (otro país, otra estación) aparece desplegada; tamaño y posición se conservan
+    new MutationObserver(function(){if(!w.classList.contains("hidden")){if(w.classList.contains("anVentPlegada")&&w._anOculta)plegar(w,false);encajar(w)}w._anOculta=w.classList.contains("hidden")}).observe(w,{attributes:true,attributeFilter:["class"]});
+    w._anOculta=w.classList.contains("hidden");
+  }
+  function buscar(){IDS.forEach(function(id){mejorar(document.getElementById(id))})}
+  new MutationObserver(buscar).observe(document.body,{childList:true});
+  addEventListener("resize",function(){IDS.forEach(function(id){var w=document.getElementById(id);if(w)encajar(w)})});
+  buscar();
 })();
 </script>
 </body>

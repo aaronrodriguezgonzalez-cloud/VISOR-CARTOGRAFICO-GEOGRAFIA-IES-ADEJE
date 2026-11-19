@@ -62,6 +62,7 @@ table.acf{border-collapse:collapse;width:100%;font-size:14px} table.acf th,table
 </style>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="anb-globo.js?v=20261119a"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
 <style id="estiloJuegos">
 /* ===== Aspecto renovado de los juegos (solo presentación; la mecánica no cambia) ===== */
 :root{--k1:#e21b3c;--k2:#1368ce;--k3:#d89e00;--k4:#26890c;--sombra:0 6px 18px rgba(23,50,77,.14)}
@@ -425,7 +426,11 @@ function revelar(pts){
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:18,attribution:"Esri, Maxar, Earthstar Geographics"}).addTo(mapaRev);
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:18}).addTo(mapaRev);
     L.circleMarker([e.la,e.lo],{radius:9,color:"#fff",weight:3,fillColor:c.c||"#e67e22",fillOpacity:1}).addTo(mapaRev).bindTooltip(e.n,{permanent:true,direction:"top",offset:[0,-8]});
-    setTimeout(()=>{try{mapaRev&&mapaRev.flyTo([e.la,e.lo],can?9:esp?7:5,{duration:1.6})}catch(_){}},400);
+    // Globo ligero: gira hasta el lugar y se acerca al mapa; luego el mapa vuela al punto
+    const volar=()=>{try{mapaRev&&mapaRev.flyTo([e.la,e.lo],can?9:esp?7:5,{duration:1.6})}catch(_){}};
+    const globo=()=>window.AnbGlobo?AnbGlobo.mostrar($("mapaRevel"),{lat:e.la,lon:e.lo,color:c.c||"#e67e22",nombre:e.n}).then(volar):setTimeout(volar,400);
+    globo();
+    if(window.AnbGlobo)AnbGlobo.boton($("mapaRevel"),()=>{try{mapaRev.setView([e.la,e.lo],can?7:esp?5:3,{animate:false})}catch(_){}globo()});
   }catch(err){console.warn("Mapa del lugar",err)}},60);
 }
 function siguiente(){
