@@ -62,7 +62,7 @@ table.acf{border-collapse:collapse;width:100%;font-size:14px} table.acf th,table
 </style>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="anb-globo.js?v=20261119a"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
+<script src="anb-globo.js?v=20261119b"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
 <style id="estiloJuegos">
 /* ===== Aspecto renovado de los juegos (solo presentación; la mecánica no cambia) ===== */
 :root{--k1:#e21b3c;--k2:#1368ce;--k3:#d89e00;--k4:#26890c;--sombra:0 6px 18px rgba(23,50,77,.14)}
@@ -119,7 +119,7 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 .revTit{text-align:center;line-height:1.15} .revTit small{display:block;font-size:13px;opacity:.9;text-transform:uppercase;letter-spacing:.6px} .revTit b{font-size:24px}
 .revCab .btn{background:#fff;color:var(--azul);box-shadow:0 4px 0 rgba(0,0,0,.18)}
 .revPar{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 20px 6px;align-items:start}
-.revFig{margin:0} .revFig .foto img{max-height:340px;height:340px;object-fit:cover}
+.revFig{margin:0} .revFig .foto img{max-height:270px;height:270px;object-fit:cover}
 .revFig figcaption{font-size:12.5px;color:#5b6b7a;margin-top:4px} .revFig figcaption a{color:#5b6b7a}
 .revClim svg{width:100%;height:auto;display:block;border:1px solid var(--borde);border-radius:10px;background:#fff}
 .cifras{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
@@ -127,7 +127,7 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 .cifras b{display:block;font-size:16px;color:var(--azul)}
 .revLugar{display:grid;grid-template-columns:1fr 1.1fr;gap:16px;margin:10px 20px;padding:12px;background:#f6f9fc;border:1px solid var(--borde);border-radius:14px;align-items:center}
 .revEst{font-size:16px} .revLugar .ubica{margin:6px 0 4px;font-size:14.5px}
-.revLugar #mapaRevel{height:200px;margin:0}
+.revLugar #mapaRevel{height:270px;margin:0;border-radius:10px}
 .revTarj{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:6px 20px 4px}
 .tarj{border:1px solid var(--borde);border-radius:14px;padding:10px 14px;background:#fff}
 .tarj h3{margin:2px 0 6px;font-size:15.5px} .tarj p{margin:0;font-size:14.5px}
@@ -415,22 +415,12 @@ function revelar(pts){
      <div class="tarj"><h3>🌳 ${esc(c.veg)}</h3><p>${esc(c.pv)}</p></div>
      <div class="tarj"><h3>🚜 ${esc(c.agr)}</h3><p>${esc(c.pa)}</p>${otra?`<div class="mini"><img src="${esc(otra.src)}" alt="${esc(otra.et)}"><small>${esc(otra.et)}${otra.cat?" ("+esc(otra.cat.charAt(0).toLowerCase()+otra.cat.slice(1))+")":""}${otra.lugar?" · "+esc(otra.lugar):""}<br>${credito(otra)}</small></div>`:""}</div>
    </div>
-   <p class="nota">Datos climáticos: ${esc(e.src)} · ${esc(e.per)}. ${c.amb==="mundo"?"Biomas: RESOLVE Ecoregions 2017 (Dinerstein et al.), capa BIOMAS de ANAMBRO. ":c.amb==="can"?"Pisos: Mapa de Vegetación Potencial de Canarias (GRAFCAN). ":""}Fotografías: Wikimedia Commons. Mapa: Esri, Maxar, Earthstar Geographics.</p>`;
+   <p class="nota">Datos climáticos: ${esc(e.src)} · ${esc(e.per)}. ${c.amb==="mundo"?"Biomas: RESOLVE Ecoregions 2017 (Dinerstein et al.), capa BIOMAS de ANAMBRO. ":c.amb==="can"?"Pisos: Mapa de Vegetación Potencial de Canarias (GRAFCAN). ":""}Fotografías: Wikimedia Commons. Globo: Natural Earth (ANAMBRO).</p>`;
   $("velo").classList.add("on");$("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
   $("btnVerAnb").onclick=()=>verEnAnambro({lat:e.la,lon:e.lo,zoom:10,html:`<b>${esc(e.n)}</b><br>${esc(c.clima)}<br><small>${esc(e.lugar||"")}</small>`});
   setTimeout(()=>{try{
-    if(mapaRev){mapaRev.remove();mapaRev=null}
-    if(typeof L==="undefined"||!$("mapaRevel"))return;
-    const can=e.cn==="España"&&e.la<30,esp=e.cn==="España";
-    mapaRev=L.map("mapaRevel",{zoomControl:true,attributionControl:true}).setView([e.la,e.lo],can?7:esp?5:3);
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:18,attribution:"Esri, Maxar, Earthstar Geographics"}).addTo(mapaRev);
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:18}).addTo(mapaRev);
-    L.circleMarker([e.la,e.lo],{radius:9,color:"#fff",weight:3,fillColor:c.c||"#e67e22",fillOpacity:1}).addTo(mapaRev).bindTooltip(e.n,{permanent:true,direction:"top",offset:[0,-8]});
-    // Globo ligero: gira hasta el lugar y se acerca al mapa; luego el mapa vuela al punto
-    const volar=()=>{try{mapaRev&&mapaRev.flyTo([e.la,e.lo],can?9:esp?7:5,{duration:1.6})}catch(_){}};
-    const globo=()=>window.AnbGlobo?AnbGlobo.mostrar($("mapaRevel"),{lat:e.la,lon:e.lo,color:c.c||"#e67e22",nombre:e.n}).then(volar):setTimeout(volar,400);
-    globo();
-    if(window.AnbGlobo)AnbGlobo.boton($("mapaRevel"),()=>{try{mapaRev.setView([e.la,e.lo],can?7:esp?5:3,{animate:false})}catch(_){}globo()});
+    // Solo el globo ligero (sin mapa 2D): gira hasta la estación, con líneas imaginarias y zonas climáticas
+    if(window.AnbGlobo&&$("mapaRevel"))AnbGlobo.globo($("mapaRevel"),{lat:e.la,lon:e.lo,color:c.c||"#e67e22",nombre:e.n,zonas:true});
   }catch(err){console.warn("Mapa del lugar",err)}},60);
 }
 function siguiente(){
@@ -510,6 +500,39 @@ header .marcador[style*="flex"] ~ .anSalida{margin-left:0}
   ver();
   // se restauran cuando el juego ha terminado de cargar sus datos (botón «Empezar» activo)
   let n=0;(function espera(){const b=$("btnEmpezar");if((b&&!b.disabled)||n++>300)setTimeout(restaurar,150);else setTimeout(espera,200)})();
+})();
+</script>
+<script>
+/* ANAMBRO · Todo de un vistazo (2026-11-19): la pantalla de juego y la ficha de solución se encogen
+   lo justo para caber enteras en la pantalla, sin tener que bajar con el ratón. Si la pantalla es tan
+   pequeña que quedaría ilegible (móvil), se deja un tamaño mínimo y se puede desplazar. */
+(function(){
+  const MIN=.55,$=id=>document.getElementById(id);
+  const main=document.querySelector("main"),head=document.querySelector("header"),velo=$("velo"),modal=$("modal");
+  function encajarModal(){
+    if(!modal||!velo||!velo.classList.contains("on"))return;
+    modal.style.zoom="";modal.style.maxHeight="none";modal.style.overflow="hidden";
+    const disp=innerHeight-24,alto=modal.scrollHeight;
+    let z=Math.min(1,disp/alto);
+    if(z<MIN){z=MIN;modal.style.maxHeight=Math.floor(disp/z)+"px";modal.style.overflow="auto"}
+    modal.style.zoom=z<.999?z:"";
+  }
+  function encajarJuego(){
+    if(!main)return;const j=$("juego");
+    if(!j||getComputedStyle(j).display==="none"||main.querySelector(".leaflet-container")){main.style.zoom="";return}
+    main.style.zoom="";
+    const disp=innerHeight-(head?head.offsetHeight:0)-12,alto=main.scrollHeight;
+    let z=Math.min(1,disp/alto);if(z<MIN)z=MIN;
+    main.style.zoom=z<.999?z:"";
+  }
+  let pend=0;const pedir=()=>{if(pend)return;pend=requestAnimationFrame(()=>{pend=0;encajarJuego();encajarModal()})};
+  addEventListener("resize",pedir);
+  if(velo)new MutationObserver(pedir).observe(velo,{attributes:true,attributeFilter:["class"]});
+  if(modal)new MutationObserver(pedir).observe(modal,{childList:true,subtree:true});
+  if(main)new MutationObserver(pedir).observe(main,{childList:true,subtree:true});
+  const j=$("juego");if(j)new MutationObserver(pedir).observe(j,{attributes:true,attributeFilter:["style"]});
+  document.addEventListener("load",ev=>{if(ev.target&&ev.target.tagName==="IMG")pedir()},true);
+  pedir();
 })();
 </script>
 </body>
