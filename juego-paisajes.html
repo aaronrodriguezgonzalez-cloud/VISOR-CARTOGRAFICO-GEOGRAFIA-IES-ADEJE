@@ -105,6 +105,11 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 .etiq + .foto{border-radius:0 0 10px 10px}
 .etiq + svg{border:1px solid var(--borde);border-top:0;border-radius:0 0 10px 10px;background:#fff}
 .etiqMini{font-weight:800;color:var(--azul);font-size:15px;margin:2px 0 6px 36px;min-height:20px}
+.etiq .etNom{display:flex;flex-direction:column;gap:1px}
+.etiq .etCat{font-size:14px;font-weight:600;opacity:.88}
+.etiqMini .etCatMini{display:block;font-size:14px;font-weight:600;color:#4a5b6c;margin-top:1px}
+/* Tarjetas de respuesta: contenido siempre arriba (antes se centraba y se descolocaba al fallar la de al lado) */
+.resp{display:flex;flex-direction:column;justify-content:flex-start}
 /* ===== Ficha de solución ===== */
 .modal{max-width:1080px;padding:0;overflow:auto}
 .revCab{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:14px 20px;color:#fff;position:sticky;top:0;z-index:5}
@@ -139,7 +144,7 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 <main>
   <section id="inicio" class="panel">
     <h2>Cómo se juega</h2>
-    <p>La vegetación y la agricultura son el mejor reflejo del clima de un lugar. Verás <b>una foto</b>, con el tipo de paisaje y la altitud escritos encima, y tendrás que elegir <b>su climograma</b> entre cuatro (o al revés). En España los paisajes son los de la tabla de climas de la PAU; en Canarias, los pisos de vegetación potencial de GRAFCAN; en el mundo, los biomas de la capa BIOMAS de ANAMBRO.</p>
+    <p>La vegetación y la agricultura son el mejor reflejo del clima de un lugar. Verás <b>una foto</b>, con el tipo de paisaje, su categoría (bosque caducifolio, pastizal de alta montaña…) y la altitud escritos encima, y tendrás que elegir <b>su climograma</b> entre cuatro (o al revés). En España los paisajes son los de la tabla de climas de la PAU; en Canarias, los pisos de vegetación potencial de GRAFCAN; en el mundo, los biomas de la capa BIOMAS de ANAMBRO.</p>
     <div class="opciones">
       <div class="opcion"><b>1. Ámbito</b><div class="chips" data-grupo="ambito">
         <button class="chip on" data-v="esp">🇪🇸 España<small>Los climas de la tabla PAU: oceánico, mediterráneo continental, mediterráneo y montaña</small></button>
@@ -313,7 +318,7 @@ async function cargarFotosCategoria(c,lista,tipo){
   if(!info){info=[];for(let i=0;i<nombres.length;i+=45){try{info=info.concat(await infoArchivos(nombres.slice(i,i+45)))}catch(x){console.warn("Commons",c.id,x)}}
     if(info.length)try{localStorage.setItem(clave,JSON.stringify({t:Date.now(),f:info}))}catch(x){}}
   const porNombre=new Map(info.map(f=>[f.archivo,f]));
-  return lista.map(x=>{const f=porNombre.get(nombreArchivo(x.f||x));return f?{...f,et:x.et||c.clima,lugar:x.lugar||"",cont:x.cont||""}:null});
+  return lista.map(x=>{const f=porNombre.get(nombreArchivo(x.f||x));return f?{...f,et:x.et||c.clima,cat:x.cat||"",lugar:x.lugar||"",cont:x.cont||""}:null});
 }
 function credito(f){return`<a href="${esc(f.pagina)}" target="_blank" rel="noopener">${esc(f.autor)}</a> · ${esc(f.licencia)} · Wikimedia Commons`}
 const alt=e=>`${fmt(e.z||0,0)} m`;
@@ -327,7 +332,9 @@ function fotoPara(e,tipo,usadas){
   const libres=fs.filter(f=>!usadas.has(f.src)),base=libres.length?libres:fs;
   const f=barajar(base.slice(0,3))[0];usadas.add(f.src);return f;
 }
-const etiquetaFoto=(f,e)=>`<div class="etiq"><span class="etTipo">${esc(f.et)}</span>${e?`<span class="etAlt">🌡️ Estación a ${alt(e)}</span>`:""}</div>`;
+/* Categoría general del paisaje (aclara nombres regionales como Puna o Fynbos) */
+const catFoto=f=>f&&f.cat?`<span class="etCat">${esc(f.cat)}</span>`:"";
+const etiquetaFoto=(f,e)=>`<div class="etiq"><span class="etNom"><span class="etTipo">${esc(f.et)}</span>${catFoto(f)}</span>${e?`<span class="etAlt">🌡️ Estación a ${alt(e)}</span>`:""}</div>`;
 
 /* ---------- Partida ---------- */
 const CFG={ambito:"esp",paisaje:"vegetacion",modo:"foto",rondas:"10"};let G=null;
@@ -365,7 +372,7 @@ function ronda(){
   }else{
     $("enunciado").textContent=`¿Qué ${nomTipo} corresponde a este climograma?`;
     $("estimulo").innerHTML=`<div class="etiq"><span class="etTipo">📊 Climograma misterioso</span><span class="etAlt">⛰️ ${alt(e)}</span></div>`+climogramaSVG(e.T,e.P)+tablaDatos(e.T,e.P);
-    $("respuestas").innerHTML=G.opc.map((o,i)=>{const f=o===e?G.foto:fotoPara(o,tipo,G.fotosUsadas);o._f=f;return`<button class="resp" data-i="${i}"><span class="letra">${"ABCD"[i]}</span><div class="etiqMini">${esc(f.et)}</div><img src="${esc(f.src)}" alt="${esc(f.et)}"><div class="porque"></div></button>`}).join("");
+    $("respuestas").innerHTML=G.opc.map((o,i)=>{const f=o===e?G.foto:fotoPara(o,tipo,G.fotosUsadas);o._f=f;return`<button class="resp" data-i="${i}"><span class="letra">${"ABCD"[i]}</span><div class="etiqMini">${esc(f.et)}${f.cat?`<span class="etCatMini">${esc(f.cat)}</span>`:""}</div><img src="${esc(f.src)}" alt="${esc(f.et)}"><div class="porque"></div></button>`}).join("");
   }
 }
 function responder(i){
@@ -405,7 +412,7 @@ function revelar(pts){
    </div>
    <div class="revTarj">
      <div class="tarj"><h3>🌳 ${esc(c.veg)}</h3><p>${esc(c.pv)}</p></div>
-     <div class="tarj"><h3>🚜 ${esc(c.agr)}</h3><p>${esc(c.pa)}</p>${otra?`<div class="mini"><img src="${esc(otra.src)}" alt="${esc(otra.et)}"><small>${esc(otra.et)}${otra.lugar?" · "+esc(otra.lugar):""}<br>${credito(otra)}</small></div>`:""}</div>
+     <div class="tarj"><h3>🚜 ${esc(c.agr)}</h3><p>${esc(c.pa)}</p>${otra?`<div class="mini"><img src="${esc(otra.src)}" alt="${esc(otra.et)}"><small>${esc(otra.et)}${otra.cat?" ("+esc(otra.cat.charAt(0).toLowerCase()+otra.cat.slice(1))+")":""}${otra.lugar?" · "+esc(otra.lugar):""}<br>${credito(otra)}</small></div>`:""}</div>
    </div>
    <p class="nota">Datos climáticos: ${esc(e.src)} · ${esc(e.per)}. ${c.amb==="mundo"?"Biomas: RESOLVE Ecoregions 2017 (Dinerstein et al.), capa BIOMAS de ANAMBRO. ":c.amb==="can"?"Pisos: Mapa de Vegetación Potencial de Canarias (GRAFCAN). ":""}Fotografías: Wikimedia Commons. Mapa: Esri, Maxar, Earthstar Geographics.</p>`;
   $("velo").classList.add("on");$("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
@@ -446,6 +453,58 @@ $("respuestas").addEventListener("click",ev=>{const b=ev.target.closest(".resp")
   $("carga").textContent=`${EST.length} estaciones · ${nv} fotos de vegetación y ${na} de paisaje agrario en ${CLIMAS.length} paisajes.`;
   $("btnEmpezar").disabled=false;$("btnEmpezar").textContent="▶ Empezar partida";
   window.__paisajes={EST,CLIMAS};
+})();
+</script>
+<style id="anSalidaCss">
+/* ===== Salir de la partida y volver al menú de Juegos ===== */
+.anSalida{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+header .marcador[style*="flex"] ~ .anSalida{margin-left:0}
+.anSalida button{font:inherit;font-size:15px;font-weight:700;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:6px 14px;min-height:38px;cursor:pointer;white-space:nowrap}
+.anSalida button:hover{background:rgba(255,255,255,.28)}
+.anSalida button[hidden]{display:none}
+</style>
+<script>
+/* ANAMBRO · Terminar la partida en cualquier momento y volver al menú «Juegos» (2026-11-19).
+   «Terminar partida» vuelve a la pantalla de opciones conservando las que estaban elegidas. */
+(function(){
+  const $=id=>document.getElementById(id);
+  const head=document.querySelector("header");if(!head||$("anSalida"))return;
+  const P=window.parent!==window?window.parent:null;
+  let enAnambro=false;try{enAnambro=!!(P&&typeof P.closeAnambroExplanation==="function")}catch(e){}
+  const caja=document.createElement("div");caja.className="anSalida";caja.id="anSalida";
+  caja.innerHTML='<button type="button" id="anTerminar" hidden title="Abandona la partida y vuelve a las opciones">⏹ Terminar partida</button>'+
+    (enAnambro?'<button type="button" id="anMenuJuegos" title="Cierra el juego y abre el menú Juegos de ANAMBRO">🎮 Menú de juegos</button>':"");
+  head.appendChild(caja);
+  const CLAVE="anambro.juego.opciones."+location.pathname+location.search;
+  function guardar(){
+    const o={chips:{},sel:{}};
+    document.querySelectorAll(".chips[data-grupo]").forEach(g=>{o.chips[g.dataset.grupo]=[...g.querySelectorAll(".chip.on")].map(c=>c.dataset.v)});
+    document.querySelectorAll("#inicio select[id]").forEach(s=>{o.sel[s.id]=s.value});
+    try{sessionStorage.setItem(CLAVE,JSON.stringify(o))}catch(e){}
+  }
+  function restaurar(){
+    let o=null;try{o=JSON.parse(sessionStorage.getItem(CLAVE)||"null");sessionStorage.removeItem(CLAVE)}catch(e){}
+    if(!o)return;
+    for(const g in o.chips||{})for(const v of o.chips[g]){const c=document.querySelector(`.chips[data-grupo="${g}"] .chip[data-v="${v}"]`);if(c&&!c.classList.contains("on")&&!c.disabled)c.click()}
+    const ids=Object.keys(o.sel||{});let i=0;
+    (function sigSel(){if(i>=ids.length)return;const s=$(ids[i]),v=o.sel[ids[i]];i++;
+      if(s&&[...s.options].some(x=>x.value===v)&&s.value!==v){s.value=v;s.dispatchEvent(new Event("change",{bubbles:true}))}
+      setTimeout(sigSel,150)})();
+  }
+  $("anTerminar").onclick=()=>{guardar();location.reload()};
+  if($("anMenuJuegos"))$("anMenuJuegos").onclick=()=>{
+    try{
+      const D=P.document,pan=D.getElementById("territorialGamePanel");
+      P.closeAnambroExplanation();
+      if(pan&&pan.classList.contains("hidden")&&typeof P.togglePanel==="function")P.togglePanel("territorialGamePanel");
+    }catch(e){console.warn("Menú de juegos",e)}
+  };
+  // «Terminar partida» solo se ve mientras hay una partida en marcha
+  const juego=$("juego"),ver=()=>{$("anTerminar").hidden=!juego||getComputedStyle(juego).display==="none"};
+  if(juego)new MutationObserver(ver).observe(juego,{attributes:true,attributeFilter:["style","class"]});
+  ver();
+  // se restauran cuando el juego ha terminado de cargar sus datos (botón «Empezar» activo)
+  let n=0;(function espera(){const b=$("btnEmpezar");if((b&&!b.disabled)||n++>300)setTimeout(restaurar,150);else setTimeout(espera,200)})();
 })();
 </script>
 </body>

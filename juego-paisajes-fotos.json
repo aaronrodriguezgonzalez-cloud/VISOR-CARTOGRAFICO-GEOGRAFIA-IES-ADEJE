@@ -2,6 +2,7 @@
  "_instrucciones": [
   "Fotos del juego Paisaje y clima, agrupadas por categoría: clima de la tabla PAU (España), piso de vegetación potencial de GRAFCAN (Canarias) y bioma RESOLVE de la capa BIOMAS (mundo).",
   "Cada foto: f = nombre del archivo en Wikimedia Commons (o su enlace); et = tipo de paisaje que se muestra encima de la foto; lugar = dónde se tomó; cont = continente (sirve para elegir, si se puede, una foto del mismo continente que la estación).",
+  "cat = categoría general de la formación vegetal o del paisaje agrario, que se muestra en letra pequeña debajo de et (aclara nombres regionales como Puna, Páramo o Fynbos; no debe nombrar el clima).",
   "Criterio: la foto debe mostrar la formación vegetal o el paisaje agrario típico (un pinar, no un pino), con licencia libre."
  ],
  "categorias": {
@@ -11,66 +12,77 @@
     {
      "f": "Forest covered hills on Yakushima.jpg",
      "et": "Bosque templado siempreverde",
+     "cat": "Bosque templado perennifolio de hoja ancha",
      "lugar": "Yakushima (Japón)",
      "cont": "Asia"
     },
     {
      "f": "Foret du cranou (3).jpg",
      "et": "Bosque caducifolio atlántico",
+     "cat": "Bosque caducifolio",
      "lugar": "Bosque de Cranou (Francia)",
      "cont": "Europa"
     },
     {
      "f": "Gfp-illinois-starved-rock-state-park-late-afternoon-sun.jpg",
      "et": "Bosque caducifolio",
+     "cat": "Bosque caducifolio",
      "lugar": "Starved Rock (Illinois, EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Huy, red beech forest in the Huy Mountains.jpg",
      "et": "Hayedo",
+     "cat": "Bosque caducifolio (hayas)",
      "lugar": "Montes Huy (Alemania)",
      "cont": "Europa"
     },
     {
      "f": "Beech forest, Ehrenbach, foliage against sun.jpg",
      "et": "Hayedo en otoño",
+     "cat": "Bosque caducifolio (hayas)",
      "lugar": "Ehrenbach (Alemania)",
      "cont": "Europa"
     },
     {
      "f": "Ancient Beech Forest in the Jasmund National Park.jpg",
      "et": "Hayedo",
+     "cat": "Bosque caducifolio (hayas)",
      "lugar": "P. N. Jasmund (Alemania)",
      "cont": "Europa"
     },
     {
      "f": "Valdivian temperate rainforest.JPG",
      "et": "Bosque templado lluvioso valdiviano",
+     "cat": "Bosque templado perennifolio",
      "lugar": "Sur de Chile",
      "cont": "América del Sur"
     },
     {
      "f": "Temperate Rainforest, Lake St Clair Cradle Mountain National Park, Tasmania.jpg",
      "et": "Bosque templado lluvioso",
+     "cat": "Bosque templado perennifolio",
      "lugar": "Cradle Mountain (Tasmania, Australia)",
      "cont": "Oceanía"
     },
     {
      "f": "2024-10-22 11 13 56 Autumn view south along the Appalachian Trail within Abram S. Hewitt State Forest in West Milford Township, Passaic County, New Jersey.jpg",
      "et": "Bosque caducifolio en otoño",
+     "cat": "Bosque caducifolio",
      "lugar": "Apalaches (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Forest of deciduous broad-leaved tree in Yoro Mountains.jpg",
      "et": "Bosque caducifolio",
+     "cat": "Bosque caducifolio",
      "lugar": "Montes Yoro (Japón)",
      "cont": "Asia"
     },
     {
      "f": "Hakkoda Mountains, Part II- Foothills - Hakkoda6915.jpg",
      "et": "Bosque caducifolio en otoño",
+     "cat": "Bosque caducifolio",
      "lugar": "Montes Hakkoda (Japón)",
      "cont": "Asia"
     }
@@ -79,12 +91,14 @@
     {
      "f": "知覧町茶畑 20150922 - panoramio.jpg",
      "et": "Plantaciones de té",
+     "cat": "Cultivo leñoso (arbusto del té)",
      "lugar": "Chiran (Japón)",
      "cont": "Asia"
     },
     {
      "f": "Tea Plantation in Nansatsu Plateau.jpg",
      "et": "Plantaciones de té",
+     "cat": "Cultivo leñoso (arbusto del té)",
      "lugar": "Kagoshima (Japón)",
      "cont": "Asia"
     }
@@ -96,48 +110,56 @@
     {
      "f": "NorwegianScotsPineForest Os Hordaland.jpg",
      "et": "Pinar costero",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Os (Noruega)",
      "cont": "Europa"
     },
     {
      "f": "Лес из закарпатской ели смереки - Forest of the Carpathian spruce Smereka (10233566135).jpg",
      "et": "Bosque de abeto rojo (pícea)",
+     "cat": "Bosque de coníferas (píceas)",
      "lugar": "Cárpatos (Ucrania)",
      "cont": "Europa"
     },
     {
      "f": "Carpathian coniferous forest (54015526818).jpg",
      "et": "Bosque de coníferas",
+     "cat": "Bosque de coníferas",
      "lugar": "Cárpatos",
      "cont": "Europa"
     },
     {
      "f": "MKr344756 Bergmischwald (Allgäu).jpg",
      "et": "Bosque mixto de montaña con coníferas",
+     "cat": "Bosque mixto (coníferas y frondosas)",
      "lugar": "Allgäu (Alemania)",
      "cont": "Europa"
     },
     {
      "f": "Herbst am Watzmann.jpg",
      "et": "Bosque de coníferas de montaña",
+     "cat": "Bosque de coníferas",
      "lugar": "Watzmann, Alpes (Alemania)",
      "cont": "Europa"
     },
     {
      "f": "Forest Canyon, Rocky Mountain National Park.jpg",
      "et": "Bosque de coníferas de montaña",
+     "cat": "Bosque de coníferas",
      "lugar": "Montañas Rocosas (Colorado, EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Fir forest, Teberda Valley, Karachay-Cherkessia.jpg",
      "et": "Abetal",
+     "cat": "Bosque de coníferas (abetos)",
      "lugar": "Valle de Teberda, Cáucaso (Rusia)",
      "cont": "Europa"
     },
     {
      "f": "Fir and beech forest in Kurdzhips Canyon, Mezmay, Western Caucasus, Russia.jpg",
      "et": "Bosque de abeto y haya",
+     "cat": "Bosque mixto (coníferas y frondosas)",
      "lugar": "Cáucaso occidental (Rusia)",
      "cont": "Europa"
     }
@@ -146,12 +168,14 @@
     {
      "f": "Geiranger fjord, abandoned farm, July 2013.jpg",
      "et": "Granja de fiordo",
+     "cat": "Prados y ganadería",
      "lugar": "Geiranger (Noruega)",
      "cont": "Europa"
     },
     {
      "f": "Fjord Farm Houses - 2013.08 - panoramio.jpg",
      "et": "Granjas de fiordo",
+     "cat": "Prados y ganadería",
      "lugar": "Noruega",
      "cont": "Europa"
     }
@@ -163,48 +187,56 @@
     {
      "f": "Arctic tundra in July.jpg",
      "et": "Tundra en verano",
+     "cat": "Vegetación baja sin árboles (musgos y líquenes)",
      "lugar": "Alaska (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Alaska tundra and thaw lakes.jpg",
      "et": "Tundra con lagos de deshielo",
+     "cat": "Vegetación baja sin árboles (musgos y líquenes)",
      "lugar": "Alaska (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Nunavut tundra -a.jpg",
      "et": "Tundra ártica",
+     "cat": "Vegetación baja sin árboles (musgos y líquenes)",
      "lugar": "Nunavut (Canadá)",
      "cont": "América del Norte"
     },
     {
      "f": "Truelove Lowlands Devon Island.jpg",
      "et": "Tundra ártica",
+     "cat": "Vegetación baja sin árboles (musgos y líquenes)",
      "lugar": "Isla Devon (Nunavut, Canadá)",
      "cont": "América del Norte"
     },
     {
      "f": "Tundra Stream (52641448490).jpg",
      "et": "Tundra de valle glaciar",
+     "cat": "Vegetación baja sin árboles (musgos y líquenes)",
      "lugar": "Isla de Baffin (Canadá)",
      "cont": "América del Norte"
     },
     {
      "f": "The North Slope of Alaska.jpg",
      "et": "Tundra ártica",
+     "cat": "Vegetación baja sin árboles (musgos y líquenes)",
      "lugar": "North Slope (Alaska, EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Siberian tundra 02.jpg",
      "et": "Tundra arbustiva",
+     "cat": "Vegetación baja sin árboles (musgos y líquenes)",
      "lugar": "Siberia (Rusia)",
      "cont": "Asia"
     },
     {
      "f": "Tundra in Siberia.jpg",
      "et": "Tundra con lagos",
+     "cat": "Vegetación baja sin árboles (musgos y líquenes)",
      "lugar": "Siberia (Rusia)",
      "cont": "Asia"
     }
@@ -217,90 +249,105 @@
     {
      "f": "Rub al Khali 002.JPG",
      "et": "Desierto de dunas (erg)",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Rub al-Jali (Arabia Saudí)",
      "cont": "Asia"
     },
     {
      "f": "Ar-Rub' Al-Khali (Oman) kz01.jpg",
      "et": "Desierto de dunas (erg)",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Rub al-Jali (Omán)",
      "cont": "Asia"
     },
     {
      "f": "Paisaje cerca de Calama, Chile, 2016-02-01, DD 83.JPG",
      "et": "Desierto de Atacama",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Calama (Chile)",
      "cont": "América del Sur"
     },
     {
      "f": "Taklamakan-d40.jpg",
      "et": "Desierto de dunas",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Taklamakán (China)",
      "cont": "Asia"
     },
     {
      "f": "Gobi, krajobraz pustyni (23).jpg",
      "et": "Desierto pedregoso (Gobi)",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Gobi (Mongolia)",
      "cont": "Asia"
     },
     {
      "f": "Western Desert, Sahara Desert, Egypt.jpg",
      "et": "Desierto rocoso y de arena",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Desierto Occidental (Egipto)",
      "cont": "África"
     },
     {
      "f": "Dunes of Morocco-Sahara.jpg",
      "et": "Desierto de dunas (erg)",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Merzouga, Sáhara (Marruecos)",
      "cont": "África"
     },
     {
      "f": "Libya 4985 Tadrart Acacus Luca Galuzzi 2007.jpg",
      "et": "Desierto de dunas y roca",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Tadrart Acacus, Sáhara (Libia)",
      "cont": "África"
     },
     {
      "f": "Chihuahuan Desert 01.jpg",
      "et": "Matorral desértico de gobernadora",
+     "cat": "Matorral xerófilo disperso",
      "lugar": "Desierto de Chihuahua (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Región Centro Desierto de Coahuila (México).jpg",
      "et": "Matorral desértico",
+     "cat": "Matorral xerófilo disperso",
      "lugar": "Coahuila (México)",
      "cont": "América del Norte"
     },
     {
      "f": "2013-07-07 15 41 55 Great Basin Sagebrush steppe along Three Creek Road, in Owyhee County, southwestern Idaho.jpg",
      "et": "Estepa de artemisa",
+     "cat": "Estepa arbustiva (matas bajas)",
      "lugar": "Gran Cuenca (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Succulent Karoo of Biedow River Valley (39918214640).jpg",
      "et": "Karoo suculento",
+     "cat": "Matorral de plantas suculentas",
      "lugar": "Valle del Biedouw (Sudáfrica)",
      "cont": "África"
     },
     {
      "f": "Suráfrica, Goegap 01.jpg",
      "et": "Matorral suculento",
+     "cat": "Matorral de plantas suculentas",
      "lugar": "Goegap, Namaqualand (Sudáfrica)",
      "cont": "África"
     },
     {
      "f": "Karro PICT0936.JPG",
      "et": "Karoo con árboles carcaj",
+     "cat": "Matorral de plantas suculentas",
      "lugar": "Karoo (Sudáfrica)",
      "cont": "África"
     },
     {
      "f": "Paisaje en el desierto de Atacama, Chile, 2016-02-06, DD 16.JPG",
      "et": "Desierto de Atacama",
+     "cat": "Desierto (vegetación casi ausente)",
      "lugar": "Atacama (Chile)",
      "cont": "América del Sur"
     }
@@ -309,24 +356,28 @@
     {
      "f": "Crop fields in Saudi Arabia Dec 02 2012.jpg",
      "et": "Regadío circular con agua fósil",
+     "cat": "Cultivo de regadío",
      "lugar": "Arabia Saudí",
      "cont": "Asia"
     },
     {
      "f": "Oasis on Highway G312 Xinjiang, China - panoramio.jpg",
      "et": "Oasis",
+     "cat": "Cultivo de regadío (oasis)",
      "lugar": "Xinjiang (China)",
      "cont": "Asia"
     },
     {
      "f": "Turpan-jiaohe-oasis-lateral-d01.jpg",
      "et": "Oasis de Turfán",
+     "cat": "Cultivo de regadío (oasis)",
      "lugar": "Xinjiang (China)",
      "cont": "Asia"
     },
     {
      "f": "Camels in Gobi Desert 01.jpg",
      "et": "Pastoreo nómada de camellos",
+     "cat": "Ganadería nómada",
      "lugar": "Gobi (Mongolia)",
      "cont": "Asia"
     }
@@ -338,72 +389,84 @@
     {
      "f": "Banksia menziesii habitat (7344835952).jpg",
      "et": "Matorral de banksias (kwongan)",
+     "cat": "Matorral esclerófilo",
      "lugar": "Perth (Australia)",
      "cont": "Oceanía"
     },
     {
      "f": "View up slopes of Table Mountain to summit.jpg",
      "et": "Fynbos",
+     "cat": "Matorral esclerófilo",
      "lugar": "Ciudad del Cabo (Sudáfrica)",
      "cont": "África"
     },
     {
      "f": "Landscape near Athens - 7.jpg",
      "et": "Garriga (frígana)",
+     "cat": "Matorral esclerófilo",
      "lugar": "Ática (Grecia)",
      "cont": "Europa"
     },
     {
      "f": "Φρύγανα στο Όρος Κακόβουλο (Κύθνος).jpg",
      "et": "Frígana",
+     "cat": "Matorral esclerófilo",
      "lugar": "Kythnos (Grecia)",
      "cont": "Europa"
     },
     {
      "f": "California Coastal Sage Scrub and Chaparral in Wildomar 1.jpg",
      "et": "Chaparral y matorral costero",
+     "cat": "Matorral esclerófilo",
      "lugar": "Wildomar (California, EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Chaparral1.jpg",
      "et": "Chaparral",
+     "cat": "Matorral esclerófilo",
      "lugar": "California (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Chaparral-covered hills near the Sonoma–Mendocino county line, California.jpg",
      "et": "Chaparral y encinar",
+     "cat": "Matorral y bosque esclerófilo",
      "lugar": "Sonoma (California, EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Chile, Región Metropolitana, Sabana mediterránea (28136853560).jpg",
      "et": "Espinal (sabana mediterránea)",
+     "cat": "Bosque abierto de árboles espinosos (acacias)",
      "lugar": "Región Metropolitana (Chile)",
      "cont": "América del Sur"
     },
     {
      "f": "Bosque esclerófilo, Chile 001 — Inao Vásquez.jpg",
      "et": "Bosque esclerófilo (matorral chileno)",
+     "cat": "Bosque esclerófilo",
      "lugar": "Chile central",
      "cont": "América del Sur"
     },
     {
      "f": "Vor-Vlacherna Arcadia Greece.jpg",
      "et": "Maquia y encinas",
+     "cat": "Matorral y bosque esclerófilo",
      "lugar": "Arcadia (Grecia)",
      "cont": "Europa"
     },
     {
      "f": "MAL Mallee 1 Clyde Hill NR III-2011.jpg",
      "et": "Mallee",
+     "cat": "Matorral esclerófilo (eucaliptos)",
      "lugar": "Australia Meridional",
      "cont": "Oceanía"
     },
     {
      "f": "Garrigue à La Couronne (commune de Martigues, Bouches-du-Rhône, France).JPG",
      "et": "Garriga",
+     "cat": "Matorral esclerófilo",
      "lugar": "Martigues (Francia)",
      "cont": "Europa"
     }
@@ -412,24 +475,28 @@
     {
      "f": "Wheatbelt panorama - JarrahTree.jpg",
      "et": "Campos de trigo",
+     "cat": "Cultivo herbáceo (cereal)",
      "lugar": "Wheatbelt (Australia)",
      "cont": "Oceanía"
     },
     {
      "f": "Stellenbosch vineyards.jpg",
      "et": "Viñedos",
+     "cat": "Cultivo leñoso (vid)",
      "lugar": "Stellenbosch (Sudáfrica)",
      "cont": "África"
     },
     {
      "f": "Naxos Olive Groves.jpg",
      "et": "Olivar",
+     "cat": "Cultivo leñoso (olivo)",
      "lugar": "Naxos (Grecia)",
      "cont": "Europa"
     },
     {
      "f": "Olive grove on Mongonisi.jpg",
      "et": "Olivar",
+     "cat": "Cultivo leñoso (olivo)",
      "lugar": "Paxos (Grecia)",
      "cont": "Europa"
     }
@@ -441,66 +508,77 @@
     {
      "f": "Mongolian steppe.jpg",
      "et": "Estepa",
+     "cat": "Pastizal sin árboles",
      "lugar": "Mongolia",
      "cont": "Asia"
     },
     {
      "f": "Grasslands-menggu.jpg",
      "et": "Estepa",
+     "cat": "Pastizal sin árboles",
      "lugar": "Mongolia Interior (China)",
      "cont": "Asia"
     },
     {
      "f": "Північний Лісостеп (Україна, село Витачів).jpg",
      "et": "Estepa arbolada (lesostep)",
+     "cat": "Pastizal con bosquetes",
      "lugar": "Vytachiv (Ucrania)",
      "cont": "Europa"
     },
     {
      "f": "Shortgrass prairie P6060630.jpg",
      "et": "Pradera de hierba corta",
+     "cat": "Pastizal sin árboles",
      "lugar": "Grandes Llanuras (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Western Shortgrass Prairie, Dawes County, Nebraska.jpg",
      "et": "Pradera de hierba corta",
+     "cat": "Pastizal sin árboles",
      "lugar": "Nebraska (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Steppe of western Kazakhstan in the early spring.jpg",
      "et": "Estepa",
+     "cat": "Pastizal sin árboles",
      "lugar": "Oeste de Kazajistán",
      "cont": "Asia"
     },
     {
      "f": "Kazakhstan steppe Zhambyl Province (4).jpg",
      "et": "Estepa",
+     "cat": "Pastizal sin árboles",
      "lugar": "Zhambyl (Kazajistán)",
      "cont": "Asia"
     },
     {
      "f": "Morning on the Patagonian Steppe.jpg",
      "et": "Estepa patagónica",
+     "cat": "Pastizal sin árboles",
      "lugar": "Patagonia (Argentina)",
      "cont": "América del Sur"
     },
     {
      "f": "Patagonian Steppe (3260842962).jpg",
      "et": "Estepa patagónica",
+     "cat": "Pastizal sin árboles",
      "lugar": "Patagonia (Argentina)",
      "cont": "América del Sur"
     },
     {
      "f": "Spring Ukrainian steppe - panoramio.jpg",
      "et": "Estepa arbolada",
+     "cat": "Pastizal con bosquetes",
      "lugar": "Ucrania",
      "cont": "Europa"
     },
     {
      "f": "Mongolian nature steppe and mountain.jpg",
      "et": "Estepa",
+     "cat": "Pastizal sin árboles",
      "lugar": "Mongolia",
      "cont": "Asia"
     }
@@ -509,24 +587,28 @@
     {
      "f": "Cumulonimbus storm clouds over sunflower field Ukraine.jpg",
      "et": "Campos de girasol",
+     "cat": "Cultivo herbáceo (oleaginosa)",
      "lugar": "Ucrania",
      "cont": "Europa"
     },
     {
      "f": "Sunflower field in Kosharka.jpg",
      "et": "Campos de girasol",
+     "cat": "Cultivo herbáceo (oleaginosa)",
      "lugar": "Kosharka (Ucrania)",
      "cont": "Europa"
     },
     {
      "f": "Corn fields near Royal, Illinois (cropped).jpg",
      "et": "Campos de maíz (Corn Belt)",
+     "cat": "Cultivo herbáceo (cereal)",
      "lugar": "Illinois (EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Settlement on the Mongolian steppes (2541042210).jpg",
      "et": "Ganadería nómada",
+     "cat": "Ganadería nómada",
      "lugar": "Mongolia",
      "cont": "Asia"
     }
@@ -538,90 +620,105 @@
     {
      "f": "Amazon rainforest manaus APA Margem Esquerda do Rio Negro - panoramio.jpg",
      "et": "Selva amazónica",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Manaos (Brasil)",
      "cont": "América del Sur"
     },
     {
      "f": "Amazon Manaus forest.jpg",
      "et": "Selva amazónica",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Manaos (Brasil)",
      "cont": "América del Sur"
     },
     {
      "f": "Tamshiyacu Tahuayo Regional Conservation Area Iquitos Amazon Rainforest Peru.jpg",
      "et": "Selva amazónica",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Iquitos (Perú)",
      "cont": "América del Sur"
     },
     {
      "f": "View upslope from Catchment Path on Bukit Timah Hill, Singapore.jpg",
      "et": "Selva tropical",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Bukit Timah (Singapur)",
      "cont": "Asia"
     },
     {
      "f": "Montane rainforest, Montagne d'Ambre National Park, Madagascar (15757731991).jpg",
      "et": "Selva tropical de montaña",
+     "cat": "Bosque tropical de montaña perennifolio",
      "lugar": "Montagne d'Ambre (Madagascar)",
      "cont": "África"
     },
     {
      "f": "Rivière dans la forêt humide de Madagascar (87130).jpg",
      "et": "Selva tropical húmeda",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Madagascar",
      "cont": "África"
     },
     {
      "f": "Wuyishan naturereserve.jpg",
      "et": "Bosque subtropical siempreverde",
+     "cat": "Bosque subtropical perennifolio",
      "lugar": "Montes Wuyi (China)",
      "cont": "Asia"
     },
     {
      "f": "Amazon rainforest treetops in Tena, Ecuador.jpg",
      "et": "Selva amazónica",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Tena (Ecuador)",
      "cont": "América del Sur"
     },
     {
      "f": "Amazon rainforest near Puerto Maldonado.jpg",
      "et": "Selva amazónica",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Puerto Maldonado (Perú)",
      "cont": "América del Sur"
     },
     {
      "f": "Primary rainforest in Sangha Trinational.jpg",
      "et": "Selva ecuatorial",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Sangha (Congo)",
      "cont": "África"
     },
     {
      "f": "Rainforest - Ituri (20874628148).jpg",
      "et": "Selva ecuatorial",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Ituri (R. D. del Congo)",
      "cont": "África"
     },
     {
      "f": "Borneo rainforest.jpg",
      "et": "Selva tropical",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Borneo (Malasia)",
      "cont": "Asia"
     },
     {
      "f": "BorneoRainforest DSC 9267.JPG",
      "et": "Selva tropical",
+     "cat": "Bosque tropical denso perennifolio",
      "lugar": "Borneo (Malasia)",
      "cont": "Asia"
     },
     {
      "f": "Rwenzori tropical montane forest.jpg",
      "et": "Selva tropical de montaña",
+     "cat": "Bosque tropical de montaña perennifolio",
      "lugar": "Rwenzori (Uganda)",
      "cont": "África"
     },
     {
      "f": "Cerro Chato volcano path through the lush cloud forest Fortuna Costa Rica 20Dec2007.jpg",
      "et": "Bosque nuboso",
+     "cat": "Bosque tropical de montaña perennifolio",
      "lugar": "Volcán Cerro Chato (Costa Rica)",
      "cont": "América del Norte"
     }
@@ -630,36 +727,42 @@
     {
      "f": "Kunak-District Sabah Oil-palm-plantation-01.jpg",
      "et": "Plantación de palma aceitera",
+     "cat": "Plantación (cultivo leñoso)",
      "lugar": "Sabah (Malasia)",
      "cont": "Asia"
     },
     {
      "f": "Anja Reserve 02.jpg",
      "et": "Arrozales en terrazas",
+     "cat": "Cultivo inundado de arroz en terrazas",
      "lugar": "Madagascar",
      "cont": "África"
     },
     {
      "f": "Ancien lac royal aménagé en rizière entre Fonohasina et Ambohidrabiby.JPG",
      "et": "Arrozales",
+     "cat": "Cultivo inundado (arroz)",
      "lugar": "Madagascar",
      "cont": "África"
     },
     {
      "f": "SB088 Tobacco fied Viñales.jpg",
      "et": "Tabacales",
+     "cat": "Cultivo herbáceo (tabaco)",
      "lugar": "Viñales (Cuba)",
      "cont": "América del Norte"
     },
     {
      "f": "Bangladesh Village Landscape (36143248590).jpg",
      "et": "Arrozales y aldea",
+     "cat": "Cultivo inundado (arroz)",
      "lugar": "Bangladés",
      "cont": "Asia"
     },
     {
      "f": "Paddy fields on the outskirts of West Bengal, enroute to Orissa.jpg",
      "et": "Arrozales del monzón",
+     "cat": "Cultivo inundado (arroz)",
      "lugar": "Bengala Occidental (India)",
      "cont": "Asia"
     }
@@ -671,84 +774,98 @@
     {
      "f": "Savanna vegetation.jpg",
      "et": "Sabana",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "África occidental",
      "cont": "África"
     },
     {
      "f": "SudanRegionGambia.jpg",
      "et": "Sabana sudanesa",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Gambia",
      "cont": "África"
     },
     {
      "f": "Bush in Mataranka, Northern Territory, Australia.jpg",
      "et": "Sabana arbolada",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Mataranka (Australia)",
      "cont": "Oceanía"
     },
     {
      "f": "Sahel forest near Kayes Mali.jpg",
      "et": "Sabana saheliana",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Kayes (Malí)",
      "cont": "África"
     },
     {
      "f": "Acacia Tree Savanna Serengeti Nov26 A7CR 16374.jpg",
      "et": "Sabana de acacias",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Serengeti (Tanzania)",
      "cont": "África"
     },
     {
      "f": "Serengeti-Landscape-2012.JPG",
      "et": "Sabana de acacias",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Serengeti (Tanzania)",
      "cont": "África"
     },
     {
      "f": "Cerrado - Parque Nacional Chapada dos veadeiros.jpg",
      "et": "Cerrado (sabana arbolada)",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Chapada dos Veadeiros (Brasil)",
      "cont": "América del Sur"
     },
     {
      "f": "Cerrado landscape.jpg",
      "et": "Cerrado",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Brasil",
      "cont": "América del Sur"
     },
     {
      "f": "Llanos del Guarico.jpg",
      "et": "Sabana de los Llanos",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Guárico (Venezuela)",
      "cont": "América del Sur"
     },
     {
      "f": "Llanos, Elorza, Venezuela (Unsplash).jpg",
      "et": "Sabana de los Llanos",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Elorza (Venezuela)",
      "cont": "América del Sur"
     },
     {
      "f": "Tabletop country of the Katherine Flora Basin.jpg",
      "et": "Sabana arbolada tropical",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Katherine (Australia)",
      "cont": "Oceanía"
     },
     {
      "f": "Miombo in Niassa Plateau.JPG",
      "et": "Bosque abierto de miombo",
+     "cat": "Bosque abierto caducifolio",
      "lugar": "Meseta de Niassa (Mozambique)",
      "cont": "África"
     },
     {
      "f": "Flickr - ggallice - Miombo woodland.jpg",
      "et": "Bosque abierto de miombo",
+     "cat": "Bosque abierto caducifolio",
      "lugar": "África austral",
      "cont": "África"
     },
     {
      "f": "Chaco Boreal Paraguay.jpg",
      "et": "Sabana del Chaco",
+     "cat": "Pastizal con árboles dispersos",
      "lugar": "Chaco Boreal (Paraguay)",
      "cont": "América del Sur"
     }
@@ -757,12 +874,14 @@
     {
      "f": "Niger millet Koremairwa 1214.jpg",
      "et": "Campos de mijo",
+     "cat": "Cultivo herbáceo (cereal)",
      "lugar": "Níger",
      "cont": "África"
     },
     {
      "f": "Millet farm.jpg",
      "et": "Campos de mijo",
+     "cat": "Cultivo herbáceo (cereal)",
      "lugar": "África occidental",
      "cont": "África"
     }
@@ -774,42 +893,49 @@
     {
      "f": "Everglades Sawgrass Prairie Moni3.JPG",
      "et": "Pradera inundable de juncia",
+     "cat": "Pastizal inundable",
      "lugar": "Everglades (Florida, EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Chibaish Marches, Iraq - An Nasiriyah.jpg",
      "et": "Marismas de Mesopotamia",
+     "cat": "Humedal de carrizos",
      "lugar": "Chibayish (Irak)",
      "cont": "Asia"
     },
     {
      "f": "The marshes of Iraq.jpg",
      "et": "Marismas de carrizo",
+     "cat": "Humedal de carrizos",
      "lugar": "Mesopotamia (Irak)",
      "cont": "Asia"
     },
     {
      "f": "Pantanal, Mato Grosso, Brasil.jpg",
      "et": "Llanura inundable del Pantanal",
+     "cat": "Pastizal inundable",
      "lugar": "Mato Grosso (Brasil)",
      "cont": "América del Sur"
     },
     {
      "f": "Barotse Floodplain near Mongu city aerial panoramic view.jpg",
      "et": "Llanura inundable",
+     "cat": "Pastizal inundable",
      "lugar": "Barotse (Zambia)",
      "cont": "África"
     },
     {
      "f": "A great view of the flood plains of Baroste.jpg",
      "et": "Llanura inundable",
+     "cat": "Pastizal inundable",
      "lugar": "Barotse (Zambia)",
      "cont": "África"
     },
     {
      "f": "Okavango Delta, Botswana3.jpg",
      "et": "Delta interior inundable",
+     "cat": "Humedal y pastizal inundable",
      "lugar": "Delta del Okavango (Botsuana)",
      "cont": "África"
     }
@@ -822,54 +948,63 @@
     {
      "f": "Romanceor Altiplano 1.jpg",
      "et": "Puna (altiplano)",
+     "cat": "Pastizal de alta montaña",
      "lugar": "Altiplano (Bolivia)",
      "cont": "América del Sur"
     },
     {
      "f": "La Puna 1994 01.jpg",
      "et": "Puna",
+     "cat": "Pastizal de alta montaña",
      "lugar": "Andes",
      "cont": "América del Sur"
     },
     {
      "f": "Colors of Altiplano Boliviano 4340m Bolivia Luca Galuzzi 2006.jpg",
      "et": "Puna (altiplano)",
+     "cat": "Pastizal de alta montaña",
      "lugar": "Altiplano (Bolivia)",
      "cont": "América del Sur"
     },
     {
      "f": "Summer Paradise - Flickr - Jaykhuang.jpg",
      "et": "Pradera alpina de alta montaña",
+     "cat": "Pastizal de alta montaña",
      "lugar": "Meseta tibetana (China)",
      "cont": "Asia"
     },
     {
      "f": "Tigray (in explore) - Flickr - Rod Waddington.jpg",
      "et": "Pastizales de las tierras altas",
+     "cat": "Pastizal de montaña",
      "lugar": "Tigray (Etiopía)",
      "cont": "África"
     },
     {
      "f": "Dizi Highlands, Sth Ethiopia (50647997717).jpg",
      "et": "Tierras altas etíopes",
+     "cat": "Pastizal de montaña",
      "lugar": "Dizi (Etiopía)",
      "cont": "África"
     },
     {
      "f": "Tweeling hills.jpg",
      "et": "Pastizal del Highveld",
+     "cat": "Pastizal de meseta",
      "lugar": "Estado Libre (Sudáfrica)",
      "cont": "África"
     },
     {
      "f": "Paramo de oceta.jpg",
      "et": "Páramo con frailejones",
+     "cat": "Pastizal y matorral de alta montaña",
      "lugar": "Páramo de Ocetá (Colombia)",
      "cont": "América del Sur"
     },
     {
      "f": "PARAMO CHILES CUMBAL.jpg",
      "et": "Páramo",
+     "cat": "Pastizal y matorral de alta montaña",
      "lugar": "Chiles-Cumbal (Colombia-Ecuador)",
      "cont": "América del Sur"
     }
@@ -878,24 +1013,28 @@
     {
      "f": "Productive quinoa field, Uyuni, Bolivia.JPG",
      "et": "Campos de quinua",
+     "cat": "Cultivo herbáceo (pseudocereal andino)",
      "lugar": "Uyuni (Bolivia)",
      "cont": "América del Sur"
     },
     {
      "f": "The Sacred Valley, Peru-2 (8445855270).jpg",
      "et": "Andenes y cultivos del Valle Sagrado",
+     "cat": "Cultivo en terrazas (andenes)",
      "lugar": "Cuzco (Perú)",
      "cont": "América del Sur"
     },
     {
      "f": "Incan terraces at Moray and a beautiful skyline.jpg",
      "et": "Andenes incas",
+     "cat": "Cultivo en terrazas (andenes)",
      "lugar": "Moray (Perú)",
      "cont": "América del Sur"
     },
     {
      "f": "Sheep at Old Lapthal on 20240630 133525 4250M.jpg",
      "et": "Pastoreo de altura",
+     "cat": "Ganadería de montaña",
      "lugar": "Ladakh, 4.250 m (India)",
      "cont": "Asia"
     }
@@ -907,60 +1046,70 @@
     {
      "f": "Sundarban Mudflats during low tide, Sundarban Tiger Reserve, West Bengal, India 02.jpg",
      "et": "Manglar del Sundarbans",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Bengala Occidental (India)",
      "cont": "Asia"
     },
     {
      "f": "Dense Mangrove Forest of the Sundarban Tiger Reserve during High Tide, West Bengal, India 03.jpg",
      "et": "Manglar",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Sundarbans (India)",
      "cont": "Asia"
     },
     {
      "f": "Sundarban Mangrove forest 14.jpg",
      "et": "Manglar",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Sundarbans (India)",
      "cont": "Asia"
     },
     {
      "f": "Mangroves, Parnaiba River.jpg",
      "et": "Manglar",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Delta del Parnaíba (Brasil)",
      "cont": "América del Sur"
     },
     {
      "f": "Mangrove forest in Loxahatchee, Florida.jpg",
      "et": "Manglar (raíces zancudas)",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Loxahatchee (Florida, EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Mangrove forest Islamorada FL.jpg",
      "et": "Manglar",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Islamorada (Florida, EE. UU.)",
      "cont": "América del Norte"
     },
     {
      "f": "Langkawi Mangrove Forest.jpg",
      "et": "Manglar",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Langkawi (Malasia)",
      "cont": "Asia"
     },
     {
      "f": "Mangrove île du Saloum Sénégal.jpg",
      "et": "Manglar",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Sine Saloum (Senegal)",
      "cont": "África"
     },
     {
      "f": "Mangrove des îles du saloum au Sénégal 17.jpg",
      "et": "Manglar",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Sine Saloum (Senegal)",
      "cont": "África"
     },
     {
      "f": "Mangrove - Cooktown, Queensland, Australia.jpg",
      "et": "Manglar",
+     "cat": "Bosque litoral inundado por el mar",
      "lugar": "Cooktown, Queensland (Australia)",
      "cont": "Oceanía"
     }
@@ -973,24 +1122,28 @@
     {
      "f": "Pinus hartwegii forest.jpg",
      "et": "Pinar de montaña tropical",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Centro de México",
      "cont": "América del Norte"
     },
     {
      "f": "Misty Chir Pine woods in Ranikhet.jpg",
      "et": "Pinar de pino chir",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Ranikhet, Himalaya (India)",
      "cont": "Asia"
     },
     {
      "f": "Bosque de pino-encino en Chimaltenango.jpg",
      "et": "Bosque de pino y encino",
+     "cat": "Bosque mixto (pinos y encinos)",
      "lugar": "Chimaltenango (Guatemala)",
      "cont": "América del Norte"
     },
     {
      "f": "Bosque de Valle de Bravo.jpg",
      "et": "Bosque de pino y encino",
+     "cat": "Bosque mixto (pinos y encinos)",
      "lugar": "Valle de Bravo (México)",
      "cont": "América del Norte"
     }
@@ -1003,54 +1156,63 @@
     {
      "f": "Sal forest, Gazipur, Bangladesh in winter.jpg",
      "et": "Bosque monzónico (bosque de sal)",
+     "cat": "Bosque tropical caducifolio",
      "lugar": "Gazipur (Bangladés)",
      "cont": "Asia"
     },
     {
      "f": "Sal forest at Gazipur, Bangladesh in winter.jpg",
      "et": "Bosque monzónico (bosque de sal)",
+     "cat": "Bosque tropical caducifolio",
      "lugar": "Gazipur (Bangladés)",
      "cont": "Asia"
     },
     {
      "f": "Dry deciduous forest in Parambikulam JEG7461.jpg",
      "et": "Bosque monzónico en la estación seca",
+     "cat": "Bosque tropical caducifolio",
      "lugar": "Parambikulam (India)",
      "cont": "Asia"
     },
     {
      "f": "Road through the caatinga - Estrada cruzando a caatinga no sertão da Bahia.jpg",
      "et": "Caatinga",
+     "cat": "Bosque bajo y matorral espinoso caducifolio",
      "lugar": "Nordeste (Brasil)",
      "cont": "América del Sur"
     },
     {
      "f": "Caatinga em Uauá, Bahia.jpg",
      "et": "Caatinga",
+     "cat": "Bosque bajo y matorral espinoso caducifolio",
      "lugar": "Uauá, Bahía (Brasil)",
      "cont": "América del Sur"
     },
     {
      "f": "Chamela-Cuixmala DryForest.JPG",
      "et": "Bosque tropical seco caducifolio",
+     "cat": "Bosque tropical caducifolio",
      "lugar": "Chamela (Jalisco, México)",
      "cont": "América del Norte"
     },
     {
      "f": "Madagascar dry deciduous forests - Dry season.jpg",
      "et": "Bosque seco caducifolio en la estación seca",
+     "cat": "Bosque tropical caducifolio",
      "lugar": "Oeste de Madagascar",
      "cont": "África"
     },
     {
      "f": "Western Dry Deciduous Forest, Ankarafantsika National Park, Madagascar (4026813379).jpg",
      "et": "Bosque seco caducifolio",
+     "cat": "Bosque tropical caducifolio",
      "lugar": "Ankarafantsika (Madagascar)",
      "cont": "África"
     },
     {
      "f": "Forest, Santa Criz Dept, Bolivia.jpg",
      "et": "Bosque seco chiquitano",
+     "cat": "Bosque tropical caducifolio",
      "lugar": "Santa Cruz (Bolivia)",
      "cont": "América del Sur"
     }
@@ -1063,60 +1225,70 @@
     {
      "f": "Forêt de bouleaux dans le parc de Telegrafbukta.jpg",
      "et": "Abedular boreal",
+     "cat": "Bosque boreal caducifolio (abedules)",
      "lugar": "Tromsø (Noruega)",
      "cont": "Europa"
     },
     {
      "f": "В окрестностях Нижнего Бестяха.JPG",
-     "et": "Taiga de alerces",
+     "et": "Taiga",
+     "cat": "Bosque boreal de coníferas (alerces)",
      "lugar": "Yakutia (Rusia)",
      "cont": "Asia"
     },
     {
      "f": "Марь 001.JPG",
      "et": "Taiga con turbera (mar')",
+     "cat": "Bosque boreal con turbera",
      "lugar": "Yakutia (Rusia)",
      "cont": "Asia"
     },
     {
      "f": "Ergaki, Siberian pine forest, Spruce forest, Taiga wilderness, Sayan Mountains, Siberia, Russia.jpg",
      "et": "Taiga de pino siberiano y abeto",
+     "cat": "Bosque boreal de coníferas",
      "lugar": "Montes Sayanes (Siberia, Rusia)",
      "cont": "Asia"
     },
     {
      "f": "Lake Baikal, Siberian mixed taiga forest, Siberia, Russia.jpg",
      "et": "Taiga mixta",
+     "cat": "Bosque boreal mixto",
      "lugar": "Lago Baikal (Siberia, Rusia)",
      "cont": "Asia"
     },
     {
      "f": "Boreal forest.JPG",
      "et": "Taiga de pícea negra",
+     "cat": "Bosque boreal de coníferas",
      "lugar": "Quebec (Canadá)",
      "cont": "América del Norte"
     },
     {
      "f": "Boreal Forest and Lake.jpg",
      "et": "Taiga del escudo canadiense",
+     "cat": "Bosque boreal de coníferas",
      "lugar": "Canadá",
      "cont": "América del Norte"
     },
     {
      "f": "Trail into taiga, Inuvik, NT.jpg",
      "et": "Taiga",
+     "cat": "Bosque boreal de coníferas",
      "lugar": "Inuvik (Territorios del Noroeste, Canadá)",
      "cont": "América del Norte"
     },
     {
      "f": "Sweden0504 4.JPG",
      "et": "Taiga escandinava",
+     "cat": "Bosque boreal de coníferas",
      "lugar": "Suecia",
      "cont": "Europa"
     },
     {
      "f": "Luirojärvi from Sokosti.JPG",
      "et": "Taiga",
+     "cat": "Bosque boreal de coníferas",
      "lugar": "Laponia (Finlandia)",
      "cont": "Europa"
     }
@@ -1125,12 +1297,14 @@
     {
      "f": "The Yakut horses on a meadow, Namski uluus, Yakutia, Siberia, Лошади на лугу (Намский улус) - panoramio.jpg",
      "et": "Ganadería de caballos yakutos",
+     "cat": "Ganadería extensiva",
      "lugar": "Yakutia (Rusia)",
      "cont": "Asia"
     },
     {
      "f": "Holmen Bauernhof lub 2025-07-18 img02.jpg",
      "et": "Granja ártica",
+     "cat": "Prados y ganadería",
      "lugar": "Tromsø (Noruega)",
      "cont": "Europa"
     }
@@ -1142,30 +1316,35 @@
     {
      "f": "A view of Antarctica’s ice sheet and mountains.jpeg",
      "et": "Casquete de hielo antártico",
+     "cat": "Hielo y roca, sin vegetación",
      "lugar": "Antártida",
      "cont": "Antártida"
     },
     {
      "f": "The surface of the Greenland Ice Sheet.jpg",
      "et": "Casquete de hielo",
+     "cat": "Hielo y roca, sin vegetación",
      "lugar": "Groenlandia",
      "cont": "América del Norte"
     },
     {
      "f": "Antarctic Ice Shelf Loss Comes From Underneath (9036164848).jpg",
      "et": "Plataforma de hielo",
+     "cat": "Hielo y roca, sin vegetación",
      "lugar": "Antártida Occidental",
      "cont": "Antártida"
     },
     {
      "f": "Ice-and-mountains.jpg",
      "et": "Montañas y glaciares",
+     "cat": "Hielo y roca, sin vegetación",
      "lugar": "Antártida",
      "cont": "Antártida"
     },
     {
      "f": "Antarctica Landscape.jpg",
      "et": "Costa helada",
+     "cat": "Hielo y roca, sin vegetación",
      "lugar": "Península Antártica",
      "cont": "Antártida"
     }
@@ -1178,54 +1357,63 @@
     {
      "f": "Arboles de Fragas do Eume.jpg",
      "et": "Bosque atlántico (carballeira)",
+     "cat": "Bosque caducifolio (robles)",
      "lugar": "Fragas do Eume (A Coruña)",
      "cont": "Europa"
     },
     {
      "f": "10 Fraga do Eume 1.jpg",
      "et": "Bosque atlántico (carballeira)",
+     "cat": "Bosque caducifolio (robles)",
      "lugar": "Fragas do Eume (A Coruña)",
      "cont": "Europa"
     },
     {
      "f": "Parque Natural de Redes 1991 02.jpg",
      "et": "Hayedo",
+     "cat": "Bosque caducifolio (hayas)",
      "lugar": "Parque Natural de Redes (Asturias)",
      "cont": "Europa"
     },
     {
      "f": "Hayedo.jpg",
      "et": "Hayedo",
+     "cat": "Bosque caducifolio (hayas)",
      "lugar": "",
      "cont": "Europa"
     },
     {
      "f": "Carballeira de Barcia, Lalín 2.JPG",
      "et": "Robledal de carballo (carballeira)",
+     "cat": "Bosque caducifolio (robles)",
      "lugar": "Lalín (Pontevedra)",
      "cont": "Europa"
     },
     {
      "f": "Carballeira de Santa Susana1.JPG",
      "et": "Robledal de carballo (carballeira)",
+     "cat": "Bosque caducifolio (robles)",
      "lugar": "Santiago de Compostela (A Coruña)",
      "cont": "Europa"
     },
     {
      "f": "Navarra, hayedos 1990 10.jpg",
      "et": "Hayedo",
+     "cat": "Bosque caducifolio (hayas)",
      "lugar": "Navarra",
      "cont": "Europa"
     },
     {
      "f": "Hayedo de la Biescona 04.JPG",
      "et": "Hayedo",
+     "cat": "Bosque caducifolio (hayas)",
      "lugar": "La Biescona, Sierra del Sueve (Asturias)",
      "cont": "Europa"
     },
     {
      "f": "Hayedo-sueve.jpg",
      "et": "Hayedo",
+     "cat": "Bosque caducifolio (hayas)",
      "lugar": "Sierra del Sueve (Asturias)",
      "cont": "Europa"
     }
@@ -1234,24 +1422,28 @@
     {
      "f": "Abelairasfurco.jpg",
      "et": "Prados y campos cerrados",
+     "cat": "Prados y ganadería (campos cercados)",
      "lugar": "Galicia",
      "cont": "Europa"
     },
     {
      "f": "Adai, Adai, O Páramo.jpg",
      "et": "Prados y campos cerrados",
+     "cat": "Prados y ganadería (campos cercados)",
      "lugar": "O Páramo (Lugo)",
      "cont": "Europa"
     },
     {
      "f": "Asturias 1979 05.jpg",
      "et": "Prados de siega",
+     "cat": "Prados y ganadería",
      "lugar": "Asturias",
      "cont": "Europa"
     },
     {
      "f": "Asturias 1979 08.jpg",
      "et": "Prados de siega",
+     "cat": "Prados y ganadería",
      "lugar": "Asturias",
      "cont": "Europa"
     }
@@ -1263,54 +1455,63 @@
     {
      "f": "Sabinar de Calatañazor - 02 (26 de marzo de 2016, Calatañazor).jpg",
      "et": "Sabinar de páramo",
+     "cat": "Bosque abierto de sabinas",
      "lugar": "Calatañazor (Soria)",
      "cont": "Europa"
     },
     {
      "f": "DehesaViejaValdeolmos C140687 - C140696-1.jpg",
      "et": "Encinar de interior",
+     "cat": "Bosque esclerófilo (encinas)",
      "lugar": "Valdeolmos (Madrid)",
      "cont": "Europa"
     },
     {
      "f": "DehesaViejaValdeolmos C140676 - C140684-1.jpg",
      "et": "Encinar de interior",
+     "cat": "Bosque esclerófilo (encinas)",
      "lugar": "Valdeolmos (Madrid)",
      "cont": "Europa"
     },
     {
      "f": "Toledo (provincia) 1982 02.jpg",
      "et": "Encinar de interior",
+     "cat": "Bosque esclerófilo (encinas)",
      "lugar": "Montes de Toledo (Toledo)",
      "cont": "Europa"
     },
     {
      "f": "San Martín de Pusa (2005) 02.jpg",
      "et": "Encinar de interior",
+     "cat": "Bosque esclerófilo (encinas)",
      "lugar": "San Martín de Pusa (Toledo)",
      "cont": "Europa"
     },
     {
      "f": "Ciudad Real (provincia) 1981 01.jpg",
      "et": "Encinar de interior",
+     "cat": "Bosque esclerófilo (encinas)",
      "lugar": "Ciudad Real",
      "cont": "Europa"
     },
     {
      "f": "Pinar del Quiebrajano.jpg",
      "et": "Pinar de pino carrasco",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Quiebrajano (Jaén)",
      "cont": "Europa"
     },
     {
      "f": "SIERRA MÁGINA. PINAR DE CÁNAVA. PINOS CARRASCO CENTENARIOS.jpg",
      "et": "Pinar de pino carrasco",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Sierra Mágina (Jaén)",
      "cont": "Europa"
     },
     {
      "f": "Cistus ladanifer - Sierra de Ayllón 1977 02.jpg",
      "et": "Jaral",
+     "cat": "Matorral esclerófilo (jaras)",
      "lugar": "Sierra de Ayllón (Segovia-Guadalajara)",
      "cont": "Europa"
     }
@@ -1319,12 +1520,14 @@
     {
      "f": "Vistas desde el castillo - panoramio (1).jpg",
      "et": "Campos de cereal de secano",
+     "cat": "Cultivo herbáceo de secano (cereal)",
      "lugar": "Meseta norte",
      "cont": "Europa"
     },
     {
      "f": "TIERRA DE CAMPOS - panoramio (1).jpg",
      "et": "Campos de cereal de secano",
+     "cat": "Cultivo herbáceo de secano (cereal)",
      "lugar": "Tierra de Campos",
      "cont": "Europa"
     }
@@ -1336,60 +1539,70 @@
     {
      "f": "Alcornocales 042.jpg",
      "et": "Alcornocal",
+     "cat": "Bosque esclerófilo (alcornoques)",
      "lugar": "P. N. Los Alcornocales (Cádiz)",
      "cont": "Europa"
     },
     {
      "f": "Alcornocales 047.jpg",
      "et": "Alcornocal",
+     "cat": "Bosque esclerófilo (alcornoques)",
      "lugar": "P. N. Los Alcornocales (Cádiz)",
      "cont": "Europa"
     },
     {
      "f": "Alcornocal.jpg",
      "et": "Alcornocal",
+     "cat": "Bosque esclerófilo (alcornoques)",
      "lugar": "Andalucía",
      "cont": "Europa"
     },
     {
      "f": "Alcornocal y areniscas.jpg",
      "et": "Alcornocal",
+     "cat": "Bosque esclerófilo (alcornoques)",
      "lugar": "P. N. Los Alcornocales (Cádiz)",
      "cont": "Europa"
     },
     {
      "f": "Los Alcornocales 03.jpg",
      "et": "Alcornocal",
+     "cat": "Bosque esclerófilo (alcornoques)",
      "lugar": "P. N. Los Alcornocales (Cádiz)",
      "cont": "Europa"
     },
     {
      "f": "Los alcornocales, cádiz.jpg",
      "et": "Alcornocal y matorral mediterráneo",
+     "cat": "Bosque y matorral esclerófilo (alcornoques)",
      "lugar": "P. N. Los Alcornocales (Cádiz)",
      "cont": "Europa"
     },
     {
      "f": "Pinar de Hinojos, Parque Natural de Doñana.jpg",
      "et": "Pinar de pino piñonero",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Hinojos, Doñana (Huelva)",
      "cont": "Europa"
     },
     {
      "f": "Pinus pinea forest Doñana.jpg",
      "et": "Pinar de pino piñonero",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Doñana (Huelva)",
      "cont": "Europa"
     },
     {
      "f": "Pinus pinea Doñana 2.jpg",
      "et": "Pinar de pino piñonero",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Doñana (Huelva)",
      "cont": "Europa"
     },
     {
      "f": "Mallorca - Un bosque de encinas cerca de Campanet - panoramio.jpg",
      "et": "Encinar litoral",
+     "cat": "Bosque esclerófilo (encinas)",
      "lugar": "Campanet (Mallorca)",
      "cont": "Europa"
     }
@@ -1398,12 +1611,14 @@
     {
      "f": "Campiña - IMG 20180520 144250 356.jpg",
      "et": "Campiña de cereal y olivar",
+     "cat": "Cultivos de secano (cereal y olivo)",
      "lugar": "Campiña andaluza",
      "cont": "Europa"
     },
     {
      "f": "Puesta de sol Viñedos en Jerez de la Frontera - P1240095.jpg",
      "et": "Viñedo",
+     "cat": "Cultivo leñoso (vid)",
      "lugar": "Jerez de la Frontera (Cádiz)",
      "cont": "Europa"
     }
@@ -1415,72 +1630,84 @@
     {
      "f": "El Espinar, la Garganta 1974 04.jpg",
      "et": "Pinar de pino silvestre",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "El Espinar (Segovia)",
      "cont": "Europa"
     },
     {
      "f": "Berrostegieta - Pinar 01.jpg",
      "et": "Pinar de pino silvestre",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Berrostegieta (Álava)",
      "cont": "Europa"
     },
     {
      "f": "Pinar Sierra de Guadarrama 2005-09-13.JPG",
      "et": "Pinar de pino silvestre",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Sierra de Guadarrama (Madrid-Segovia)",
      "cont": "Europa"
     },
     {
      "f": "Piornal circo de gredos 01.jpg",
      "et": "Piornal de alta montaña",
+     "cat": "Matorral de alta montaña (piornos)",
      "lugar": "Circo de Gredos (Ávila)",
      "cont": "Europa"
     },
     {
      "f": "Piornal circo de gredos 03.jpg",
      "et": "Piornal de alta montaña",
+     "cat": "Matorral de alta montaña (piornos)",
      "lugar": "Circo de Gredos (Ávila)",
      "cont": "Europa"
     },
     {
      "f": "Pirineos Oscenses 1993 15.jpg",
      "et": "Pinar de pino negro",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Pirineo oscense (Huesca)",
      "cont": "Europa"
     },
     {
      "f": "Pirineos Oscenses 1993 08.jpg",
      "et": "Pinar de montaña",
+     "cat": "Bosque de coníferas (pinos)",
      "lugar": "Pirineo oscense (Huesca)",
      "cont": "Europa"
     },
     {
      "f": "Altos Pirineos 1981 41.jpg",
      "et": "Pino negro y matorral de alta montaña",
+     "cat": "Bosque de coníferas y matorral de alta montaña",
      "lugar": "Pirineos",
      "cont": "Europa"
     },
     {
      "f": "Pirineos Oscenses 1981 10.jpg",
      "et": "Pradera alpina",
+     "cat": "Pastizal de alta montaña",
      "lugar": "Pirineo oscense (Huesca)",
      "cont": "Europa"
     },
     {
      "f": "Picdumididuossau.jpg",
      "et": "Pradera alpina",
+     "cat": "Pastizal de alta montaña",
      "lugar": "Pic du Midi d'Ossau, Pirineos",
      "cont": "Europa"
     },
     {
      "f": "Valle de Arán 1981 19.jpg",
      "et": "Abetal",
+     "cat": "Bosque de coníferas (abetos)",
      "lugar": "Valle de Arán (Lleida)",
      "cont": "Europa"
     },
     {
      "f": "Aragüés del Puerto (1982) 07.jpg",
      "et": "Pradera alpina",
+     "cat": "Pastizal de alta montaña",
      "lugar": "Aragüés del Puerto, Pirineo (Huesca)",
      "cont": "Europa"
     }
@@ -1489,6 +1716,7 @@
     {
      "f": "La Hiruela, Porrejón.jpg",
      "et": "Prados y huertas de montaña",
+     "cat": "Prados y huertas",
      "lugar": "La Hiruela (Madrid)",
      "cont": "Europa"
     }
@@ -1500,108 +1728,126 @@
     {
      "f": "Tabaibal cardonal malpais Güímar.jpg",
      "et": "Cardonal-tabaibal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Malpaís de Güímar (Tenerife)",
      "cont": ""
     },
     {
      "f": "Euphorbia canariensis - Macizo de Anaga.jpg",
      "et": "Cardonal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Macizo de Anaga (Tenerife)",
      "cont": ""
     },
     {
      "f": "Malpaís de Rasca, mataparda 22 febrero 2007.jpg",
      "et": "Tabaibal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Malpaís de Rasca (Tenerife)",
      "cont": ""
     },
     {
      "f": "Haría - MNLC - Lugar Diseminado Maguez-LZ-1 - Euphorbia balsamifera-Monte Corona 01 ies.jpg",
      "et": "Tabaibal dulce",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Haría (Lanzarote)",
      "cont": ""
     },
     {
      "f": "Malpaís de Güímar-Montaña de La Mar.jpg",
      "et": "Tabaibal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Malpaís de Güímar (Tenerife)",
      "cont": ""
     },
     {
      "f": "Rock Formation and Euphorbia canariensis on the Trail to the Itobal Groge, Tenerife, Spain.jpg",
      "et": "Cardonal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Tenerife",
      "cont": ""
     },
     {
      "f": "Tenerife Landscape R01.jpg",
      "et": "Cardonal-tabaibal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Tenerife",
      "cont": ""
     },
     {
      "f": "Euphorbia canariensis - Barranco de Fataga.jpg",
      "et": "Cardonal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Barranco de Fataga (Gran Canaria)",
      "cont": ""
     },
     {
      "f": "Macizo de Anaga 04.jpg",
      "et": "Cardonal-tabaibal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Macizo de Anaga (Tenerife)",
      "cont": ""
     },
     {
      "f": "La Palma - Garafía - Vía Puerto de Garafía + Euphorbia balsamifera + Euphorbia canariensis 04 ies.jpg",
      "et": "Cardonal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Garafía (La Palma)",
      "cont": ""
     },
     {
      "f": "La Palma - Fuencaliente - Carretera General Las Caletas - Euphorbia regis-jubae 07 ies.jpg",
      "et": "Tabaibal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Fuencaliente (La Palma)",
      "cont": ""
     },
     {
      "f": "Euphorbia balsamifera - Lanzarote - 02.JPG",
      "et": "Tabaibal dulce",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Lanzarote",
      "cont": ""
     },
     {
      "f": "Biosphere Reserve La Gomera 14.jpg",
      "et": "Tabaibal",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "La Gomera",
      "cont": ""
     },
     {
      "f": "Pájara - FV-30 - Euphorbia balsamifera 05 ies.jpg",
      "et": "Tabaibal dulce",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Pájara (Fuerteventura)",
      "cont": ""
     },
     {
      "f": "Pájara - FV-30 - Euphorbia balsamifera 03 ies.jpg",
      "et": "Tabaibal dulce",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Pájara (Fuerteventura)",
      "cont": ""
     },
     {
      "f": "Pájara - FV-30 - Euphorbia balsamifera 01 ies.jpg",
      "et": "Tabaibal dulce",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Pájara (Fuerteventura)",
      "cont": ""
     },
     {
      "f": "Euphorbia handiensis - Jandía - 01.jpg",
      "et": "Cardonal de cardón de Jandía",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Jandía (Fuerteventura)",
      "cont": ""
     },
     {
      "f": "Euphorbia handiensis - Gran Valle - 02.jpg",
      "et": "Cardonal de cardón de Jandía",
+     "cat": "Matorral de plantas suculentas (euforbias)",
      "lugar": "Gran Valle, Jandía (Fuerteventura)",
      "cont": ""
     }
@@ -1610,24 +1856,28 @@
     {
      "f": "A0182 Tenerife, banana plantations aerial view.jpg",
      "et": "Plataneras",
+     "cat": "Cultivo de regadío (plátano)",
      "lugar": "Tenerife",
      "cont": ""
     },
     {
      "f": "A0468 Tenerife, Banana plantations and Adeje aerial view.jpg",
      "et": "Plataneras",
+     "cat": "Cultivo de regadío (plátano)",
      "lugar": "Adeje (Tenerife)",
      "cont": ""
     },
     {
      "f": "Vineyards La Geria IMGP1903.jpg",
      "et": "Viñedo en hoyos de picón",
+     "cat": "Cultivo leñoso (vid) sobre arena volcánica",
      "lugar": "La Geria (Lanzarote)",
      "cont": ""
     },
     {
      "f": "Bodega Suárez - Diama - La Geria - Lanzarote - BS05.jpg",
      "et": "Viñedo en hoyos de picón",
+     "cat": "Cultivo leñoso (vid) sobre arena volcánica",
      "lugar": "La Geria (Lanzarote)",
      "cont": ""
     }
@@ -1639,60 +1889,70 @@
     {
      "f": "El Sabinar.JPG",
      "et": "Sabinar",
+     "cat": "Bosque abierto de sabinas",
      "lugar": "El Sabinar (El Hierro)",
      "cont": ""
     },
     {
      "f": "Sabinar de El Hierro.jpg",
      "et": "Sabinar",
+     "cat": "Bosque abierto de sabinas",
      "lugar": "El Sabinar (El Hierro)",
      "cont": ""
     },
     {
      "f": "El Sabinar, el bosque encantado de la Isla de El Hierro - Flickr - El Coleccionista de Instantes.jpg",
      "et": "Sabinar",
+     "cat": "Bosque abierto de sabinas",
      "lugar": "El Sabinar (El Hierro)",
      "cont": ""
     },
     {
      "f": "Palmeral en la Viña Vieja (San Andrés, Tenerife).JPG",
      "et": "Palmeral",
+     "cat": "Bosquete de palmeras",
      "lugar": "San Andrés (Tenerife)",
      "cont": ""
     },
     {
      "f": "El Palmeral junto a La Gran Casona en La Rambla de Castro.jpg",
      "et": "Palmeral",
+     "cat": "Bosquete de palmeras",
      "lugar": "La Rambla, Los Realejos (Tenerife)",
      "cont": ""
     },
     {
      "f": "Rambla de Castro-Palmeral.JPG",
      "et": "Palmeral",
+     "cat": "Bosquete de palmeras",
      "lugar": "Rambla de Castro (Tenerife)",
      "cont": ""
     },
     {
      "f": "Dracaena draco en el macizo de Anaga 02.jpg",
      "et": "Dragos en el bosque termófilo",
+     "cat": "Bosque abierto con dragos",
      "lugar": "Macizo de Anaga (Tenerife)",
      "cont": ""
     },
     {
      "f": "Palmeral de Cabo Verde - panoramio.jpg",
      "et": "Palmeral",
+     "cat": "Bosquete de palmeras",
      "lugar": "Cabo Verde, Moya (Gran Canaria)",
      "cont": ""
     },
     {
      "f": "WLM14ES - Necrópolis de Arteara - rvr (1).jpg",
      "et": "Palmeral",
+     "cat": "Bosquete de palmeras",
      "lugar": "Arteara, Fataga (Gran Canaria)",
      "cont": ""
     },
     {
      "f": "Valle Gran Rey - WLE Spain 2015.jpg",
      "et": "Palmeral",
+     "cat": "Bosquete de palmeras",
      "lugar": "Valle Gran Rey (La Gomera)",
      "cont": ""
     }
@@ -1701,12 +1961,14 @@
     {
      "f": "Viñas en Taganana (Tenerife).JPG",
      "et": "Viñedo en bancales",
+     "cat": "Cultivo leñoso (vid) en bancales",
      "lugar": "Taganana (Tenerife)",
      "cont": ""
     },
     {
      "f": "Tenerife 1977 12.jpg",
      "et": "Viñedos y huertas de medianías",
+     "cat": "Cultivo leñoso y huertas",
      "lugar": "Tenerife",
      "cont": ""
     }
@@ -1718,90 +1980,105 @@
     {
      "f": "Laurisilva en Anaga.jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "Anaga (Tenerife)",
      "cont": ""
     },
     {
      "f": "Path - Anaga (26531298689).jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "Anaga (Tenerife)",
      "cont": ""
     },
     {
      "f": "Bosque de laurisilva en Anaga.jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "Anaga (Tenerife)",
      "cont": ""
     },
     {
      "f": "Tenerife, laurisilva (53140375801).jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "Anaga (Tenerife)",
      "cont": ""
     },
     {
      "f": "DSC08859 El Pijaral (Anaga, Tenerife, Canarias).jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "El Pijaral, Anaga (Tenerife)",
      "cont": ""
     },
     {
      "f": "Bosque Encantado, Parque nacional de Garajonay, La Gomera, España, 2012-12-14, DD 19.jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "P. N. de Garajonay (La Gomera)",
      "cont": ""
     },
     {
      "f": "Laurisilva (Garajonay).jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "P. N. de Garajonay (La Gomera)",
      "cont": ""
     },
     {
      "f": "Fayal-brezal 001.JPG",
      "et": "Fayal-brezal",
+     "cat": "Bosque bajo de fayas y brezos",
      "lugar": "Canarias",
      "cont": ""
     },
     {
      "f": "Fayal-brezal de La Llanía (El Hierro).jpg",
      "et": "Fayal-brezal",
+     "cat": "Bosque bajo de fayas y brezos",
      "lugar": "La Llanía (El Hierro)",
      "cont": ""
     },
     {
      "f": "Camino por el Fayal-Brezal.jpg",
      "et": "Fayal-brezal",
+     "cat": "Bosque bajo de fayas y brezos",
      "lugar": "Canarias",
      "cont": ""
     },
     {
      "f": "Los Tilos 1 - panoramio.jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "Los Tilos de Moya (Gran Canaria)",
      "cont": ""
     },
     {
      "f": "Árboles tila en el Laurisilva de Los Tilos.jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "Los Tilos de Moya (Gran Canaria)",
      "cont": ""
     },
     {
      "f": "Sendero en Los Tilos 2 - panoramio.jpg",
      "et": "Laurisilva",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "Los Tilos de Moya (Gran Canaria)",
      "cont": ""
     },
     {
      "f": "Barranco de la Virgen, Gran Canaria.jpg",
      "et": "Laurisilva de barranco",
+     "cat": "Bosque perennifolio de hoja ancha (laureles)",
      "lugar": "Barranco de la Virgen (Gran Canaria)",
      "cont": ""
     },
     {
      "f": "Mountain landscape near Monte del Agua, Tenerife, Canary Islands.jpg",
      "et": "Monteverde",
+     "cat": "Bosque perennifolio de hoja ancha (laurisilva y fayal-brezal)",
      "lugar": "Monte del Agua (Tenerife)",
      "cont": ""
     }
@@ -1810,12 +2087,14 @@
     {
      "f": "Huertas en Taborno (Tenerife).JPG",
      "et": "Huertas en bancales",
+     "cat": "Cultivo en bancales (huertas)",
      "lugar": "Taborno (Tenerife)",
      "cont": ""
     },
     {
      "f": "Chinamada Terrassenfelder.jpg",
      "et": "Bancales de cultivo",
+     "cat": "Cultivo en bancales (huertas)",
      "lugar": "Chinamada (Tenerife)",
      "cont": ""
     }
@@ -1827,42 +2106,49 @@
     {
      "f": "Corona Forestal en lo alto de La Orotava.JPG",
      "et": "Pinar canario",
+     "cat": "Bosque de coníferas (pino canario)",
      "lugar": "Corona Forestal (Tenerife)",
      "cont": ""
     },
     {
      "f": "Sombrero de Chasna.jpg",
      "et": "Pinar canario",
+     "cat": "Bosque de coníferas (pino canario)",
      "lugar": "Vilaflor (Tenerife)",
      "cont": ""
     },
     {
      "f": "Pinus canariensis forest.jpg",
      "et": "Pinar canario",
+     "cat": "Bosque de coníferas (pino canario)",
      "lugar": "Canarias",
      "cont": ""
     },
     {
      "f": "Pinus canariensis forest Caldera de Taburiente 5.jpg",
      "et": "Pinar canario",
+     "cat": "Bosque de coníferas (pino canario)",
      "lugar": "Caldera de Taburiente (La Palma)",
      "cont": ""
     },
     {
      "f": "Pinus canariensis Tenerife Chio TF-36 pine forest Los Hoyos IMG 4831.JPG",
      "et": "Pinar canario",
+     "cat": "Bosque de coníferas (pino canario)",
      "lugar": "Chío (Tenerife)",
      "cont": ""
     },
     {
      "f": "Pinar de Tamadaba II.JPG",
      "et": "Pinar canario",
+     "cat": "Bosque de coníferas (pino canario)",
      "lugar": "Tamadaba (Gran Canaria)",
      "cont": ""
     },
     {
      "f": "Teide and Pinus canariensis.jpg",
      "et": "Pinar canario",
+     "cat": "Bosque de coníferas (pino canario)",
      "lugar": "Ladera del Teide (Tenerife)",
      "cont": ""
     }
@@ -1875,30 +2161,35 @@
     {
      "f": "Tenerife 1977 23.jpg",
      "et": "Retamar de cumbre",
+     "cat": "Matorral de alta montaña (retamas)",
      "lugar": "Las Cañadas del Teide",
      "cont": ""
     },
     {
      "f": "Tf2.04 La Palma, Montaña de las Lajas.jpg",
      "et": "Matorral de cumbre",
+     "cat": "Matorral de alta montaña",
      "lugar": "Cumbres de La Palma",
      "cont": ""
     },
     {
      "f": "El Retamar, výhled, Parque Nacional del Teide, Tenerife.jpg",
      "et": "Retamar de cumbre",
+     "cat": "Matorral de alta montaña (retamas)",
      "lugar": "El Retamar, Las Cañadas del Teide",
      "cont": ""
     },
     {
      "f": "El Retamar, výhled na El Sombrero a Pico Viejo a Sombrerito 01.jpg",
      "et": "Retamar de cumbre",
+     "cat": "Matorral de alta montaña (retamas)",
      "lugar": "El Retamar, Las Cañadas del Teide",
      "cont": ""
     },
     {
      "f": "Retama del Teide (Cytisus supranubius), parque nacional del Teide, Tenerife, España, 2022-01-07, DD 34.jpg",
      "et": "Retamar de cumbre (retama del Teide)",
+     "cat": "Matorral de alta montaña (retamas)",
      "lugar": "Las Cañadas del Teide",
      "cont": ""
     }
