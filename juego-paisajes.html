@@ -62,7 +62,7 @@ table.acf{border-collapse:collapse;width:100%;font-size:14px} table.acf th,table
 </style>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="anb-globo.js?v=20261119b"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
+<script src="anb-globo.js?v=20261119c"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
 <style id="estiloJuegos">
 /* ===== Aspecto renovado de los juegos (solo presentación; la mecánica no cambia) ===== */
 :root{--k1:#e21b3c;--k2:#1368ce;--k3:#d89e00;--k4:#26890c;--sombra:0 6px 18px rgba(23,50,77,.14)}
@@ -354,11 +354,36 @@ function nuevaPartida(){
   G={rondas:r,n:0,total:0,hist:[],fotosUsadas:new Set(),cats};
   $("inicio").style.display="none";$("juego").style.display="block";$("marcador").style.display="flex";ronda();
 }
+/* Distractores «nerfeados» (2026-11-20). Siempre de otras tres categorías del ámbito. En el mundo (y en «Todo»)
+   además los cuatro climogramas tienen tipos de Köppen distintos (dos letras: Cf, Cs, Df, BW, Aw, ET…); solo
+   se repite un tipo si las estaciones son de hemisferios distintos (verano en julio frente a verano en enero). */
+const k2=x=>x._k2||(x._k2=koppen(x.T,x.P,x.la).slice(0,2));
+const hemi=x=>x.la>=0?"N":"S";
+const choca=(a,b)=>k2(a)===k2(b)&&hemi(a)===hemi(b);
+const reglaKoppen=()=>CFG.ambito==="mundo"||CFG.ambito==="todo";
+function distractores(e,tipo){
+  const vale=x=>CFG.modo==="foto"||tieneFoto(x,tipo);
+  const cats=G.cats.filter(c=>c!==e.clima&&c.est.some(vale));
+  for(let intento=0;intento<40;intento++){
+    const elegidos=[];
+    for(const c of barajar(cats)){
+      const pool=barajar(c.est.filter(x=>vale(x)&&(!reglaKoppen()||![e,...elegidos].some(y=>choca(x,y)))));
+      if(pool.length){elegidos.push(pool[0]);if(elegidos.length===3)return elegidos}
+    }
+  }
+  return null;
+}
 function ronda(){
-  const e=G.rondas[G.n],tipos=tiposPaisaje().filter(t=>tieneFoto(e,t)),tipo=barajar(tipos)[0];
-  // distractores: estaciones de otras tres categorías del ámbito (con foto de ese tipo si lo que se eligen son fotos)
-  const otrasCats=barajar(G.cats.filter(c=>c!==e.clima&&c.est.some(x=>CFG.modo==="foto"||tieneFoto(x,tipo)))).slice(0,3);
-  const otros=otrasCats.map(c=>barajar(c.est.filter(x=>CFG.modo==="foto"||tieneFoto(x,tipo)))[0]);
+  let e=G.rondas[G.n],tipos=tiposPaisaje().filter(t=>tieneFoto(e,t)),tipo=barajar(tipos)[0];
+  let otros=distractores(e,tipo);
+  // si con esta estación no hay tres compañeras de climas distintos, se cambia la estación de la ronda
+  for(let i=0;!otros&&i<60;i++){
+    const c=barajar(G.cats)[0],cand=barajar(c.est.filter(x=>tiposPaisaje().some(t=>tieneFoto(x,t))&&!G.rondas.includes(x)))[0];
+    if(!cand)continue;
+    const ts=tiposPaisaje().filter(t=>tieneFoto(cand,t)),t2=barajar(ts)[0],o=distractores(cand,t2);
+    if(o){e=cand;tipo=t2;otros=o;G.rondas[G.n]=cand}
+  }
+  if(!otros)otros=barajar(G.cats.filter(c=>c!==e.clima)).slice(0,3).map(c=>barajar(c.est)[0]);
   G.e=e;G.tipo=tipo;G.opc=barajar([e,...otros]);G.intentos=0;G.fin=false;G.foto=fotoPara(e,tipo,G.fotosUsadas);
   $("mRonda").textContent=`Ronda ${G.n+1}/${G.rondas.length}`;
   $("mTotal").textContent=G.hist.length?`Nota: ${fmtNota(G.total/(G.hist.length*100)*10)} / 10`:"Nota: —";
@@ -415,12 +440,12 @@ function revelar(pts){
      <div class="tarj"><h3>🌳 ${esc(c.veg)}</h3><p>${esc(c.pv)}</p></div>
      <div class="tarj"><h3>🚜 ${esc(c.agr)}</h3><p>${esc(c.pa)}</p>${otra?`<div class="mini"><img src="${esc(otra.src)}" alt="${esc(otra.et)}"><small>${esc(otra.et)}${otra.cat?" ("+esc(otra.cat.charAt(0).toLowerCase()+otra.cat.slice(1))+")":""}${otra.lugar?" · "+esc(otra.lugar):""}<br>${credito(otra)}</small></div>`:""}</div>
    </div>
-   <p class="nota">Datos climáticos: ${esc(e.src)} · ${esc(e.per)}. ${c.amb==="mundo"?"Biomas: RESOLVE Ecoregions 2017 (Dinerstein et al.), capa BIOMAS de ANAMBRO. ":c.amb==="can"?"Pisos: Mapa de Vegetación Potencial de Canarias (GRAFCAN). ":""}Fotografías: Wikimedia Commons. Globo: Natural Earth (ANAMBRO).</p>`;
+   <p class="nota">Datos climáticos: ${esc(e.src)} · ${esc(e.per)}. ${c.amb==="mundo"?"Biomas: RESOLVE Ecoregions 2017 (Dinerstein et al.), capa BIOMAS de ANAMBRO. ":c.amb==="can"?"Pisos: Mapa de Vegetación Potencial de Canarias (GRAFCAN). ":""}Fotografías: Wikimedia Commons. Globo y mapas: Natural Earth, IGN (comunidades) y GRAFCAN (municipios de Canarias) · ANAMBRO.</p>`;
   $("velo").classList.add("on");$("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
   $("btnVerAnb").onclick=()=>verEnAnambro({lat:e.la,lon:e.lo,zoom:10,html:`<b>${esc(e.n)}</b><br>${esc(c.clima)}<br><small>${esc(e.lugar||"")}</small>`});
   setTimeout(()=>{try{
-    // Solo el globo ligero (sin mapa 2D): gira hasta la estación, con líneas imaginarias y zonas climáticas
-    if(window.AnbGlobo&&$("mapaRevel"))AnbGlobo.globo($("mapaRevel"),{lat:e.la,lon:e.lo,color:c.c||"#e67e22",nombre:e.n,zonas:true});
+    // Canarias → mapa de Canarias (municipios) · España → mapa de España (comunidades) · mundo → globo con zonas climáticas
+    if(window.AnbGlobo&&$("mapaRevel"))AnbGlobo.lugar($("mapaRevel"),{ambito:c.amb==="can"?"can":c.amb==="esp"?"esp":"mundo",lat:e.la,lon:e.lo,color:c.c||"#e67e22",nombre:e.n,zonas:true});
   }catch(err){console.warn("Mapa del lugar",err)}},60);
 }
 function siguiente(){

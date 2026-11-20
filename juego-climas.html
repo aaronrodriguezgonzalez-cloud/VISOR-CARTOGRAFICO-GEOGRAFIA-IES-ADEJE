@@ -234,7 +234,7 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 <div class="toast" id="toast"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="anb-globo.js?v=20261119b"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
+<script src="anb-globo.js?v=20261119c"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
 <script>
 "use strict";
 /* =========================================================
@@ -851,13 +851,13 @@ function revelar(ok,k,pts){
      <div class="revExpl">${expl}</div>
      ${enEsp?`<div><h3>🗺️ En el mapa de climas de España</h3>${mapaClimasEsp(st)}</div>`:""}
    </div>
-   <div class="fuente" style="padding:4px 20px 16px">Datos: ${esc(src)} · normales 1991–2020${CFG.ambito==="can"?" · Tipos: "+esc(DB.atlasSrc):""}${conDonde()&&st.adm?" · Divisiones administrativas: World Bank Global Administrative Divisions":""} · Globo: Natural Earth (ANAMBRO).</div>`;
+   <div class="fuente" style="padding:4px 20px 16px">Datos: ${esc(src)} · normales 1991–2020${CFG.ambito==="can"?" · Tipos: "+esc(DB.atlasSrc):""}${conDonde()&&st.adm?" · Divisiones administrativas: World Bank Global Administrative Divisions":""} · Globo y mapas: Natural Earth, IGN (comunidades) y GRAFCAN (municipios de Canarias) · ANAMBRO.</div>`;
   $("velo").classList.add("on");
   $("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
   $("btnVerAnb").onclick=()=>verEnAnambro({lat:st.la,lon:st.lo,zoom:esMundo()?8:10,html:`<b>${esc(st.n)}</b><br>${esc(esTarj()&&tipoObj.nom!==tipoObj.k?tipoObj.k+" · "+tipoObj.nom:tipoObj.k)}<br><small>${fmt(st.z||0,0)} m · normales 1991–2020</small>`});
   setTimeout(()=>{
-    // Solo el globo ligero (sin mapa 2D): gira hasta la estación, con líneas imaginarias y zonas climáticas
-    if(window.AnbGlobo)AnbGlobo.globo($("mapaRevel"),{lat:st.la,lon:st.lo,color:tipoObj.c,nombre:st.n,zonas:true});
+    // Canarias → mapa de Canarias (municipios) · España → mapa de España (comunidades) · mundo → globo con zonas climáticas
+    if(window.AnbGlobo)AnbGlobo.lugar($("mapaRevel"),{ambito:CFG.ambito==="can"?"can":(CFG.ambito==="pen"||CFG.ambito==="esc")?"esp":"mundo",lat:st.la,lon:st.lo,color:tipoObj.c,nombre:st.n,zonas:true});
   },60);
 }
 function siguiente(){

@@ -174,6 +174,9 @@
 .anbGloboLey{position:absolute;left:8px;bottom:8px;z-index:2;background:rgba(11,29,51,.78);color:#fff;border-radius:8px;padding:5px 8px;font:600 14px/1.35 ${FUENTE}}
 .anbGloboLey i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(255,255,255,.6)}
 .anbGloboAyuda{position:absolute;left:50%;top:8px;transform:translateX(-50%);z-index:2;background:rgba(11,29,51,.7);color:#fff;border-radius:10px;padding:3px 10px;font:600 13px ${FUENTE};pointer-events:none;transition:opacity .6s;white-space:nowrap}
+.anbMapa{background:#a9cfe8}
+.anbMapa .anbGloboFuente{color:rgba(23,50,77,.8)}
+.anbMapaTit{position:absolute;left:8px;top:8px;z-index:2;background:rgba(255,255,255,.94);color:#17324d;border-radius:8px;padding:4px 10px;font:700 14px ${FUENTE};box-shadow:0 1px 4px rgba(0,0,0,.2);max-width:calc(100% - 70px)}
 .anbGloboFuente{position:absolute;right:8px;bottom:6px;z-index:2;color:rgba(255,255,255,.75);font:11px ${FUENTE};pointer-events:none}`;
   function css(){if(document.getElementById("anbGloboCss"))return;const s=document.createElement("style");s.id="anbGloboCss";s.textContent=CSS;document.head.appendChild(s)}
 
@@ -240,5 +243,121 @@
     const vigila=setInterval(()=>{if(!cont.isConnected){api.destruir();clearInterval(vigila)}},2000);
     return api;
   }
-  window.AnbGlobo={globo,centro,precargar:()=>cargar().catch(()=>null)};
+
+  /* =====================================================================================
+     Mapas ligeros de Canarias (municipios, GRAFCAN) y de España (comunidades autónomas, IGN,
+     con Canarias en su recuadro). Mismo manejo que el globo: arrastrar, rueda, pellizco, + − ⌖.
+     ===================================================================================== */
+  const DATOS={can:"data/clima/canarias/municipios_canarias.json",esp:"data/admin/egrn_ccaa.json"};
+  const MAPAS={};const cargandoM={};
+  // Recuadro de Canarias en el mapa de España (abajo a la izquierda, como en los mapas de la PAU)
+  const INS={dx:8.0,dy:5.9,caja:[-10.3,33.45,-5.2,35.55]};
+  const enCanarias=(lo,la)=>lo<-13&&lo>-18.6&&la>27.4&&la<29.6;
+  // GRAFCAN trae «Granadilla De Abona»: se escribe «Granadilla de Abona», «Puerto de la Cruz», «Santa Cruz de La Palma»
+  function bienEscrito(n){
+    const w=n.split(" ");
+    for(let i=1;i<w.length;i++){const l=w[i].toLowerCase();
+      if(l==="de"||l==="del"||l==="y")w[i]=l;
+      else if((l==="la"||l==="los"||l==="las")&&w[i-1]==="de"&&!/^(Palma|Gomera)$/.test(w[i+1]||""))w[i]=l;}
+    return w.join(" ");
+  }
+  function cargarMapa(t){
+    if(MAPAS[t])return Promise.resolve(MAPAS[t]);
+    if(!cargandoM[t])cargandoM[t]=fetch(DATOS[t]).then(r=>r.json()).then(j=>{
+      const u=j.features.map(ft=>{const p=ft.properties||{};
+        const nombre=t==="can"?bienEscrito(p.n||""):(p.NAMEUNIT||"");const extra=t==="can"?p.i:"";
+        const pols=anillosDe(ft,t==="can"?.003:.01);
+        return{nombre,extra,pols,sinNombre:/Territorio no asociado/.test(nombre)}});
+      return MAPAS[t]=u}).catch(e=>{cargandoM[t]=null;throw e});
+    return cargandoM[t];
+  }
+  function dentro(pols,lo,la){
+    let c=false;
+    for(const pol of pols)for(const r of pol){for(let i=0,j=r.length-1;i<r.length;j=i++){const [xi,yi]=r[i],[xj,yj]=r[j];
+      if(((yi>la)!==(yj>la))&&(lo<(xj-xi)*(la-yi)/(yj-yi)+xi))c=!c}}
+    return c;
+  }
+  function mapa(cont,op){
+    op=op||{};const tipo=op.ambito==="can"?"can":"esp";
+    if(!cont)return null;css();
+    if(cont._anbGlobo)cont._anbGlobo.destruir();
+    cont.innerHTML="";cont.classList.add("anbGlobo","anbMapa");
+    const cv=document.createElement("canvas");cont.appendChild(cv);
+    const ctl=document.createElement("div");ctl.className="anbGloboCtl";
+    ctl.innerHTML='<button type="button" data-g="mas" title="Acercar">+</button><button type="button" data-g="menos" title="Alejar">−</button><button type="button" data-g="lugar" title="Ver todo el mapa">⌖</button>';
+    cont.appendChild(ctl);
+    const tit=document.createElement("div");tit.className="anbMapaTit";cont.appendChild(tit);
+    const fu=document.createElement("div");fu.className="anbGloboFuente";
+    fu.textContent=tipo==="can"?"Municipios: GRAFCAN · ANAMBRO":"Comunidades: IGN · Natural Earth · ANAMBRO";cont.appendChild(fu);
+    const ref=tipo==="can"?28.5:40;const kx=Math.cos(ref*RAD);
+    const ext=tipo==="can"?[-18.25,27.55,-13.25,29.5]:[-10.4,33.35,4.5,44.0];
+    const M={W:0,H:0,dpr:1,k:1,lon:(ext[0]+ext[2])/2,lat:(ext[1]+ext[3])/2,kFit:1,datos:null,sel:null};
+    const pto=(isFinite(op.lat)&&isFinite(op.lon))?{lat:op.lat,lon:op.lon}:null;
+    let vivo=true,raf=0,sucio=true;
+    const medir=()=>{const W=Math.max(160,cont.clientWidth),H=Math.max(160,cont.clientHeight),dpr=Math.min(2,window.devicePixelRatio||1);
+      if(W!==M.W||H!==M.H||dpr!==M.dpr){const prim=!M.W;M.W=W;M.H=H;M.dpr=dpr;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+        M.kFit=Math.min((W-20)/((ext[2]-ext[0])*kx),(H-20)/(ext[3]-ext[1]));if(prim)M.k=M.kFit;sucio=true}};
+    // en el mapa de España, lo de Canarias se dibuja dentro del recuadro
+    const desplaza=(lo,la)=>tipo==="esp"&&enCanarias(lo,la)?[lo+INS.dx,la+INS.dy]:[lo,la];
+    const X=(lo,la)=>{[lo,la]=desplaza(lo,la);return[M.W/2+(lo-M.lon)*kx*M.k,M.H/2-(la-M.lat)*M.k]};
+    function trazo(ctx,pols){ctx.beginPath();for(const pol of pols)for(const r of pol){r.forEach(([lo,la],i)=>{const [x,y]=X(lo,la);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath()}}
+    function pinta(){
+      const ctx=cv.getContext("2d"),W=M.W,H=M.H;ctx.setTransform(M.dpr,0,0,M.dpr,0,0);
+      ctx.fillStyle="#a9cfe8";ctx.fillRect(0,0,W,H);
+      // tierras del entorno (Portugal, Francia, África) en gris
+      if(tipo==="esp"&&T_GRUESA){ctx.fillStyle="#e6e2d8";ctx.strokeStyle="rgba(120,110,90,.5)";ctx.lineWidth=.6;
+        for(const pol of T_GRUESA){if(pol.y1<30||pol.y0>46)continue;ctx.beginPath();for(const r of pol){r.forEach(([lo,la],i)=>{const x=M.W/2+(lo-M.lon)*kx*M.k,y=M.H/2-(la-M.lat)*M.k;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath()}ctx.fill("evenodd");ctx.stroke()}
+        // recuadro de Canarias
+        const [a,b]=[M.W/2+(INS.caja[0]-M.lon)*kx*M.k,M.H/2-(INS.caja[3]-M.lat)*M.k],[c,d]=[M.W/2+(INS.caja[2]-M.lon)*kx*M.k,M.H/2-(INS.caja[1]-M.lat)*M.k];
+        ctx.fillStyle="#a9cfe8";ctx.fillRect(a,b,c-a,d-b);ctx.strokeStyle="#17324d";ctx.lineWidth=1.5;ctx.strokeRect(a,b,c-a,d-b);}
+      if(M.datos){
+        for(const u of M.datos){trazo(ctx,u.pols);
+          const sel=u===M.sel||(op.resaltar&&op.resaltar(u.nombre));
+          ctx.fillStyle=sel?(op.colorForma||"#f6c453"):"#f3ecd6";ctx.fill("evenodd");
+          ctx.strokeStyle=sel?"#7a4d00":"rgba(110,90,60,.75)";ctx.lineWidth=sel?2:(tipo==="can"?.7:1);ctx.stroke()}
+        if(M.sel){trazo(ctx,M.sel.pols);ctx.strokeStyle="#7a4d00";ctx.lineWidth=2.2;ctx.stroke()}
+      }
+      if(pto){const [x,y]=X(pto.lon,pto.lat);
+        ctx.beginPath();ctx.arc(x,y,7.5,0,7);ctx.fillStyle="#d62c1a";ctx.fill();ctx.lineWidth=3;ctx.strokeStyle="#fff";ctx.stroke();
+        if(op.nombre){ctx.font=`700 15px ${FUENTE}`;const t=op.nombre,w=ctx.measureText(t).width,lx=Math.min(W-w-14,Math.max(6,x-w/2-6)),ly=Math.max(6,y-40);
+          ctx.fillStyle="rgba(255,255,255,.95)";ctx.beginPath();ctx.roundRect?ctx.roundRect(lx,ly,w+12,24,8):ctx.rect(lx,ly,w+12,24);ctx.fill();
+          ctx.strokeStyle="rgba(23,50,77,.25)";ctx.lineWidth=1;ctx.stroke();ctx.fillStyle="#17324d";ctx.fillText(t,lx+6,ly+17)}}
+    }
+    const bucle=()=>{if(!vivo)return;medir();if(sucio){pinta();sucio=false}raf=requestAnimationFrame(bucle)};
+    const zoomA=(z,px,py)=>{const k2=Math.max(M.kFit*.8,Math.min(M.kFit*(tipo==="can"?30:12),z));
+      if(px!=null){const lo=M.lon+(px-M.W/2)/(kx*M.k),la=M.lat-(py-M.H/2)/M.k;M.lon=lo-(px-M.W/2)/(kx*k2);M.lat=la+(py-M.H/2)/k2}
+      M.k=k2;sucio=true};
+    const dedos=new Map();let base=null;
+    cont.addEventListener("pointerdown",ev=>{if(ev.target.closest("button"))return;dedos.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+      try{cont.setPointerCapture(ev.pointerId)}catch(e){}cont.classList.add("arrastrando");base=null;ev.preventDefault()});
+    cont.addEventListener("pointermove",ev=>{const d=dedos.get(ev.pointerId);if(!d)return;
+      if(dedos.size===1){M.lon-=(ev.clientX-d.x)/(kx*M.k);M.lat+=(ev.clientY-d.y)/M.k;sucio=true}
+      d.x=ev.clientX;d.y=ev.clientY;
+      if(dedos.size===2){const [a,b]=[...dedos.values()],dist=Math.hypot(a.x-b.x,a.y-b.y);if(base)zoomA(base.k*dist/base.d);else base={d:dist,k:M.k}}});
+    const soltar=ev=>{dedos.delete(ev.pointerId);base=null;if(!dedos.size)cont.classList.remove("arrastrando")};
+    cont.addEventListener("pointerup",soltar);cont.addEventListener("pointercancel",soltar);
+    cont.addEventListener("wheel",ev=>{ev.preventDefault();const r=cont.getBoundingClientRect(),z=r.width/cont.clientWidth||1;
+      zoomA(M.k*(ev.deltaY<0?1.2:1/1.2),(ev.clientX-r.left)/z,(ev.clientY-r.top)/z)},{passive:false});
+    ctl.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;ev.stopPropagation();
+      if(b.dataset.g==="mas")zoomA(M.k*1.4);else if(b.dataset.g==="menos")zoomA(M.k/1.4);
+      else{M.k=M.kFit;M.lon=(ext[0]+ext[2])/2;M.lat=(ext[1]+ext[3])/2;sucio=true}});
+    const ro=window.ResizeObserver?new ResizeObserver(()=>{sucio=true}):null;if(ro)ro.observe(cont);
+    medir();
+    Promise.all([cargarMapa(tipo),tipo==="esp"?cargar().catch(()=>null):null]).then(([d])=>{if(!vivo)return;M.datos=d;
+      if(pto)M.sel=d.find(u=>!u.sinNombre&&dentro(u.pols,pto.lon,pto.lat))||null;
+      const res=op.resaltar?d.filter(u=>op.resaltar(u.nombre)).map(u=>u.nombre):[];
+      const t=M.sel?(tipo==="can"?`${M.sel.nombre} · ${M.sel.extra}`:M.sel.nombre):res.join(", ");
+      tit.textContent=t||"";tit.style.display=t?"":"none";sucio=true}).catch(()=>{tit.textContent="No se pudo cargar el mapa";});
+    raf=requestAnimationFrame(bucle);
+    const api={destruir(){vivo=false;cancelAnimationFrame(raf);if(ro)ro.disconnect();cont._anbGlobo=null;cont.classList.remove("anbMapa")}};
+    cont._anbGlobo=api;
+    const vigila=setInterval(()=>{if(!cont.isConnected){api.destruir();clearInterval(vigila)}},2000);
+    return api;
+  }
+  // Elige la escala: Canarias → mapa de Canarias; España → mapa de España; el resto → globo
+  function lugar(cont,op){
+    if(op.ambito==="can"||op.ambito==="esp")return mapa(cont,op);
+    return globo(cont,op);
+  }
+  window.AnbGlobo={globo,mapa,lugar,centro,precargar:()=>cargar().catch(()=>null)};
 })();
