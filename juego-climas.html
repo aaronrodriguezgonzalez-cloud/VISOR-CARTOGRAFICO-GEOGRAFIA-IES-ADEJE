@@ -150,6 +150,14 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 .revLugar{display:grid;grid-template-columns:1fr 1.1fr;gap:16px;margin:10px 20px;padding:12px;background:#f6f9fc;border:1px solid var(--borde);border-radius:14px;align-items:center}
 .revEst{font-size:16px} .revLugar .ubica{margin:6px 0 4px;font-size:14.5px}
 .revLugar #mapaRevel{height:270px;margin:0;border-radius:10px}
+/* Canarias: modelo de pisos y mapa de vegetación potencial, uno junto a otro */
+.revLugar.conModelo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+.revLugar.conModelo .revLugarTxt{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}
+.revLugar.conModelo .revLugarTxt .btn{margin-top:0!important}
+.revLugar.conModelo #mapaRevel{height:auto;aspect-ratio:560/400}
+#modeloPisos{min-width:0}
+@media(max-width:900px){.revLugar.conModelo{grid-template-columns:1fr}}
+#modeloPisos .anbModelo{height:auto;aspect-ratio:640/420}
 .revTarj{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:6px 20px 4px}
 .tarj{border:1px solid var(--borde);border-radius:14px;padding:10px 14px;background:#fff}
 .tarj h3{margin:2px 0 6px;font-size:15.5px} .tarj p{margin:0;font-size:14.5px}
@@ -234,7 +242,7 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 <div class="toast" id="toast"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="anb-globo.js?v=20261119c"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
+<script src="anb-globo.js?v=20261120a"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
 <script>
 "use strict";
 /* =========================================================
@@ -566,11 +574,12 @@ function climogramaSVG(T,P,{mini=false,hl=null}={}){
   if(!mini){
     for(let st=(tMax-tMin>60?20:10),v=Math.ceil(tMin/st)*st;v<=tMax;v+=st){
       g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${yT(v)}" y2="${yT(v)}" stroke="#e3e9ef"/>`;
-      g+=`<text x="${m.l+w+6}" y="${yT(v)+5}" font-size="14" fill="#c0392b">${v}</text>`;
-      if(v>=0)g+=`<text x="${m.l-6}" y="${yT(v)+5}" font-size="14" fill="#1f5fa8" text-anchor="end">${2*v}</text>`;
+      // modelo del visor y de la PAU: temperatura a la izquierda, precipitación a la derecha (P = 2T)
+      g+=`<text x="${m.l-6}" y="${yT(v)+5}" font-size="14" fill="#c0392b" text-anchor="end">${v}</text>`;
+      if(v>=0)g+=`<text x="${m.l+w+6}" y="${yT(v)+5}" font-size="14" fill="#1f5fa8">${2*v}</text>`;
     }
-    g+=`<text x="16" y="${m.t+h/2}" font-size="14" fill="#1f5fa8" transform="rotate(-90 16 ${m.t+h/2})" text-anchor="middle">Precipitación (mm)</text>`;
-    g+=`<text x="${W-14}" y="${m.t+h/2}" font-size="14" fill="#c0392b" transform="rotate(90 ${W-14} ${m.t+h/2})" text-anchor="middle">Temperatura (°C)</text>`;
+    g+=`<text x="16" y="${m.t+h/2}" font-size="14" font-weight="700" fill="#c0392b" transform="rotate(-90 16 ${m.t+h/2})" text-anchor="middle">Temperatura ºC</text>`;
+    g+=`<text x="${W-14}" y="${m.t+h/2}" font-size="14" font-weight="700" fill="#1f5fa8" transform="rotate(-90 ${W-14} ${m.t+h/2})" text-anchor="middle">Precipitación (mm)</text>`;
   }
   P.forEach((p,i)=>{const y0=yT(0),y1=yT(p/2);
     const isHl=hl&&hl.meses&&hl.meses.includes(i);
@@ -840,24 +849,27 @@ function revelar(ok,k,pts){
      <button class="btn" id="btnSig">${G.n+1<G.rondas.length?"Siguiente ▶":"Ver resultado ▶"}</button>
    </div>
    <div class="revStats">❓ ${G.hechas.length} pregunta${G.hechas.length===1?"":"s"} · 💡 ${G.pistas.length} pista${G.pistas.length===1?"":"s"} · ❌ ${G.fallos.length} fallo${G.fallos.length===1?"":"s"}</div>
-   <div class="revLugar">
+   <div class="revLugar${CFG.ambito==="can"?" conModelo":""}">
      <div class="revLugarTxt"><div class="revEst">🌡️ <b>${esc(st.n)}</b>${st.pr?" · "+esc(st.pr):st.adm?" · "+esc(st.adm):""} · ⛰️ ${fmt(st.z,0)} m</div>
        <div class="ubica">🌍 <b>${esc(st.cn||"España")}</b> · ${cont}hemisferio ${st.la>=0?"norte":"sur"} y ${st.lo>=0?"oriental":"occidental"} · ${fmt(Math.abs(st.la),2)}° ${st.la>=0?"N":"S"}, ${fmt(Math.abs(st.lo),2)}° ${st.lo>=0?"E":"O"}</div>
        ${tipoObj.geo?`<div class="nota" style="text-align:left">🗺️ ${esc(tipoObj.geo)}<br>🌳 ${esc(tipoObj.veg)}</div>`:""}
        <button class="btn sec" id="btnVerAnb" style="margin-top:8px">🗺️ Abrir en el visor ANAMBRO</button></div>
+     ${CFG.ambito==="can"?'<div id="modeloPisos"></div>':""}
      <div id="mapaRevel"></div>
    </div>
    <div class="revPar">
      <div class="revExpl">${expl}</div>
      ${enEsp?`<div><h3>🗺️ En el mapa de climas de España</h3>${mapaClimasEsp(st)}</div>`:""}
    </div>
-   <div class="fuente" style="padding:4px 20px 16px">Datos: ${esc(src)} · normales 1991–2020${CFG.ambito==="can"?" · Tipos: "+esc(DB.atlasSrc):""}${conDonde()&&st.adm?" · Divisiones administrativas: World Bank Global Administrative Divisions":""} · Globo y mapas: Natural Earth, IGN (comunidades) y GRAFCAN (municipios de Canarias) · ANAMBRO.</div>`;
+   <div class="fuente" style="padding:4px 20px 16px">Datos: ${esc(src)} · normales 1991–2020${CFG.ambito==="can"?" · Tipos: "+esc(DB.atlasSrc):""}${conDonde()&&st.adm?" · Divisiones administrativas: World Bank Global Administrative Divisions":""} · Globo y mapas: Natural Earth, IGN (comunidades) y GRAFCAN (municipios y vegetación potencial de Canarias) · ANAMBRO. Orientación de las estaciones de Canarias calculada con el MDT25 (IGN-CNIG).</div>`;
   $("velo").classList.add("on");
   $("btnSig").onclick=()=>{$("velo").classList.remove("on");siguiente()};
   $("btnVerAnb").onclick=()=>verEnAnambro({lat:st.la,lon:st.lo,zoom:esMundo()?8:10,html:`<b>${esc(st.n)}</b><br>${esc(esTarj()&&tipoObj.nom!==tipoObj.k?tipoObj.k+" · "+tipoObj.nom:tipoObj.k)}<br><small>${fmt(st.z||0,0)} m · normales 1991–2020</small>`});
   setTimeout(()=>{
     // Canarias → mapa de Canarias (municipios) · España → mapa de España (comunidades) · mundo → globo con zonas climáticas
-    if(window.AnbGlobo)AnbGlobo.lugar($("mapaRevel"),{ambito:CFG.ambito==="can"?"can":(CFG.ambito==="pen"||CFG.ambito==="esc")?"esp":"mundo",lat:st.la,lon:st.lo,color:tipoObj.c,nombre:st.n,zonas:true});
+    if(window.AnbGlobo)AnbGlobo.lugar($("mapaRevel"),{ambito:CFG.ambito==="can"?"can":(CFG.ambito==="pen"||CFG.ambito==="esc")?"esp":"mundo",lat:st.la,lon:st.lo,color:tipoObj.c,nombre:st.n,zonas:true,vegPot:CFG.ambito==="can"});
+    // Canarias: la estación en el modelo de pisos (altitud + orientación de la ladera según el MDT25)
+    if(window.AnbGlobo&&$("modeloPisos"))AnbGlobo.modeloPisos($("modeloPisos"),{id:st.id,z:st.z,nombre:st.n});
   },60);
 }
 function siguiente(){
