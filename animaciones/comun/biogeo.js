@@ -251,7 +251,9 @@ async function ficha(u){
   igualaPanel();
   $("bgVerReal").onclick=()=>{ponModo(BG.modo==="real"?"pot":"real");ficha(u)};
   F.scrollTop=0;
-  const elegir=(arr,n)=>{const vistos=new Set();return arr.filter(f=>!vistos.has(f.f)&&vistos.add(f.f)).slice(0,n)};
+  // se eligen fotos variadas: primero una de cada tipo (p. ej., laurisilva y fayal-brezal), luego el resto
+  const elegir=(arr,n)=>{const vistos=new Set(),u=arr.filter(f=>!vistos.has(f.f)&&vistos.add(f.f)),tipos=new Set(),a=[],b=[];
+    u.forEach(f=>{const t=(f.et||"").toLowerCase();if(tipos.has(t))b.push(f);else{tipos.add(t);a.push(f)}});return a.concat(b).slice(0,n)};
   const lista=[...elegir(fot.veg,3).map(f=>({...f,tipo:"veg"})),...elegir(fot.agr,1).map(f=>({...f,tipo:"agr"}))];
   const info=await infoArchivos(lista.map(f=>f.f));
   if(BG.sel!==u.id)return;
