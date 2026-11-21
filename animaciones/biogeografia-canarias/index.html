@@ -22,7 +22,7 @@
    <aside class="bgPanel" id="bgFicha"></aside>
   </div>
  </div>
-  <p class="small">Vegetación potencial y vegetación actual: Mapa de Vegetación de Canarias (del Arco et al., 2006; GRAFCAN, IDECanarias, servicio WMS de Vegetación), con sus comunidades agrupadas aquí en pisos. En la vegetación actual, la clase «medio urbano, rural, industrial y áreas de servicio» incluye los cultivos. Límites de altitud de la cliserie: orientativos. Climogramas: AEMET (valores normales 1991-2020) y AgroCabildo (Cabildo de Tenerife). Fotos: Wikimedia Commons (autor y licencia en cada foto).</p>
+  <p class="small">Vegetación potencial y vegetación actual: Mapa de Vegetación de Canarias (del Arco et al., 2006; GRAFCAN, IDECanarias, servicio WMS de Vegetación), con sus comunidades agrupadas aquí en pisos. La vegetación actual y sus porcentajes se han obtenido consultando el mapa de GRAFCAN en unos 7.000 puntos (uno por km²), por lo que son aproximados; la clase «medio urbano, rural, industrial y áreas de servicio» incluye los cultivos. Límites de altitud de la cliserie: orientativos. Climogramas: AEMET (valores normales 1991-2020) y AgroCabildo (Cabildo de Tenerife). Fotos: Wikimedia Commons (autor y licencia en cada foto).</p>
 </main>
 <script src="../../anb-globo.js?v=20261121a"></script>
 <script src="../comun/biogeo.js?v=20261121a"></script>
@@ -35,8 +35,8 @@ const CFG={
  textoPot:"La <b>vegetación potencial</b> es la que habría de forma natural si no la hubiéramos cambiado.",
  textoReal:"La <b>vegetación actual</b>: lo que queda de cada piso, los matorrales que lo han sustituido y el espacio urbano y agrícola.",
  textoHumano:"zonas urbanas, agrícolas, industriales y de servicios",
- fuenteReal:"En el mapa de GRAFCAN, los cultivos están dentro del «medio urbano, rural, industrial y áreas de servicio».",
- real:[{id:1,n:"Cinturón halófilo",c:"#7fc6b6"},{id:2,n:"Cardonal-tabaibal",c:"#f1d48c"},{id:3,n:"Bosque termófilo",c:"#a3a865"},{id:4,n:"Monteverde",c:"#2f8f3e"},{id:5,n:"Pinar",c:"#9ad25a"},{id:6,n:"Matorral de cumbre",c:"#c9786a"},
+ fuenteReal:"En el mapa de GRAFCAN, los cultivos están dentro del «medio urbano, rural, industrial y áreas de servicio». Porcentajes aproximados, calculados con unos 7.000 puntos (uno por km²) consultados en el Mapa de Vegetación.",
+ real:[{id:1,n:"Cinturón halófilo",c:"#7fc6b6"},{id:2,n:"Cardonal-tabaibal",c:"#f1d48c"},{id:3,n:"Bosque termófilo",c:"#a3a865"},{id:4,n:"Laurisilva",c:"#1f6e2e"},{id:11,n:"Fayal-brezal",c:"#5fae6a"},{id:5,n:"Pinar",c:"#9ad25a"},{id:6,n:"Matorral de cumbre",c:"#c9786a"},
   {id:7,n:"Malpaís, roca y vegetación escasa",c:"#8d8d8d"},{id:8,n:"Matorrales y herbazales de sustitución",c:"#c7a0d0"},{id:9,n:"Plantaciones forestales",c:"#4d6b2a"},{id:10,n:"Medio urbano, agrícola e industrial",c:"#e0303a",humano:1}],
  unidades:[
   {id:1,n:"Cinturón halófilo costero",corto:"Cinturón halófilo",sub:"Vegetación de la costa: rocas, arenas y saladares",c:"#7fc6b6",est:"W60040",fotos:[],
@@ -58,7 +58,7 @@ const CFG={
   {id:4,n:"Monteverde",corto:"Monteverde",sub:"Laurisilva y fayal-brezal",c:"#2f8f3e",est:"AC317B",fotos:[{cat:"ca_mon"}],
    clave:"Vive gracias al mar de nubes que forman los alisios en las laderas del norte: la niebla le aporta mucha agua.",
    rasgos:"Bosque siempre verde de árboles de hoja ancha y brillante (laurel, til, viñátigo, barbusano), heredero de los bosques que cubrían el sur de Europa hace millones de años. Donde está degradado, lo sustituye el fayal-brezal.",
-   dist:"Solo en barlovento (norte y noreste) de las islas altas, entre unos 700 y 1.450 m: Anaga, Garajonay, Los Tilos (La Palma), restos en Gran Canaria y El Hierro.",
+   dist:"Solo en barlovento (norte y noreste) de las islas altas, entre unos 700 y 1.450 m: Anaga, Garajonay, Los Tilos (La Palma), restos en Gran Canaria y El Hierro. Hoy la <b>laurisilva</b> bien conservada ocupa solo en torno a una décima parte de su área potencial; otra cuarta parte es <b>fayal-brezal</b>, el monteverde más pobre que crece donde la laurisilva se taló o degradó.",
    usos:"En el pasado se taló mucho para obtener madera, carbón, varas y tierras de cultivo y pastos. Hoy está protegido: Parque Nacional de Garajonay y Parque Rural de Anaga."},
   {id:5,n:"Pinar canario",corto:"Pinar",sub:"Piso mesocanario y supracanario inferior",c:"#9ad25a",est:"T13",fotos:[{cat:"ca_pin"}],
    clave:"El pino canario resiste el fuego (rebrota tras los incendios) y la sequía.",
@@ -84,8 +84,8 @@ const CFG={
   {corto:"Islas altas y bajas",t:"Islas altas y bajas",txt:"No todas las islas tienen todos los pisos. <b>Lanzarote</b> (670 m) y <b>Fuerteventura</b> (807 m) son bajas: los alisios pasan por encima sin formar mar de nubes, y casi toda su superficie es <b>cardonal-tabaibal</b>. Las islas centrales y occidentales, más altas, tienen monteverde y pinar; solo <b>Tenerife</b> y <b>La Palma</b> llegan al matorral de cumbre.",modo:"pot",resaltar:[2,4,5,6],
    panel:`<div class="bgSec"><h3>La altura de cada isla</h3><ul><li><b>Tenerife</b> 3.715 m y <b>La Palma</b> 2.423 m: todos los pisos, hasta el matorral de cumbre.</li><li><b>Gran Canaria</b> 1.949 m: monteverde y pinar; no llega a la cumbre.</li><li><b>La Gomera</b> 1.487 m y <b>El Hierro</b> 1.501 m: monteverde gracias al mar de nubes.</li><li><b>Fuerteventura</b> 807 m y <b>Lanzarote</b> 670 m: casi todo cardonal-tabaibal.</li></ul><p>Debajo del mapa tienes dos cliseries: compara una isla alta y una baja. Cada una tiene su propia escala.</p></div>`,
    altoAbajo:300,abajo:I=>{I.innerHTML=`<div class="dosIslas"><div id="c1"></div><div id="c2"></div></div>`;AnbGlobo.modeloPisos(document.getElementById("c1"),{isla:"LG"});AnbGlobo.modeloPisos(document.getElementById("c2"),{isla:"FV"})}},
-  {corto:"Potencial y real",t:"Lo potencial y lo real",txt:"Pulsa <b>🏙️ Paisaje actual</b>. Las costas y medianías, donde vive la mayor parte de la población, son hoy <b>espacio urbano y agrícola</b> (en rojo). El <b>bosque termófilo</b> casi ha desaparecido y el <b>monteverde</b> ocupa solo una parte de su área potencial; en muchos lugares lo sustituyen matorrales y fayal-brezal. Los pinares han recuperado terreno gracias a las repoblaciones.",modo:"real",resaltar:[3,4],
-   panel:`<div class="bgSec"><h3>Observa el mapa</h3><ul><li>🟥 Las costas y medianías de Gran Canaria y Tenerife: casi todo es espacio urbano y agrícola.</li><li>🟩 El monteverde que queda: Anaga, Garajonay, el norte de La Palma.</li><li>🟪 Los matorrales de sustitución ocupan donde antes hubo cultivos o bosques.</li></ul><p>Toca un piso para ver qué parte de su espacio está hoy transformada.</p></div>`},
+  {corto:"Potencial y real",t:"Lo potencial y lo real",txt:"Pulsa <b>🏙️ Paisaje actual</b>. Las costas y medianías, donde vive la mayor parte de la población, son hoy <b>espacio urbano y agrícola</b> (en rojo). El <b>bosque termófilo</b> casi ha desaparecido (queda en torno a un 13 % de su área) y de la <b>laurisilva</b> queda más o menos una décima parte; en muchos lugares la sustituyen el fayal-brezal y los matorrales. Los pinares han recuperado terreno gracias a las repoblaciones.",modo:"real",resaltar:[3,4],
+   panel:`<div class="bgSec"><h3>Observa el mapa</h3><ul><li>🟥 Las costas y medianías de Gran Canaria y Tenerife: casi todo es espacio urbano y agrícola.</li><li>🟩 La laurisilva que queda (verde oscuro): Anaga, Garajonay, Los Tilos; el fayal-brezal, en verde más claro.</li><li>🟪 Los matorrales de sustitución ocupan donde antes hubo cultivos o bosques.</li></ul><p>Toca un piso para ver qué parte de su espacio está hoy transformada.</p></div>`},
   {corto:"Explora",t:"Explora el mapa",txt:"Toca cualquier piso del mapa o un nombre de la leyenda: verás el <b>climograma</b> de una estación característica, cómo es la vegetación, qué parte está hoy transformada y para qué la usamos.",modo:"pot"}
  ]
 };
