@@ -209,5 +209,17 @@ window.__husos={go,setMode,get t(){return t},set t(v){t=v;draw()},pick:(la,lo)=>
 })();
 </script>
 <!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Cuántos grados gira la Tierra en una hora?", "ops": ["15°", "1°", "24°", "360°"], "ok": 0, "exp": "360° ÷ 24 h = 15° por hora: cada huso teórico mide 15°."}, {"p": "¿Qué meridiano es la referencia de la hora mundial (UTC)?", "ops": ["El de Greenwich", "El de Madrid", "El ecuador", "El de Canarias"], "ok": 0, "exp": "Pasa por el observatorio de Greenwich, en Londres."}, {"p": "Si viajas hacia el este, la hora local…", "ops": ["Adelanta", "Atrasa", "No cambia", "Cambia de fecha siempre"], "ok": 0, "exp": "Por la rotación de oeste a este, amanece antes en los lugares situados más al este."}, {"p": "¿Qué diferencia horaria hay normalmente entre Canarias y la Península?", "ops": ["Una hora menos en Canarias", "Una hora más en Canarias", "Ninguna", "Dos horas menos en Canarias"], "ok": 0, "exp": "Canarias usa la hora de Europa occidental y la Península, la de Europa central."}, {"p": "¿Por qué los husos horarios reales no son franjas rectas?", "ops": ["Se adaptan a las fronteras y a decisiones políticas", "Porque la Tierra no es redonda", "Porque el Sol se mueve en zigzag", "Porque siguen los ríos"], "ok": 0, "exp": "Los países eligen la hora oficial que más les conviene."}, {"p": "¿Qué ocurre al cruzar la línea internacional de cambio de fecha hacia el oeste?", "ops": ["Se suma un día", "Se resta un día", "Se suma una hora", "No ocurre nada"], "ok": 0, "exp": "Hacia el este se resta un día."}, {"p": "Si en Greenwich son las 12:00, en un lugar a 45° E la hora solar es…", "ops": ["Las 15:00", "Las 9:00", "Las 12:45", "Las 13:00"], "ok": 0, "exp": "45° ÷ 15° = 3 horas más hacia el este."}], "relacionadas": [{"t": "Sol, Tierra y Luna", "url": "animaciones/sol-tierra-luna/index.html"}, {"t": "El movimiento aparente del Sol", "url": "animaciones/movimiento-sol/index.html"}]})</script><!--/anb-aula-->
+<!--vistas--><style>@media(min-width:1100px){.grid.conInfo{grid-template-columns:minmax(0,2.25fr) minmax(0,1fr);grid-template-areas:"map glo" "map info";grid-template-rows:auto minmax(0,1fr)}
+.grid.conInfo .mapCard{grid-area:map}.grid.conInfo .globeCard{grid-area:glo;aspect-ratio:1/.82}.grid.conInfo #cajaInfo{grid-area:info;min-height:0;overflow:auto}}
+.grid.conInfo #cajaInfo{margin:0}.below{grid-template-columns:1fr!important;max-width:900px}.below:empty,.below:not(:has(.box:not(.anbAparte))){display:none}</style><script>(()=>{"use strict";
+/* Dos vistas: explorar (planisferio, Tierra y hora de cada lugar) y practicar los cálculos, para que todo quepa sin encoger la letra */
+const cajas=document.querySelectorAll(".below>.box"),g=document.querySelector(".grid");
+if(cajas[0]){cajas[0].id="cajaInfo";g.appendChild(cajas[0])}if(cajas[1])cajas[1].id="cajaPractica";
+g.classList.add("conInfo");
+AnbAula.vistas({antes:".grid",aparte:true,vistas:[
+  {t:"🌍 Explorar",ver:[".grid",".app>.controls"]},
+  {t:"✏️ Practica",ver:["#cajaPractica"]}],
+ porPaso:[0,0,0,0,0,0,1]});
+})();</script><!--/vistas-->
 </body>
 </html>

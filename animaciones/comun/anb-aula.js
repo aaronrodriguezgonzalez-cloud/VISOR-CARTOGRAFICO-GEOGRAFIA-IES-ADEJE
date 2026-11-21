@@ -111,7 +111,12 @@
 .anbGlo:hover,.anbGlo:focus{background:rgba(255,209,102,.18);outline:none}
 .anbGloTip{position:fixed;z-index:9600;max-width:320px;background:#fff8e1;color:#2a1d00;border:1px solid #d9b44a;border-radius:10px;padding:8px 11px;font:15px/1.4 system-ui,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .stage:has(.anbSig),#stage:has(.anbSig){display:flow-root}.anbSig{float:right;margin:0 0 4px 12px;border:0;border-radius:999px;background:#ffd166;color:#2a1d00;font:800 15px system-ui,sans-serif;padding:7px 14px;cursor:pointer}
-.anbSig:hover{filter:brightness(1.07)}`;
+.anbSig:hover{filter:brightness(1.07)}
+.anbOculto{display:none!important}
+.anbAparte{position:fixed!important;left:-300vw!important;top:0!important;width:var(--anbW,1000px)!important;visibility:hidden!important}
+.anbVistas{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px;font:700 14px system-ui,sans-serif;color:#cfe0ec}
+.anbVistas button{border:1px solid #5e8094;border-radius:10px 10px 4px 4px;background:#102b3d;color:#fff;font:800 15px system-ui,sans-serif;padding:7px 14px;cursor:pointer}
+.anbVistas button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}`;
   function css(){if($("#anbAulaCss"))return;const s=document.createElement("style");s.id="anbAulaCss";s.textContent=CSS;document.head.appendChild(s)}
 
   function abrirReto(cfg){
@@ -256,6 +261,35 @@
     if(b!==stage.firstElementChild)stage.insertBefore(b,stage.firstChild);
   }
 
+
+  /* ---------- Vistas: una animación muy cargada se reparte en pestañas, para que cada vista quepa sin encoger la letra ---------- */
+  function vistas(o){
+    const ante=document.querySelector(o.antes);if(!ante)return;
+    const bar=document.createElement("div");bar.className="anbVistas";bar.setAttribute("role","tablist");
+    bar.innerHTML='<span>Vista:</span>'+o.vistas.map((v,i)=>'<button type="button" role="tab" data-v="'+i+'">'+esc(v.t)+'</button>').join("");
+    if(o.dentro)ante.insertBefore(bar,ante.firstChild);else ante.parentElement.insertBefore(bar,ante);
+    const todos=[...new Set(o.vistas.flatMap(v=>v.ver))];
+    let actual=-1;
+    function pon(i){if(i===actual)return;actual=i;
+      const ver=new Set(o.vistas[i].ver);
+      // «aparte»: lo oculto se saca de la pantalla sin quitarle el tamaño (hay dibujos que no admiten medir 0 px)
+      todos.forEach(sel=>document.querySelectorAll(sel).forEach(e=>{const fuera=!ver.has(sel);
+        if(o.aparte){if(fuera&&!e.classList.contains("anbAparte"))e.style.setProperty("--anbW",e.getBoundingClientRect().width+"px");e.classList.toggle("anbAparte",fuera)}
+        else e.classList.toggle("anbOculto",fuera)}));
+      bar.querySelectorAll("button").forEach((b,k)=>{b.classList.toggle("on",k===i);b.setAttribute("aria-selected",k===i)});
+      if(o.alCambiar)o.alCambiar(i);
+      requestAnimationFrame(()=>{dispatchEvent(new Event("resize"))});
+    }
+    bar.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>pon(+b.dataset.v)));
+    // cada paso abre su vista
+    const pasos=document.querySelector(o.pasos||"#steps");
+    const sigue=()=>{if(!o.porPaso||!pasos)return;const bs=[...pasos.querySelectorAll("button")].filter(b=>!b.classList.contains("anbRetoBtn"));const k=bs.findIndex(b=>b.classList.contains("on"));
+      if(k>=0&&k!==sigue.ult){sigue.ult=k;const v=o.porPaso[k];if(v!=null)pon(v)}};
+    if(pasos)new MutationObserver(sigue).observe(pasos,{subtree:true,attributes:true,attributeFilter:["class"],childList:true});
+    pon(o.inicial||0);sigue();
+    return{pon};
+  }
+
   /* ---------- Navegar a otra animación (dentro del visor, sin cerrarlo) ---------- */
   function irA(url,t){
     try{const P=window.parent;if(P&&P!==window&&typeof P.openAnambroExplanation==="function"){P.openAnambroExplanation(url,t);return}}catch(e){}
@@ -294,5 +328,5 @@
     new MutationObserver(()=>{pedir()}).observe(raiz,{childList:true,subtree:true,attributes:true,attributeFilter:["class","hidden"]});
     pedir();setTimeout(pedir,600);setTimeout(()=>{letraMinima();pedir()},2500);
   }
-  window.AnbAula={init,abrirReto,irA};
+  window.AnbAula={init,abrirReto,irA,vistas};
 })();

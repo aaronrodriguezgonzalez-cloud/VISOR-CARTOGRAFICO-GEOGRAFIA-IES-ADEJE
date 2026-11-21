@@ -134,10 +134,19 @@ function ajustaLienzo(){
   return{w:r.width,h:r.height,dp};
 }
 let vista=null;
-function igualaPanel(){const c=$("bgColMapa"),F=$("bgFicha");if(!c||!F)return;
-  // la ficha ocupa lo que queda de la columna derecha (modo y leyenda van encima), a la altura del mapa
-  let resto=0;const d=$("bgColDer");if(d)[...d.children].forEach(e=>{if(e!==F)resto+=e.offsetHeight+8});
-  F.style.maxHeight=innerWidth>980?Math.max(260,c.offsetHeight-resto)+"px":"none"}
+function igualaPanel(){const F=$("bgFicha"),I=$("bgInfo");if(!F)return;
+  if(innerWidth<=980){F.style.maxHeight="none";if(I)I.style.maxHeight="none";return}
+  // la ficha (derecha) y la información (debajo del mapa) llegan hasta el borde inferior de la pantalla; si no cabe todo, se desplazan por dentro
+  const abajo=innerHeight-12;
+  // con una ficha abierta, el mapa se ajusta para dejar sitio a la información de debajo (unos 250 px)
+  const card=document.querySelector(".bgCard"),L=$("bgLeyenda");
+  if(card){const antes=card.style.width;card.style.width="";card.style.marginLeft=card.style.marginRight="";
+    {const r=card.getBoundingClientRect(),ar=r.width/r.height,hueco=abajo-r.top-(L?L.offsetHeight+8:0)-(I&&!I.hidden?(I.dataset.alto?+I.dataset.alto:258):0);
+      if(r.height>hueco){card.style.width=Math.max(300,Math.floor(hueco*ar))+"px";card.style.marginLeft=card.style.marginRight="auto"}}
+    if(card.style.width!==antes)requestAnimationFrame(dibuja)}
+  F.style.maxHeight=Math.max(300,abajo-F.getBoundingClientRect().top)+"px";
+  if(I&&!I.hidden)I.style.maxHeight=Math.max(170,abajo-I.getBoundingClientRect().top)+"px";
+}
 function dibuja(){
   igualaPanel();
   if(!capa)return;const {w,h,dp}=ajustaLienzo(),E=BG.escena;
@@ -158,7 +167,8 @@ function dibuja(){
   const u=BG.sel&&BG.cfg.unidades.find(u=>u.id===BG.sel),st=u&&estacion(u);
   if(st){const [x,y]=E.xy(st.lo,st.la),X=ox+x*s,Y=oy+y*s;
     ctx.beginPath();ctx.arc(X,Y,8,0,7);ctx.fillStyle="#d62c1a";ctx.fill();ctx.lineWidth=3;ctx.strokeStyle="#fff";ctx.stroke();
-    rot(st.n,X+12,Y+5,{a:"left",s:14})}
+    ctx.font="800 14px system-ui,sans-serif";const tw=ctx.measureText(st.n).width;
+    if(X+14+tw>w-4)rot(st.n,X-12,Y+5,{a:"right",s:14});else rot(st.n,X+12,Y+5,{a:"left",s:14})}
 }
 function rot(t,x,y,o={}){ctx.save();ctx.font=`800 ${o.s||14}px system-ui,sans-serif`;ctx.textAlign=o.a||"center";ctx.lineJoin="round";ctx.lineWidth=4;ctx.strokeStyle="rgba(5,15,12,.85)";ctx.strokeText(t,x,y);ctx.fillStyle=o.c||"#fff";ctx.fillText(t,x,y);ctx.restore()}
 
@@ -212,28 +222,33 @@ function barraReal(u){
   const e=BG.est[u.id];if(!e)return"";
   const filas=BG.cfg.real.map(r=>({r,v:+(e.real[r.id]||0)})).filter(x=>x.v>=.5).sort((a,b)=>b.v-a.v);
   const hum=filas.filter(x=>x.r.humano).reduce((a,x)=>a+x.v,0);
-  return `<div class="bgBarra">${filas.map(x=>`<i style="width:${x.v}%;background:${x.r.c}" title="${esc(x.r.n)}: ${fmt(x.v,0)} %"></i>`).join("")}</div>
-   <div class="bgLeyBar">${filas.slice(0,6).map(x=>`<span><i style="background:${x.r.c}"></i>${esc(x.r.n)} <b>${fmt(x.v,0)} %</b></span>`).join("")}</div>
-   <p class="bgHum">Hoy, aproximadamente el <b>${fmt(hum,0)} %</b> del espacio que le correspondería está ocupado por ${esc(BG.cfg.textoHumano||"cultivos, pastos sembrados y ciudades")}.</p>`;
+  return `<p class="bgHum">🏙️ <b>${fmt(hum,0)} %</b> de su espacio está hoy ocupado por ${esc(BG.cfg.textoHumano||"cultivos y ciudades")}.</p>
+   <div class="bgBarra">${filas.map(x=>`<i style="width:${x.v}%;background:${x.r.c}" title="${esc(x.r.n)}: ${fmt(x.v,0)} %"></i>`).join("")}</div>
+   <div class="bgLeyBar">${filas.slice(0,5).map(x=>`<span><i style="background:${x.r.c}"></i>${esc(x.r.n)} ${fmt(x.v,0)} %</span>`).join("")}</div>`;
 }
 async function ficha(u){
   const F=$("bgFicha");const st=estacion(u),se=st&&serie(st);
   let clim="";
   if(se&&se.T&&se.P&&se.T.length===12){
     const k=koppen(se.T,se.P,st.la),s=stats(se.T,se.P,st.la);
-    clim=`<div class="bgSec"><h3>📍 Clima de una estación característica</h3><div class="bgEst"><b>${esc(st.n)}</b>${st.cn?" · "+esc(st.cn):""}${st.z!=null?" · "+fmt(st.z,0)+" m":""}</div>
+    clim=`<div class="bgSec"><h3>📍 El clima: una estación característica</h3><div class="bgEst"><b>${esc(st.n)}</b>${st.cn?" · "+esc(st.cn):""}${st.z!=null?" · "+fmt(st.z,0)+" m":""}</div>
       <div class="bgClim">${climogramaSVG(se.T,se.P)}</div>
       <div class="bgKop"><span class="kop">${k}</span> ${esc(KNOM[k]||"")} · T media ${fmt(s.MAT)} °C · amplitud ${fmt(s.amp)} °C · P ${fmt(s.MAP,0)} mm/año${s.secos.length?` · ${s.secos.length} meses secos`:""}</div>
       <div class="bgNota">Normal ${se.per}${BG.fuentesClima&&BG.fuentesClima[se.src]?" · "+esc(BG.fuentesClima[se.src].t.split(" · ")[0]):""}</div></div>`;
   }else if(u.sinEstacion)clim=`<div class="bgSec"><h3>📍 Clima</h3><p>${u.sinEstacion}</p></div>`;
   const fot=fotosDe(u);
-  F.innerHTML=`<div class="bgCab" style="--c:${u.c}"><i></i><div><h2>${esc(u.n)}</h2>${u.sub?`<div class="sub">${esc(u.sub)}</div>`:""}</div></div>
-    ${u.clave?`<div class="bgClave">💡 ${u.clave}</div>`:""}
-    ${clim}
-    <div class="bgSec"><h3>🌿 La formación vegetal</h3><p>${u.rasgos}</p></div>
-    <div class="bgSec"><h3>🗺️ Lo potencial y lo real</h3>${u.dist?`<p>${u.dist}</p>`:""}${barraReal(u)}<button class="bgBtn" id="bgVerReal">${BG.modo==="real"?"🌿 Ver su área potencial":"🏙️ Ver cómo está hoy en el mapa"}</button></div>
-    <div class="bgSec"><h3>🧑‍🌾 Usos humanos</h3><p>${u.usos}</p></div>
-    <div class="bgSec"><h3>📷 Fotos</h3><div class="bgFotos" id="bgFotos"><span class="bgNota">Cargando fotos de Wikimedia Commons…</span></div></div>`;
+  // debajo del mapa: qué es, dónde está y para qué se usa; a la derecha: el clima y las fotos
+  const I=$("bgInfo");delete I.dataset.alto;
+  I.innerHTML=`<div class="bgCab" style="--c:${u.c}"><i></i><div><h2>${esc(u.n)}</h2>${u.sub?`<div class="sub">${esc(u.sub)}</div>`:""}</div>${u.clave?`<div class="bgClave">💡 ${u.clave}</div>`:""}</div>
+    <div class="bgInfoGrid">
+     <div class="bgSec"><h3>🌿 La formación vegetal</h3><p>${u.rasgos}</p></div>
+     <div class="bgSec"><h3>🗺️ Dónde está y cómo está hoy</h3>${u.dist?`<p>${u.dist}</p>`:""}${barraReal(u)}<button class="bgBtn" id="bgVerReal">${BG.modo==="real"?"🌿 Ver su área potencial":"🏙️ Ver cómo está hoy en el mapa"}</button></div>
+     <div class="bgSec"><h3>🧑‍🌾 Usos humanos</h3><p>${u.usos}</p></div>
+    </div>`;
+  I.hidden=false;
+  F.innerHTML=`${clim||`<div class="bgSec"><h3>📍 Clima</h3><p>Sin estación característica.</p></div>`}
+    <div class="bgSec"><h3>📷 ${esc(u.corto||u.n)} en fotos</h3><div class="bgFotos" id="bgFotos"><span class="bgNota">Cargando fotos de Wikimedia Commons…</span></div></div>`;
+  igualaPanel();
   $("bgVerReal").onclick=()=>{ponModo(BG.modo==="real"?"pot":"real");ficha(u)};
   F.scrollTop=0;
   const elegir=(arr,n)=>{const vistos=new Set();return arr.filter(f=>!vistos.has(f.f)&&vistos.add(f.f)).slice(0,n)};
@@ -250,18 +265,26 @@ function ampliar(src,alt){const v=document.createElement("div");v.className="bgL
 
 /* ---------- leyenda, modos y pasos ---------- */
 function leyenda(){
-  const L=$("bgLeyenda");
+  const L=$("bgLeyenda"),u=BG.sel&&BG.cfg.unidades.find(u=>u.id===BG.sel);
+  const nombre=BG.cfg.nombreUnidades||"todas las unidades";
+  // con una unidad elegida, la leyenda se recoge para dejar sitio a la ficha (se despliega con el botón)
+  if(u&&!BG.leyAbierta){
+    L.innerHTML=`<button class="on" data-u="${u.id}"><i style="background:${u.c}"></i>${esc(u.corto||u.n)}</button><button class="bgVerTodo" id="bgVerTodo">☰ Ver ${esc(nombre)}</button><span class="bgNota">o toca otra zona del mapa</span>`;
+    $("bgVerTodo").onclick=()=>{BG.leyAbierta=true;leyenda();igualaPanel()};return;
+  }
   if(BG.modo==="pot")L.innerHTML=BG.cfg.unidades.filter(u=>!u.oculta).map(u=>`<button data-u="${u.id}" class="${BG.sel===u.id?"on":""}${BG.resalte&&!BG.resalte.includes(u.id)?" apag":""}"><i style="background:${u.c}"></i>${esc(u.corto||u.n)}</button>`).join("");
   else L.innerHTML=`<div class="bgLeyReal">${BG.cfg.real.map(r=>`<span><i style="background:${r.c}"></i>${esc(r.n)}${r.humano?" ✱":""}</span>`).join("")}</div><div class="bgNota">✱ Espacios transformados por el ser humano. ${esc(BG.cfg.fuenteReal||"")}</div>`;
+  if(u)L.innerHTML+=`<button class="bgVerTodo" id="bgRecoge">▴ Recoger la leyenda</button>`;
   L.querySelectorAll("button[data-u]").forEach(b=>b.onclick=()=>selecciona(+b.dataset.u,true));
+  const rc=$("bgRecoge");if(rc)rc.onclick=()=>{BG.leyAbierta=false;leyenda();igualaPanel()};
 }
 function ponModo(m){BG.modo=m;$("bgPot").classList.toggle("on",m==="pot");$("bgReal").classList.toggle("on",m==="real");pintaEscena();leyenda();
   $("bgModoTxt").innerHTML=m==="pot"?BG.cfg.textoPot:BG.cfg.textoReal}
 function selecciona(id,abrir){
-  BG.sel=id;BG.resalte=[id];BG.rotulos=[];
+  BG.sel=id;BG.resalte=[id];BG.rotulos=[];BG.leyAbierta=false;
   const u=BG.cfg.unidades.find(u=>u.id===id);if(!u)return;
   if(BG.paso!==BG.cfg.pasos.length-1)irPaso(BG.cfg.pasos.length-1,true);
-  pintaEscena();leyenda();if(abrir)ficha(u);
+  pintaEscena();leyenda();igualaPanel();if(abrir)ficha(u);
 }
 function irPaso(i,silencio){
   BG.paso=i;const P=BG.cfg.pasos[i];
@@ -271,9 +294,10 @@ function irPaso(i,silencio){
   BG.sel=null;BG.resalte=P.resaltar||null;BG.lineas=!!P.lineas;BG.rotulos=P.rotulos||[];
   if(P.modo&&P.modo!==BG.modo){BG.modo=P.modo;$("bgPot").classList.toggle("on",P.modo==="pot");$("bgReal").classList.toggle("on",P.modo==="real");$("bgModoTxt").innerHTML=P.modo==="pot"?BG.cfg.textoPot:BG.cfg.textoReal}
   pintaEscena();leyenda();
+  const I=$("bgInfo");if(I){I.hidden=!P.abajo;I.innerHTML="";delete I.dataset.alto;if(P.abajo){I.dataset.alto=P.altoAbajo||258;P.abajo(I)}}
   const F=$("bgFicha");F.innerHTML=P.panel?(typeof P.panel==="function"?"":P.panel):`<div class="bgVacio">👆 Toca una zona del mapa o un nombre de la leyenda para abrir su ficha.</div>`;
   if(typeof P.panel==="function")P.panel(F);
-  F.scrollTop=0;
+  F.scrollTop=0;igualaPanel();requestAnimationFrame(igualaPanel);
 }
 
 /* ---------- arranque ---------- */
@@ -286,7 +310,7 @@ async function iniciaBiogeo(cfg){
   $("bgModoTxt").innerHTML=cfg.textoPot;
   lienzo.addEventListener("pointermove",tip);lienzo.addEventListener("pointerleave",()=>$("bgTip").hidden=true);
   lienzo.addEventListener("click",clic);
-  addEventListener("resize",()=>dibuja());
+  addEventListener("resize",()=>dibuja());addEventListener("scroll",()=>igualaPanel(),{passive:true});
   if(window.ResizeObserver)new ResizeObserver(()=>dibuja()).observe(lienzo);
   irPaso(0,true);$("stage").innerHTML+=`<p class="bgNota">Cargando mapas y datos…</p>`;
   try{
