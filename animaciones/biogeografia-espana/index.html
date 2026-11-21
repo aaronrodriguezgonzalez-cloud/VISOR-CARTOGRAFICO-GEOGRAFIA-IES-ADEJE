@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · Biogeografía de España: las series de vegetación</title>
+<link rel="stylesheet" href="../comun/biogeo.css?v=20261121a">
+</head>
+<body>
+<main class="app">
+ <div class="top"><div class="brand">ANAMBRO · AULA · BIOGEOGRAFÍA</div><h1>🇪🇸 Los paisajes vegetales de España</h1></div>
+ <nav class="steps" id="steps"></nav>
+ <section class="stage" id="stage"></section>
+ <div class="bgGrid">
+  <div class="bgCol" id="bgColMapa">
+   <div class="bgCard" style="--ar:1380/795"><canvas id="bgMapa" aria-label="Mapa de las series de vegetación de España"></canvas><div class="bgTip" id="bgTip" hidden></div></div>
+  </div>
+  <div class="bgCol bgDer" id="bgColDer">
+   <div class="bgBarraModo"><button id="bgPot" class="on">🌿 Vegetación potencial</button><button id="bgReal">🏙️ Paisaje actual</button><span id="bgModoTxt"></span></div>
+   <div class="bgLey" id="bgLeyenda"></div>
+   <aside class="bgPanel" id="bgFicha"></aside>
+  </div>
+ </div>
+ <p class="small">Vegetación potencial: Mapa de Series de Vegetación de España (Rivas-Martínez, 1987; MITECO, Banco de Datos de la Naturaleza), con sus series agrupadas aquí en grandes formaciones. Paisaje actual: CORINE Land Cover 2018 (IGN-CNIG, servicio de Ocupación del Suelo de la IDEE). Climogramas: AEMET, valores normales 1991-2020, y NOAA GHCN. Fotos: Wikimedia Commons (autor y licencia en cada foto). Portugal y los países vecinos aparecen en gris porque estos mapas solo cubren España.</p>
+</main>
+<script src="../comun/biogeo.js?v=20261121a"></script>
+<script>
+const CLISERIE=`<div class="bgDiag"><svg viewBox="0 0 560 360" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+ <defs><clipPath id="m1"><polygon points="20,330 140,60 260,330"/></clipPath><clipPath id="m2"><polygon points="300,330 420,70 540,330"/></clipPath></defs>
+ <text x="10" y="22" font-size="16" font-weight="800" fill="#24496b">Los pisos de vegetación: cambian con la altitud</text>
+ <g clip-path="url(#m1)"><rect x="0" y="250" width="280" height="80" fill="#9a7b3a"/><rect x="0" y="190" width="280" height="60" fill="#a7c76a"/><rect x="0" y="135" width="280" height="55" fill="#2f6b55"/><rect x="0" y="95" width="280" height="40" fill="#b9a26a"/><rect x="0" y="40" width="280" height="55" fill="#e3e8d6"/></g>
+ <g clip-path="url(#m2)"><rect x="280" y="250" width="280" height="80" fill="#78c25a"/><rect x="280" y="175" width="280" height="75" fill="#3f9e4d"/><rect x="280" y="125" width="280" height="50" fill="#2f6b55"/><rect x="280" y="40" width="280" height="85" fill="#e3e8d6"/></g>
+ <g font-size="14" font-weight="700" fill="#fff" text-anchor="middle" stroke="rgba(0,0,0,.55)" stroke-width="3" paint-order="stroke">
+  <text x="140" y="300">encinar</text><text x="140" y="226">melojar</text><text x="140" y="168">pinar silvestre</text><text x="140" y="121">piornal</text>
+  <text x="420" y="300">robledal</text><text x="420" y="218">hayedo y abetal</text><text x="420" y="157">pino negro</text><text x="420" y="113">pastizal alpino</text></g>
+ <g font-size="14" font-weight="800" fill="#24496b" text-anchor="middle"><text x="140" y="350">Sierra de Guadarrama (mediterránea)</text><text x="420" y="350">Pirineo central (eurosiberiana)</text></g>
+ <g font-size="14" fill="#24496b"><text x="140" y="54" text-anchor="middle">2.430 m</text><text x="420" y="64" text-anchor="middle">3.400 m</text></g>
+</svg><p style="margin:6px 4px 2px;font-size:15px">Esquema sin escala. En cada sierra, los nombres de los pisos cambian: en la región mediterránea se habla de pisos <b>meso-, supra- y oromediterráneo</b>; en la eurosiberiana, de pisos <b>colino, montano, subalpino y alpino</b>.</p></div>`;
+const CFG={
+ mapa:{tipo:"espana",img:"../comun/biogeo/espana_pen.png",imgCan:"../comun/biogeo/espana_can.png",est:"../comun/biogeo/espana_est.json",
+  bb:[-9.4,35.9,4.4,43.85],bbCan:[-18.2,27.6,-13.35,29.45],escalaCan:.5},
+ normales:["../../data/clima/normales_esp.json","../../data/clima/normales_can.json"],fotosUrl:"../../juego-paisajes-fotos.json",
+ textoPot:"La <b>vegetación potencial</b> (series de vegetación) es la que habría de forma natural si no la hubiéramos cambiado.",
+ textoReal:"El <b>paisaje actual</b> (CORINE Land Cover 2018): bosques, matorrales, cultivos, dehesas y ciudades.",
+ textoHumano:"cultivos, dehesas y mosaicos agrarios y zonas urbanas",
+ fuenteReal:"Las dehesas son un paisaje creado por el ser humano a partir del bosque: por eso se cuentan como transformadas.",
+ real:[{id:1,n:"Bosque",c:"#2e7d32"},{id:2,n:"Matorral y pastizal",c:"#9bbf5a"},{id:3,n:"Cultivos",c:"#f7e05e",humano:1},{id:4,n:"Dehesas y mosaicos agrarios",c:"#c79a3a",humano:1},
+  {id:5,n:"Zonas urbanas e industriales",c:"#e0303a",humano:1},{id:6,n:"Roca, arena y lava",c:"#cfc6b8"},{id:7,n:"Humedales",c:"#6b8fd6"},{id:8,n:"Agua",c:"#5aa9d6"}],
+ unidades:[
+  {id:1,n:"Pastizales de alta montaña",corto:"Pastizal alpino",sub:"Pisos alpino y crioromediterráneo",c:"#e3e8d6",est:"GSPE00156018",
+   fotos:[{cat:"es_mon",veg:"alta montaña"}],fotosExtra:[{f:"Altos Pirineos 1981 40.jpg",et:"Pastizal alpino",lugar:"Néouvielle (Pirineo francés)"}],agrExtra:[{f:"Cow pyrenees.JPG",et:"Ganado en los pastos de verano",lugar:"Pirineos"}],
+   clave:"Por encima del límite del bosque: el frío y la nieve impiden que crezcan árboles.",
+   rasgos:"Céspedes y pastizales de hierbas bajas, con plantas en almohadilla. La nieve los cubre buena parte del año. Muchas especies son endémicas, sobre todo en Sierra Nevada.",
+   dist:"Cumbres del Pirineo (por encima de unos 2.300 m), Picos de Europa, Sierra Nevada, Gredos y Guadarrama.",
+   usos:"Pastos de verano para el ganado (trashumancia), estaciones de esquí y montañismo. Gran parte está protegida en parques nacionales."},
+  {id:2,n:"Piornales y enebrales",corto:"Piornal",sub:"Matorrales de alta montaña (piso oromediterráneo y subalpino)",c:"#b9a26a",est:"A2630X",
+   fotos:[{cat:"es_mon",veg:"piornal"}],
+   clave:"Matorrales almohadillados que soportan el viento y la nieve, por encima de los pinares.",
+   rasgos:"Piornos (Cytisus) y enebros rastreros pegados al suelo, que florecen en amarillo a principios de verano. Forman el límite superior del bosque en las sierras del Sistema Central, la Cordillera Cantábrica y Sierra Nevada.",
+   dist:"Sierras altas del interior: Gredos, Guadarrama, Sanabria, Cantábrica, Sierra Nevada.",
+   usos:"Pastoreo de verano y, a veces, quemas para crear pasto; montañismo y esquí."},
+  {id:3,n:"Pinares y abetales de montaña",corto:"Pinar de montaña",sub:"Pino silvestre, pino negro, abeto y pinsapo",c:"#2f6b55",est:"W08215",
+   fotos:[{cat:"es_mon",veg:"pinar|pino negro"}],agrExtra:[],
+   clave:"Coníferas en las montañas frías: soportan inviernos largos y nevados.",
+   rasgos:"Pinares de pino silvestre y pino negro y abetales en el Pirineo; pinares de pino silvestre con sabina rastrera en las sierras ibéricas y béticas; pinsapares en la serranía de Ronda (el pinsapo es un abeto exclusivo del sur de España).",
+   dist:"Pirineo y montañas del interior y del sur, en el piso montano alto y subalpino.",
+   usos:"Explotación de madera, ganadería, turismo de montaña y esquí. Muchos pinares actuales son repoblaciones del siglo XX."},
+  {id:4,n:"Hayedos",corto:"Hayedo",sub:"Bosques de haya (Fagus sylvatica)",c:"#3f9e4d",est:"GSPE00156351",
+   fotos:[{cat:"es_oce",veg:"hayedo"}],
+   clave:"La haya necesita humedad todo el año, también en verano, y no soporta la sequía.",
+   rasgos:"Bosque umbrío y denso: las hayas dejan pasar muy poca luz y casi no hay sotobosque. En otoño se vuelven rojizas. Suelen ocupar el piso montano, por encima de los robledales.",
+   dist:"Montañas del norte: Pirineo, Cordillera Cantábrica, montes vascos y navarros y, más al sur, enclaves como el Moncayo o el Hayedo de Montejo (Madrid).",
+   usos:"Madera, carbón vegetal (en el pasado), ganadería en los claros y turismo de otoño."},
+  {id:5,n:"Robledales atlánticos",corto:"Robledal atlántico",sub:"Carballeiras, fresnedas y bosques mixtos",c:"#78c25a",est:"W08042",
+   fotos:[{cat:"es_oce",veg:"carballeira|atlántico"}],
+   clave:"Clima oceánico: lluvia todo el año e inviernos suaves.",
+   rasgos:"Bosques caducifolios de roble carballo (Quercus robur), con castaños, abedules, fresnos y avellanos, y un sotobosque de helechos. Hojas grandes y blandas que caen en otoño.",
+   dist:"Galicia, Asturias, Cantabria y País Vasco, en las zonas bajas (piso colino).",
+   usos:"Es una de las series más transformadas: prados para el ganado vacuno, maizales, plantaciones de eucalipto y pino y numerosos núcleos de población dispersos."},
+  {id:6,n:"Melojares",corto:"Melojar (rebollar)",sub:"Bosques de roble melojo (Quercus pyrenaica)",c:"#a7c76a",est:"W08055",
+   fotos:[],fotosExtra:[{f:"El Cardoso de la Sierra (1984) 04.jpg",et:"Melojar",lugar:"El Cardoso de la Sierra (Guadalajara)"},{f:"Quercus pyrenaica - La Vera - 20181116a.jpg",et:"Melojar en otoño",lugar:"Losar de la Vera (Cáceres)"},{f:"Melojar soto.JPG",et:"Melojar",lugar:"Soto del Real, Sierra de Guadarrama (Madrid)"}],
+   clave:"Un roble mediterráneo de montaña, en suelos silíceos (granito, pizarra).",
+   rasgos:"Roble de hoja caduca, más resistente a la sequía que el carballo. Las hojas secas permanecen en el árbol en invierno. Ocupa el piso supramediterráneo, por encima de los encinares.",
+   dist:"Sistema Central, Montes de León, Sierra Morena alta y otras sierras silíceas del oeste.",
+   usos:"Leña y carbón, pastos para el ganado (muchos están adehesados), castañares y, en las laderas, repoblaciones de pino."},
+  {id:7,n:"Quejigares",corto:"Quejigar",sub:"Bosques de quejigo (Quercus faginea y Q. canariensis)",c:"#c7c25a",est:"W08148",
+   fotos:[],fotosExtra:[{f:"Quercus faginea.jpg",et:"Quejigar",lugar:"Torrecuadrada de los Valles (Guadalajara)"},{f:"Alto Tajo 1975 31.jpg",et:"Quejigar y encinar",lugar:"Alto Tajo (Guadalajara)"},{f:"Pisos vegetales.jpg",et:"Quejigar (abajo) y encinar (arriba)",lugar:"Torrecuadrada de los Valles (Guadalajara)"}],
+   clave:"El quejigo es un roble marcescente: aguanta algo más de frío y de humedad que la encina.",
+   rasgos:"Bosques de quejigo, a menudo mezclados con encinas, arces y sabinas, en suelos calizos (basófilos). El quejigo andaluz (Q. canariensis) vive en las sierras húmedas de Cádiz y Málaga.",
+   dist:"Páramos calizos de las dos Castillas, Sistema Ibérico, Prepirineo y montañas béticas.",
+   usos:"Cereal de secano en los páramos, ganadería de ovejas, leña. Quedan pocos quejigares bien conservados."},
+  {id:8,n:"Encinares",corto:"Encinar",sub:"Bosques de encina o carrasca (Quercus rotundifolia y Q. ilex)",c:"#9a7b3a",est:"W08222",
+   fotos:[{cat:"es_con",veg:"encinar"}],agrExtra:[{f:"Dehesa de los Gordos.jpg",et:"Dehesa de encinas con ganado",lugar:"La Torre (Ávila)"}],
+   clave:"La encina es el árbol más típico de la España mediterránea: aguanta la sequía del verano y el frío del interior.",
+   rasgos:"Bosque de hoja perenne, dura y pequeña (esclerófila), con un sotobosque de coscoja, jara, romero y madroño. Es la serie de vegetación más extensa de España.",
+   dist:"Casi toda la Meseta, el valle del Ebro, Extremadura, Andalucía y la costa catalana y balear (encina y alsina).",
+   usos:"Se ha transformado en campos de cereal, olivares y viñedos y en dehesas (encinas aclaradas con pasto para cerdo ibérico, ovejas y vacas). La dehesa es un uso tradicional sostenible."},
+  {id:9,n:"Alcornocales",corto:"Alcornocal",sub:"Bosques de alcornoque (Quercus suber)",c:"#c48a3a",est:"A5704B",
+   fotos:[{cat:"es_med",veg:"alcornocal"}],
+   clave:"El alcornoque necesita inviernos suaves, algo de humedad y suelos sin cal.",
+   rasgos:"Bosque perennifolio parecido al encinar, con la corteza gruesa de corcho que protege al árbol del fuego. Sotobosque de brezos, madroños y helechos.",
+   dist:"Suroeste (Cádiz, Huelva, Sevilla, Extremadura), Cataluña (Girona) y, en pequeñas manchas, Castellón.",
+   usos:"Saca del corcho cada 9-12 años (España es el segundo productor mundial), ganadería en dehesas de alcornoque y caza."},
+  {id:10,n:"Sabinares albares",corto:"Sabinar albar",sub:"Bosques de sabina albar (Juniperus thurifera)",c:"#8a8f6a",est:"W08232",
+   fotos:[{cat:"es_con",veg:"sabinar"}],
+   clave:"Un bosque de las zonas más continentales: inviernos muy fríos y veranos secos.",
+   rasgos:"Bosques claros de sabina albar, un árbol de crecimiento muy lento que puede vivir más de mil años, a menudo con encinas y pastizales.",
+   dist:"Páramos calizos del Sistema Ibérico: Soria, Guadalajara, Teruel y Cuenca, entre 900 y 1.400 m.",
+   usos:"Pastos de ovejas, cereal de secano y madera (muy apreciada por ser imputrescible)."},
+  {id:11,n:"Coscojares, lentiscares y acebuchales",corto:"Coscojar / lentiscar",sub:"Matorrales y bosquetes termomediterráneos",c:"#e0a060",est:"W08359",
+   fotos:[],fotosExtra:[{f:"Garric i savina forat de la Vella P1070502.JPG",et:"Coscojar con sabina",lugar:"Cataluña"},{f:"Dunas y matorral La Barrosa.jpg",et:"Matorral costero",lugar:"La Barrosa, Chiclana (Cádiz)"}],agrExtra:[{f:"Huerta de Murcia1.jpg",et:"Huerta de regadío",lugar:"Huerta de Murcia"}],
+   clave:"El piso más cálido y seco de la España mediterránea: inviernos sin heladas.",
+   rasgos:"Matorrales altos y bosquetes de coscoja, lentisco, acebuche, algarrobo, palmito y sabina mora, adaptados al calor y a la sequía.",
+   dist:"Costas mediterráneas del sur y del levante, Baleares y depresiones cálidas del interior (valle del Ebro, Guadalquivir).",
+   usos:"Es de las series más transformadas: cultivos de regadío (cítricos, hortalizas), almendros y olivos, urbanizaciones y turismo de sol y playa."},
+  {id:12,n:"Matorrales semiáridos del sureste",corto:"Semiárido del sureste",sub:"Cornicales, azufaifares y espinares",c:"#f0d9a0",est:"W08487",
+   fotos:[],fotosExtra:[{f:"Paisaje de Parque natural Cabo de Gata-Níjar Almería.jpg",et:"Matorral semiárido",lugar:"Cabo de Gata-Níjar (Almería)"},{f:"Chamaerops humilis Cabo Gata.jpg",et:"Palmitos",lugar:"Cabo de Gata (Almería)"},{f:"Ziziphus lotus.jpg",et:"Azufaifo",lugar:"Cartagena (Murcia)"}],agrExtra:[{f:"Huerta de Murcia1.jpg",et:"Huerta de regadío",lugar:"Huerta de Murcia"}],
+   clave:"La zona más seca de Europa: menos de 250-300 mm de lluvia al año.",
+   rasgos:"Matorrales espinosos y abiertos de cornical, azufaifo, palmito y esparto, con especies de origen africano. Mucho suelo desnudo entre las plantas.",
+   dist:"Litoral de Almería y Murcia: Cabo de Gata, Campo de Cartagena.",
+   usos:"Agricultura intensiva en invernaderos (el «mar de plástico» de Almería), regadíos con aguas del trasvase y desaladas, turismo y minería antigua."},
+  {id:13,n:"Vegetación de ribera",corto:"Riberas",sub:"Alisedas, fresnedas, choperas y olmedas (vegetación azonal)",c:"#3aa0c8",est:"W08160",
+   fotos:[],fotosExtra:[{f:"Temblones en otoño.jpg",et:"Bosque de ribera",lugar:"Río Alberche (Ávila)"},{f:"Segovia (provincia) 1978 04.jpg",et:"Bosque de galería",lugar:"Hoces del río San Juan (Segovia)"},{f:"Rio Torote - madrid (6982793867).jpg",et:"Soto de ribera",lugar:"Río Torote (Madrid)"}],agrExtra:[{f:"Las Marismas, Villafranco del Guadalquivir.jpg",et:"Arrozales",lugar:"Marismas del Guadalquivir (Sevilla)"}],
+   clave:"Vegetación azonal: no depende tanto del clima como del agua del río.",
+   rasgos:"Bosques en galería a lo largo de los ríos: alisos, fresnos, sauces, chopos, álamos y olmos, que necesitan tener las raíces en agua.",
+   dist:"Vegas y riberas de los grandes ríos: Ebro, Duero, Tajo, Guadiana, Guadalquivir… En el mapa también se incluyen las vegas de regadío.",
+   usos:"Las vegas son las tierras más fértiles: regadíos, choperas de cultivo, graveras y ciudades. Quedan pocos sotos bien conservados."},
+  {id:14,n:"Saladares, marismas y dunas",corto:"Saladares y dunas",sub:"Vegetación del litoral (azonal)",c:"#9ad0c8",est:"W08452",
+   fotos:[],fotosExtra:[{f:"Marismas de Las Cabezas y Lebrija 2.jpg",et:"Marismas del Guadalquivir",lugar:"Las Cabezas de San Juan (Sevilla)"},{f:"Dunas y matorral La Barrosa.jpg",et:"Dunas y matorral",lugar:"La Barrosa, Chiclana (Cádiz)"}],agrExtra:[{f:"Las Marismas, Villafranco del Guadalquivir.jpg",et:"Arrozales",lugar:"Marismas del Guadalquivir (Sevilla)"}],
+   clave:"Plantas que soportan la sal, la arena y el viento del mar.",
+   rasgos:"Marismas con plantas que toleran la sal (salicornias, almajos), dunas fijadas por barrones y sabinas, y saladares del interior.",
+   dist:"Marismas del Guadalquivir (Doñana), delta del Ebro, Mar Menor, salinas del litoral.",
+   usos:"Arrozales, salinas, acuicultura, turismo de playa y urbanizaciones. Doñana es Parque Nacional."},
+  {id:15,n:"Cardonal-tabaibal (Canarias)",corto:"Cardonal-tabaibal",sub:"Región macaronésica · piso infracanario",c:"#f1d48c",est:"W60020",fotos:[{cat:"ca_car"}],
+   clave:"El piso más bajo y seco de Canarias.",rasgos:"Matorral de cardones y tabaibas, plantas suculentas que guardan agua.",dist:"Costas e islas orientales de Canarias.",usos:"Plataneras, tomateros, urbanizaciones turísticas e infraestructuras.",verMas:1},
+  {id:16,n:"Bosque termófilo (Canarias)",corto:"Bosque termófilo",sub:"Región macaronésica · sabinares, acebuchales y palmerales",c:"#a3a865",est:"AC458A",fotos:[{cat:"ca_ter"}],
+   clave:"Bosques de transición entre el cardonal y el monteverde.",rasgos:"Sabinas, acebuches, almácigos, dragos y palmeras canarias.",dist:"Medianías bajas de las islas.",usos:"Es el piso más transformado de Canarias: cultivos, viñedos y pueblos de medianías.",verMas:1},
+  {id:17,n:"Monteverde (Canarias)",corto:"Monteverde",sub:"Región macaronésica · laurisilva y fayal-brezal",c:"#2f8f3e",est:"W60015",fotos:[{cat:"ca_mon"}],
+   clave:"Vive gracias al mar de nubes de los alisios.",rasgos:"Bosque de laureles siempre verde, heredero de los bosques del Terciario.",dist:"Medianías del norte de las islas altas.",usos:"Pastos, cultivos de medianías, madera y carbón en el pasado.",verMas:1},
+  {id:18,n:"Pinar canario",corto:"Pinar canario",sub:"Región macaronésica · piso mesocanario",c:"#9ad25a",est:"T13",fotos:[{cat:"ca_pin"}],
+   clave:"El pino canario resiste el fuego y la sequía.",rasgos:"Pinares de pino canario sobre el mar de nubes.",dist:"Cumbres de las islas centrales y occidentales.",usos:"Madera, resina y pinocha; repoblaciones.",verMas:1},
+  {id:19,n:"Matorral de cumbre (Canarias)",corto:"Matorral de cumbre",sub:"Región macaronésica · piso supracanario y orocanario",c:"#c9786a",est:"W60010",fotos:[{cat:"ca_cum"}],
+   clave:"Alta montaña de Tenerife y La Palma.",rasgos:"Retamares y codesares de cumbre.",dist:"Las Cañadas del Teide y cumbres de La Palma.",usos:"Parques nacionales, turismo y observatorios astronómicos.",verMas:1}
+ ],
+ pasos:[
+  {corto:"Dos regiones",t:"Dos grandes regiones: eurosiberiana y mediterránea",txt:"En la península hay dos grandes regiones biogeográficas. En el norte, la <b>eurosiberiana</b>, con lluvias todo el año: bosques caducifolios (robledales y hayedos). En el resto, la <b>mediterránea</b>, con <b>sequía en verano</b>: bosques de hoja perenne y dura (encinares, alcornocales). Canarias pertenece a otra región, la <b>macaronésica</b>.",modo:"pot",resaltar:[4,5,8,9],
+   rotulos:[{t:"Región eurosiberiana",lon:-5.2,lat:43.25,s:16,c:"#c8f0b0"},{t:"Región mediterránea",lon:-3.6,lat:39.4,s:16,c:"#ffd9a0"}],
+   panel:`<div class="bgSec"><h3>¿Qué las separa? El verano</h3><ul><li>🌧️ <b>Eurosiberiana</b> (Santiago de Compostela): llueve todos los meses; ningún mes es seco.</li><li>☀️ <b>Mediterránea</b> (Madrid): en julio y agosto casi no llueve y hace calor: 3 o 4 meses secos.</li></ul><p>Las plantas mediterráneas tienen hojas pequeñas, duras y con cera para perder poca agua: son <b>esclerófilas</b>.</p><p>Toca un robledal y un encinar para comparar sus climogramas.</p></div>`},
+  {corto:"Continentalidad",t:"Interior y costa: la continentalidad",txt:"Lejos del mar, los inviernos son fríos y los veranos muy calurosos: en la Meseta y los páramos dominan los <b>encinares</b>, los <b>quejigares</b> y los <b>sabinares albares</b>, que aguantan las heladas. Cerca de la costa, los inviernos son suaves: allí viven los <b>alcornocales</b> y los <b>coscojares, lentiscares y acebuchales</b>, que no soportan bien el frío.",modo:"pot",resaltar:[7,8,10,9,11],
+   panel:`<div class="bgSec"><h3>Comparar dos climogramas</h3><ul><li><b>Molina de Aragón</b> (1.062 m, interior): inviernos con heladas frecuentes → sabinar albar.</li><li><b>Alicante</b> (costa): inviernos templados, sin heladas → coscojar y lentiscar.</li></ul><p>El sustrato también cuenta: el alcornoque y el melojo prefieren suelos <b>silíceos</b> (granito, pizarra); el quejigo y la sabina albar, suelos <b>calizos</b>.</p></div>`},
+  {corto:"Montaña",t:"La altitud: los pisos de vegetación",txt:"Al subir una montaña, la temperatura baja y la vegetación cambia por <b>pisos</b>. En el Sistema Central: encinar → melojar → pinar silvestre → piornal → pastizal. En el Pirineo: robledal → hayedo y abetal → pino negro → pastizal alpino.",modo:"pot",resaltar:[1,2,3,4,6],panel:CLISERIE},
+  {corto:"Sureste y riberas",t:"El sureste semiárido y la vegetación azonal",txt:"En el <b>sureste</b> (Almería y Murcia) llueve menos de 300 mm al año: es el paisaje más seco de Europa, con matorrales espinosos de origen africano. Además, hay vegetación <b>azonal</b>, que depende del agua o de la sal más que del clima: los <b>bosques de ribera</b> de los ríos y los <b>saladares, marismas y dunas</b> de la costa.",modo:"pot",resaltar:[12,11,13,14]},
+  {corto:"Canarias",t:"Canarias: otra región biogeográfica",txt:"Canarias pertenece a la región <b>macaronésica</b>, con Madeira, Azores y Cabo Verde. Su vegetación se ordena por <b>pisos</b> según la altitud y la orientación a los alisios: cardonal-tabaibal, bosque termófilo, monteverde, pinar y matorral de cumbre. La animación «Biogeografía de Canarias» lo explica en detalle.",modo:"pot",resaltar:[15,16,17,18,19]},
+  {corto:"Potencial y real",t:"Lo potencial y lo real",txt:"Pulsa <b>🏙️ Paisaje actual</b>: la mayor parte de la España mediterránea ya no tiene su bosque. Los encinares se convirtieron en <b>campos de cereal, olivares, viñedos y dehesas</b>; los robledales atlánticos, en <b>prados</b> y plantaciones; las costas, en <b>regadíos y urbanizaciones</b>.",modo:"real",resaltar:[8,5,11],
+   panel:`<div class="bgSec"><h3>Fíjate en el mapa</h3><ul><li>🟨 La Meseta y el valle del Guadalquivir: un mar de <b>cultivos</b>.</li><li>🟫 Extremadura y Sierra Morena: grandes <b>dehesas</b>.</li><li>🟩 Los <b>bosques</b> que quedan están sobre todo en las montañas y en el norte.</li><li>🟥 Las ciudades crecen en la costa y alrededor de Madrid.</li></ul><p>Toca una formación para ver qué parte de su espacio está hoy transformada.</p></div>`},
+  {corto:"Explora",t:"Explora el mapa",txt:"Toca cualquier formación del mapa o un nombre de la leyenda: verás el <b>climograma</b> de una estación característica, cómo es la vegetación, qué parte está hoy transformada y para qué la usamos.",modo:"pot"}
+ ]
+};
+iniciaBiogeo(CFG);
+</script>
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Qué región biogeográfica ocupa el norte de la península?", "ops": ["La eurosiberiana", "La mediterránea", "La macaronésica", "La tropical"], "ok": 0, "exp": "Galicia, Asturias, Cantabria, País Vasco y Pirineo."}, {"p": "¿Qué diferencia principal hay entre el clima eurosiberiano y el mediterráneo?", "ops": ["La sequía del verano en el mediterráneo", "Que en el eurosiberiano nunca llueve", "Que el mediterráneo es más frío", "Que el eurosiberiano tiene verano seco"], "ok": 0, "exp": "En la España mediterránea hay de 2 a 4 o más meses secos en verano."}, {"p": "¿Cuál es el árbol más típico de la España mediterránea?", "ops": ["La encina", "El haya", "El abeto", "El carballo"], "ok": 0, "exp": "Los encinares son la serie más extensa."}, {"p": "¿Qué árbol necesita humedad también en verano y vive en las montañas del norte?", "ops": ["El haya", "La encina", "El alcornoque", "La sabina albar"], "ok": 0, "exp": "Por eso los hayedos están en el Pirineo y la Cordillera Cantábrica."}, {"p": "¿Para qué se aprovecha el alcornoque?", "ops": ["Para obtener corcho", "Para obtener resina", "Para hacer papel", "Para obtener aceite"], "ok": 0, "exp": "La saca del corcho se hace cada 9-12 años."}, {"p": "¿Cómo se llama el paisaje de encinas aclaradas con pasto para el ganado?", "ops": ["Dehesa", "Páramo", "Huerta", "Marisma"], "ok": 0, "exp": "Es un uso tradicional y sostenible del encinar."}, {"p": "En el Sistema Central, al subir encontramos en orden…", "ops": ["Encinar, melojar, pinar, piornal y pastizal", "Pinar, encinar, hayedo y pastizal", "Piornal, encinar, melojar y pinar", "Pastizal, pinar, melojar y encinar"], "ok": 0, "exp": "Son los pisos de vegetación."}, {"p": "¿Dónde está el paisaje más seco de Europa?", "ops": ["En el sureste: Almería y Murcia", "En Galicia", "En el Pirineo", "En la Meseta norte"], "ok": 0, "exp": "Llueve menos de 300 mm al año."}, {"p": "¿Por qué la vegetación de ribera se llama azonal?", "ops": ["Porque depende del agua del río más que del clima", "Porque no tiene árboles", "Porque solo está en la costa", "Porque está en la alta montaña"], "ok": 0, "exp": "Alisos, fresnos, sauces y chopos viven con las raíces en agua."}, {"p": "¿En qué se han convertido sobre todo los antiguos encinares de la Meseta?", "ops": ["En campos de cereal, olivares, viñedos y dehesas", "En hayedos", "En glaciares", "En marismas"], "ok": 0, "exp": "Lo muestra el mapa del paisaje actual (CORINE)."}], "relacionadas": [{"t": "Biogeografía del mundo", "url": "animaciones/biogeografia-mundo/index.html"}, {"t": "Biogeografía de Canarias", "url": "animaciones/biogeografia-canarias/index.html"}]})</script><!--/anb-aula-->
+</body>
+</html>

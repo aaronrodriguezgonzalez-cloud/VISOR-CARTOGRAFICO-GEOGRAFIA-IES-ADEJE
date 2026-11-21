@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANAMBRO · Biogeografía del mundo: los grandes biomas</title>
+<link rel="stylesheet" href="../comun/biogeo.css?v=20261121a">
+</head>
+<body>
+<main class="app">
+ <div class="top"><div class="brand">ANAMBRO · AULA · BIOGEOGRAFÍA</div><h1>🌍 Los grandes biomas de la Tierra</h1></div>
+ <nav class="steps" id="steps"></nav>
+ <section class="stage" id="stage"></section>
+ <div class="bgGrid">
+  <div class="bgCol" id="bgColMapa">
+   <div class="bgCard" style="--ar:1440/568"><canvas id="bgMapa" aria-label="Mapa de los biomas"></canvas><div class="bgTip" id="bgTip" hidden></div></div>
+  </div>
+  <div class="bgCol bgDer" id="bgColDer">
+   <div class="bgBarraModo"><button id="bgPot" class="on">🌿 Vegetación potencial</button><button id="bgReal">🏙️ Paisaje actual</button><span id="bgModoTxt"></span></div>
+   <div class="bgLey" id="bgLeyenda"></div>
+   <aside class="bgPanel" id="bgFicha"></aside>
+  </div>
+ </div>
+ <p class="small">Biomas: RESOLVE Ecoregions 2017 (Dinerstein et al., <i>BioScience</i> 67, 2017; CC BY 4.0), la misma capa de biomas del visor ANAMBRO. Paisaje actual: cobertura del suelo MODIS MCD12Q1, clasificación IGBP, año 2024 (NASA LP DAAC, servida por NASA GIBS); a esta escala (≈ 25 km) los porcentajes son aproximados. Climogramas: normales climatológicas de ANAMBRO (OMM, AEMET, NOAA). Fotos: Wikimedia Commons (autor y licencia en cada foto).</p>
+</main>
+<script src="../comun/biogeo.js?v=20261121a"></script>
+<script>
+const SVG_ALT=`<div class="bgDiag"><svg viewBox="0 0 560 330" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+ <text x="10" y="22" font-size="16" font-weight="800" fill="#24496b">Subir una montaña tropical es como viajar hacia el polo</text>
+ <polygon points="30,300 150,70 270,300" fill="#1a7a3a"/>
+ <polygon points="62,240 150,70 238,240" fill="#4f8f6f"/><polygon points="92,180 150,70 208,180" fill="#a8876a"/>
+ <polygon points="120,126 150,70 180,126" fill="#eef3f6"/>
+ <g font-size="14" font-weight="700" fill="#fff" text-anchor="middle" stroke="rgba(0,0,0,.5)" stroke-width="3" paint-order="stroke">
+ <text x="150" y="285">selva</text><text x="150" y="228">bosque de montaña</text><text x="150" y="168">páramo / puna</text><text x="150" y="118">nieve</text></g>
+ <line x1="290" y1="300" x2="290" y2="70" stroke="#24496b" stroke-width="2"/><text x="296" y="78" font-size="14" fill="#24496b">≈ 5.000 m</text><text x="296" y="300" font-size="14" fill="#24496b">0 m</text>
+ <g transform="translate(360,0)"><rect x="0" y="70" width="40" height="230" fill="#1a7a3a"/><rect x="0" y="70" width="40" height="58" fill="#eef3f6"/><rect x="0" y="128" width="40" height="40" fill="#9fb7c9"/><rect x="0" y="168" width="40" height="40" fill="#3e7d8c"/><rect x="0" y="208" width="40" height="45" fill="#6fbf4a"/>
+ <g font-size="14" fill="#24496b" font-weight="700"><text x="48" y="104">hielo (polo)</text><text x="48" y="153">tundra</text><text x="48" y="193">taiga</text><text x="48" y="235">bosque templado</text><text x="48" y="285">selva (ecuador)</text></g></g>
+ <text x="10" y="322" font-size="14" fill="#24496b">La temperatura baja unos 0,65 °C cada 100 m: a 4.000 m hace unos 26 °C menos que al nivel del mar.</text>
+</svg></div>`;
+const CFG={
+ mapa:{tipo:"mundo",img:"../comun/biogeo/mundo.png",est:"../comun/biogeo/mundo_est.json",latN:84,latS:-58},
+ normales:"../../data/clima/normales_mundo.json",fotosUrl:"../../juego-paisajes-fotos.json",
+ textoPot:"La <b>vegetación potencial</b> es la que habría de forma natural si el ser humano no la hubiera cambiado.",
+ textoReal:"El <b>paisaje actual</b>, visto desde satélite (MODIS, 2024): bosques que quedan, cultivos, ciudades…",
+ textoHumano:"cultivos, mosaicos agrícolas y ciudades",
+ fuenteReal:"MODIS no separa los pastos para el ganado: aparecen como pastizal.",
+ real:[{id:1,n:"Bosque",c:"#2e7d32"},{id:2,n:"Matorral",c:"#b48a5a"},{id:3,n:"Sabana",c:"#cdbb4a"},{id:4,n:"Pastizal",c:"#e2c87a"},{id:5,n:"Humedal",c:"#4a90a4"},
+  {id:6,n:"Cultivos",c:"#f7e05e",humano:1},{id:8,n:"Cultivos y vegetación mezclados",c:"#c79a3a",humano:1},{id:7,n:"Ciudades",c:"#e0303a",humano:1},
+  {id:9,n:"Hielo y nieve",c:"#f2f6f8"},{id:10,n:"Suelo desnudo (desierto, roca)",c:"#d9cbb0"},{id:11,n:"Agua",c:"#5aa9d6"}],
+ unidades:[
+  {id:1,n:"Selva tropical",corto:"Selva",sub:"Bosques tropicales y subtropicales húmedos",c:"#1a7a3a",est:"W82331",fotos:[{cat:"mu_thu"}],
+   clave:"Calor y lluvia todo el año: la combinación que produce más vida en la Tierra.",
+   rasgos:"Bosque siempre verde, muy denso y alto (los árboles emergentes superan los 50 m), con varios estratos, lianas y epífitas. Es el bioma con más especies: en una hectárea puede haber más de 200 especies de árboles. El suelo es pobre: los nutrientes están en la propia vegetación.",
+   dist:"Ocupa la franja del ecuador: Amazonía, cuenca del Congo y el sudeste asiático.",
+   usos:"Tala para madera, ganadería extensiva (sobre todo en la Amazonía), cultivo de soja y plantaciones de palma aceitera (Indonesia y Malasia), arrozales y minería. La deforestación avanza también con las carreteras."},
+  {id:2,n:"Bosque tropical seco",corto:"Bosque tropical seco",sub:"Bosques tropicales y subtropicales secos",c:"#8ba63a",est:"W42867",fotos:[{cat:"mu_tse"}],
+   clave:"Hay calor todo el año, pero la lluvia se concentra en unos meses: en la estación seca muchos árboles pierden las hojas.",
+   rasgos:"Bosque caducifolio por la sequía (no por el frío): monzónico en la India, caatinga en Brasil, bosques secos de México y Madagascar. Árboles más bajos y separados que en la selva.",
+   dist:"Entre la selva y la sabana, en zonas tropicales con una estación seca larga.",
+   usos:"Es uno de los biomas más transformados: cultivos de cereal, algodón y caña, ganadería y leña. En la India buena parte se ha convertido en campos de cultivo."},
+  {id:3,n:"Bosque tropical de coníferas",corto:"Coníferas tropicales",sub:"Bosques tropicales y subtropicales de coníferas",c:"#4f8f6f",est:"GMXN00016120",fotos:[{cat:"mu_tcn"}],
+   clave:"Pinares y bosques de pino y encino de las montañas tropicales: la altitud suaviza el calor.",
+   rasgos:"Pinares y bosques mixtos de pino y encino en montañas tropicales de México, Centroamérica y el Himalaya. Clima templado por la altitud, con lluvias en verano.",
+   dist:"Sobre todo en las sierras de México y Centroamérica, entre 1.500 y 3.000 m.",
+   usos:"Madera y resina, cultivos de maíz en claros (milpas), aguacate y ganadería. Los incendios y la tala son sus principales amenazas."},
+  {id:4,n:"Bosque templado caducifolio",corto:"Bosque caducifolio",sub:"Bosques templados de frondosas y mixtos",c:"#6fbf4a",est:"W07156",fotos:[{cat:"mu_tca"}],
+   clave:"Inviernos frescos y lluvia repartida: los árboles pierden la hoja en otoño para pasar el invierno.",
+   rasgos:"Bosques de hayas, robles, tilos y arces, con un sotobosque que florece en primavera. Suelos fértiles, de color pardo.",
+   dist:"Europa occidental y central, este de Estados Unidos, este de China, Corea y Japón.",
+   usos:"Es de los biomas más transformados desde hace siglos: agricultura (cereales, maíz), prados para el ganado y grandes ciudades. En Europa quedan pocos bosques originales."},
+  {id:5,n:"Bosque templado de coníferas",corto:"Coníferas templadas",sub:"Bosques templados de coníferas",c:"#2f6b55",est:"GUSW00094290",fotos:[{cat:"mu_tco"}],
+   clave:"Coníferas en climas templados: en costas muy lluviosas o en montañas.",
+   rasgos:"Bosques de abetos, píceas, pinos y secuoyas. En la costa del Pacífico de Norteamérica están los árboles más altos del mundo; en Europa, los bosques de coníferas de las montañas.",
+   dist:"Oeste de Norteamérica, montañas de Europa y Asia.",
+   usos:"Explotación forestal (madera y papel), estaciones de esquí y turismo en las montañas, y ganadería en los valles."},
+  {id:6,n:"Taiga",corto:"Taiga",sub:"Bosques boreales",c:"#3e7d8c",est:"W70261",fotos:[{cat:"mu_bor"}],
+   clave:"Inviernos larguísimos y muy fríos y veranos cortos: solo aguantan las coníferas y algunos abedules.",
+   rasgos:"Bosque de coníferas (píceas, abetos, pinos y alerces) poco variado, con muchos lagos y turberas. El suelo puede estar helado en profundidad (permafrost).",
+   dist:"Gran franja entre unos 50° y 70° N: Canadá, Alaska, Escandinavia y Siberia. Es el bioma forestal más extenso.",
+   usos:"Madera y papel, minería, petróleo y gas. Hay pocos cultivos por el frío. Los incendios son cada vez más frecuentes con el calentamiento."},
+  {id:7,n:"Sabana",corto:"Sabana",sub:"Pastizales, sabanas y matorrales tropicales",c:"#e0c341",est:"W61291",fotos:[{cat:"mu_tsa"}],
+   clave:"Calor todo el año y una estación seca muy marcada: pastizal alto con árboles dispersos.",
+   rasgos:"Hierbas altas que se secan en la estación seca y árboles aislados resistentes al fuego y a la sequía (acacias, baobabs). Grandes manadas de herbívoros.",
+   dist:"Entre la selva y el desierto: África (del Sahel al sur), Brasil (cerrado), Venezuela y norte de Australia.",
+   usos:"Pastoreo de ganado y cultivos de secano (mijo, sorgo, maíz). En el Sahel el sobrepastoreo favorece la desertificación. Muchos parques nacionales de fauna."},
+  {id:8,n:"Estepa y pradera",corto:"Estepa / pradera",sub:"Pastizales, sabanas y matorrales templados",c:"#d9b36c",est:"W30823",fotos:[{cat:"mu_tpa"}],
+   clave:"Poca lluvia y gran contraste de temperatura entre verano e invierno: no llega para el bosque, pero sí para la hierba.",
+   rasgos:"Hierbas sin árboles, con suelos negros muy fértiles (chernozem). Praderas de Norteamérica, estepas de Ucrania, Rusia, Kazajistán y Mongolia, pampa y Patagonia.",
+   dist:"En el interior de los continentes, lejos del mar.",
+   usos:"Es el granero del mundo: trigo, maíz, girasol y soja ocupan la mayor parte de las praderas y la pampa. En Mongolia y Asia central sigue la ganadería nómada."},
+  {id:9,n:"Pastizales inundables",corto:"Pastizales inundables",sub:"Pastizales y sabanas inundables",c:"#5fb0a8",est:"W83552",fotos:[{cat:"mu_inu"}],
+   clave:"Llanuras que se inundan cada año con las crecidas de los ríos.",
+   rasgos:"Praderas y marismas con agua parte del año: Pantanal (Brasil), Sudd (Sudán del Sur), delta del Okavango, Everglades. Riquísimos en aves y peces.",
+   dist:"Grandes llanuras fluviales de zonas cálidas.",
+   usos:"Ganadería extensiva, pesca y arroz; amenazados por los embalses y las obras que cambian el régimen de las crecidas."},
+  {id:10,n:"Pastizales de montaña",corto:"Pastizal de montaña",sub:"Pastizales y matorrales de montaña",c:"#a8876a",est:"W85201",fotos:[{cat:"mu_mon"}],
+   clave:"La altitud crea un clima frío aunque se esté cerca del ecuador.",
+   rasgos:"Pastizales y matorrales por encima del límite del bosque: puna y páramo de los Andes, meseta del Tíbet, montañas de Etiopía. Plantas bajas, en almohadilla o en roseta, adaptadas al frío y al sol intenso.",
+   dist:"Altas montañas y mesetas: Andes, Tíbet, África oriental.",
+   usos:"Pastoreo de llamas, alpacas, yaks y ovejas; cultivos de altura como la papa y la quinua, a menudo en terrazas."},
+  {id:11,n:"Tundra",corto:"Tundra",sub:"Tundra",c:"#9fb7c9",est:"XUTQIAGVIK_FORMERLY_BARROW_4_EN_27516csv",fotos:[{cat:"mu_tun"}],
+   clave:"Demasiado frío para los árboles: el verano es corto y el suelo está helado en profundidad (permafrost).",
+   rasgos:"Musgos, líquenes, hierbas y arbustos enanos. En verano el suelo se deshiela en superficie y se llena de charcas.",
+   dist:"Norte de Canadá, Alaska, Groenlandia y Siberia, al norte de la taiga.",
+   usos:"Pastoreo de renos, caza y pesca de los pueblos del Ártico, y extracción de petróleo, gas y minerales. El deshielo del permafrost por el calentamiento es su gran problema."},
+  {id:12,n:"Bosque y matorral mediterráneo",corto:"Mediterráneo",sub:"Bosques, bosquetes y matorrales mediterráneos",c:"#d07a3a",est:"W94610",fotos:[{cat:"mu_med"}],
+   clave:"Veranos secos y calurosos e inviernos suaves y algo lluviosos: plantas de hoja dura que aguantan la sequía.",
+   rasgos:"Encinares, alcornocales y pinares, y matorrales como la garriga, el maquis, el chaparral de California o el fynbos de Sudáfrica. Hojas pequeñas, duras y siempre verdes (esclerófilas). El fuego forma parte de su dinámica.",
+   dist:"Fachadas occidentales de los continentes entre unos 30° y 40° de latitud: cuenca mediterránea (gran parte de España), California, Chile central, Sudáfrica y suroeste de Australia.",
+   usos:"La trilogía mediterránea —cereal, vid y olivo—, regadíos, turismo de costa y crecimiento urbano. Los incendios forestales son un grave problema."},
+  {id:13,n:"Desierto",corto:"Desierto",sub:"Desiertos y matorrales xerófilos",c:"#e8d3a0",est:"W60630",fotos:[{cat:"mu_des"}],
+   clave:"Llueve muy poco (menos de 250 mm al año) y se evapora mucho más de lo que llueve.",
+   rasgos:"Vegetación escasa y dispersa: matorrales, cactus y plantas suculentas que guardan agua, o que solo brotan tras la lluvia. Grandes zonas de dunas (ergs) y de roca (hamadas).",
+   dist:"Hacia los 30° de latitud, bajo las altas presiones subtropicales (Sáhara, Arabia, Australia, Kalahari) y en el interior de Asia (Gobi).",
+   usos:"Oasis y regadíos con aguas subterráneas, ganadería nómada (camellos, cabras), minería, petróleo y, cada vez más, plantas de energía solar."},
+  {id:14,n:"Manglar",corto:"Manglar",sub:"Manglares",c:"#2aa198",est:"W42807",fotos:[{cat:"mu_man"}],
+   clave:"Bosque de la orilla del mar en zonas tropicales: los árboles viven con los pies en agua salada.",
+   rasgos:"Árboles con raíces zancudas y raíces que salen del barro para respirar. Frenan la erosión y los temporales, y son guarderías de peces.",
+   dist:"Costas y deltas tropicales: Sundarbans (India y Bangladés), Indonesia, Brasil, Caribe, África occidental. (La estación del climograma, Calcuta, está a unos 100 km de los Sundarbans.)",
+   usos:"Granjas de camarones, arrozales, puertos y turismo de costa han destruido una parte importante de los manglares del mundo."},
+  {id:15,n:"Hielo y roca",corto:"Hielo y roca",sub:"Casquetes de hielo y roca desnuda",c:"#eef3f6",est:"W89606",fotos:[{cat:"mu_hie"}],
+   clave:"Todo el año por debajo de 0 °C: no hay vegetación.",
+   rasgos:"Casquetes de hielo de la Antártida y Groenlandia y cumbres rocosas. Solo hay algunos líquenes y algas en las rocas.",
+   dist:"Antártida y Groenlandia. (El recorte del mapa no muestra el interior de la Antártida.)",
+   usos:"Investigación científica y algo de turismo. Su hielo guarda la mayor reserva de agua dulce del planeta."}
+ ],
+ pasos:[
+  {corto:"Qué es un bioma",t:"Un bioma: un gran paisaje vegetal",txt:"Un <b>bioma</b> es una gran región con un mismo tipo de vegetación (selva, sabana, desierto, taiga…), con los animales que viven en ella. El mapa muestra la <b>vegetación potencial</b>: la que habría si no la hubiéramos cambiado. ¿Qué decide qué bioma hay en cada lugar? Sobre todo el <b>clima</b>: la temperatura y la lluvia.",modo:"pot",
+   panel:`<div class="bgSec"><h3>🌡️ + 🌧️ = 🌳</h3><p>Las plantas necesitan <b>calor</b> y <b>agua</b>. Donde hay mucho de los dos, crece la selva; si falta el agua, el desierto; si falta el calor, la tundra o el hielo.</p><ul><li>🌡️ La temperatura depende sobre todo de la <b>latitud</b> y de la <b>altitud</b>.</li><li>🌧️ La lluvia depende de la circulación de la atmósfera, de la distancia al mar y del relieve.</li></ul><p>Pasa a los siguientes pasos para verlo en el mapa.</p></div>`},
+  {corto:"Latitud",t:"La latitud reparte el calor",txt:"Cerca del ecuador los rayos del Sol llegan casi verticales y hace calor todo el año; hacia los polos llegan más inclinados y hace más frío. Por eso los biomas se ordenan en <b>franjas</b>: selva y sabana en la zona cálida, bosques templados y estepas en la templada, taiga y tundra en la fría.",modo:"pot",lineas:true,resaltar:[1,7,13,4,6,11,15],
+   panel:`<div class="bgSec"><h3>Del ecuador al polo norte</h3><ul><li>🟩 <b>Selva</b> (0°–10°): calor y lluvia todo el año.</li><li>🟨 <b>Sabana</b> (10°–20°): calor y una estación seca.</li><li>🟫 <b>Desierto</b> (20°–30°): aire seco que baja de las altas presiones.</li><li>🟢 <b>Bosque templado</b> (40°–55°): cuatro estaciones.</li><li>🔷 <b>Taiga</b> (50°–70°): inviernos muy largos.</li><li>⬜ <b>Tundra</b> y <b>hielo</b> (más de 65°): demasiado frío para los árboles.</li></ul><p class="bgNota">Las líneas son el ecuador, los trópicos y el círculo polar ártico.</p></div>`},
+  {corto:"Lluvia",t:"La lluvia: mucha, poca o solo en una estación",txt:"Con el mismo calor puede haber selva, sabana o desierto: lo que cambia es la <b>lluvia</b>. Donde sube el aire caliente (ecuador) llueve mucho; donde baja (hacia los 30°) se forman los grandes desiertos; en medio, la lluvia llega solo en una estación. En el interior de los continentes, lejos del mar, también llueve poco: allí están las estepas.",modo:"pot",resaltar:[1,7,13,8],
+   panel:`<div class="bgSec"><h3>Tres biomas con calor, tres lluvias distintas</h3><ul><li><b>Selva</b> (Manaos): unos 2.400 mm al año, ningún mes seco.</li><li><b>Sabana</b> (Bamako): unos 950 mm, casi todos entre junio y septiembre.</li><li><b>Desierto</b> (In Salah, Sáhara): unos 15 mm al año.</li></ul><p>Toca cada uno en el mapa para ver su climograma.</p></div>`},
+  {corto:"Altitud",t:"La altitud: subir una montaña es como ir hacia el polo",txt:"La temperatura baja unos <b>0,65 °C cada 100 m</b>. Por eso, en las montañas los paisajes cambian con la altura, igual que con la latitud: en los Andes, cerca del ecuador, se pasa de la selva al páramo y a la nieve. Los <b>pastizales de montaña</b> (puna, páramo, Tíbet) existen gracias a la altitud.",modo:"pot",resaltar:[10,5,3],panel:SVG_ALT},
+  {corto:"Fachadas",t:"Fachadas oeste y este de los continentes",txt:"A la misma latitud, el clima cambia de un lado a otro de un continente. Entre 30° y 40°, en la <b>fachada oeste</b> hay climas <b>mediterráneos</b> (California, Chile, España, Sudáfrica, Australia); en la <b>fachada este</b>, climas húmedos con bosques (China, este de Estados Unidos).",modo:"pot",resaltar:[12,4],
+   rotulos:[{t:"California",lon:-120,lat:36},{t:"Chile central",lon:-71,lat:-34},{t:"Mediterráneo",lon:15,lat:39},{t:"El Cabo",lon:20,lat:-33},{t:"SO de Australia",lon:117,lat:-32}]},
+  {corto:"Potencial y real",t:"Lo potencial y lo real",txt:"El mapa de biomas es <b>potencial</b>. Hoy, una gran parte de la superficie está ocupada por cultivos, pastos y ciudades. Pulsa <b>🏙️ Paisaje actual</b> para ver la cobertura real desde satélite. Los biomas más transformados son los más fértiles y templados: el <b>bosque caducifolio</b>, las <b>praderas</b> y el <b>mediterráneo</b>.",modo:"real",resaltar:[4,8,12],
+   panel:`<div class="bgSec"><h3>¿Dónde vivimos y cultivamos?</h3><p>En amarillo, los cultivos; en rojo, las ciudades. Fíjate en la llanura del norte de Europa, el Corn Belt de Estados Unidos, la pampa, la llanura del Ganges o el este de China.</p><p>Toca un bioma para ver qué parte de su espacio está hoy transformada.</p></div>`},
+  {corto:"Explora",t:"Explora el mapa",txt:"Toca cualquier bioma del mapa o un nombre de la leyenda. Verás el <b>climograma</b> de una estación característica, cómo es la vegetación, qué parte está hoy transformada y para qué la usamos.",modo:"pot"}
+ ]
+};
+iniciaBiogeo(CFG);
+</script>
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Qué es un bioma?", "ops": ["Una gran región con un mismo tipo de vegetación y de fauna", "Un tipo de suelo", "Un clima de montaña", "Un país con muchos bosques"], "ok": 0, "exp": "Selva, sabana, desierto, taiga… son biomas."}, {"p": "¿Qué dos elementos del clima deciden sobre todo qué bioma hay en un lugar?", "ops": ["La temperatura y la lluvia", "El viento y la presión", "La altitud y la longitud", "Las mareas y las corrientes"], "ok": 0, "exp": "Las plantas necesitan calor y agua."}, {"p": "¿Qué bioma corresponde a un clima con calor y lluvia abundante todo el año?", "ops": ["La selva tropical", "La sabana", "La taiga", "El desierto"], "ok": 0, "exp": "Por ejemplo, Manaos, en la Amazonía."}, {"p": "La sabana se diferencia de la selva porque…", "ops": ["Tiene una estación seca muy marcada", "Hace mucho más frío", "Llueve más", "Está en latitudes altas"], "ok": 0, "exp": "La hierba se seca en la estación seca y los árboles están dispersos."}, {"p": "¿Por qué hay grandes desiertos hacia los 30° de latitud?", "ops": ["Porque allí baja aire seco de las altas presiones subtropicales", "Porque están lejos del Sol", "Porque hay muchas montañas", "Porque llueve en verano"], "ok": 0, "exp": "El Sáhara y Arabia están bajo esas altas presiones."}, {"p": "¿Qué bioma forma una gran franja entre unos 50° y 70° de latitud norte?", "ops": ["La taiga", "La sabana", "El bosque mediterráneo", "El manglar"], "ok": 0, "exp": "Coníferas en Canadá, Escandinavia y Siberia."}, {"p": "Subir una montaña tropical es como viajar…", "ops": ["Hacia el polo: la vegetación cambia como con la latitud", "Hacia el ecuador", "Hacia el océano", "Hacia el desierto"], "ok": 0, "exp": "La temperatura baja unos 0,65 °C cada 100 m."}, {"p": "¿En qué fachada de los continentes, entre 30° y 40°, está el clima mediterráneo?", "ops": ["En la fachada oeste", "En la fachada este", "En el centro de los continentes", "Solo en Europa"], "ok": 0, "exp": "California, Chile central, España, Sudáfrica y suroeste de Australia."}, {"p": "¿Qué quiere decir vegetación potencial?", "ops": ["La que habría de forma natural sin la acción humana", "La que hay hoy", "La que se planta en los jardines", "La que crece en los invernaderos"], "ok": 0, "exp": "El paisaje actual muestra lo que hemos transformado."}, {"p": "¿Cuál de estos biomas está hoy más transformado por la agricultura?", "ops": ["La estepa y la pradera templada", "La tundra", "El hielo de la Antártida", "La taiga"], "ok": 0, "exp": "Las praderas y la pampa son el granero del mundo."}], "relacionadas": [{"t": "Las zonas de la Tierra y los climas", "url": "animaciones/zonas-climas/index.html"}, {"t": "Biogeografía de España", "url": "animaciones/biogeografia-espana/index.html"}, {"t": "Biogeografía de Canarias", "url": "animaciones/biogeografia-canarias/index.html"}]})</script><!--/anb-aula-->
+</body>
+</html>

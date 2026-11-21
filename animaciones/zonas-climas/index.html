@@ -8,30 +8,30 @@
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314b 0,#07131d 55%,#02080d 100%)}
 .app{max-width:1300px;margin:auto;padding:12px 14px 18px}
-.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0}.brand{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.04em}
 .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;cursor:pointer}
 .steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
 .stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;line-height:1.45}
 .stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
 .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:10px}
 .col{display:flex;flex-direction:column;gap:8px;min-width:0}
 .card{background:#05101a;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
-.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
 .card canvas{display:block;width:100%;height:100%}
 .mainCard{aspect-ratio:16/10.2;cursor:grab;touch-action:none}.chartCard{aspect-ratio:1/0.72}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;line-height:1.4}
-.box label{display:block;font-size:12.5px;color:var(--muted);font-weight:700}
+.box label{display:block;font-size:14px;color:var(--muted);font-weight:700}
 .box input[type=range]{width:100%;accent-color:#ffd166}
 .seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.seg button{border:1px solid #5e8094;border-radius:8px;background:#102b3d;color:#fff;font-weight:800;padding:6px 9px;cursor:pointer;font-size:12.5px}
+.seg button{border:1px solid #5e8094;border-radius:8px;background:#102b3d;color:#fff;font-weight:800;padding:6px 9px;cursor:pointer;font-size:14px}
 .seg button.on{background:#ffd166;color:#2a1d00}
-.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;font-size:12.5px}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;font-size:14px}
 .legend span{display:flex;align-items:center;gap:6px}.legend i{width:14px;height:14px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.25)}
 .info{min-height:44px}
-.pc{display:grid;grid-template-columns:auto 1fr 1fr;gap:2px 10px;font-size:12.5px}.pc .h{color:#a9c0cd;font-weight:700}.pc .n{color:#ffd166;font-weight:800}.pc .x{color:#e7a3ff;font-weight:800}
-#places button{font-size:11.5px;padding:5px 7px}.info b{color:#ffd166}
-.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+.pc{display:grid;grid-template-columns:auto 1fr 1fr;gap:2px 10px;font-size:14px}.pc .h{color:#a9c0cd;font-weight:700}.pc .n{color:#ffd166;font-weight:800}.pc .x{color:#e7a3ff;font-weight:800}
+#places button{font-size:14px;padding:5px 7px}.info b{color:#ffd166}
+.small{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.4}
 @media(max-width:940px){.grid{grid-template-columns:1fr}}
 @media(max-width:560px){.app{padding:8px}.mainCard{aspect-ratio:1/0.95}.stage{font-size:14px}.legend{grid-template-columns:1fr}}
 </style>
@@ -50,7 +50,7 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
    <div class="card chartCard"><h2>Energía del Sol según la latitud</h2><canvas id="chart"></canvas></div>
    <div class="box" id="tiltBox"><label>Inclinación del eje terrestre: <b id="tiltV" style="color:#ffd166"></b></label><input id="tilt" type="range" min="0" max="90" step="0.5" value="23.44"><div class="seg"><button data-t="0">0°</button><button data-t="23.44">23,44° (real)</button><button data-t="45">45°</button><button data-t="90">90°</button></div>
     <label style="margin-top:8px">Momento del año</label><div class="seg" id="season"><button data-s="jun">Solsticio de junio</button><button data-s="equ">Equinoccio</button><button data-s="dic">Solsticio de diciembre</button></div></div>
-   <div class="box" id="placeBox"><label>Lugares: ¿cómo sería el año con esta inclinación?</label><div class="seg" id="places"></div><div id="placeCard" style="margin-top:8px;font-size:13px;line-height:1.45"></div><canvas id="spark" style="width:100%;height:120px;display:block;margin-top:6px"></canvas></div>
+   <div class="box" id="placeBox"><label>Lugares: ¿cómo sería el año con esta inclinación?</label><div class="seg" id="places"></div><div id="placeCard" style="margin-top:8px;font-size:14px;line-height:1.45"></div><canvas id="spark" style="width:100%;height:120px;display:block;margin-top:6px"></canvas></div>
    <div class="box" id="legendBox"><div class="legend" id="legend"></div><div class="seg"><button id="kDetail">Ver tipos de Köppen</button></div></div>
   </div>
  </div>
@@ -113,13 +113,13 @@ function dayInfo(lat,eps){const dec=season==='jun'?eps:season==='dic'?-eps:0,q=Q
  let note=alt<=0?'no sale':Math.abs(lat-dec)<.3?'en el cenit':hl>23.95?'sol de medianoche':'';return {q,hl,alt,note}}
 function dayBlock(p,same){const A=dayInfo(p.lat,23.44),B=dayInfo(p.lat,tilt),c=(a,b,f)=>`<span>${f(a)}</span><span class="${same?'':'n'}">${same?'—':f(b)}</span>`;
  const alt=o=>o.alt<=0?'☾ no sale':fmt(o.alt,0)+'°'+(o.note?' · '+o.note:'');
- return `<div style="margin-top:8px;color:#ffd166;font-weight:800;font-size:12.5px">El ${SEAS[season].n} en ${p.n}</div><div class="pc" style="margin-top:3px"><span class="h"></span><span class="h">Tierra real (23,44°)</span><span class="h">${same?'':'Con '+fmt(tilt,1)+'°'}</span>
+ return `<div style="margin-top:8px;color:#ffd166;font-weight:800;font-size:14px">El ${SEAS[season].n} en ${p.n}</div><div class="pc" style="margin-top:3px"><span class="h"></span><span class="h">Tierra real (23,44°)</span><span class="h">${same?'':'Con '+fmt(tilt,1)+'°'}</span>
  <span class="h">Energía ese día</span>${c(A,B,o=>fmt(o.q)+' W/m²')}<span class="h">Horas de luz</span>${c(A,B,o=>fmt(o.hl,1).replace(',0','')+' h')}<span class="h">Sol a mediodía</span>${c(A,B,alt)}</div>`}
 function placeCard(){const p=PL[place],A=yearOf(p.lat,23.44),B=yearOf(p.lat,tilt),same=Math.abs(tilt-23.44)<.01;
  const hh=h=>fmt(h,1).replace(',0','')+' h',cell=(a,b,f,warn)=>`<span>${f(a)}</span><span class="${same?'':warn?'x':'n'}">${same?'—':f(b)}</span>`;
  const nights=v=>v?`${v} días`:'ninguno';
  $('placeCard').innerHTML=`<b style="font-size:14px">${p.n}</b> <span style="color:#a9c0cd">${fmt(Math.abs(p.lat),2)}° ${p.lat>=0?'N':'S'}${p.d?' · '+p.d:''}</span>
- ${dayBlock(p,same)}<div style="margin-top:9px;color:#ffd166;font-weight:800;font-size:12.5px">A lo largo del año</div><div class="pc" style="margin-top:3px"><span class="h"></span><span class="h">Tierra real (23,44°)</span><span class="h">${same?'':'Con '+fmt(tilt,1)+'°'}</span>
+ ${dayBlock(p,same)}<div style="margin-top:9px;color:#ffd166;font-weight:800;font-size:14px">A lo largo del año</div><div class="pc" style="margin-top:3px"><span class="h"></span><span class="h">Tierra real (23,44°)</span><span class="h">${same?'':'Con '+fmt(tilt,1)+'°'}</span>
  <span class="h">Energía media</span>${cell(A.m,B.m,v=>fmt(v)+' W/m²')}
  <span class="h">Día más oscuro</span>${cell(A.mn,B.mn,v=>fmt(v)+' W/m²',B.mn<A.mn*.5)}
  <span class="h">Día más soleado</span>${cell(A.mx,B.mx,v=>fmt(v)+' W/m²',B.mx>QMAX*1.15)}
@@ -223,7 +223,7 @@ const STEPS=[
  {k:'Mapa real',v:'mapa',t:'Los climas reales de la Tierra',p:'Este es el mapa real de climas (clasificación de Köppen). Compara con el continente ideal: verás los desiertos cerca de los trópicos (Sáhara, Arabia, Australia, Atacama, Kalahari), el clima mediterráneo en las fachadas oeste (Mediterráneo, California, Chile central, Sudáfrica, sur de Australia) y los climas continentales solo en el hemisferio norte. <b>Pulsa en el mapa</b> para ver el clima de cualquier lugar.'},
  {k:'Explora',v:'globoclima',t:'Los climas sobre el globo',p:'Gira el globo y busca los grandes cinturones de climas. ¿Ves que los desiertos se alinean a unos 30° al norte y al sur del ecuador? Eso lo explica la <b>circulación atmosférica general</b>: es la siguiente animación.'}];
 function renderSteps(){$('steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===step?'on':''}" data-i="${i}">${i+1} · ${s.k}</button>`).join('');$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>go(+b.dataset.i))}
-function legend(){const v=STEPS[step].v;if(v==='rayos'||v==='zonas'){$('legend').innerHTML=Object.keys(ZNAME).map(k=>`<span><i style="background:rgb(${ZCOL[k].join(',')})"></i>${ZNAME[k]}</span>`).join('')+'<div style="grid-column:1/-1;color:#a9c0cd;font-size:11.5px;margin-top:4px">Las zonas se calculan con la energía solar media del año: cálida si recibe al menos lo que hoy llega a los trópicos; fría si recibe menos que los círculos polares. <b style=\"color:#e7a3ff\">Estaciones extremas</b>: veranos con mucha más energía de la que recibe hoy cualquier lugar, o meses de noche sin que la media sea fría.</div>';$('kDetail').style.display='none';return}
+function legend(){const v=STEPS[step].v;if(v==='rayos'||v==='zonas'){$('legend').innerHTML=Object.keys(ZNAME).map(k=>`<span><i style="background:rgb(${ZCOL[k].join(',')})"></i>${ZNAME[k]}</span>`).join('')+'<div style="grid-column:1/-1;color:#a9c0cd;font-size:14px;margin-top:4px">Las zonas se calculan con la energía solar media del año: cálida si recibe al menos lo que hoy llega a los trópicos; fría si recibe menos que los círculos polares. <b style=\"color:#e7a3ff\">Estaciones extremas</b>: veranos con mucha más energía de la que recibe hoy cualquier lugar, o meses de noche sin que la media sea fría.</div>';$('kDetail').style.display='none';return}
  $('kDetail').style.display='';$('kDetail').textContent=kDetail?'Ver grupos de climas':'Ver tipos de Köppen';
  if(kDetail){$('legend').innerHTML=KC.slice(1,31).map(c=>`<span><i style="background:${KCOL[c]}"></i>${c}</span>`).join('')}else $('legend').innerHTML=GROUPS.map(g=>`<span><i style="background:${g.c}"></i>${g.n}</span>`).join('')}
 function info(){const v=STEPS[step].v;let s='';
@@ -255,5 +255,6 @@ renderPlaces();go(0);
 window.__zc={go,set place(v){place=v;renderPlaces();draw()},set tilt(v){tilt=v;$('tilt').value=v;draw()},pick:(la,lo)=>{picked={la,lo};draw()}};
 })();
 </script>
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Qué líneas imaginarias limitan la zona cálida de la Tierra?", "ops": ["Los trópicos de Cáncer y de Capricornio", "Los círculos polares", "El ecuador y el meridiano de Greenwich", "Los paralelos de 45°"], "ok": 0, "exp": "Entre los trópicos el Sol puede estar en el cenit."}, {"p": "¿Qué pasaría con las estaciones si el eje de la Tierra no estuviera inclinado?", "ops": ["Casi no habría estaciones", "Serían mucho más extremas", "Cambiarían cada mes", "Solo habría verano"], "ok": 0, "exp": "Sin inclinación, el Sol estaría siempre sobre el ecuador."}, {"p": "En la clasificación de Köppen, ¿qué indica la letra B?", "ops": ["Climas secos", "Climas fríos", "Climas tropicales lluviosos", "Climas templados"], "ok": 0, "exp": "A tropicales, B secos, C templados, D fríos continentales, E polares."}, {"p": "¿Qué tipo de clima predomina en las costas de Canarias?", "ops": ["Seco (B)", "Polar (E)", "Tropical lluvioso (Af)", "Continental frío (D)"], "ok": 0, "exp": "Por la estabilidad del anticiclón de las Azores y la corriente fría de Canarias."}, {"p": "Las zonas frías de la Tierra están…", "ops": ["Al norte del círculo polar ártico y al sur del antártico", "Entre los trópicos", "En el ecuador", "Entre los paralelos 30° y 40°"], "ok": 0, "exp": "Allí los rayos llegan muy inclinados y hay largos meses de noche polar."}, {"p": "¿Qué clima de Köppen corresponde a la tundra?", "ops": ["ET", "Af", "BWh", "Csa"], "ok": 0, "exp": "E = polar; T = tundra (el mes más cálido supera los 0 °C pero no llega a 10 °C)."}, {"p": "¿Por qué hay climas fríos de montaña en el ecuador, como en los Andes?", "ops": ["Porque la temperatura baja con la altitud", "Porque están más lejos del Sol", "Porque allí no hay día", "Porque el eje está más inclinado"], "ok": 0, "exp": "Baja unos 0,65 °C cada 100 m de altitud."}], "relacionadas": [{"t": "Insolación y latitud", "url": "animaciones/insolacion-latitud/index.html"}, {"t": "Circulación atmosférica, corrientes y la ruta de Colón", "url": "animaciones/circulacion-colon/index.html"}, {"t": "Biogeografía del mundo", "url": "animaciones/biogeografia-mundo/index.html"}]})</script><!--/anb-aula-->
 </body>
 </html>

@@ -10,21 +10,21 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .app{max-width:1280px;margin:auto;padding:12px 14px 18px}
 .top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
-.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.brand{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.04em}
 .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;cursor:pointer}
 .steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
 .grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:10px;margin-top:10px}
 .card{background:#081a27;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
 .stageCard{aspect-ratio:1000/600}
 .stageCard canvas{display:block;width:100%;height:100%}
-.caption{position:absolute;left:10px;right:10px;bottom:8px;background:rgba(6,18,28,.82);border:1px solid #2d536a;border-radius:10px;padding:6px 10px;font-size:13.5px;font-weight:700;text-align:center}
+.caption{position:absolute;left:10px;right:10px;bottom:8px;background:rgba(6,18,28,.82);border:1px solid #2d536a;border-radius:10px;padding:6px 10px;font-size:14px;font-weight:700;text-align:center}
 .side{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;line-height:1.45;display:flex;flex-direction:column;gap:10px}
 .side h2{margin:0;font-size:19px;color:var(--gold)}
 .side p{margin:0}
 .fact{background:#081a27;border-left:4px solid #ffd166;border-radius:8px;padding:8px 10px;font-size:14px}
 .ctl{display:flex;flex-direction:column;gap:8px}
-.ctl label{font-size:12.5px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:3px}
+.ctl label{font-size:14px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:3px}
 .ctl input[type=range]{accent-color:#ffd166}
 .ctl .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .ctl input[type=number],.ctl input[type=text],.ctl input[type=date],.ctl select{min-height:36px;border:1px solid #638299;border-radius:7px;background:#fff;color:#10202c;padding:5px 7px;font-size:14px;width:100%}
@@ -35,7 +35,7 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .bar button{min-height:40px;border:1px solid #5e8094;border-radius:9px;background:#102b3d;color:#fff;padding:7px 12px;font-weight:800;font-size:14px;cursor:pointer}
 .bar button.primary{background:#176c6a}
-.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+.small{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.4}
 @media(max-width:940px){.grid{grid-template-columns:1fr}}
 @media(max-width:560px){.app{padding:8px}.caption{display:none}.bar button{flex:1}.ctl .row{grid-template-columns:1fr}}
 </style>
@@ -256,5 +256,6 @@ go(0);
 window.__era={go,get scene(){return scene}};
 })();
 </script>
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Qué observó Eratóstenes en Siena (Asuán) a mediodía del solsticio de verano?", "ops": ["Que el Sol iluminaba el fondo de un pozo: estaba en el cenit", "Que los objetos daban una sombra muy larga", "Que el Sol no llegaba a salir", "Que la Luna tapaba el Sol"], "ok": 0, "exp": "En Siena, cerca del trópico de Cáncer, el Sol estaba justo en la vertical y no había sombra."}, {"p": "En Alejandría, ese mismo día, la sombra de un gnomon indicaba un ángulo de unos…", "ops": ["7,2°", "23,5°", "45°", "90°"], "ok": 0, "exp": "7,2° es aproximadamente la cincuentava parte de una circunferencia (360°)."}, {"p": "¿Por qué ese ángulo permitía medir la Tierra?", "ops": ["Porque es el ángulo entre las dos ciudades visto desde el centro de la Tierra", "Porque es la inclinación del eje terrestre", "Porque es la altura de la Luna", "Porque mide la distancia al Sol"], "ok": 0, "exp": "Como los rayos del Sol llegan paralelos, la diferencia de ángulos de las sombras es el ángulo central entre las dos ciudades."}, {"p": "¿Qué suposición sobre los rayos del Sol necesitaba Eratóstenes?", "ops": ["Que llegan prácticamente paralelos", "Que salen de un punto cercano a la Tierra", "Que se curvan al llegar a la Tierra", "Que solo llegan al mediodía"], "ok": 0, "exp": "El Sol está tan lejos que sus rayos llegan casi paralelos a toda la Tierra."}, {"p": "Si 7,2° equivalen a la distancia entre Siena y Alejandría, la circunferencia de la Tierra es…", "ops": ["50 veces esa distancia", "7,2 veces esa distancia", "360 veces esa distancia", "La mitad de esa distancia"], "ok": 0, "exp": "360° ÷ 7,2° = 50."}, {"p": "¿Qué forma de la Tierra demuestra el experimento?", "ops": ["Que es esférica (curva)", "Que es plana", "Que es cúbica", "Que no gira"], "ok": 0, "exp": "Si la Tierra fuera plana, las sombras tendrían la misma longitud en las dos ciudades."}, {"p": "El resultado de Eratóstenes, comparado con el valor real (unos 40 000 km), fue…", "ops": ["Muy cercano al real", "Diez veces mayor", "Diez veces menor", "Imposible de comparar"], "ok": 0, "exp": "Según la medida del estadio que se use, su error fue pequeño para la época."}], "relacionadas": [{"t": "Sol, Tierra y Luna", "url": "animaciones/sol-tierra-luna/index.html"}, {"t": "El movimiento aparente del Sol", "url": "animaciones/movimiento-sol/index.html"}]})</script><!--/anb-aula-->
 </body>
 </html>

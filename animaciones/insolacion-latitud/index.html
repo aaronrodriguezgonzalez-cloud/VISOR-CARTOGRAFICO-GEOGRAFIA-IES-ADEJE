@@ -33,11 +33,31 @@ button{font:inherit}.app{height:100%;display:grid;grid-template-rows:auto minmax
 @media(max-width:850px){.focusInset{width:min(300px,46%);top:8px;right:8px;padding:7px}.focusInsetTitle{font-size:10px}}
 @media(max-width:520px){.focusInset{left:7px;right:7px;top:7px;width:auto}.focusInset svg{max-height:160px}.caption{bottom:5px}}
 
+/* v3 · diseño común de la Biblioteca didáctica y letra legible (mín. 14 px) */
+:root{--accent:#ffd166}
+html,body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 50% 0,#173249 0,#081522 55%,#040b12 100%)}
+.top{background:none;border-bottom:1px solid #294457;padding:10px 16px 8px;align-items:flex-end}
+.top .tit{display:flex;flex-direction:column;gap:1px;min-width:0}
+.brand{font-size:12px;color:#a9c0d1;font-weight:700;letter-spacing:.04em}.brand span{color:#a9c0d1}
+.top h1{font-size:clamp(18px,2.6vw,28px);margin:0;line-height:1.15}
+.title{font-size:15px;color:#cfe0ec}
+.top button,.phaseBtn{font-size:14px;padding:7px 12px}
+.top button.active,.phaseBtn.active{background:#ffd166;color:#2a1d00;border-color:#ffd166}
+.side h2{font-size:19px;color:#ffd166}.side p{font-size:15px;line-height:1.45}
+.fact{border-left-color:#ffd166;font-size:15px}
+.metric small{font-size:14px;letter-spacing:.2px}.metric b{font-size:17px}
+.energy small{font-size:14px!important}
+.bottom .hint{font-size:14px}
+.caption{font-size:15px}
+.personTag{font-size:14px}.angleText,.nightLabel{font-size:15px}.focusHint{font-size:14px}.focusInsetTitle{font-size:14px}
+.side{display:flex;flex-direction:column}.side .anbPie{margin:12px 0 0;padding:10px 0 0;border-top:1px solid #29475b;max-width:none}
+@media(max-width:850px){.side p{font-size:14px}.side h2{font-size:16px}.metric b{font-size:14px}.title{display:block;font-size:14px}}
+@media(max-width:520px){.brand{font-size:12px}.top button,.phaseBtn{font-size:14px;padding:6px 9px}.personTag{font-size:12px}.caption{font-size:14px}}
 </style>
 </head>
 <body>
 <div class="app">
- <header class="top"><div class="brand">ANAMBRO <span>· Aula</span></div><div class="title">Insolación y latitud · ¿Por qué el Sol no calienta igual toda la Tierra?</div><div class="topControls"><button id="playBtn">▶ Explicación</button><button id="pauseBtn">⏸</button><button id="restartBtn">↺ Reiniciar</button></div></header>
+ <header class="top"><div class="tit"><div class="brand">ANAMBRO · AULA · LA TIERRA Y EL SOL</div><h1>☀️ Insolación y latitud</h1><div class="title">¿Por qué el Sol no calienta igual toda la Tierra?</div></div><div class="topControls"><button id="playBtn">▶ Explicación</button><button id="pauseBtn">⏸</button><button id="restartBtn">↺ Reiniciar</button></div></header>
  <main class="stage">
   <section class="visual">
    <svg id="scene" viewBox="0 0 980 620" role="img" aria-label="Animación de la incidencia solar según la latitud">
@@ -193,4 +213,5 @@ button{font:inherit}.app{height:100%;display:grid;grid-template-rows:auto minmax
  buildBase();
 })();
 </script>
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Por qué el ecuador recibe más energía del Sol que los polos?", "ops": ["Porque allí los rayos llegan más perpendiculares", "Porque está más cerca del Sol", "Porque tiene más horas de día todo el año", "Porque hay menos agua"], "ok": 0, "exp": "Un mismo haz de luz se concentra en menos superficie."}, {"p": "Cuanto más inclinados llegan los rayos solares…", "ops": ["Más superficie calientan y menos energía llega a cada metro cuadrado", "Más calientan cada metro cuadrado", "Menos superficie iluminan", "Más rápido viajan"], "ok": 0, "exp": "La misma energía se reparte en más superficie."}, {"p": "Además de la inclinación, ¿qué otra razón hace que los rayos oblicuos calienten menos?", "ops": ["Atraviesan más atmósfera", "Llegan más tarde", "Son de otro color", "Tienen menos velocidad"], "ok": 0, "exp": "Al recorrer más aire se pierde más energía por absorción y reflexión."}, {"p": "¿En qué latitud está el Sol en el cenit en el equinoccio de marzo?", "ops": ["0° (ecuador)", "23,44° N", "45° N", "66,56° N"], "ok": 0, "exp": "En los equinoccios, el Sol está perpendicular sobre el ecuador."}, {"p": "¿Qué consecuencia tiene el reparto desigual de la energía solar?", "ops": ["La existencia de zonas cálidas, templadas y frías", "Que haya mareas", "Que la Tierra gire", "Que existan los husos horarios"], "ok": 0, "exp": "Es el origen de las zonas térmicas de la Tierra."}, {"p": "A 70° de latitud, la misma luz se reparte en aproximadamente…", "ops": ["2,9 veces más superficie que en el ecuador", "La misma superficie que en el ecuador", "La mitad de superficie", "10 veces menos superficie"], "ok": 0, "exp": "Por eso las latitudes altas son frías."}, {"p": "¿Dónde están las zonas cálidas de la Tierra?", "ops": ["Entre los trópicos de Cáncer y Capricornio", "Entre los círculos polares y los polos", "Solo en el hemisferio norte", "Entre los trópicos y los círculos polares"], "ok": 0, "exp": "Entre los trópicos y los círculos polares están las zonas templadas."}], "relacionadas": [{"t": "Las estaciones del año", "url": "animaciones/estaciones/index.html"}, {"t": "Las zonas de la Tierra y los climas", "url": "animaciones/zonas-climas/index.html"}], "fuentes": "Modelo geométrico de la radiación solar (inclinación del eje 23,44°; declinación solar según la fecha). Esquema sin escala.", "pasos": ".topControls", "pieEn": ".side", "sinEncaje": true})</script><!--/anb-aula-->
 </body></html>

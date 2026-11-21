@@ -10,45 +10,45 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .app{max-width:1280px;margin:auto;padding:12px 14px 18px}
 .top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
-.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.brand{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.04em}
 .steps{display:flex;gap:6px;flex-wrap:wrap}
-.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;cursor:pointer}
 .steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
 .stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:76px;line-height:1.42}
 .stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
 .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:10px}
 .card{background:#081a27;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
-.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
 .skyCard{aspect-ratio:16/10.6;touch-action:none;cursor:grab}
 .stripCard{height:96px}.stripCard canvas{display:block;width:100%;height:100%}
-.globeCard{aspect-ratio:1/0.74;cursor:grab;touch-action:none}.gBtns{position:absolute;right:8px;top:6px;display:flex;gap:5px;z-index:3}.gBtns button{border:1px solid #5e8094;border-radius:7px;background:#102b3d;color:#fff;font-weight:800;font-size:11.5px;padding:4px 8px;cursor:pointer}.globeCard canvas{display:block;width:100%;height:100%}
+.globeCard{aspect-ratio:1/0.74;cursor:grab;touch-action:none}.gBtns{position:absolute;right:8px;top:6px;display:flex;gap:5px;z-index:3}.gBtns button{border:1px solid #5e8094;border-radius:7px;background:#102b3d;color:#fff;font-weight:800;font-size:14px;padding:4px 8px;cursor:pointer}.globeCard canvas{display:block;width:100%;height:100%}
 .skyCard canvas{display:block;width:100%;height:100%}
 .multi{display:none;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:30px 6px 6px}
 .multi.on{display:grid}
 .skyCard.multiOn{aspect-ratio:auto;cursor:default}
 .multi .mini{position:relative;background:#06141f;border:1px solid #23445a;border-radius:10px;aspect-ratio:1/1.02}
 .multi .mini canvas{width:100%;height:100%;display:block}
-.multi .mini b{position:absolute;left:7px;top:5px;font-size:11px;color:#eef5f8;z-index:2}
+.multi .mini b{position:absolute;left:7px;top:5px;font-size:14px;color:#eef5f8;z-index:2}
 .side{display:flex;flex-direction:column;gap:8px}
 .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .m{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
-.m small{display:block;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.m b{font-size:17px}.m span{display:block;font-size:12px;color:#cfe0e8;margin-top:2px}
+.m small{display:block;color:var(--muted);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.m b{font-size:17px}.m span{display:block;font-size:14px;color:#cfe0e8;margin-top:2px}
 .stop{background:#2a1d00;border:1px solid #ffd166;border-radius:10px;padding:8px 10px;font-weight:800;color:#ffd166;display:none}
 .stop.on{display:block}
 .evCard{padding:10px;display:flex;flex-direction:column;gap:8px}
 .evChips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .evChips button{border:1px solid #305369;background:#0e2534;color:#eef5f8;border-radius:9px;padding:6px 8px;text-align:left;cursor:pointer;font:inherit}
-.evChips button b{display:block;font-size:12.5px}.evChips button small{display:block;font-size:11px;color:#a9c0cd}
+.evChips button b{display:block;font-size:14px}.evChips button small{display:block;font-size:14px;color:#a9c0cd}
 .evChips button.near{border-color:#ffd166;background:#2a1d00}
 .evCard .stop{display:block;background:#0e2534;border-color:#305369;color:#dfeaf0;font-weight:600;line-height:1.4}
 .evCard .stop.on{background:#2a1d00;border-color:#ffd166;color:#ffd166;font-weight:800}
 .ctlCard{padding:4px 10px 10px}.ctlCard .controls{margin-top:6px}.ctlCard .controls select#place{flex:1 1 100%;order:5}.ctlCard .clockBox{min-width:0;flex:1 1 100%}
-.mtCard{padding:8px 10px}.mtCard small{color:#a9c0cd;font-size:11px;font-weight:700;text-transform:uppercase}.mt{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:6px}.mt div{display:grid;grid-template-columns:1.3fr .8fr 1fr;font-size:12.5px;border-top:1px solid #23445a;padding:3px 0}.mt div span{color:#a9c0cd}.mt .hd{color:#a9c0cd;font-weight:700;border-top:0}
+.mtCard{padding:8px 10px}.mtCard small{color:#a9c0cd;font-size:14px;font-weight:700;text-transform:uppercase}.mt{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:6px}.mt div{display:grid;grid-template-columns:1.3fr .8fr 1fr;font-size:14px;border-top:1px solid #23445a;padding:3px 0}.mt div span{color:#a9c0cd}.mt .hd{color:#a9c0cd;font-weight:700;border-top:0}
 @media(max-width:560px){.mt{grid-template-columns:1fr}}
 .chartsRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .chartCard{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
-.chartCard small{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
+.chartCard small{color:var(--muted);font-size:14px;font-weight:700;text-transform:uppercase}
 .chartCard canvas{width:100%;height:118px;display:block}
 .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .controls button,.controls select{min-height:40px;border:1px solid #5e8094;border-radius:9px;background:#102b3d;color:#fff;padding:7px 12px;font-weight:800;font-size:14px;cursor:pointer}
@@ -59,9 +59,9 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .slider{flex:1;min-width:220px;display:flex;align-items:center;gap:8px}
 .slider input{flex:1;accent-color:#ffd166}
 .slider output{font-weight:800;min-width:96px;text-align:right}
-.clockBox{display:flex;align-items:center;gap:10px;flex:1;min-width:250px}.clockBox canvas{width:100px;height:100px;cursor:grab;touch-action:none;flex:none;border-radius:50%}.clockBox canvas:focus{outline:2px solid #ffd166}.clockBox output{display:block;font-weight:800;font-size:18px}.clockBox small{color:#a9c0cd;font-size:11.5px}
-.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
-.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;font-weight:700;margin-top:8px}
+.clockBox{display:flex;align-items:center;gap:10px;flex:1;min-width:250px}.clockBox canvas{width:100px;height:100px;cursor:grab;touch-action:none;flex:none;border-radius:50%}.clockBox canvas:focus{outline:2px solid #ffd166}.clockBox output{display:block;font-weight:800;font-size:18px}.clockBox small{color:#a9c0cd;font-size:14px}
+.small{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.4}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;font-weight:700;margin-top:8px}
 .legend i{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
 @media(max-width:940px){.grid{display:flex!important;flex-direction:column}.leftCol,.side{display:contents!important}#skyCard{order:1}.ctlCard{order:2}.stripCard{order:3}.globeCard{order:4}#cards{order:5}#mtCard{order:6}.evCard{order:7}.chartsRow{order:8}.evChips{grid-template-columns:repeat(2,minmax(0,1fr))}.chartsRow{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.multi{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.gHint{display:none}.app{padding:8px}.controls button,.controls select{flex:1}.seg{flex:1 1 100%}.seg button{flex:1}.slider{min-width:100%}.stage{font-size:14px}.skyCard{aspect-ratio:1/0.95}}
@@ -347,5 +347,16 @@ go(0);
 window.__sunPos=()=>sunScreen();window.__sol={get trail(){return trail},get mode(){return mode},go,EV,setPlace,setMode,get day(){return day},set day(v){day=v;draw()},stop,play,addTrail,decOf};
 })();
 </script>
+<!--tres--><style>.grid.tres{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr)}.grid.tres .midCol .chartsRow{grid-template-columns:1fr}.grid.tres .stripCard{height:118px}.grid.tres .side .cards{grid-template-columns:repeat(3,minmax(0,1fr))}.midCol{display:flex;flex-direction:column;gap:8px;min-width:0}.grid.tres>.evCard{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:stretch}.grid.tres>.evCard .stop{margin:0}.grid.tres .clockBox small{display:none}.grid.tres .ctlCard .controls{gap:6px}.grid.tres .ctlCard .controls:last-child{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grid.tres .clockBox{flex-direction:column;align-items:center;text-align:center;gap:4px;min-height:0;min-width:0}.grid.tres .clockBox canvas{width:92px;height:92px}.grid.tres .leftCol .legend{margin:0}</style><script>(()=>{"use strict";
+/* Pantallas anchas: cielo y horizonte | globo y gráficas | datos y controles; los cuatro días clave, en una franja debajo */
+const g=document.querySelector(".grid"),der=g.querySelector(".side");
+const mover=[".globeCard",".chartsRow","#mtCard"].map(s=>g.querySelector(s)),ev=g.querySelector(".evCard");
+const orig=[...mover,ev].map(e=>[e,e.parentElement,e.nextElementSibling]);let cb=null;
+function lay(){const ancho=innerWidth>=1100;
+ if(ancho&&!cb){cb=document.createElement("div");cb.className="midCol";g.insertBefore(cb,der);g.classList.add("tres");mover.forEach(e=>cb.appendChild(e));g.appendChild(ev);const lg=document.querySelector(".legend");if(lg){lg.__p=lg.parentElement;lg.__n=lg.nextElementSibling;g.querySelector(".leftCol").appendChild(lg)}}
+ else if(!ancho&&cb){[...orig].reverse().forEach(([e,p,n])=>p.insertBefore(e,n&&n.parentElement===p?n:null));const lg=document.querySelector(".legend");if(lg&&lg.__p)lg.__p.insertBefore(lg,lg.__n);cb.remove();cb=null;g.classList.remove("tres")}}
+document.querySelectorAll(".clockBox small").forEach(sm=>{const b=sm.closest(".clockBox");if(b)b.title=sm.textContent});
+lay();addEventListener("resize",lay);})();</script><!--/tres-->
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Por dónde sale el Sol aproximadamente en los equinoccios?", "ops": ["Por el este exacto", "Por el norte", "Por el sureste", "Por el oeste"], "ok": 0, "exp": "Y se pone por el oeste exacto."}, {"p": "Visto desde Canarias, ¿hacia dónde está el Sol a mediodía?", "ops": ["Hacia el sur", "Hacia el norte", "Justo en el cenit todos los días", "Hacia el este"], "ok": 0, "exp": "Canarias está al norte del trópico de Cáncer, así que el Sol de mediodía queda siempre hacia el sur."}, {"p": "¿Por qué parece que el Sol se mueve de este a oeste?", "ops": ["Porque la Tierra gira de oeste a este", "Porque el Sol gira alrededor de la Tierra", "Porque la Tierra gira de este a oeste", "Porque la Luna lo arrastra"], "ok": 0, "exp": "Es un movimiento aparente, igual que cuando vemos moverse el paisaje desde un coche."}, {"p": "En el solsticio de junio, en Canarias el Sol sale…", "ops": ["Por el noreste", "Por el sureste", "Por el este exacto", "Por el norte"], "ok": 0, "exp": "En verano el arco del Sol es más largo y alto; en diciembre sale por el sureste."}, {"p": "¿En qué lugares puede estar el Sol en el cenit a mediodía algún día del año?", "ops": ["Entre los trópicos", "Solo en los polos", "Solo en Europa", "En los círculos polares"], "ok": 0, "exp": "Fuera de la franja entre los trópicos el Sol nunca llega a la vertical."}, {"p": "En el ecuador, en los equinoccios, el Sol a mediodía está…", "ops": ["En el cenit (90° de altura)", "A 45° de altura", "En el horizonte", "Bajo el horizonte"], "ok": 0, "exp": "Allí los rayos llegan perpendiculares."}, {"p": "¿Por qué el arco del Sol es más alto en verano que en invierno?", "ops": ["Por la inclinación del eje terrestre", "Porque el Sol está más cerca", "Porque la Tierra gira más despacio", "Porque cambia el huso horario"], "ok": 0, "exp": "La inclinación de 23,44° hace que cambie la altura del Sol a lo largo del año."}], "relacionadas": [{"t": "Las estaciones del año", "url": "animaciones/estaciones/index.html"}, {"t": "Eratóstenes y la medida de la Tierra", "url": "animaciones/eratostenes/index.html"}]})</script><!--/anb-aula-->
 </body>
 </html>

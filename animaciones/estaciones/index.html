@@ -10,16 +10,16 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .app{max-width:1240px;margin:auto;padding:12px 14px 18px}
 .top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
-.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.brand{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.04em}
 .steps{display:flex;gap:6px;flex-wrap:wrap}
-.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;cursor:pointer}
 .steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
 .stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:76px;line-height:1.42}
 .stage b.t{color:var(--gold);font-size:17px}
 .stage p{margin:4px 0 0}
 .grid{display:grid;grid-template-columns:1.25fr 1fr;gap:10px}
 .card{background:#081a27;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
-.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
 .card canvas{display:block;width:100%;height:100%}
 .orbitCard{aspect-ratio:16/10.4}.sideCard{aspect-ratio:1/1.04}
 .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
@@ -31,15 +31,16 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .data{display:grid;grid-template-columns:1.35fr 1fr;gap:10px;margin-top:10px}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .m{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
-.m small{display:block;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.m small{display:block;color:var(--muted);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
 .m b{font-size:18px}
-.m span{display:block;font-size:12px;color:#cfe0e8;margin-top:2px}
+.m span{display:block;font-size:14px;color:#cfe0e8;margin-top:2px}
 .chartCard{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:8px 10px}
-.chartCard small{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
+.chartCard small{color:var(--muted);font-size:14px;font-weight:700;text-transform:uppercase}
 .chartCard canvas{width:100%;height:150px;display:block}
-.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+.small{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.4}
 @media(max-width:860px){.grid,.data{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.sideCard{aspect-ratio:1/0.9}}
 @media(max-width:520px){.app{padding:8px}.controls button,.controls select{flex:1}.dateBox{min-width:100%}.m b{font-size:16px}.stage{font-size:14px}}
+@media(min-width:1100px){.grid{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.orbitCard{aspect-ratio:16/7.6}.sideCard{aspect-ratio:1/.95}}
 </style>
 </head>
 <body>
@@ -195,5 +196,6 @@ go(0);
 window.__estaciones={EV,go,get t(){return t},set t(v){t=v;draw()}};
 })();
 </script>
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Qué causa las estaciones del año?", "ops": ["La inclinación del eje de la Tierra (23,44°)", "La distancia variable entre la Tierra y el Sol", "La rotación de la Tierra", "Los cambios de actividad del Sol"], "ok": 0, "exp": "La distancia cambia muy poco (un 3 %) y en enero estamos más cerca del Sol, en pleno invierno del hemisferio norte."}, {"p": "¿Cuándo está la Tierra más cerca del Sol (perihelio)?", "ops": ["A principios de enero", "A principios de julio", "En el equinoccio de marzo", "En el solsticio de junio"], "ok": 0, "exp": "Por eso la distancia no explica las estaciones: en enero es invierno en el hemisferio norte."}, {"p": "En el solsticio de junio, el Sol está en el cenit a mediodía sobre…", "ops": ["El trópico de Cáncer", "El ecuador", "El trópico de Capricornio", "El círculo polar ártico"], "ok": 0, "exp": "Es el día más largo del año en el hemisferio norte."}, {"p": "En los equinoccios…", "ops": ["El día y la noche duran casi lo mismo en toda la Tierra", "Es de día durante 24 horas en el polo norte", "El Sol está en el cenit sobre los trópicos", "No sale el Sol en el hemisferio sur"], "ok": 0, "exp": "El Sol está en el cenit sobre el ecuador."}, {"p": "Cuando es verano en Canarias, en Argentina es…", "ops": ["Invierno", "Verano", "Primavera", "Otoño"], "ok": 0, "exp": "Los dos hemisferios tienen las estaciones opuestas."}, {"p": "¿Por qué en verano hace más calor?", "ops": ["El Sol sube más alto y los días son más largos", "La Tierra está más cerca del Sol", "El Sol emite más energía en verano", "La Luna refleja más luz"], "ok": 0, "exp": "Los rayos llegan menos inclinados y durante más horas."}, {"p": "¿Dónde hay día polar (24 horas de sol) en el solsticio de junio?", "ops": ["Al norte del círculo polar ártico", "En el ecuador", "Entre los trópicos", "Al sur del círculo polar antártico"], "ok": 0, "exp": "Al sur del círculo polar antártico, en cambio, hay noche polar."}], "relacionadas": [{"t": "Insolación y latitud", "url": "animaciones/insolacion-latitud/index.html"}, {"t": "El movimiento aparente del Sol", "url": "animaciones/movimiento-sol/index.html"}, {"t": "Las zonas de la Tierra y los climas", "url": "animaciones/zonas-climas/index.html"}]})</script><!--/anb-aula-->
 </body>
 </html>

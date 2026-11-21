@@ -10,15 +10,15 @@ body{margin:0;min-height:100vh;background:linear-gradient(#07131d,#0b2030)}
 .app{max-width:1280px;margin:auto;padding:12px 14px 18px}
 .top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
-.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.brand{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.04em}
 .steps{display:flex;gap:6px;flex-wrap:wrap}
-.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;cursor:pointer}
 .steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
 .stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:76px;line-height:1.42}
 .stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
 .grid{display:grid;grid-template-columns:minmax(0,.62fr) minmax(0,1.38fr);gap:10px}
 .card{background:#081a27;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
-.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
 .card canvas{display:block;width:100%;height:100%}
 .globeCard{aspect-ratio:1/1.08}.mapCard{aspect-ratio:2/1.08;cursor:crosshair}
 .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
@@ -36,14 +36,14 @@ body{margin:0;min-height:100vh;background:linear-gradient(#07131d,#0b2030)}
 .info{line-height:1.45;font-size:14px;min-height:96px}
 .info b{color:var(--gold)}
 .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;align-items:end}
-.row label{font-size:12px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:3px}
+.row label{font-size:14px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:3px}
 .row input,.row select,.row button{min-height:40px;border:1px solid #638299;border-radius:7px;background:#fff;color:#10202c;padding:6px;font-size:15px;width:100%}
 .row button{background:#176c6a;color:#fff;font-weight:800;cursor:pointer}
 .result{margin-top:8px;min-height:24px;line-height:1.4}
 .result.ok{color:#9fe3b0}.result.ko{color:#ffb4a1}
-.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+.small{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.4}
 @media(max-width:900px){.grid,.below{grid-template-columns:1fr}.globeCard{aspect-ratio:1/0.92}}
-@media(max-width:560px){.app{padding:8px}.row{grid-template-columns:1fr 1fr}.timeBox{min-width:100%}.controls button{flex:1}.seg{flex:1 1 100%}.seg button{flex:1;padding:7px 4px;font-size:13px}.controls input[type=date]{flex:1}.stage{font-size:14px}}
+@media(max-width:560px){.app{padding:8px}.row{grid-template-columns:1fr 1fr}.timeBox{min-width:100%}.controls button{flex:1}.seg{flex:1 1 100%}.seg button{flex:1;padding:7px 4px;font-size:14px}.controls input[type=date]{flex:1}.stage{font-size:14px}}
 </style>
 </head>
 <body>
@@ -208,5 +208,6 @@ fillSelects();newQ();go(0);
 window.__husos={go,setMode,get t(){return t},set t(v){t=v;draw()},pick:(la,lo)=>{picked={la,lo};showInfo();drawMap()}};
 })();
 </script>
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Cuántos grados gira la Tierra en una hora?", "ops": ["15°", "1°", "24°", "360°"], "ok": 0, "exp": "360° ÷ 24 h = 15° por hora: cada huso teórico mide 15°."}, {"p": "¿Qué meridiano es la referencia de la hora mundial (UTC)?", "ops": ["El de Greenwich", "El de Madrid", "El ecuador", "El de Canarias"], "ok": 0, "exp": "Pasa por el observatorio de Greenwich, en Londres."}, {"p": "Si viajas hacia el este, la hora local…", "ops": ["Adelanta", "Atrasa", "No cambia", "Cambia de fecha siempre"], "ok": 0, "exp": "Por la rotación de oeste a este, amanece antes en los lugares situados más al este."}, {"p": "¿Qué diferencia horaria hay normalmente entre Canarias y la Península?", "ops": ["Una hora menos en Canarias", "Una hora más en Canarias", "Ninguna", "Dos horas menos en Canarias"], "ok": 0, "exp": "Canarias usa la hora de Europa occidental y la Península, la de Europa central."}, {"p": "¿Por qué los husos horarios reales no son franjas rectas?", "ops": ["Se adaptan a las fronteras y a decisiones políticas", "Porque la Tierra no es redonda", "Porque el Sol se mueve en zigzag", "Porque siguen los ríos"], "ok": 0, "exp": "Los países eligen la hora oficial que más les conviene."}, {"p": "¿Qué ocurre al cruzar la línea internacional de cambio de fecha hacia el oeste?", "ops": ["Se suma un día", "Se resta un día", "Se suma una hora", "No ocurre nada"], "ok": 0, "exp": "Hacia el este se resta un día."}, {"p": "Si en Greenwich son las 12:00, en un lugar a 45° E la hora solar es…", "ops": ["Las 15:00", "Las 9:00", "Las 12:45", "Las 13:00"], "ok": 0, "exp": "45° ÷ 15° = 3 horas más hacia el este."}], "relacionadas": [{"t": "Sol, Tierra y Luna", "url": "animaciones/sol-tierra-luna/index.html"}, {"t": "El movimiento aparente del Sol", "url": "animaciones/movimiento-sol/index.html"}]})</script><!--/anb-aula-->
 </body>
 </html>

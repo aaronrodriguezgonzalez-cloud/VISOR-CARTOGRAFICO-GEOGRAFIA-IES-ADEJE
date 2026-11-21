@@ -405,7 +405,7 @@
      La orientación se ha calculado con el MDT25 (IGN-CNIG) de ANAMBRO: orientación de la ladera en un
      entorno de 1,5 km (5 km si sale E u W, para ver la vertiente); NW, N, NE → barlovento; SE, S, SW → sotavento.
      ===================================================================================== */
-  const ORIENT_CAN={"T55":[128,"S"],"AC419X":[237,"S"],"AC619X":[306,"B"],"AC317B":[29,"B"],"T61":[111,"S"],"AC248E":[104,"S"],"AC428T":[127,"S"],"T1":[139,"S"],"AC669B":[16,"B"],"T80":[51,"B"],"T70":[345,"B"],"AC438N":[124,"S"],"T74":[234,"S"],"AC126A":[238,"S"],"AC917E":[232,"S"],"W60035":[95,"S"],"T2":[187,"S"],"W60030":[103,"S"],"T12":[357,"B"],"T5":[245,"S"],"T75":[234,"S"],"T9":[122,"S"],"W60001":[61,"B"],"T64":[241,"S"],"W60010":[58,"B"],"AC628B":[246,"S"],"AC329B":[132,"S"],"AC258K":[200,"S"],"AC406G":[166,"S"],"W60005":[80,"B"],"W60040":[149,"S"],"AC658L":[40,"B"],"AC658X":[37,"B"],"T57":[341,"B"],"AC689E":[145,"S"],"AC639M":[164,"S"],"T67":[307,"B"],"T81":[133,"S"],"AC629X":[192,"S"],"AC629Q":[209,"S"],"T7":[305,"B"],"T65":[55,"B"],"T71":[355,"B"],"T77":[156,"S"],"T76":[245,"S"],"AC459Z":[338,"B"],"AC117A":[275,"B"],"T58":[353,"B"],"T10":[336,"B"],"T73":[344,"B"],"AC623I":[300,"B"],"AC625O":[245,"S"],"AC639U":[160,"S"],"AC635B":[163,"S"],"AC446G":[156,"S"],"T78":[158,"S"],"W60020":[115,"S"],"T69":[352,"B"],"AC458A":[306,"B"],"T66":[338,"B"],"AC129Z":[243,"S"],"T56":[344,"B"],"AC839I":[129,"S"],"AC612F":[218,"S"],"T11":[336,"B"],"AC648N":[66,"B"],"W60015":[59,"B"],"W60025":[161,"S"],"AC656V":[36,"B"],"AC117Z":[165,"S"],"T54":[99,"S"],"T62":[322,"B"],"AC018J":[170,"S"],"T63":[322,"B"],"AC611E":[300,"B"],"T68":[307,"B"],"T13":[179,"S"],"AC019V":[165,"S"],"ca_car_1":[128,"S"],"ca_car_2":[237,"S"],"ca_car_3":[104,"S"],"ca_car_4":[127,"S"],"ca_car_5":[139,"S"],"ca_car_6":[16,"B"],"ca_car_7":[124,"S"],"ca_car_8":[95,"S"],"ca_car_9":[187,"S"],"ca_car_10":[103,"S"],"ca_car_11":[245,"S"],"ca_car_12":[246,"S"],"ca_car_13":[132,"S"],"ca_car_14":[200,"S"],"ca_car_15":[80,"B"],"ca_car_16":[149,"S"],"ca_car_17":[40,"B"],"ca_car_18":[37,"B"],"ca_car_19":[164,"S"],"ca_car_20":[192,"S"],"ca_car_21":[338,"B"],"ca_car_22":[245,"S"],"ca_car_23":[160,"S"],"ca_car_24":[115,"S"],"ca_car_25":[336,"B"],"ca_car_26":[66,"B"],"ca_car_27":[161,"S"],"ca_car_28":[99,"S"],"ca_ter_1":[111,"S"],"ca_ter_2":[51,"B"],"ca_ter_3":[234,"S"],"ca_ter_4":[232,"S"],"ca_ter_5":[357,"B"],"ca_ter_6":[133,"S"],"ca_ter_7":[305,"B"],"ca_ter_8":[156,"S"],"ca_ter_9":[245,"S"],"ca_ter_10":[158,"S"],"ca_ter_11":[306,"B"],"ca_ter_12":[344,"B"],"ca_mon_1":[29,"B"],"ca_mon_2":[345,"B"],"ca_mon_3":[307,"B"],"ca_mon_4":[55,"B"],"ca_mon_5":[355,"B"],"ca_mon_6":[353,"B"],"ca_mon_7":[336,"B"],"ca_mon_8":[156,"S"],"ca_mon_9":[352,"B"],"ca_mon_10":[338,"B"],"ca_mon_11":[59,"B"],"ca_mon_12":[36,"B"],"ca_mon_13":[322,"B"],"ca_mon_14":[322,"B"],"ca_mon_15":[307,"B"],"ca_pin_1":[238,"S"],"ca_pin_2":[234,"S"],"ca_pin_3":[122,"S"],"ca_pin_4":[241,"S"],"ca_pin_5":[341,"B"],"ca_pin_6":[275,"B"],"ca_pin_7":[344,"B"],"ca_pin_8":[300,"B"],"ca_pin_9":[163,"S"],"ca_pin_10":[218,"S"],"ca_pin_11":[300,"B"],"ca_pin_12":[179,"S"],"ca_cum_1":[58,"B"],"ca_cum_2":[166,"S"]};
+  const ORIENT_CAN={"T55":[128,"S","TF"],"AC419X":[237,"S","TF"],"AC619X":[306,"B","GC"],"AC317B":[29,"B","LG"],"T61":[111,"S","TF"],"AC248E":[104,"S","FV"],"AC428T":[127,"S","TF"],"T1":[139,"S","TF"],"AC669B":[16,"B","GC"],"T80":[51,"B","TF"],"T70":[345,"B","TF"],"AC438N":[124,"S","TF"],"T74":[234,"S","TF"],"AC126A":[238,"S","LP"],"AC917E":[232,"S","EH"],"W60035":[95,"S","FV"],"T2":[187,"S","TF"],"W60030":[103,"S","GC"],"T12":[357,"B","TF"],"T5":[245,"S","TF"],"T75":[234,"S","TF"],"T9":[122,"S","TF"],"W60001":[61,"B","EH"],"T64":[241,"S","TF"],"W60010":[58,"B","TF"],"AC628B":[246,"S","GC"],"AC329B":[132,"S","LG"],"AC258K":[200,"S","FV"],"AC406G":[166,"S","TF"],"W60005":[80,"B","LP"],"W60040":[149,"S","LZ"],"AC658L":[40,"B","GC"],"AC658X":[37,"B","GC"],"T57":[341,"B","TF"],"AC689E":[145,"S","GC"],"AC639M":[164,"S","GC"],"T67":[307,"B","TF"],"T81":[133,"S","TF"],"AC629X":[192,"S","GC"],"AC629Q":[209,"S","GC"],"T7":[305,"B","TF"],"T65":[55,"B","TF"],"T71":[355,"B","TF"],"T77":[156,"S","TF"],"T76":[245,"S","TF"],"AC459Z":[338,"B","TF"],"AC117A":[275,"B","LP"],"T58":[353,"B","TF"],"T10":[336,"B","TF"],"T73":[344,"B","TF"],"AC623I":[300,"B","GC"],"AC625O":[245,"S","GC"],"AC639U":[160,"S","GC"],"AC635B":[163,"S","GC"],"AC446G":[156,"S","TF"],"T78":[158,"S","TF"],"W60020":[115,"S","TF"],"T69":[352,"B","TF"],"AC458A":[306,"B","TF"],"T66":[338,"B","TF"],"AC129Z":[243,"S","LP"],"T56":[344,"B","TF"],"AC839I":[129,"S","LZ"],"AC612F":[218,"S","GC"],"T11":[336,"B","TF"],"AC648N":[66,"B","GC"],"W60015":[59,"B","TF"],"W60025":[161,"S","TF"],"AC656V":[36,"B","GC"],"AC117Z":[165,"S","LP"],"T54":[99,"S","TF"],"T62":[322,"B","TF"],"AC018J":[170,"S","LZ"],"T63":[322,"B","TF"],"AC611E":[300,"B","GC"],"T68":[307,"B","TF"],"T13":[179,"S","TF"],"AC019V":[165,"S","LZ"],"ca_car_1":[128,"S","TF"],"ca_car_2":[237,"S","TF"],"ca_car_3":[104,"S","FV"],"ca_car_4":[127,"S","TF"],"ca_car_5":[139,"S","TF"],"ca_car_6":[16,"B","GC"],"ca_car_7":[124,"S","TF"],"ca_car_8":[95,"S","FV"],"ca_car_9":[187,"S","TF"],"ca_car_10":[103,"S","GC"],"ca_car_11":[245,"S","TF"],"ca_car_12":[246,"S","GC"],"ca_car_13":[132,"S","LG"],"ca_car_14":[200,"S","FV"],"ca_car_15":[80,"B","LP"],"ca_car_16":[149,"S","LZ"],"ca_car_17":[40,"B","GC"],"ca_car_18":[37,"B","GC"],"ca_car_19":[164,"S","GC"],"ca_car_20":[192,"S","GC"],"ca_car_21":[338,"B","TF"],"ca_car_22":[245,"S","GC"],"ca_car_23":[160,"S","GC"],"ca_car_24":[115,"S","TF"],"ca_car_25":[336,"B","TF"],"ca_car_26":[66,"B","GC"],"ca_car_27":[161,"S","TF"],"ca_car_28":[99,"S","TF"],"ca_ter_1":[111,"S","TF"],"ca_ter_2":[51,"B","TF"],"ca_ter_3":[234,"S","TF"],"ca_ter_4":[232,"S","EH"],"ca_ter_5":[357,"B","TF"],"ca_ter_6":[133,"S","TF"],"ca_ter_7":[305,"B","TF"],"ca_ter_8":[156,"S","TF"],"ca_ter_9":[245,"S","TF"],"ca_ter_10":[158,"S","TF"],"ca_ter_11":[306,"B","TF"],"ca_ter_12":[344,"B","TF"],"ca_mon_1":[29,"B","LG"],"ca_mon_2":[345,"B","TF"],"ca_mon_3":[307,"B","TF"],"ca_mon_4":[55,"B","TF"],"ca_mon_5":[355,"B","TF"],"ca_mon_6":[353,"B","TF"],"ca_mon_7":[336,"B","TF"],"ca_mon_8":[156,"S","TF"],"ca_mon_9":[352,"B","TF"],"ca_mon_10":[338,"B","TF"],"ca_mon_11":[59,"B","TF"],"ca_mon_12":[36,"B","GC"],"ca_mon_13":[322,"B","TF"],"ca_mon_14":[322,"B","TF"],"ca_mon_15":[307,"B","TF"],"ca_pin_1":[238,"S","LP"],"ca_pin_2":[234,"S","TF"],"ca_pin_3":[122,"S","TF"],"ca_pin_4":[241,"S","TF"],"ca_pin_5":[341,"B","TF"],"ca_pin_6":[275,"B","LP"],"ca_pin_7":[344,"B","TF"],"ca_pin_8":[300,"B","GC"],"ca_pin_9":[163,"S","GC"],"ca_pin_10":[218,"S","GC"],"ca_pin_11":[300,"B","GC"],"ca_pin_12":[179,"S","TF"],"ca_cum_1":[58,"B","TF"],"ca_cum_2":[166,"S","TF"]};
   const RUMBOS=["N","NE","E","SE","S","SW","W","NW"];
   const rumbo=a=>RUMBOS[Math.floor(((a+22.5)%360)/45)];
   // Límites de los pisos (m) [sotavento, barlovento], los del modelo de cliserie que usa Aarón en clase,
@@ -418,64 +418,73 @@
     {k:"pin",n:"Pinar",c:"#9ad25a",hasta:[2000,2000]},
     {k:"cum",n:"Matorral de cumbre",c:"#c9786a",hasta:[9e9,9e9]}];
   function pisoModelo(z,lado){const i=lado==="B"?1:0;for(const p of PISOS){const h=p.hasta[i];if(h!=null&&z<h)return p}return PISOS[PISOS.length-1]}
-  function orientacion(id){const o=ORIENT_CAN[id];return o?{asp:o[0],rumbo:rumbo(o[0]),lado:o[1]}:null}
+  function orientacion(id){const o=ORIENT_CAN[id];return o?{asp:o[0],rumbo:rumbo(o[0]),lado:o[1],isla:o[2]}:null}
+  // Cada isla con su cliserie: el perfil llega a su cumbre y solo tiene los pisos que caben en esa altura
+  const ISLAS={TF:{n:"Tenerife",c:"Teide",z:3715},GC:{n:"Gran Canaria",c:"Pico de las Nieves",z:1949},LP:{n:"La Palma",c:"Roque de los Muchachos",z:2423},
+    LG:{n:"La Gomera",c:"Garajonay",z:1487},EH:{n:"El Hierro",c:"Malpaso",z:1501},FV:{n:"Fuerteventura",c:"Pico de la Zarza",z:807},LZ:{n:"Lanzarote",c:"Peñas del Chache",z:670}};
   function modeloPisos(cont,op){
     if(!cont)return null;
-    const o=orientacion(op.id),z=Math.max(0,+op.z||0);
-    const W=560,H=400,base=352,top=40,ZMAX=2800,X0=70,X1=470,XC=270;
-    const Y=a=>base-(Math.min(a,ZMAX)/ZMAX)*(base-top);
-    const xL=a=>X0+(XC-X0)*Math.min(a,ZMAX)/ZMAX, xR=a=>X1-(X1-XC)*Math.min(a,ZMAX)/ZMAX;
-    // franjas: polígono entre la línea inferior (sotavento aL1 → barlovento aR1) y la superior (aL2 → aR2)
-    const banda=(aL1,aR1,aL2,aR2)=>`${xL(aL1)},${Y(aL1)} ${xR(aR1)},${Y(aR1)} `+
-      (aR2>aR1?`${xR(aR2)},${Y(aR2)} `:"")+(aR2>=ZMAX&&aL2>=ZMAX?`${XC},${Y(ZMAX)} `:"")+`${xL(aL2)},${Y(aL2)}`+(aL1<aL2?"":"");
+    const o=op.id?orientacion(op.id):null,isla=ISLAS[op.isla||(o&&o.isla)||"TF"],ZM=isla.z,z=Math.max(0,Math.min(ZM,+op.z||0));
+    const W=560,H=400,base=352,top=74,X0=70,X1=470,XC=270;
+    const ZTOP=ZM; // escala propia de la isla: la cumbre arriba del todo
+    const Y=a=>base-(Math.min(a,ZTOP)/ZTOP)*(base-top);
+    const xL=a=>X0+(XC-X0)*Math.min(a,ZTOP)/ZTOP, xR=a=>X1-(X1-XC)*Math.min(a,ZTOP)/ZTOP;
+    // franjas: líneas que cruzan la isla (sotavento → barlovento) recortadas por el perfil de la isla
+    const yl=a=>base-(a/ZTOP)*(base-top); // sin tope, para trazar por encima de la cumbre y recortar
     const pol=(pts,c)=>`<polygon points="${pts}" fill="${c}" stroke="rgba(60,50,30,.55)" stroke-width="1.2"/>`;
-    let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Modelo de pisos de vegetación de Canarias" style="width:100%;height:100%;display:block">`;
-    g+=`<defs><linearGradient id="anbCielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe3f7"/><stop offset="1" stop-color="#e9f6fd"/></linearGradient></defs>`;
-    g+=`<rect width="${W}" height="${H}" fill="url(#anbCielo)"/><rect y="${base}" width="${W}" height="${H-base}" fill="#2f78b7"/>`;
-    // pisos (de abajo arriba), con los límites de PISOS
-    const L=k=>PISOS.find(p=>p.k===k).hasta;
-    const [hS,hB]=L("hal"),[cS,cB]=L("car"),[tS,tB]=L("ter"),[,mB]=L("mon"),[pS,pB]=L("pin");
-    g+=pol(`${X0},${base} ${X1},${base} ${xR(hB)},${Y(hB)} ${xL(hS)},${Y(hS)}`,PISOS[0].c);
-    g+=pol(`${xL(hS)},${Y(hS)} ${xR(hB)},${Y(hB)} ${xR(cB)},${Y(cB)} ${xL(cS)},${Y(cS)}`,PISOS[1].c);
-    g+=pol(`${xL(cS)},${Y(cS)} ${xR(cB)},${Y(cB)} ${xR(tB)},${Y(tB)} ${xL(tS)},${Y(tS)}`,PISOS[2].c);
-    g+=pol(`${xL(tS)},${Y(tS)} ${xR(tB)},${Y(tB)} ${xR(mB)},${Y(mB)}`,PISOS[3].c);
-    g+=pol(`${xL(tS)},${Y(tS)} ${xR(mB)},${Y(mB)} ${xR(pB)},${Y(pB)} ${xL(pS)},${Y(pS)}`,PISOS[4].c);
-    g+=pol(`${xL(pS)},${Y(pS)} ${xR(pB)},${Y(pB)} ${XC},${Y(ZMAX)}`,PISOS[5].c);
-    // mar de nubes en barlovento
+    const fr=(aS1,aB1,aS2,aB2,c)=>pol(`${X0},${yl(aS1)} ${X1},${yl(aB1)} ${X1},${yl(aB2)} ${X0},${yl(aS2)}`,c);
+    const Lh=k=>PISOS.find(p=>p.k===k).hasta;
+    const [hS,hB]=Lh("hal"),[cS,cB]=Lh("car"),[tS,tB]=Lh("ter"),[,mB]=Lh("mon"),[pS,pB]=Lh("pin");
+    const ARR=ZTOP*3; // techo para la última franja
+    let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cliserie de ${isla.n}" style="width:100%;height:100%;display:block">`;
+    const cid="anbIsla"+Math.random().toString(36).slice(2,8);
+    g+=`<defs><linearGradient id="${cid}c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe3f7"/><stop offset="1" stop-color="#e9f6fd"/></linearGradient>
+      <clipPath id="${cid}"><polygon points="${X0},${base} ${XC},${Y(ZM)} ${X1},${base}"/></clipPath></defs>`;
+    g+=`<rect width="${W}" height="${H}" fill="url(#${cid}c)"/><rect y="${base}" width="${W}" height="${H-base}" fill="#2f78b7"/>`;
+    g+=`<g clip-path="url(#${cid})">`;
+    g+=fr(0,0,hS,hB,PISOS[0].c);
+    g+=fr(hS,hB,cS,cB,PISOS[1].c);
+    g+=fr(cS,cB,tS,tB,PISOS[2].c);
+    g+=pol(`${X0},${yl(tS)} ${X1},${yl(tB)} ${X1},${yl(mB)}`,PISOS[3].c);
+    g+=pol(`${X0},${yl(tS)} ${X1},${yl(mB)} ${X1},${yl(pB)} ${X0},${yl(pS)}`,PISOS[4].c);
+    g+=fr(pS,pB,ARR,ARR,PISOS[5].c);
+    g+=`</g><polygon points="${X0},${base} ${XC},${Y(ZM)} ${X1},${base}" fill="none" stroke="#5b4a32" stroke-width="2"/>`;
+    // cumbre
+    g+=`<text x="${XC}" y="${Y(ZM)-9}" font-size="15" font-weight="800" fill="#1d2a36" text-anchor="middle" stroke="#fff" stroke-width="3" paint-order="stroke">${isla.c} · ${ZM.toLocaleString("es-ES")} m</text>`;
+    // mar de nubes y alisios (solo si la isla llega a la altura del mar de nubes)
     const nub=(cx,cy,s)=>`<g fill="#fff" stroke="#9fb3c4" stroke-width="1.2"><ellipse cx="${cx}" cy="${cy}" rx="${46*s}" ry="${17*s}"/><ellipse cx="${cx-30*s}" cy="${cy+4*s}" rx="${26*s}" ry="${13*s}"/><ellipse cx="${cx+32*s}" cy="${cy+4*s}" rx="${28*s}" ry="${13*s}"/><ellipse cx="${cx+4*s}" cy="${cy-10*s}" rx="${26*s}" ry="${14*s}"/></g>`;
-    g+=nub(xR(1150)+20,Y(1150),.85)+nub(xR(1150)+78,Y(1080),.6);
-    g+=`<text x="${xR(1150)+40}" y="${Y(1150)-22}" font-size="15" font-weight="700" fill="#24496b" text-anchor="middle">mar de nubes</text>`;
-    // alisios
-    g+=`<g stroke="#24496b" stroke-width="2.5" fill="#24496b"><line x1="${W-60}" y1="${Y(1950)}" x2="${xR(1950)+30}" y2="${Y(1950)}"/><polygon points="${xR(1950)+22},${Y(1950)} ${xR(1950)+34},${Y(1950)-6} ${xR(1950)+34},${Y(1950)+6}"/></g>`;
-    g+=`<text x="${W-60}" y="${Y(1950)-8}" font-size="15" font-weight="700" fill="#24496b" text-anchor="end">alisios (NE)</text>`;
-    // rótulos de los pisos
-    const rot=(t,x,y,c="#1d2a36")=>`<text x="${x}" y="${y}" font-size="17" font-weight="700" fill="${c}" text-anchor="middle" stroke="rgba(255,255,255,.75)" stroke-width="3" paint-order="stroke">${t}</text>`;
-    g+=rot("Cardonal-tabaibal",XC,Y(200));
-    g+=rot("Bosque termófilo",XC-30,Y(660));
-    g+=rot("Monteverde",xR(1050)-95,Y(1050)+6,"#fff").replace('stroke="rgba(255,255,255,.75)"','stroke="rgba(0,40,0,.55)"');
-    g+=rot("Pinar",XC-30,Y(1650));
-    g+=rot("Matorral de cumbre",XC,Y(2250)).replace('font-size="17"','font-size="14"');
-    g+=`<text x="10" y="${top-18}" font-size="14" font-style="italic" fill="#24496b">Límites de altitud orientativos</text>`;
+    if(ZM>1000){const an=Math.min(1150,(tB+Math.min(mB,ZM))/2);g+=nub(xR(an)+62,Y(an)+4,.75);
+      g+=`<text x="${xR(an)+66}" y="${Y(an)+34}" font-size="15" font-weight="700" fill="#24496b" text-anchor="middle">mar de nubes</text>`}
+    const aA=ZM>1000?Math.min(ZM*.9,1750):ZM*.6; // los alisios soplan por debajo de la inversión
+    g+=`<g stroke="#24496b" stroke-width="2.5" fill="#24496b"><line x1="${W-62}" y1="${Y(aA)}" x2="${xR(aA)+30}" y2="${Y(aA)}"/><polygon points="${xR(aA)+22},${Y(aA)} ${xR(aA)+34},${Y(aA)-6} ${xR(aA)+34},${Y(aA)+6}"/></g>`;
+    g+=`<text x="${W-62}" y="${Y(aA)-8}" font-size="15" font-weight="700" fill="#24496b" text-anchor="end">alisios (NE)</text>`;
+    // rótulos de los pisos que existen en la isla, en el centro de su franja visible
+    const rot=(t,x,y,c="#1d2a36",fs=17)=>`<text x="${x}" y="${y}" font-size="${fs}" font-weight="700" fill="${c}" text-anchor="middle" stroke="${c==="#fff"?"rgba(0,40,0,.55)":"rgba(255,255,255,.75)"}" stroke-width="3" paint-order="stroke">${t}</text>`;
+    const banda=(a,b,txt,dx=0,c,fs)=>{const hi=Math.min(b,ZM);if(hi-a<ZM*.07)return "";const m=(a+hi)/2;return rot(txt,XC+dx,Y(m)+6,c,fs)};
+    g+=banda(Math.max(hS,hB),Math.max(cS,cB)*.85+Math.min(cS,cB)*.15,"Cardonal-tabaibal");
+    g+=banda(Math.max(cS,cB),Math.min(tS,ZM),"Bosque termófilo",-20);
+    if(ZM>tB+150){const hi=Math.min(mB,ZM),m=(tB+hi)/2;g+=rot("Monteverde",(xR(m)+XC)/2-6,Y(m)+6,"#fff")}
+    if(ZM>tS+150)g+=banda(Math.max(tS,Math.min(mB,ZM)*.6),pS,"Pinar",-30);
+    if(ZM>pS+150)g+=banda(pS,ZM,"Matorral de cumbre",0,undefined,14);
     g+=`<text x="${X0-2}" y="${base-8}" font-size="14" font-weight="700" fill="#0d5e50" text-anchor="end" stroke="#fff" stroke-width="3" paint-order="stroke">cinturón</text><text x="${X0-2}" y="${base+9}" font-size="14" font-weight="700" fill="#0d5e50" text-anchor="end" stroke="#fff" stroke-width="3" paint-order="stroke">halófilo</text>`;
-    // laderas
+    // laderas y título
     g+=`<text x="10" y="${base+32}" font-size="17" font-weight="800" fill="#fff">◀ Sotavento (S, SE, SW)</text>`;
     g+=`<text x="${W-10}" y="${base+32}" font-size="17" font-weight="800" fill="#fff" text-anchor="end">Barlovento (N, NE, NW) ▶</text>`;
-    // eje de altitudes
-    g+=`<g font-size="14" fill="#24496b">`;for(let a=0;a<=2700;a+=300){g+=`<line x1="${W-12}" x2="${W-4}" y1="${Y(a)}" y2="${Y(a)}" stroke="#24496b"/><text x="${W-15}" y="${Y(a)+5}" text-anchor="end">${a}</text>`}
-    g+=`<text x="${W-4}" y="${top-18}" text-anchor="end" font-weight="700">Altitud (m)</text></g>`;
-    // la estación
+    g+=`<text x="10" y="22" font-size="16" font-weight="800" fill="#24496b">Cliserie de ${isla.n}</text><text x="10" y="40" font-size="14" font-style="italic" fill="#24496b">Límites de altitud orientativos</text>`;
+    // eje de altitudes de la isla
+    const paso=ZM<=900?100:ZM<=2000?250:500;
+    g+=`<g font-size="14" fill="#24496b">`;for(let a=0;a<=ZM;a+=paso){g+=`<line x1="${W-12}" x2="${W-4}" y1="${Y(a)}" y2="${Y(a)}" stroke="#24496b"/><text x="${W-15}" y="${Y(a)+5}" text-anchor="end">${a.toLocaleString("es-ES")}</text>`}
+    g+=`<text x="${W-4}" y="22" text-anchor="end" font-weight="700">Altitud (m)</text></g>`;
+    // la estación: solo el punto
     let piso=null;
     if(o){piso=pisoModelo(z,o.lado);
       const x=o.lado==="B"?xR(z)-10:xL(z)+10,y=Y(z)-2;
       g+=`<circle cx="${x}" cy="${y}" r="14" fill="none" stroke="#fff" stroke-width="5"/><circle cx="${x}" cy="${y}" r="14" fill="none" stroke="#d62c1a" stroke-width="3"/>`;
       g+=`<circle cx="${x}" cy="${y}" r="6.5" fill="#d62c1a" stroke="#fff" stroke-width="2.5"/>`;
-      if(op.nombre){const izq=o.lado==="B",tx=izq?x-20:x+20,anc=izq?"end":"start";
-        g+=`<text x="${tx}" y="${y-12}" font-size="17" font-weight="800" fill="#1d2a36" text-anchor="${anc}" stroke="#fff" stroke-width="4" paint-order="stroke">${op.nombre.replace(/[<&>]/g,"").replace(/ \(.*\)$/,"")}</text>`;
-        g+=`<text x="${tx}" y="${y+8}" font-size="15" font-weight="700" fill="#1d2a36" text-anchor="${anc}" stroke="#fff" stroke-width="4" paint-order="stroke">${Math.round(z)} m · ladera ${o.rumbo}</text>`}
     }
     g+="</svg>";
-    cont.innerHTML=`<div class="anbModelo">${g}</div>`+(o?`<div class="anbModeloTxt">En el modelo: <b>${o.lado==="B"?"barlovento":"sotavento"}</b> (ladera orientada al ${o.rumbo}) a ${Math.round(z)} m → <b>${piso.n.toLowerCase()}</b> <span style="font-weight:400;opacity:.8">(límites orientativos)</span></div>`:`<div class="anbModeloTxt">Sin orientación calculada para esta estación.</div>`);
-    return o?{lado:o.lado,rumbo:o.rumbo,piso:piso.n}:null;
+    cont.innerHTML=`<div class="anbModelo">${g}</div>`+(o?`<div class="anbModeloTxt">En la cliserie de ${isla.n}: <b>${o.lado==="B"?"barlovento":"sotavento"}</b> (ladera orientada al ${o.rumbo}) a ${Math.round(+op.z||0)} m → <b>${piso.n.toLowerCase()}</b> <span style="font-weight:400;opacity:.8">(límites orientativos)</span></div>`:(op.id?`<div class="anbModeloTxt">Sin orientación calculada para esta estación.</div>`:""));
+    return o?{lado:o.lado,rumbo:o.rumbo,piso:piso.n,isla:isla.n}:null;
   }
 
   // Elige la escala: Canarias → mapa de Canarias; España → mapa de España; el resto → globo

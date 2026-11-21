@@ -9,23 +9,23 @@
 body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314b 0,#07131d 55%,#02080d 100%)}
 .app{max-width:1300px;margin:auto;padding:12px 14px 18px}
 .top h1{font-size:clamp(18px,2.6vw,28px);margin:0}
-.brand{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.brand{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.04em}
 .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.steps button{border:1px solid #41657a;background:#102b3d;color:#dfeaf0;border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;cursor:pointer}
 .steps button.on{background:#ffd166;color:#2a1d00;border-color:#ffd166}
 .stage{margin:10px 0;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;line-height:1.45}
 .stage b.t{color:var(--gold);font-size:17px}.stage p{margin:4px 0 0}
 .grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:10px}
 .col{display:flex;flex-direction:column;gap:8px;min-width:0}
 .card{background:#05101a;border:1px solid #294b61;border-radius:14px;position:relative;overflow:hidden}
-.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
+.card h2{position:absolute;left:12px;top:8px;margin:0;font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;z-index:2;pointer-events:none}
 .card canvas{display:block;width:100%;height:100%}
 .mainCard{aspect-ratio:1/0.82}
 .moonCard{aspect-ratio:1/0.62}.sideCard{aspect-ratio:1/0.5}
 .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .m{background:#0e2534;border:1px solid #305369;border-radius:10px;padding:7px 10px}
-.m small{display:block;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.m b{font-size:16px}.m span{display:block;font-size:12px;color:#cfe0e8;margin-top:2px}
+.m small{display:block;color:var(--muted);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.m b{font-size:16px}.m span{display:block;font-size:14px;color:#cfe0e8;margin-top:2px}
 .alert{background:#2a1d00;border:1px solid #ffd166;border-radius:10px;padding:8px 10px;font-weight:800;color:#ffd166;display:none}
 .alert.on{display:block}
 .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
@@ -37,7 +37,7 @@ body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#17314
 .evList{display:grid;grid-template-columns:1fr;gap:6px}
 .evList button{text-align:left;border:1px solid #305369;background:#0e2534;color:#eef5f8;border-radius:9px;padding:7px 10px;cursor:pointer;font:inherit}
 .evList button b{color:#ffd166}.evList button small{display:block;color:#a9c0cd}
-.small{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.4}
+.small{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.4}
 @media(max-width:940px){.grid{grid-template-columns:1fr}}
 @media(max-width:560px){.app{padding:8px}.controls button,.controls select{flex:1}.stage{font-size:14px}.mainCard{aspect-ratio:1/0.95}}
 </style>
@@ -260,5 +260,15 @@ go(0);
 window.__stl={go,get t(){return t},set t(v){t=v;draw()},state,refine,EVENTS,stop};
 })();
 </script>
+<!--tres--><style>.grid.tres{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,.9fr)}.grid.tres .controls{margin-top:0}</style><script>(()=>{"use strict";
+/* Pantallas anchas: tres columnas para que todo se vea de un vistazo sin encoger la letra */
+const g=document.querySelector(".grid"),cols=[...g.querySelectorAll(":scope>.col")],c1=cols[0],c2=cols[1];
+const orig=[...c1.children,...c2.children].map(e=>[e,e.parentElement]);let c3=null;
+function lay(){const ancho=innerWidth>=1100;
+ if(ancho&&!c3){c3=document.createElement("div");c3.className="col";g.appendChild(c3);g.classList.add("tres");
+  c1.querySelectorAll(":scope>.controls").forEach(e=>c3.appendChild(e));["alert","cards","evList"].forEach(id=>{const e=document.getElementById(id);if(e)c3.appendChild(e)})}
+ else if(!ancho&&c3){orig.forEach(([e,p])=>p.appendChild(e));c3.remove();c3=null;g.classList.remove("tres")}}
+lay();addEventListener("resize",lay);})();</script><!--/tres-->
+<!--anb-aula--><script src="../comun/anb-aula.js?v=20261121a"></script><script>AnbAula.init({"reto": [{"p": "¿Cuánto tarda la Tierra en dar una vuelta sobre sí misma respecto al Sol (día solar)?", "ops": ["24 horas", "23 h 56 min", "365 días", "29,5 días"], "ok": 0, "exp": "Respecto a las estrellas tarda 23 h 56 min (día sideral); respecto al Sol, 24 h."}, {"p": "¿Qué movimiento de la Tierra explica que se sucedan el día y la noche?", "ops": ["La rotación", "La traslación", "La precesión", "La órbita de la Luna"], "ok": 0, "exp": "Al girar sobre su eje, cada lugar pasa por la mitad iluminada y la mitad oscura."}, {"p": "¿Por qué vemos fases de la Luna?", "ops": ["Porque vemos distintas partes de su mitad iluminada por el Sol", "Porque la sombra de la Tierra la tapa cada noche", "Porque la Luna cambia de tamaño", "Porque la Luna emite luz propia que varía"], "ok": 0, "exp": "La sombra de la Tierra solo interviene en los eclipses de Luna."}, {"p": "¿Cuánto dura aproximadamente un ciclo completo de fases lunares?", "ops": ["29,5 días", "7 días", "365 días", "24 horas"], "ok": 0, "exp": "Es el mes sinódico: de luna nueva a luna nueva."}, {"p": "Un eclipse de Sol ocurre cuando…", "ops": ["La Luna se interpone entre el Sol y la Tierra", "La Tierra se interpone entre el Sol y la Luna", "El Sol se interpone entre la Tierra y la Luna", "La Luna está en fase llena"], "ok": 0, "exp": "Por eso los eclipses de Sol solo pueden ocurrir en luna nueva."}, {"p": "¿Por qué no hay un eclipse en cada luna nueva y en cada luna llena?", "ops": ["Porque la órbita de la Luna está inclinada unos 5° respecto a la de la Tierra", "Porque la Luna es demasiado pequeña", "Porque la Tierra gira muy deprisa", "Porque la Luna no tiene atmósfera"], "ok": 0, "exp": "La mayoría de los meses la Luna pasa por encima o por debajo de la línea Sol‑Tierra."}, {"p": "Un eclipse de Luna ocurre siempre en fase de…", "ops": ["Luna llena", "Luna nueva", "Cuarto creciente", "Cuarto menguante"], "ok": 0, "exp": "La Luna tiene que estar al otro lado de la Tierra, en la sombra terrestre."}], "relacionadas": [{"t": "Las estaciones del año", "url": "animaciones/estaciones/index.html"}, {"t": "Husos horarios", "url": "animaciones/husos-horarios/index.html"}]})</script><!--/anb-aula-->
 </body>
 </html>
