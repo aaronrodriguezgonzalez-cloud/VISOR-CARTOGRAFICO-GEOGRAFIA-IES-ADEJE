@@ -242,7 +242,7 @@ table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;co
 <div class="toast" id="toast"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="anb-globo.js?v=20261122a"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
+<script src="anb-globo.js?v=20261122d"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
 <script>
 "use strict";
 /* =========================================================
@@ -869,7 +869,7 @@ function revelar(ok,k,pts){
     // Canarias → mapa de Canarias (municipios) · España → mapa de España (comunidades) · mundo → globo con zonas climáticas
     if(window.AnbGlobo)AnbGlobo.lugar($("mapaRevel"),{ambito:CFG.ambito==="can"?"can":(CFG.ambito==="pen"||CFG.ambito==="esc")?"esp":"mundo",lat:st.la,lon:st.lo,color:tipoObj.c,nombre:st.n,zonas:true,vegPot:CFG.ambito==="can"});
     // Canarias: la estación en el modelo de pisos (altitud + orientación de la ladera según el MDT25)
-    if(window.AnbGlobo&&$("modeloPisos"))AnbGlobo.modeloPisos($("modeloPisos"),{id:st.id,z:st.z,nombre:st.n});
+    if(window.AnbGlobo&&$("modeloPisos"))AnbGlobo.modeloPisos($("modeloPisos"),{id:st.id,z:st.z,nombre:st.n,tabla:false});
   },60);
 }
 function siguiente(){

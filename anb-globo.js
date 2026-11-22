@@ -417,73 +417,125 @@
     {k:"mon",n:"Monteverde",c:"#2f8f3e",hasta:[null,1450]},
     {k:"pin",n:"Pinar",c:"#9ad25a",hasta:[2000,2000]},
     {k:"cum",n:"Matorral de cumbre",c:"#c9786a",hasta:[9e9,9e9]}];
-  function pisoModelo(z,lado){const i=lado==="B"?1:0;for(const p of PISOS){const h=p.hasta[i];if(h!=null&&z<h)return p}return PISOS[PISOS.length-1]}
+  // Pisos que existen en cada vertiente de cada isla (Mapa de Vegetación de Canarias, GRAFCAN; del Arco et al., 2006).
+  // Si un piso falta, el siguiente ocupa su franja de altitud (p. ej., en La Gomera el monteverde llega a la cumbre).
+  const PISOS_ISLA={
+    TF:{B:["hal","car","ter","mon","pin","cum"],S:["hal","car","ter","pin","cum"]},
+    LP:{B:["hal","car","ter","mon","pin","cum"],S:["hal","car","ter","pin","cum"]},
+    GC:{B:["hal","car","ter","mon","pin"],S:["hal","car","ter","pin"]},
+    LG:{B:["hal","car","ter","mon"],S:["hal","car","ter","mon"]},
+    EH:{B:["hal","car","ter","mon"],S:["hal","car","ter","pin"]},
+    FV:{B:["hal","car","ter"],S:["hal","car","ter"]},
+    LZ:{B:["hal","car","ter"],S:["hal","car","ter"]}};
+  // franjas [piso, desde, hasta] de una vertiente de una isla
+  function franjas(isla,lado){const i=lado==="B"?1:0,L=(PISOS_ISLA[isla]||PISOS_ISLA.TF)[lado];let lo=0;const out=[];
+    const pres=PISOS.filter(p=>L.includes(p.k));
+    pres.forEach((p,n)=>{let hi=n===pres.length-1?9e9:null;
+      if(hi==null){// el límite superior es el del último piso (presente o ausente) antes del siguiente presente
+        const sig=pres[n+1],j=PISOS.indexOf(sig);for(let q=j-1;q>=0;q--){const h=PISOS[q].hasta[i];if(h!=null){hi=h;break}}}
+      if(hi>lo)out.push([p,lo,hi]);lo=Math.max(lo,hi)});
+    return out}
+  function pisoModelo(z,lado,isla){const F=franjasH(isla||"TF",lado);for(const [p,lo,hi] of F)if(z<hi)return p;return F[F.length-1][0]}
   function orientacion(id){const o=ORIENT_CAN[id];return o?{asp:o[0],rumbo:rumbo(o[0]),lado:o[1],isla:o[2]}:null}
   // Cada isla con su cliserie: el perfil llega a su cumbre y solo tiene los pisos que caben en esa altura
   const ISLAS={TF:{n:"Tenerife",c:"Teide",z:3715},GC:{n:"Gran Canaria",c:"Pico de las Nieves",z:1949},LP:{n:"La Palma",c:"Roque de los Muchachos",z:2423},
     LG:{n:"La Gomera",c:"Garajonay",z:1487},EH:{n:"El Hierro",c:"Malpaso",z:1501},FV:{n:"Fuerteventura",c:"Pico de la Zarza",z:807},LZ:{n:"Lanzarote",c:"Peñas del Chache",z:670}};
+  // Perfil real de cada isla (MDT25 IGN-CNIG): km² de cada vertiente por franja de altitud (ZM/48), pisos de vegetación potencial
+  // de cada vertiente con su % de superficie (Mapa de Vegetación de Canarias, GRAFCAN; muestreo de ~7.000 puntos) y lo que queda hoy de cada piso.
+  const PERFIL={"TF":{"km":49.6,"az":340,"z":[0,163,136,91,73,82,104,116,124,141,156,175,204,252,285,313,348,395,418,434,494,593,637,641,636,655,730,770,776,788,820,859,913,972,1013,1056,1108,1175,1253,1331,1393,1436,1497,1561,1630,1680,1708,1728,1755,1795,1852,1923,1997,2075,2182,2292,2371,2452,2546,2626,2678,2706,2711,2677,2594,2537,2480,2383,2337,2343,2378,2434,2517,2623,2728,2865,3056,3264,3447,3581,3674,3706,3692,3614,3455,3286,3136,2982,2808,2603,2413,2266,2133,2040,1970,1903,1833,1781,1743,1704,1660,1607,1547,1500,1465,1441,1412,1383,1348,1338,1339,1331,1296,1229,1165,1129,1111,1078,1031,1001,1004,1016,1020,1016,998,965,919,863,822,807,803,777,714,661,609,512,399,286,140,0]},"LP":{"km":27.2,"az":85,"z":[0,349,407,460,530,595,631,660,695,730,754,777,794,822,862,897,929,965,1002,1025,1050,1084,1126,1160,1188,1217,1254,1295,1331,1374,1435,1490,1528,1569,1615,1659,1695,1730,1774,1824,1878,1930,1973,2009,2044,2080,2111,2137,2167,2210,2256,2292,2308,2321,2335,2356,2371,2386,2399,2417,2424,2420,2408,2392,2375,2363,2350,2345,2343,2335,2317,2307,2310,2316,2325,2342,2348,2341,2322,2311,2308,2311,2317,2319,2315,2291,2235,2166,2104,2051,1999,1945,1896,1862,1830,1795,1752,1714,1679,1646,1612,1573,1528,1477,1433,1393,1358,1331,1299,1258,1218,1175,1136,1107,1070,1019,953,893,848,814,788,763,743,726,720,708,672,619,568,515,464,440,422,387,347,310,248,170,112,0]},"GC":{"km":54.0,"az":35,"z":[0,137,187,219,249,284,317,347,385,433,489,535,566,591,611,644,699,749,810,864,884,892,912,942,974,987,1001,1033,1074,1138,1194,1222,1276,1373,1415,1412,1393,1387,1413,1457,1491,1513,1532,1558,1569,1560,1516,1451,1432,1457,1509,1532,1534,1549,1598,1639,1669,1715,1772,1812,1852,1897,1923,1943,1952,1951,1942,1922,1890,1846,1809,1790,1773,1754,1715,1674,1641,1581,1513,1458,1385,1303,1245,1188,1140,1105,1072,1035,998,958,939,939,949,961,965,960,921,832,753,694,654,623,599,563,530,503,475,442,415,407,406,392,351,306,291,290,288,274,237,205,183,150,120,99,80,58,31,17,18,38,78,122,168,210,232,238,241,240,225,0]},"LG":{"km":21.4,"az":10,"z":[0,210,244,270,283,288,299,320,342,364,390,425,457,485,509,535,561,582,599,618,656,714,776,800,802,798,796,811,837,861,882,900,917,939,960,975,996,1020,1041,1062,1070,1073,1079,1094,1120,1154,1194,1229,1251,1269,1290,1317,1342,1354,1364,1382,1396,1402,1414,1444,1468,1477,1482,1484,1482,1475,1455,1426,1400,1382,1363,1359,1361,1358,1347,1331,1321,1308,1280,1256,1247,1244,1235,1206,1170,1142,1123,1108,1090,1073,1062,1055,1048,1053,1059,1059,1053,1040,1036,1036,1036,1035,1030,1011,980,957,945,934,913,896,892,894,895,893,890,890,891,891,886,875,869,857,823,788,776,773,761,734,708,686,665,641,608,575,540,490,426,365,298,0]},"EH":{"km":23.8,"az":5,"z":[0,53,83,118,161,188,197,212,234,244,246,252,268,283,293,311,338,368,394,425,451,466,482,493,501,518,541,568,601,642,703,753,769,770,773,788,819,858,911,964,993,999,1001,1013,1046,1094,1166,1227,1247,1257,1292,1352,1412,1453,1473,1486,1494,1496,1492,1468,1425,1392,1371,1366,1368,1371,1372,1368,1362,1364,1369,1370,1368,1362,1351,1339,1338,1340,1340,1337,1327,1301,1263,1242,1238,1237,1233,1232,1228,1215,1195,1178,1161,1138,1114,1098,1095,1100,1108,1115,1123,1128,1132,1135,1136,1132,1121,1105,1080,1047,1009,973,939,900,857,821,787,770,763,753,726,690,656,611,578,568,558,535,498,444,401,375,363,357,346,314,255,197,160,0]},"FV":{"km":40.8,"az":300,"z":[0,202,230,269,290,310,343,383,418,438,456,464,463,456,448,435,411,378,369,380,391,402,413,436,466,487,493,479,441,413,412,424,430,428,423,420,419,416,414,426,454,476,497,528,554,581,594,595,579,534,493,490,496,502,512,530,552,561,563,572,594,606,622,660,697,710,709,701,690,689,690,690,690,690,692,701,717,724,723,708,679,667,666,662,645,607,566,538,520,526,556,584,615,658,704,750,789,807,809,793,738,657,582,552,581,634,671,682,668,635,617,597,547,480,435,420,406,378,358,365,417,443,438,408,359,330,310,292,263,210,174,182,191,182,148,101,74,57,38,0]},"LZ":{"km":24.0,"az":320,"z":[0,13,16,24,38,45,48,53,55,58,66,76,82,86,94,107,136,187,223,232,231,226,225,227,243,281,311,319,313,293,282,305,319,320,322,325,328,328,323,322,349,393,428,441,450,484,542,580,589,584,567,553,557,560,554,536,517,510,531,548,553,564,585,598,600,591,574,578,595,605,607,611,623,644,665,672,672,664,648,635,629,616,600,595,595,591,568,529,516,527,542,560,586,599,603,604,599,575,533,505,495,480,455,442,440,448,462,475,480,480,470,441,412,394,388,381,370,359,334,292,245,217,202,179,154,144,134,118,107,100,92,84,77,70,65,60,54,46,37,0]}};
+  const HIPSO={"TF":{"lados":{"S":{"km2":[118.65,106.55,93.63,83.46,75.86,69.93,65.2,59.74,52.06,44.36,38.98,35.96,34.45,33.41,32.5,31.66,30.4,28.44,26.2,24.48,23.34,22.02,20.17,18.47,18.1,19.59,21.61,21.94,19.76,15.43,10.31,6.16,3.67,2.46,1.87,1.51,1.27,1.16,1.08,0.9,0.66,0.45,0.34,0.28,0.23,0.17,0.09,0.04],"pisos":[["hal",0,4,0.5],["car",4,513,44.2],["ter",513,959,20.3],["pin",959,2094,28.4],["cum",2094,3715,6.6]],"area":1319.0},"B":{"km2":[33.47,32.78,32.14,32.19,33.2,35.03,37.53,39.55,38.84,34.89,30.14,26.66,24.46,22.84,21.15,19.17,17.37,16.1,14.97,13.62,12.29,11.15,10.21,9.55,9.73,11.72,15.43,18.36,17.87,13.97,8.96,5.12,3.02,2.09,1.72,1.55,1.42,1.34,1.3,1.25,1.15,1.02,0.85,0.66,0.47,0.3,0.17,0.09],"pisos":[["hal",0,5,0.4],["car",5,134,7.7],["ter",134,402,15.4],["mon",402,1153,42.4],["pin",1153,2103,22.7],["cum",2103,3715,11.3]],"area":718.9}},"isla":{"hal":0.5,"car":30.6,"ter":18.2,"mon":16.8,"pin":25.8,"cum":8.2},"km2":{"hal":8.9,"car":593.4,"ter":352.6,"mon":324.8,"pin":500.9,"cum":158.3},"queda":{"hal":{"q":46},"car":{"q":33},"ter":{"q":4},"mon":{"q":30,"lau":6,"fb":24},"pin":{"q":52},"cum":{"q":96}}},"LP":{"lados":{"S":{"km2":[8.91,7.54,6.51,6.55,7.62,9.04,9.97,10.16,9.88,9.42,8.99,8.7,8.64,8.78,9.04,9.38,9.62,9.49,9.04,8.57,8.23,8.0,7.77,7.4,6.8,6.09,5.4,4.78,4.23,3.75,3.37,3.02,2.73,2.52,2.34,2.11,1.78,1.44,1.19,1.07,0.99,0.9,0.83,0.77,0.68,0.52,0.32,0.18],"pisos":[["hal",0,24,1.8],["car",24,143,6.4],["ter",143,564,28.1],["pin",564,2423,63.7]],"area":265.0},"B":{"km2":[9.75,10.2,11.15,12.45,13.9,15.32,16.41,16.94,16.95,16.63,16.19,15.79,15.46,15.1,14.61,14.05,13.64,13.53,13.45,13.09,12.52,11.84,11.03,10.25,9.64,9.14,8.59,7.99,7.42,6.9,6.43,6.06,5.75,5.42,5.07,4.72,4.34,3.94,3.56,3.24,3.0,2.8,2.54,2.15,1.61,1.01,0.51,0.22],"pisos":[["hal",0,11,0.6],["car",11,176,7.6],["ter",176,397,15.3],["mon",397,1060,43.7],["pin",1060,2423,32.8]],"area":442.3}},"isla":{"hal":1.0,"car":6.9,"ter":19.1,"mon":28.3,"pin":42.1,"cum":2.4},"km2":{"hal":6.5,"car":46.1,"ter":126.9,"mon":188.0,"pin":279.5,"cum":16.2},"queda":{"hal":{"q":72},"car":{"q":32},"ter":{"q":3},"mon":{"q":59,"lau":18,"fb":41},"pin":{"q":81},"cum":{"q":93}}},"GC":{"lados":{"S":{"km2":[61.88,56.77,49.73,43.7,40.27,38.78,37.93,36.89,35.55,34.05,32.7,31.8,31.2,30.37,28.76,26.51,24.32,22.65,21.55,20.76,20.42,20.79,21.27,20.74,19.15,17.47,16.18,14.97,13.61,11.95,10.07,8.26,6.74,5.51,4.51,3.75,3.23,2.93,2.79,2.75,2.78,2.69,2.32,1.78,1.29,0.91,0.6,0.35],"pisos":[["hal",0,5,0.7],["car",5,631,63.4],["ter",631,828,11.4],["pin",828,1949,24.5]],"area":946.0},"B":{"km2":[39.31,37.4,36.11,35.48,34.2,31.26,27.19,23.58,21.39,20.43,20.06,19.67,18.91,17.96,17.08,16.31,15.57,14.83,13.93,12.84,11.9,11.27,10.77,10.39,10.15,9.9,9.47,8.94,8.36,7.63,6.69,5.7,4.85,4.21,3.78,3.49,3.27,3.05,2.72,2.2,1.62,1.12,0.75,0.49,0.31,0.17,0.08,0.03],"pisos":[["hal",0,6,1.7],["car",6,290,38.3],["ter",290,544,20.5],["mon",544,1168,30.8],["pin",1168,1949,8.7]],"area":616.8}},"isla":{"hal":1.1,"car":53.3,"ter":15.0,"mon":12.5,"pin":18.2},"km2":{"hal":16.9,"car":823.2,"ter":231.3,"mon":193.4,"pin":280.7},"queda":{"hal":{"q":21},"car":{"q":27},"ter":{"q":10},"mon":{"q":1,"lau":1,"fb":0},"pin":{"q":32}}},"LG":{"lados":{"S":{"km2":[4.96,5.13,5.71,6.55,7.33,7.92,8.25,8.3,8.14,7.96,7.88,7.86,7.8,7.66,7.44,7.2,7.0,6.85,6.77,6.67,6.47,6.17,5.83,5.5,5.25,5.06,4.91,4.81,4.76,4.71,4.6,4.43,4.15,3.67,3.09,2.54,2.09,1.79,1.63,1.63,1.67,1.59,1.33,0.97,0.62,0.35,0.19,0.11],"pisos":[["hal",0,4,0.5],["car",4,465,46.3],["ter",465,934,38.0],["mon",934,1487,15.3]],"area":233.3},"B":{"km2":[2.6,2.56,2.72,3.05,3.44,3.81,4.1,4.27,4.35,4.43,4.53,4.6,4.58,4.48,4.39,4.36,4.42,4.52,4.6,4.56,4.38,4.09,3.77,3.45,3.13,2.88,2.76,2.73,2.73,2.75,2.8,2.83,2.73,2.46,2.16,1.91,1.68,1.44,1.2,0.97,0.76,0.56,0.39,0.24,0.14,0.06,0.03,0.01],"pisos":[["hal",0,15,1.3],["car",15,210,14.3],["ter",210,575,38.7],["mon",575,1487,45.6]],"area":135.4}},"isla":{"hal":0.8,"car":33.5,"ter":37.6,"mon":26.3,"pin":1.8},"km2":{"hal":2.9,"car":121.2,"ter":135.8,"mon":95.1,"pin":6.5},"queda":{"hal":{"q":81},"car":{"q":26},"ter":{"q":33},"mon":{"q":73,"lau":27,"fb":46},"pin":{"q":0}}},"EH":{"lados":{"S":{"km2":[3.95,3.67,3.55,3.62,3.74,3.75,3.6,3.39,3.24,3.13,3.04,3.03,3.1,3.19,3.15,2.99,2.83,2.74,2.72,2.72,2.7,2.71,2.78,2.86,2.86,2.82,2.86,2.99,3.14,3.19,3.12,3.08,3.12,3.15,3.09,2.99,2.86,2.65,2.44,2.29,2.13,1.85,1.45,1.01,0.63,0.37,0.22,0.13],"pisos":[["hal",0,116,10.3],["car",116,340,19.0],["ter",340,886,38.4],["pin",886,1208,24.0],["mon",1208,1501,8.3]],"area":130.6},"B":{"km2":[5.78,5.72,5.33,4.83,4.41,4.13,4.06,4.18,4.29,4.25,4.13,3.99,3.87,3.78,3.75,3.74,3.71,3.64,3.53,3.42,3.33,3.24,3.11,2.96,2.8,2.65,2.55,2.51,2.55,2.63,2.71,2.81,2.9,2.82,2.47,1.97,1.58,1.36,1.23,1.09,0.97,0.86,0.74,0.59,0.42,0.26,0.17,0.12],"pisos":[["hal",0,29,3.5],["car",29,165,16.6],["ter",165,624,41.2],["mon",624,1501,38.8]],"area":138.0}},"isla":{"hal":6.8,"car":17.7,"ter":39.8,"mon":24.1,"pin":11.5},"km2":{"hal":16.6,"car":43.6,"ter":97.9,"mon":59.4,"pin":28.3},"queda":{"hal":{"q":97},"car":{"q":21},"ter":{"q":33},"mon":{"q":39,"lau":11,"fb":28},"pin":{"q":50}}},"FV":{"lados":{"S":{"km2":[77.75,84.62,91.68,96.42,98.57,98.5,96.65,94.21,92.5,90.55,86.5,80.2,72.45,64.11,55.97,49.42,45.06,41.36,36.91,31.71,26.66,22.44,19.03,16.1,13.53,11.4,9.77,8.59,7.53,6.38,5.3,4.43,3.76,3.19,2.63,2.07,1.57,1.16,0.86,0.61,0.42,0.28,0.19,0.13,0.08,0.05,0.03,0.02],"pisos":[["hal",0,25,7.1],["car",25,465,90.4],["ter",465,807,2.6]],"area":1653.3},"B":{"km2":[77.75,84.62,91.68,96.42,98.57,98.5,96.65,94.21,92.5,90.55,86.5,80.2,72.45,64.11,55.97,49.42,45.06,41.36,36.91,31.71,26.66,22.44,19.03,16.1,13.53,11.4,9.77,8.59,7.53,6.38,5.3,4.43,3.76,3.19,2.63,2.07,1.57,1.16,0.86,0.61,0.42,0.28,0.19,0.13,0.08,0.05,0.03,0.02],"pisos":[["hal",0,25,7.1],["car",25,465,90.4],["ter",465,807,2.6]],"area":1653.3}},"isla":{"hal":7.1,"car":90.4,"ter":2.6},"km2":{"hal":114.7,"car":1469.8,"ter":42.0},"queda":{"hal":{"q":70},"car":{"q":6},"ter":{"q":8}}},"LZ":{"lados":{"S":{"km2":[49.93,54.07,54.5,49.62,42.79,37.66,34.59,32.14,29.8,28.18,27.41,26.93,26.83,27.04,26.59,25.29,23.93,22.93,22.45,22.74,23.73,24.66,24.12,21.3,17.1,13.2,10.28,8.23,6.77,5.73,4.9,4.08,3.29,2.65,2.16,1.78,1.52,1.37,1.24,1.1,0.98,0.84,0.65,0.47,0.34,0.22,0.12,0.06],"pisos":[["hal",0,48,22.4],["car",48,441,75.3],["ter",441,670,2.3]],"area":848.3},"B":{"km2":[49.93,54.07,54.5,49.62,42.79,37.66,34.59,32.14,29.8,28.18,27.41,26.93,26.83,27.04,26.59,25.29,23.93,22.93,22.45,22.74,23.73,24.66,24.12,21.3,17.1,13.2,10.28,8.23,6.77,5.73,4.9,4.08,3.29,2.65,2.16,1.78,1.52,1.37,1.24,1.1,0.98,0.84,0.65,0.47,0.34,0.22,0.12,0.06],"pisos":[["hal",0,48,22.4],["car",48,441,75.3],["ter",441,670,2.3]],"area":848.3}},"isla":{"hal":22.4,"car":75.3,"ter":2.3},"km2":{"hal":154.0,"car":516.8,"ter":16.0},"queda":{"hal":{"q":29},"car":{"q":5},"ter":{"q":0}}}};
+  const QUEDA_ARCH={"hal":{"q":49},"car":{"q":16},"ter":{"q":12},"mon":{"q":35,"lau":10,"fb":25},"pin":{"q":54},"cum":{"q":96}};
+  function cssTabla(){if(document.getElementById("anbModeloCSS"))return;const st=document.createElement("style");st.id="anbModeloCSS";st.textContent=".anbModeloTab{width:100%;border-collapse:collapse;font:14px/1.3 system-ui,sans-serif;color:inherit}.anbModeloTab th{text-align:left;font-weight:800;border-bottom:1px solid #8aa5;padding:3px 5px}.anbModeloTab td{padding:3px 5px;border-bottom:1px solid #8aa3;vertical-align:middle}.anbModeloTab td.n,.anbModeloTab th.n{text-align:center}.anbModeloTab i.c{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}.anbModeloTab small{font-size:14px;opacity:.85}.anbQ{display:inline-block;width:64px;height:10px;border-radius:5px;background:#c0392b66;margin-right:6px;vertical-align:middle;overflow:hidden}.anbQ span{display:block;height:100%;background:#2e8b57}.anbModeloNota{font-size:14px;opacity:.8;margin-top:4px}";document.head.appendChild(st)}
+  // tabla de una isla: superficie potencial de cada piso y lo que queda hoy
+  function tablaHTML(ik){cssTabla();const HI=HIPSO[ik]||HIPSO.TF,FS=franjasH(ik,"S"),FB=franjasH(ik,"B");
+    const ord=["hal","car","ter","mon","pin","cum"].filter(k=>FS.some(f=>f[0].k===k)||FB.some(f=>f[0].k===k));
+    const fila=k=>{const p=PISOS.find(p=>p.k===k),q=HI.queda[k],pc=HI.isla[k];if(pc==null)return"";
+      const qq=q?(k==="mon"&&q.lau!=null?`<b>${q.q} %</b> <small>(laurisilva ${q.lau} % · fayal-brezal ${q.fb} %)</small>`:`<b>${q.q} %</b>`):"—";
+      const pcs=pc<1?String(pc).replace(".",","):Math.round(pc);return `<tr><td><i class="c" style="background:${p.c}"></i>${p.n}</td><td class="n">${pcs} %</td><td><span class="anbQ"><span style="width:${q?q.q:0}%"></span></span>${qq}</td></tr>`};
+    return `<table class="anbModeloTab"><thead><tr><th>Piso de vegetación (${(ISLAS[ik]||ISLAS.TF).n})</th><th class="n">% de la isla</th><th>Cuánto queda hoy del piso</th></tr></thead><tbody>${ord.map(fila).join("")}</tbody></table><div class="anbModeloNota">«% de la isla»: superficie de su vegetación potencial. «Cuánto queda hoy»: parte de ese espacio que conserva su vegetación (en verde); el resto es hoy espacio urbano y agrícola, matorral de sustitución o plantaciones. Mapa de Vegetación de Canarias (GRAFCAN): un punto por km² en el interior y uno cada 300 m en el primer kilómetro desde la costa; valores aproximados.</div>`}
+  // tabla de todas las islas: cuánto queda hoy de cada piso
+  function tablaQueda(){cssTabla();const IS=["TF","GC","LP","LG","EH","FV","LZ"],ab={TF:"TF",GC:"GC",LP:"LP",LG:"LG",EH:"EH",FV:"FV",LZ:"LZ"};
+    const celda=(q)=>q?`${q.q} %`:"—";
+    const filas=["hal","car","ter","mon","pin","cum"].map(k=>{const p=PISOS.find(p=>p.k===k),qa=QUEDA_ARCH[k];
+      return `<tr><td><i class="c" style="background:${p.c}"></i>${p.n}</td>${IS.map(i=>{const H=HIPSO[i];const tiene=H&&(H.lados.S.pisos.some(f=>f[0]===k)||H.lados.B.pisos.some(f=>f[0]===k));return `<td class="n">${tiene?celda(H.queda[k]):"·"}</td>`}).join("")}<td class="n"><span class="anbQ"><span style="width:${qa?qa.q:0}%"></span></span><b>${qa?qa.q+" %":"—"}</b>${k==="mon"&&qa?`<br><small>laurisilva ${qa.lau} % · fayal-brezal ${qa.fb} %</small>`:""}</td></tr>`}).join("");
+    return `<table class="anbModeloTab"><thead><tr><th>Cuánto queda hoy de cada piso</th>${IS.map(i=>`<th class="n" title="${ISLAS[i].n}">${ab[i]}</th>`).join("")}<th class="n">Canarias</th></tr></thead><tbody>${filas}</tbody></table><div class="anbModeloNota">Parte del espacio potencial de cada piso que conserva hoy su vegetación. «·»: el piso no existe en esa isla (o es testimonial). TF Tenerife, GC Gran Canaria, LP La Palma, LG La Gomera, EH El Hierro, FV Fuerteventura, LZ Lanzarote. Mapa de Vegetación de Canarias (GRAFCAN): un punto por km² en el interior y uno cada 300 m junto a la costa; valores aproximados.</div>`}
+  function franjasH(ik,lado){const L=(HIPSO[ik]||HIPSO.TF).lados[lado].pisos;return L.map(([k,lo,hi,pc])=>[PISOS.find(p=>p.k===k),lo,hi,pc])}
   function modeloPisos(cont,op){
     if(!cont)return null;
-    const o=op.id?orientacion(op.id):null,isla=ISLAS[op.isla||(o&&o.isla)||"TF"],ZM=isla.z,z=Math.max(0,Math.min(ZM,+op.z||0));
-    const W=560,H=400,base=352,top=74,X0=70,X1=470,XC=270;
-    const ZTOP=ZM; // escala propia de la isla: la cumbre arriba del todo
-    const Y=a=>base-(Math.min(a,ZTOP)/ZTOP)*(base-top);
-    const xL=a=>X0+(XC-X0)*Math.min(a,ZTOP)/ZTOP, xR=a=>X1-(X1-XC)*Math.min(a,ZTOP)/ZTOP;
-    // franjas: líneas que cruzan la isla (sotavento → barlovento) recortadas por el perfil de la isla
-    const yl=a=>base-(a/ZTOP)*(base-top); // sin tope, para trazar por encima de la cumbre y recortar
-    const pol=(pts,c)=>`<polygon points="${pts}" fill="${c}" stroke="rgba(60,50,30,.55)" stroke-width="1.2"/>`;
-    const fr=(aS1,aB1,aS2,aB2,c)=>pol(`${X0},${yl(aS1)} ${X1},${yl(aB1)} ${X1},${yl(aB2)} ${X0},${yl(aS2)}`,c);
-    const Lh=k=>PISOS.find(p=>p.k===k).hasta;
-    const [hS,hB]=Lh("hal"),[cS,cB]=Lh("car"),[tS,tB]=Lh("ter"),[,mB]=Lh("mon"),[pS,pB]=Lh("pin");
-    const ARR=ZTOP*3; // techo para la última franja
+    const o=op.id?orientacion(op.id):null,ik=op.isla||(o&&o.isla)||"TF",isla=ISLAS[ik]||ISLAS.TF,ZM=isla.z,z=Math.max(0,Math.min(ZM,+op.z||0));
+    const HI=HIPSO[ik]||HIPSO.TF,baja=ik==="FV"||ik==="LZ";
+    const W=560,H=400,base=352,top=74;
+    const Y=a=>base-(Math.min(a,ZM)/ZM)*(base-top);
+    // silueta real de la isla vista desde el mar, mirando a lo largo de su divisoria (MDT25): sotavento a la izquierda, barlovento a la derecha
+    const PF=PERFIL[ik]||PERFIL.TF,PZ=PF.z,np_=PZ.length,XA=34,XB=W-128,px=i=>XA+(XB-XA)*i/(np_-1);
+    let ip=0;PZ.forEach((v,i)=>{if(v>PZ[ip])ip=i});const XC=px(ip);
+    const cruce=(a,dir)=>{let i=ip;while(i+dir>=0&&i+dir<np_&&PZ[i+dir]>=a)i+=dir;const j=i+dir;if(j<0||j>=np_)return px(i);const t=(PZ[i]-a)/Math.max(1e-6,PZ[i]-PZ[j]);return px(i)+(px(j)-px(i))*t};
+    const xL=a=>cruce(Math.min(a,ZM-1),-1),xR=a=>cruce(Math.min(a,ZM-1),1),xFuera=a=>{let i=np_-1;while(i>ip&&PZ[i]<a)i--;return px(Math.min(np_-1,i+1))},wS=a=>XC-xL(a),wB=a=>xR(a)-XC;
+    const pts=[[XA,base],...PZ.map((v,i)=>[px(i),Y(v)]),[XB,base]].map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+    const FS=franjasH(ik,"S"),FB=franjasH(ik,"B");
+    const fb=k=>FB.find(f=>f[0].k===k),tB=(fb("ter")||[0,0,0])[2],mB=(fb("mon")||[0,0,0])[2]||tB;
     let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cliserie de ${isla.n}" style="width:100%;height:100%;display:block">`;
     const cid="anbIsla"+Math.random().toString(36).slice(2,8);
     g+=`<defs><linearGradient id="${cid}c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe3f7"/><stop offset="1" stop-color="#e9f6fd"/></linearGradient>
-      <clipPath id="${cid}"><polygon points="${X0},${base} ${XC},${Y(ZM)} ${X1},${base}"/></clipPath></defs>`;
+      <clipPath id="${cid}"><polygon points="${pts}"/></clipPath></defs>`;
     g+=`<rect width="${W}" height="${H}" fill="url(#${cid}c)"/><rect y="${base}" width="${W}" height="${H-base}" fill="#2f78b7"/>`;
     g+=`<g clip-path="url(#${cid})">`;
-    g+=fr(0,0,hS,hB,PISOS[0].c);
-    g+=fr(hS,hB,cS,cB,PISOS[1].c);
-    g+=fr(cS,cB,tS,tB,PISOS[2].c);
-    g+=pol(`${X0},${yl(tS)} ${X1},${yl(tB)} ${X1},${yl(mB)}`,PISOS[3].c);
-    g+=pol(`${X0},${yl(tS)} ${X1},${yl(mB)} ${X1},${yl(pB)} ${X0},${yl(pS)}`,PISOS[4].c);
-    g+=fr(pS,pB,ARR,ARR,PISOS[5].c);
-    g+=`</g><polygon points="${X0},${base} ${XC},${Y(ZM)} ${X1},${base}" fill="none" stroke="#5b4a32" stroke-width="2"/>`;
+    const rect=(xa,xb,lo,hi,c)=>`<rect x="${xa}" y="${Y(hi)}" width="${xb-xa}" height="${Math.max(0,Y(lo)-Y(hi))}" fill="${c}" stroke="rgba(60,50,30,.55)" stroke-width="1.2"/>`;
+    const hmin=a=>Math.max(a,ZM*7/(base-top)); // el cinturón halófilo es una franja litoral estrecha: se dibuja con un grosor mínimo para que se vea
+    FS.forEach(([p,lo,hi])=>{g+=rect(XA-2,XC,lo,p.k==="hal"?hmin(hi):hi,p.c)});
+    FB.forEach(([p,lo,hi])=>{g+=rect(XC,XB+2,lo,p.k==="hal"?hmin(hi):hi,p.c)});
+    if(!baja)g+=`<line x1="${XC}" y1="${Y(ZM)}" x2="${XC}" y2="${base}" stroke="rgba(60,50,30,.5)" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+    g+=`</g><polygon points="${pts}" fill="none" stroke="#5b4a32" stroke-width="2"/>`;
     // cumbre
     g+=`<text x="${XC}" y="${Y(ZM)-9}" font-size="15" font-weight="800" fill="#1d2a36" text-anchor="middle" stroke="#fff" stroke-width="3" paint-order="stroke">${isla.c} · ${ZM.toLocaleString("es-ES")} m</text>`;
     // mar de nubes y alisios (solo si la isla llega a la altura del mar de nubes)
     const nub=(cx,cy,s)=>`<g fill="#fff" stroke="#9fb3c4" stroke-width="1.2"><ellipse cx="${cx}" cy="${cy}" rx="${46*s}" ry="${17*s}"/><ellipse cx="${cx-30*s}" cy="${cy+4*s}" rx="${26*s}" ry="${13*s}"/><ellipse cx="${cx+32*s}" cy="${cy+4*s}" rx="${28*s}" ry="${13*s}"/><ellipse cx="${cx+4*s}" cy="${cy-10*s}" rx="${26*s}" ry="${14*s}"/></g>`;
-    if(ZM>1000){const an=Math.min(1150,(tB+Math.min(mB,ZM))/2);g+=nub(xR(an)+62,Y(an)+4,.75);
-      g+=`<text x="${xR(an)+66}" y="${Y(an)+34}" font-size="15" font-weight="700" fill="#24496b" text-anchor="middle">mar de nubes</text>`}
+    if(ZM>1000){const an=Math.min(1150,(tB+Math.min(mB,ZM))/2),cx=Math.min(W-82,xFuera(an)+40);g+=nub(cx,Y(an)+4,.6);
+      g+=`<text x="${cx}" y="${Y(an)-14}" font-size="15" font-weight="700" fill="#24496b" text-anchor="middle" stroke="#fff" stroke-width="3" paint-order="stroke">mar de nubes</text>`}
     const aA=ZM>1000?Math.min(ZM*.9,1750):ZM*.6; // los alisios soplan por debajo de la inversión
     g+=`<g stroke="#24496b" stroke-width="2.5" fill="#24496b"><line x1="${W-62}" y1="${Y(aA)}" x2="${xR(aA)+30}" y2="${Y(aA)}"/><polygon points="${xR(aA)+22},${Y(aA)} ${xR(aA)+34},${Y(aA)-6} ${xR(aA)+34},${Y(aA)+6}"/></g>`;
     g+=`<text x="${W-62}" y="${Y(aA)-8}" font-size="15" font-weight="700" fill="#24496b" text-anchor="end">alisios (NE)</text>`;
     // rótulos de los pisos que existen en la isla, en el centro de su franja visible
     const rot=(t,x,y,c="#1d2a36",fs=17)=>`<text x="${x}" y="${y}" font-size="${fs}" font-weight="700" fill="${c}" text-anchor="middle" stroke="${c==="#fff"?"rgba(0,40,0,.55)":"rgba(255,255,255,.75)"}" stroke-width="3" paint-order="stroke">${t}</text>`;
-    const banda=(a,b,txt,dx=0,c,fs)=>{const hi=Math.min(b,ZM);if(hi-a<ZM*.07)return "";const m=(a+hi)/2;return rot(txt,XC+dx,Y(m)+6,c,fs)};
-    g+=banda(Math.max(hS,hB),Math.max(cS,cB)*.85+Math.min(cS,cB)*.15,"Cardonal-tabaibal");
-    g+=banda(Math.max(cS,cB),Math.min(tS,ZM),"Bosque termófilo",-20);
-    if(ZM>tB+150){const hi=Math.min(mB,ZM),m=(tB+hi)/2;g+=rot("Monteverde",(xR(m)+XC)/2-6,Y(m)+6,"#fff")}
-    if(ZM>tS+150)g+=banda(Math.max(tS,Math.min(mB,ZM)*.6),pS,"Pinar",-30);
-    if(ZM>pS+150)g+=banda(pS,ZM,"Matorral de cumbre",0,undefined,14);
-    g+=`<text x="${X0-2}" y="${base-8}" font-size="14" font-weight="700" fill="#0d5e50" text-anchor="end" stroke="#fff" stroke-width="3" paint-order="stroke">cinturón</text><text x="${X0-2}" y="${base+9}" font-size="14" font-weight="700" fill="#0d5e50" text-anchor="end" stroke="#fff" stroke-width="3" paint-order="stroke">halófilo</text>`;
+    // rótulos: nombre y % de superficie de ese piso en esa vertiente, a la altitud donde su franja es más ancha
+    const NOM={hal:["Halófilo","Halófilo"],car:["Cardonal-tabaibal","Cardonal"],ter:["Bosque termófilo","Termófilo"],mon:["Monteverde","Monteverde"],pin:["Pinar","Pinar"],cum:["Matorral de cumbre","Cumbre"]};
+    const rotula=(F,lado)=>F.forEach(([p,lo,hi,pc])=>{const N=NOM[p.k];const alto=Y(lo)-Y(hi);if(!N||alto<15)return;
+      const WF=lado==="S"?wS:wB;let best=lo,bw=-1;for(let n=0;n<=12;n++){const a=lo+(hi-lo)*(.15+.7*n/12),w=WF(a);if(w>bw){bw=w;best=a}}
+      const fmax=alto<22?14:16;let t=null,fs=fmax;for(const [tt,f] of [[N[0],fmax],[N[0],14],[N[1],14]])if(f<=fmax&&tt.length*f*.56<=bw-8){t=tt;fs=f;break}
+      if(t){g+=rot(t,lado==="S"?XC-bw/2:XC+bw/2,Y(best)+5,p.k==="mon"?"#fff":"#1d2a36",fs);return}
+      // si no cabe dentro, el nombre va fuera del perfil, junto a su franja
+      const am=(lo+Math.min(hi,ZM))/2,xe=lado==="S"?xL(am)-6:xR(am)+6;
+      g+=`<text x="${xe}" y="${Y(am)+5}" font-size="14" font-weight="800" fill="#1d2a36" text-anchor="${lado==="S"?"end":"start"}" stroke="rgba(255,255,255,.85)" stroke-width="3" paint-order="stroke">${N[1]}</text>`});
+    // el mismo piso arriba en las dos vertientes: un solo rótulo centrado sobre la divisoria
+    let RS=FS.slice(),RB=FB.slice();const uS=RS[RS.length-1],uB=RB[RB.length-1];
+    if(!baja&&uS&&uB&&uS[0]===uB[0]){RS.pop();RB.pop();const lo=Math.max(uS[1],uB[1]),N=NOM[uS[0].k];let best=lo,bw=-1;
+      for(let n=0;n<=12;n++){const a=lo+(ZM-lo)*(.1+.6*n/12),w=wS(a)+wB(a);if(w>bw){bw=w;best=a}}
+      let t=null,fs=16;for(const [tt,f2] of [[N[0],16],[N[0],14],[N[1],14]])if(tt.length*f2*.56<=bw-8){t=tt;fs=f2;break}
+      if(t)g+=rot(t,(xL(best)+xR(best))/2,Y(best)+5,uS[0].k==="mon"?"#fff":"#1d2a36",fs);
+      else g+=`<text x="${xL(best)-6}" y="${Y(best)+5}" font-size="14" font-weight="800" fill="#1d2a36" text-anchor="end" stroke="rgba(255,255,255,.85)" stroke-width="3" paint-order="stroke">${N[1]}</text>`}
+    const sinHal=F=>F.filter(f=>f[0].k!=="hal"||Y(f[1])-Y(f[2])>=15);
+    if(baja)rotula(sinHal(RS),"S");else{rotula(sinHal(RS),"S");rotula(sinHal(RB),"B")}
+    if([...FS,...FB].some(f=>f[0].k==="hal"&&Y(f[1])-Y(f[2])<15))g+=`<text x="${XA+2}" y="${base+16}" font-size="14" font-weight="700" fill="#bff3e6">▲ cinturón halófilo (franja costera)</text>`;
+    
     // laderas y título
-    g+=`<text x="10" y="${base+32}" font-size="17" font-weight="800" fill="#fff">◀ Sotavento (S, SE, SW)</text>`;
-    g+=`<text x="${W-10}" y="${base+32}" font-size="17" font-weight="800" fill="#fff" text-anchor="end">Barlovento (N, NE, NW) ▶</text>`;
-    g+=`<text x="10" y="22" font-size="16" font-weight="800" fill="#24496b">Cliserie de ${isla.n}</text><text x="10" y="40" font-size="14" font-style="italic" fill="#24496b">Límites de altitud orientativos</text>`;
+    if(baja)g+=`<text x="${XC}" y="${base+40}" font-size="16" font-weight="800" fill="#fff" text-anchor="middle">Isla baja: sin barlovento ni sotavento marcados</text>`;
+    else{g+=`<text x="10" y="${base+40}" font-size="17" font-weight="800" fill="#fff">◀ Sotavento · ${Math.round(HI.lados.S.area)} km²</text>`;
+      g+=`<text x="${W-10}" y="${base+40}" font-size="17" font-weight="800" fill="#fff" text-anchor="end">Barlovento · ${Math.round(HI.lados.B.area)} km² ▶</text>`}
+    g+=`<text x="10" y="22" font-size="16" font-weight="800" fill="#24496b">Cliserie de ${isla.n}</text><text x="10" y="40" font-size="14" font-style="italic" fill="#24496b">Silueta real vista desde el mar · altitud exagerada</text>`;
     // eje de altitudes de la isla
     const paso=ZM<=900?100:ZM<=2000?250:500;
     g+=`<g font-size="14" fill="#24496b">`;for(let a=0;a<=ZM;a+=paso){g+=`<line x1="${W-12}" x2="${W-4}" y1="${Y(a)}" y2="${Y(a)}" stroke="#24496b"/><text x="${W-15}" y="${Y(a)+5}" text-anchor="end">${a.toLocaleString("es-ES")}</text>`}
     g+=`<text x="${W-4}" y="22" text-anchor="end" font-weight="700">Altitud (m)</text></g>`;
     // la estación: solo el punto
     let piso=null;
-    if(o){piso=pisoModelo(z,o.lado);
-      const x=o.lado==="B"?xR(z)-10:xL(z)+10,y=Y(z)-2;
+    if(o){piso=pisoModelo(z,baja?"S":o.lado,ik);
+      const x=(o.lado==="B"&&!baja)?Math.max(XC+12,xR(z)-12):Math.min(XC-12,xL(z)+12),y=Y(z)-2;
       g+=`<circle cx="${x}" cy="${y}" r="14" fill="none" stroke="#fff" stroke-width="5"/><circle cx="${x}" cy="${y}" r="14" fill="none" stroke="#d62c1a" stroke-width="3"/>`;
       g+=`<circle cx="${x}" cy="${y}" r="6.5" fill="#d62c1a" stroke="#fff" stroke-width="2.5"/>`;
     }
     g+="</svg>";
-    cont.innerHTML=`<div class="anbModelo">${g}</div>`+(o?`<div class="anbModeloTxt">En la cliserie de ${isla.n}: <b>${o.lado==="B"?"barlovento":"sotavento"}</b> (ladera orientada al ${o.rumbo}) a ${Math.round(+op.z||0)} m → <b>${piso.n.toLowerCase()}</b> <span style="font-weight:400;opacity:.8">(límites orientativos)</span></div>`:(op.id?`<div class="anbModeloTxt">Sin orientación calculada para esta estación.</div>`:""));
+    const tabla=op.tabla===true?tablaHTML(ik):"";
+    cont.innerHTML=`<div class="anbModelo">${g}</div>`+tabla+(o?`<div class="anbModeloTxt">En la cliserie de ${isla.n}: <b>${o.lado==="B"?"barlovento":"sotavento"}</b> (ladera orientada al ${o.rumbo}) a ${Math.round(+op.z||0)} m → <b>${piso.n.toLowerCase()}</b> <span style="font-weight:400;opacity:.8">(límites aproximados)</span></div>`:(op.id?`<div class="anbModeloTxt">Sin orientación calculada para esta estación.</div>`:""));
     return o?{lado:o.lado,rumbo:o.rumbo,piso:piso.n,isla:isla.n}:null;
   }
 
@@ -492,5 +544,5 @@
     if(op.ambito==="can"||op.ambito==="esp")return mapa(cont,op);
     return globo(cont,op);
   }
-  window.AnbGlobo={globo,mapa,lugar,centro,modeloPisos,orientacion,precargar:()=>cargar().catch(()=>null)};
+  window.AnbGlobo={globo,mapa,lugar,centro,modeloPisos,orientacion,tablaPisos:(c,ik)=>{if(c)c.innerHTML=tablaHTML(ik||"TF")},tablaQueda:c=>{if(c)c.innerHTML=tablaQueda()},precargar:()=>cargar().catch(()=>null)};
 })();

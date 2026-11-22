@@ -62,7 +62,7 @@ table.acf{border-collapse:collapse;width:100%;font-size:14px} table.acf th,table
 </style>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="anb-globo.js?v=20261122a"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
+<script src="anb-globo.js?v=20261122d"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
 <style id="estiloJuegos">
 /* ===== Aspecto renovado de los juegos (solo presentación; la mecánica no cambia) ===== */
 :root{--k1:#e21b3c;--k2:#1368ce;--k3:#d89e00;--k4:#26890c;--sombra:0 6px 18px rgba(23,50,77,.14)}
@@ -511,7 +511,7 @@ function revelar(pts){
     // Canarias → mapa de Canarias (municipios) · España → mapa de España (comunidades) · mundo → globo con zonas climáticas
     if(window.AnbGlobo&&$("mapaRevel"))AnbGlobo.lugar($("mapaRevel"),{ambito:c.amb==="can"?"can":c.amb==="esp"?"esp":"mundo",lat:e.la,lon:e.lo,color:c.c||"#e67e22",nombre:e.n,zonas:true,vegPot:c.amb==="can"});
     // Canarias: la estación en el modelo de pisos (altitud + orientación de la ladera según el MDT25)
-    if(window.AnbGlobo&&$("modeloPisos"))AnbGlobo.modeloPisos($("modeloPisos"),{id:e.id,z:e.z,nombre:e.n});
+    if(window.AnbGlobo&&$("modeloPisos"))AnbGlobo.modeloPisos($("modeloPisos"),{id:e.id,z:e.z,nombre:e.n,tabla:false});
     // Canarias: lo que hay hoy en el punto de la estación (vegetación actual de GRAFCAN) y lo que queda de su piso
     if(c.amb==="can"&&$("hoyCan"))hoyEnElPunto($("hoyCan"),e,c);
   }catch(err){console.warn("Mapa del lugar",err)}},60);
