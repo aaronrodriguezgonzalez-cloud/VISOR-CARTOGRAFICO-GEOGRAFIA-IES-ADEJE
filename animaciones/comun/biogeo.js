@@ -96,8 +96,11 @@ async function preparaEscena(){
   const bb=M.bb,lx=(bb[2]-bb[0])/img.width;
   E.geo=(x,y)=>({lon:bb[0]+(x0+x+.5)*lx,lat:bb[3]-(y+.5)/H*(bb[3]-bb[1])});
   E.xy=(lon,lat)=>[(lon-bb[0])/lx-x0,(bb[3]-lat)/(bb[3]-bb[1])*H];
+  if(M.vert){try{const iv=await cargaImg(M.vert),dv=pixeles(iv);E.vert=new Uint8Array(W*H);
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const v=dv[(y*iv.width+x0+x)*4];E.vert[y*W+x]=v===2?1:v}}catch(e){console.warn(e)}}
   BG.escena=E;
 }
+const VERT={1:{n:"Barlovento",c:[37,99,235],t:"recibe el alisio (NNE) y las borrascas del NW"},3:{n:"Sotavento",c:[234,120,30],t:"queda abrigada, al otro lado de la divisoria"},4:{n:"Relieve bajo",c:[196,178,140],t:"isla baja: sin montañas que retengan la humedad"}};
 
 /* ---------- pintado ---------- */
 let lienzo,ctx,capa=null;
@@ -111,7 +114,11 @@ function pintaEscena(){
   const res=BG.resalte?new Set(BG.resalte):null,sel=BG.sel;
   for(let i=0;i<E.W*E.H;i++){
     const p=E.pot[i],r=E.real[i],t=E.tierra[i];let c;
-    if(BG.modo==="pot"){
+    if(BG.vert&&E.vert){
+      const v=VERT[E.vert[i]];
+      if(v){c=v.c;if(BG.vertPisos&&p&&CU[p]){const q=CU[p];c=[q[0]*.55+c[0]*.45,q[1]*.55+c[1]*.45,q[2]*.55+c[2]*.45]}}
+      else c=t?(t===2?TIERRA_ES:TIERRA):MAR;
+    }else if(BG.modo==="pot"){
       c=p?CU[p]:null;
       if(c&&res&&!res.has(p))c=gris(c,.78);
       if(!c)c=t?(t===2?TIERRA_ES:TIERRA):MAR;
@@ -161,6 +168,8 @@ function dibuja(){
     const L=[[0,"Ecuador","#ffd166"],[23.44,"Trópico de Cáncer","#ff9f6b"],[-23.44,"Trópico de Capricornio","#ff9f6b"],[66.56,"Círculo polar ártico","#8fd3ff"]];
     for(const [la,n,c] of L){const y=oy+E.xy(0,la)[1]*s;if(y<oy||y>oy+E.H*s)continue;ctx.strokeStyle=c;ctx.setLineDash([7,6]);ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(ox,y);ctx.lineTo(ox+E.W*s,y);ctx.stroke();ctx.setLineDash([]);rot(n,ox+8,y-5,{a:"left",c,s:14})}
   }
+  // vientos que traen la humedad (paso de las vertientes)
+  if(BG.vert){flecha(E,"Alisio (NNE)",-15.05,29.22,-15.5,28.7,"#bfe8ff",s,ox,oy);flecha(E,"Borrascas del NW",-18.12,29.22,-17.75,28.9,"#d9ccff",s,ox,oy,"left")}
   // rótulos del paso
   (BG.rotulos||[]).forEach(r=>{const [x,y]=E.xy(r.lon,r.lat);rot(r.t,ox+x*s,oy+y*s,{s:r.s||15,c:r.c||"#fff"})});
   // unidad seleccionada: marca de su estación
@@ -170,6 +179,11 @@ function dibuja(){
     ctx.font="800 14px system-ui,sans-serif";const tw=ctx.measureText(st.n).width;
     if(X+14+tw>w-4)rot(st.n,X-12,Y+5,{a:"right",s:14});else rot(st.n,X+12,Y+5,{a:"left",s:14})}
 }
+function flecha(E,t,lo0,la0,lo1,la1,c,s,ox,oy,al){const [a,b]=E.xy(lo0,la0),[x1,y1]=E.xy(lo1,la1),X0=ox+a*s,Y0=oy+b*s,X1=ox+x1*s,Y1=oy+y1*s,an=Math.atan2(Y1-Y0,X1-X0);
+  ctx.save();ctx.strokeStyle="rgba(5,15,12,.8)";ctx.lineWidth=9;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(X0,Y0);ctx.lineTo(X1,Y1);ctx.stroke();
+  ctx.strokeStyle=c;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(X0,Y0);ctx.lineTo(X1,Y1);ctx.stroke();
+  ctx.fillStyle=c;ctx.strokeStyle="rgba(5,15,12,.8)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X1+Math.cos(an)*12,Y1+Math.sin(an)*12);ctx.lineTo(X1+Math.cos(an+2.4)*16,Y1+Math.sin(an+2.4)*16);ctx.lineTo(X1+Math.cos(an-2.4)*16,Y1+Math.sin(an-2.4)*16);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+  rot(t,al?X0-6:X0,Y0-10,{s:14,c,a:al||"center"})}
 function rot(t,x,y,o={}){ctx.save();ctx.font=`800 ${o.s||14}px system-ui,sans-serif`;ctx.textAlign=o.a||"center";ctx.lineJoin="round";ctx.lineWidth=4;ctx.strokeStyle="rgba(5,15,12,.85)";ctx.strokeText(t,x,y);ctx.fillStyle=o.c||"#fff";ctx.fillText(t,x,y);ctx.restore()}
 
 /* ---------- interacción ---------- */
@@ -179,13 +193,23 @@ function enEscena(ev){if(!vista)return null;const r=lienzo.getBoundingClientRect
 function unidadEn(p){const E=BG.escena;
   for(let rad=0;rad<=3;rad++)for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){const x=p.x+dx,y=p.y+dy;if(x<0||y<0||x>=E.W||y>=E.H)continue;const i=y*E.W+x;if(E.pot[i])return{u:E.pot[i],r:E.real[i]}}
   return null}
-function tip(ev){const p=enEscena(ev),T=$("bgTip");const q=p&&unidadEn(p);
+function vertEn(p){const E=BG.escena;if(!E.vert)return null;
+  for(let rad=0;rad<=3;rad++)for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){const x=p.x+dx,y=p.y+dy;if(x<0||y<0||x>=E.W||y>=E.H)continue;const v=E.vert[y*E.W+x];if(VERT[v])return v}
+  return null}
+function textoVert(p){const v=vertEn(p),q=unidadEn(p);if(!v)return"";const V=VERT[v],u=q&&BG.cfg.unidades.find(u=>u.id===q.u);
+  return `<b style="color:rgb(${V.c})">${V.n}</b>: ${V.t}.`+(u?`<br>Piso de vegetación: <b>${esc(u.n)}</b>`:"")}
+function tip(ev){const p=enEscena(ev),T=$("bgTip");
+  if(BG.vert&&p){const h=textoVert(p);if(h){T.innerHTML=h;const c=lienzo.parentElement.getBoundingClientRect(),z=c.width/lienzo.parentElement.clientWidth||1;
+    T.style.left=Math.min((ev.clientX-c.left)/z+14,lienzo.parentElement.clientWidth-260)+"px";T.style.top=((ev.clientY-c.top)/z+12)+"px";T.hidden=false;lienzo.style.cursor="pointer";return}}
+  const q=p&&unidadEn(p);
   if(!q){T.hidden=true;lienzo.style.cursor="default";return}
   const u=BG.cfg.unidades.find(u=>u.id===q.u),rr=BG.cfg.real.find(r=>r.id===q.r);
   T.innerHTML=`<b>${esc(u?u.n:"")}</b>`+(BG.modo==="real"&&rr?`<br>Hoy: ${esc(rr.n)}`:"");
   const c=lienzo.parentElement.getBoundingClientRect(),z=c.width/lienzo.parentElement.clientWidth||1;
   T.style.left=Math.min((ev.clientX-c.left)/z+14,lienzo.parentElement.clientWidth-230)+"px";T.style.top=((ev.clientY-c.top)/z+12)+"px";T.hidden=false;lienzo.style.cursor="pointer"}
-function clic(ev){const p=enEscena(ev),q=p&&unidadEn(p);if(q)selecciona(q.u,true)}
+function clic(ev){const p=enEscena(ev);
+  if(BG.vert){const h=p&&textoVert(p),P=$("vertPunto");if(h&&P){P.innerHTML="📍 "+h;P.hidden=false;igualaPanel()}return}
+  const q=p&&unidadEn(p);if(q)selecciona(q.u,true)}
 
 /* ---------- datos de clima y fotos ---------- */
 function estacion(u){if(!u.est||!BG.normales)return null;return BG.normales.get(u.est)||null}
@@ -274,16 +298,18 @@ function leyenda(){
     L.innerHTML=`<button class="on" data-u="${u.id}"><i style="background:${u.c}"></i>${esc(u.corto||u.n)}</button><button class="bgVerTodo" id="bgVerTodo">☰ Ver ${esc(nombre)}</button><span class="bgNota">o toca otra zona del mapa</span>`;
     $("bgVerTodo").onclick=()=>{BG.leyAbierta=true;leyenda();igualaPanel()};return;
   }
+  if(BG.vert){L.innerHTML=`<div class="bgLeyReal">${[1,3,4].map(k=>`<span><i style="background:rgb(${VERT[k].c})"></i>${VERT[k].n}</span>`).join("")}</div><button class="bgVerTodo" id="bgVertPisos">${BG.vertPisos?"🌍 Ver solo las vertientes":"🌿 Ver también los pisos de vegetación"}</button>`;
+    $("bgVertPisos").onclick=()=>{BG.vertPisos=!BG.vertPisos;pintaEscena();leyenda()};return}
   if(BG.modo==="pot")L.innerHTML=BG.cfg.unidades.filter(u=>!u.oculta).map(u=>`<button data-u="${u.id}" class="${BG.sel===u.id?"on":""}${BG.resalte&&!BG.resalte.includes(u.id)?" apag":""}"><i style="background:${u.c}"></i>${esc(u.corto||u.n)}</button>`).join("");
   else L.innerHTML=`<div class="bgLeyReal">${BG.cfg.real.map(r=>`<span><i style="background:${r.c}"></i>${esc(r.n)}${r.humano?" ✱":""}</span>`).join("")}</div><div class="bgNota">✱ Espacios transformados por el ser humano. ${esc(BG.cfg.fuenteReal||"")}</div>`;
   if(u)L.innerHTML+=`<button class="bgVerTodo" id="bgRecoge">▴ Recoger la leyenda</button>`;
   L.querySelectorAll("button[data-u]").forEach(b=>b.onclick=()=>selecciona(+b.dataset.u,true));
   const rc=$("bgRecoge");if(rc)rc.onclick=()=>{BG.leyAbierta=false;leyenda();igualaPanel()};
 }
-function ponModo(m){BG.modo=m;$("bgPot").classList.toggle("on",m==="pot");$("bgReal").classList.toggle("on",m==="real");pintaEscena();leyenda();
+function ponModo(m){BG.modo=m;BG.vert=false;$("bgPot").classList.toggle("on",m==="pot");$("bgReal").classList.toggle("on",m==="real");pintaEscena();leyenda();
   $("bgModoTxt").innerHTML=m==="pot"?BG.cfg.textoPot:BG.cfg.textoReal}
 function selecciona(id,abrir){
-  BG.sel=id;BG.resalte=[id];BG.rotulos=[];BG.leyAbierta=false;
+  BG.sel=id;BG.resalte=[id];BG.rotulos=[];BG.leyAbierta=false;BG.vert=false;
   const u=BG.cfg.unidades.find(u=>u.id===id);if(!u)return;
   if(BG.paso!==BG.cfg.pasos.length-1)irPaso(BG.cfg.pasos.length-1,true);
   pintaEscena();leyenda();igualaPanel();if(abrir)ficha(u);
@@ -293,7 +319,7 @@ function irPaso(i,silencio){
   document.querySelectorAll("#steps button[data-p]").forEach((b,k)=>b.classList.toggle("on",k===i));
   $("stage").innerHTML=`<b class="t">${P.t}</b><p>${P.txt}</p>`;
   if(silencio)return;
-  BG.sel=null;BG.resalte=P.resaltar||null;BG.lineas=!!P.lineas;BG.rotulos=P.rotulos||[];
+  BG.sel=null;BG.resalte=P.resaltar||null;BG.lineas=!!P.lineas;BG.rotulos=P.rotulos||[];BG.vert=!!(P.vertientes&&BG.escena&&BG.escena.vert);if(!BG.vert)BG.vertPisos=false;
   if(P.modo&&P.modo!==BG.modo){BG.modo=P.modo;$("bgPot").classList.toggle("on",P.modo==="pot");$("bgReal").classList.toggle("on",P.modo==="real");$("bgModoTxt").innerHTML=P.modo==="pot"?BG.cfg.textoPot:BG.cfg.textoReal}
   pintaEscena();leyenda();
   const I=$("bgInfo");if(I){I.hidden=!P.abajo;I.innerHTML="";delete I.dataset.alto;if(P.abajo){I.dataset.alto=P.altoAbajo||258;P.abajo(I)}}
