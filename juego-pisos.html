@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pisos de vegetación de Canarias · Juegos · ANAMBRO</title>
+<style>
+:root{--azul:#17324d;--acento:#2e86de;--fondo:#f3f6f9;--borde:#d5dee7;--ok:#1e8449;--mal:#c0392b}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;color:#1d2a36;background:var(--fondo);line-height:1.4}
+header{background:var(--azul);color:#fff;padding:10px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+header h1{font-size:20px;margin:0} header .sub{font-size:14px;opacity:.85}
+.marcador{margin-left:auto;display:flex;gap:14px;font-size:15px;font-weight:600}
+.marcador span{background:rgba(255,255,255,.14);padding:4px 10px;border-radius:14px}
+main{max-width:1400px;margin:0 auto;padding:14px}
+.panel{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:14px}
+h2{font-size:18px;margin:0 0 8px;color:var(--azul)} h3{font-size:16px;margin:12px 0 6px;color:var(--azul)}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--acento);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:600}
+.btn.sec{background:#e8eef4;color:var(--azul)} .btn:disabled{opacity:.45;cursor:default}
+#inicio{max-width:900px;margin:20px auto}
+.opciones{display:grid;gap:14px;margin:14px 0}
+.opcion b{display:block;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--borde);background:#fff;border-radius:10px;padding:8px 12px;text-align:left}
+.chip small{display:block;color:#5b6b7a;font-size:13px}
+.chip.on{border-color:var(--acento);background:#eaf3fd}
+.nota{font-size:14px;color:#5b6b7a}
+#carga{margin-top:8px}
+#juego{display:none}
+.pregunta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px}
+@media (max-width:980px){.pregunta{grid-template-columns:1fr}}
+.foto{position:relative;border-radius:10px;overflow:hidden;background:#dde5ec}
+.foto img{width:100%;display:block;max-height:460px;object-fit:cover}
+.credito{font-size:12.5px;color:#5b6b7a;margin-top:4px}
+.credito a{color:#5b6b7a}
+.opcionesResp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.opcionesResp{grid-template-columns:1fr}}
+.resp{border:2px solid var(--borde);border-radius:12px;background:#fff;padding:8px;text-align:left;position:relative;transition:transform .2s}
+.resp:hover:not(:disabled){border-color:var(--acento);transform:translateY(-2px)}
+.resp .letra{position:absolute;top:6px;left:8px;background:var(--azul);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:800;z-index:2}
+.resp svg{width:100%;height:auto;display:block}
+.resp img{width:100%;height:190px;object-fit:cover;border-radius:8px;display:block}
+.resp.mal{border-color:var(--mal);opacity:.55;filter:grayscale(.7)}
+.resp.bien{border-color:var(--ok);box-shadow:0 0 0 4px #1e844933}
+.resp .porque{display:none;font-size:13.5px;margin-top:6px;color:var(--mal)}
+.resp.mal .porque{display:block}
+table.datos{border-collapse:collapse;width:100%;font-size:14px;margin-top:6px}
+table.datos th,table.datos td{border:1px solid var(--borde);padding:3px 2px;text-align:center}
+table.datos th{background:#eef3f8}
+.velo{position:fixed;inset:0;background:rgba(10,25,40,.55);display:none;align-items:center;justify-content:center;z-index:2000;padding:12px}
+.velo.on{display:flex}
+.modal{background:#fff;border-radius:14px;max-width:1000px;width:100%;max-height:92vh;overflow:auto;padding:18px 20px}
+.modal .cierra{float:right}
+.revelGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.revelGrid{grid-template-columns:1fr}}
+.puntos{font-size:22px;font-weight:800;color:var(--ok)}
+.tag{display:inline-block;background:#eef3f8;border-radius:12px;padding:2px 10px;font-size:14px;margin:2px 4px 2px 0}
+table.acf{border-collapse:collapse;width:100%;font-size:14px} table.acf th,table.acf td{border:1px solid var(--borde);padding:5px;text-align:left} table.acf th{background:#eef3f8}
+#mapaRevel{height:230px;border-radius:10px;margin:8px 0}
+.ubica{margin:6px 0;font-size:15px}
+</style>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="anb-globo.js?v=20261122e"></script><script>try{AnbGlobo.precargar()}catch(e){}</script>
+<style id="estiloJuegos">
+/* ===== Aspecto renovado de los juegos (solo presentación; la mecánica no cambia) ===== */
+:root{--k1:#e21b3c;--k2:#1368ce;--k3:#d89e00;--k4:#26890c;--sombra:0 6px 18px rgba(23,50,77,.14)}
+body{background:radial-gradient(1200px 600px at 10% -10%,#e3eefa 0,transparent 60%),radial-gradient(900px 500px at 110% 10%,#e8f6ee 0,transparent 55%),var(--fondo)}
+header{background:linear-gradient(120deg,#17324d 0%,#1f4f7a 55%,#2e86de 100%);box-shadow:0 3px 12px rgba(0,0,0,.18);position:sticky;top:0;z-index:1500}
+header h1{font-size:22px;letter-spacing:.2px}
+.marcador span{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(2px)}
+.marcador .barraProg{display:inline-block;width:140px;height:10px;padding:0;border-radius:6px;background:rgba(255,255,255,.22);overflow:hidden;align-self:center}
+.marcador .barraProg i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7ed6a5,#f9e15b);transition:width .5s ease}
+.marcador .racha:empty{display:none}
+.panel{border:0;border-radius:16px;box-shadow:var(--sombra)}
+#inicio{border-top:6px solid var(--acento)}
+#inicio h2{font-size:24px}
+.opcion b{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:#4a6178}
+.chip{border-radius:14px;padding:10px 14px;font-weight:600;transition:transform .12s ease,box-shadow .12s ease,border-color .12s}
+.chip:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(46,134,222,.18)}
+.chip.on{background:linear-gradient(180deg,#f2f8ff,#e1efff);box-shadow:0 0 0 3px rgba(46,134,222,.18)}
+.btn{border-radius:12px;padding:12px 22px;font-size:17px;box-shadow:0 4px 0 #1b5f9e;transition:transform .08s ease,box-shadow .08s ease}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #1b5f9e}
+.btn.sec{box-shadow:0 4px 0 #c3cfdb}
+#btnEmpezar{font-size:20px;padding:14px 30px}
+/* Pantalla final */
+.velo{backdrop-filter:blur(3px)}
+.modal{border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:aparece .35s ease}
+.modal h2{font-size:22px}
+.modal .puntos{font-size:54px;text-align:center;margin:6px 0}
+.modal .puntos + p{text-align:center}
+.modal .nota{text-align:center}
+table.acf{border-radius:10px;overflow:hidden} table.acf th{background:#17324d;color:#fff} table.acf tr:nth-child(even) td{background:#f6f9fc}
+@keyframes salta{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes sacude{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes aparece{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+</style>
+<style id="fichaNueva">
+/* ===== Etiqueta del paisaje encima de la foto ===== */
+.etiq{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;background:linear-gradient(90deg,#17324d,#1f4f7a);color:#fff;border-radius:12px 12px 0 0;padding:8px 12px;margin-bottom:-4px;position:relative;z-index:1}
+.etiq .etTipo{font-size:19px;font-weight:800;letter-spacing:.2px}
+.etiq .etAlt{font-size:15px;font-weight:700;background:rgba(255,255,255,.18);border-radius:10px;padding:2px 10px;white-space:nowrap}
+.etiq + .foto{border-radius:0 0 10px 10px}
+.etiq + svg{border:1px solid var(--borde);border-top:0;border-radius:0 0 10px 10px;background:#fff}
+.etiqMini{font-weight:800;color:var(--azul);font-size:15px;margin:2px 0 6px 36px;min-height:20px}
+.etiq .etNom{display:flex;flex-direction:column;gap:1px}
+.etiq .etCat{font-size:14px;font-weight:600;opacity:.88}
+.etiqMini .etCatMini{display:block;font-size:14px;font-weight:600;color:#4a5b6c;margin-top:1px}
+/* Tarjetas de respuesta: contenido siempre arriba (antes se centraba y se descolocaba al fallar la de al lado) */
+.resp{display:flex;flex-direction:column;justify-content:flex-start}
+/* ===== Ficha de solución ===== */
+.modal{max-width:1080px;padding:0;overflow:auto}
+.revCab{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:14px 20px;color:#fff;position:sticky;top:0;z-index:5}
+.revCab.ok{background:linear-gradient(120deg,#1e8449,#27ae60)} .revCab.ko{background:linear-gradient(120deg,#7b8a99,#5b6b7a)}
+.revRes{font-size:20px;font-weight:800} .revPts{font-size:15px;opacity:.95}
+.revTit{text-align:center;line-height:1.15} .revTit small{display:block;font-size:13px;opacity:.9;text-transform:uppercase;letter-spacing:.6px} .revTit b{font-size:24px}
+.revCab .btn{background:#fff;color:var(--azul);box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.revPar{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 20px 6px;align-items:start}
+.revFig{margin:0} .revFig .foto img{max-height:270px;height:270px;object-fit:cover}
+.revFig figcaption{font-size:12.5px;color:#5b6b7a;margin-top:4px} .revFig figcaption a{color:#5b6b7a}
+.revClim svg{width:100%;height:auto;display:block;border:1px solid var(--borde);border-radius:10px;background:#fff}
+.cifras{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.cifras span{background:#eef3f8;border-radius:10px;padding:6px 4px;text-align:center;font-size:12px;color:#4a6178;line-height:1.2}
+.cifras b{display:block;font-size:16px;color:var(--azul)}
+.revLugar{display:grid;grid-template-columns:1fr 1.1fr;gap:16px;margin:10px 20px;padding:12px;background:#f6f9fc;border:1px solid var(--borde);border-radius:14px;align-items:center}
+.revEst{font-size:16px} .revLugar .ubica{margin:6px 0 4px;font-size:14.5px}
+.revLugar #mapaRevel{height:270px;margin:0;border-radius:10px}
+/* Canarias: modelo de pisos y mapa de vegetación potencial, uno junto a otro */
+.revLugar.conModelo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+.revLugar.conModelo .revLugarTxt{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}
+.revLugar.conModelo .revLugarTxt .btn{margin-top:0!important}
+.hoyCan{flex-basis:100%;font-size:15px;line-height:1.4;background:#fff4e5;border:1px solid #f0c48a;border-radius:8px;padding:6px 10px;color:#3d2a12}.hoyCan div+div{margin-top:3px}
+
+.revLugar.conModelo #mapaRevel{height:auto;aspect-ratio:560/400}
+#modeloPisos{min-width:0}
+@media(max-width:900px){.revLugar.conModelo{grid-template-columns:1fr}}
+#modeloPisos .anbModelo{height:auto;aspect-ratio:640/420}
+.revTarj{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:6px 20px 4px}
+.tarj{border:1px solid var(--borde);border-radius:14px;padding:10px 14px;background:#fff}
+.tarj h3{margin:2px 0 6px;font-size:15.5px} .tarj p{margin:0;font-size:14.5px}
+.tarj .mini{display:flex;gap:10px;margin-top:8px;align-items:center} .tarj .mini img{width:120px;height:80px;object-fit:cover;border-radius:8px;flex:none}
+.tarj .mini small{font-size:12px;color:#5b6b7a} .tarj .mini a{color:#5b6b7a}
+.modal > .nota{padding:4px 20px 16px;text-align:left!important}
+@media (max-width:820px){.revPar,.revLugar,.revTarj{grid-template-columns:1fr}.revCab{grid-template-columns:1fr auto}.revTit{grid-column:1/-1;order:3}.cifras{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<style id="pisosCss">
+/* ===== Pisos de vegetación de Canarias ===== */
+body{font-size:17px}
+.estim{display:flex;flex-direction:column;gap:8px}
+.estim .foto img{max-height:440px;height:440px;object-fit:cover}
+.estim .enun2{font-size:19px;font-weight:700;color:var(--azul)}
+.estim .pista{font-size:16px;background:#eef3f8;border-radius:10px;padding:8px 12px}
+.opcionesResp .resp.txt{min-height:92px;padding:14px 14px 14px 46px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px}
+.resp .bola{display:inline-block;width:22px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.25);flex:none}
+.resp:nth-child(1) .letra{background:var(--k1)}.resp:nth-child(2) .letra{background:var(--k2)}.resp:nth-child(3) .letra{background:var(--k3)}.resp:nth-child(4) .letra{background:var(--k4)}
+.resp.mal{animation:sacude .4s}.resp.bien{animation:salta .5s}
+.texto{font-size:21px;line-height:1.45;background:#fff;border:2px solid var(--borde);border-radius:14px;padding:18px 20px}
+.clim svg{width:100%;height:auto;background:#fff;border:1px solid var(--borde);border-radius:12px}
+.mapaBox{position:relative;background:#cfe3ee;border-radius:12px;overflow:hidden;border:1px solid var(--borde)}
+.mapaBox canvas{display:block;width:100%;height:auto;cursor:crosshair;image-rendering:pixelated}
+.mapaLey{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;margin-top:6px}
+.mapaLey i{display:inline-block;width:18px;height:14px;border-radius:3px;margin-right:6px;vertical-align:-2px;border:1px solid rgba(0,0,0,.2)}
+.aviso{font-size:17px;font-weight:700;margin-top:6px;min-height:24px}
+.aviso.ko{color:var(--mal)} .aviso.ok{color:var(--ok)}
+.dosMapas{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px 20px}
+.dosMapas h3{margin:0 0 4px}
+.fichaPau{margin:6px 20px 14px;padding:12px 16px;border-radius:14px;background:#f6f9fc;border:1px solid var(--borde)}
+.fichaPau h3{margin:0 0 6px}
+.fichaPau ul{margin:4px 0;padding-left:20px}.fichaPau li{margin:2px 0;font-size:15.5px}
+.explica{margin:10px 20px 0;padding:10px 14px;border-left:6px solid var(--acento);background:#eef5fd;border-radius:8px;font-size:17px}
+.pisoChip{display:inline-flex;align-items:center;gap:8px}
+.resFinal td,.resFinal th{font-size:16px}
+@media (max-width:820px){.dosMapas{grid-template-columns:1fr}}
+</style>
+<body>
+<header>
+  <div><h1>⛰️ Pisos de vegetación de Canarias</h1><div class="sub">Del clima a los pisos: formaciones, especies, mapas y la PAU · ANAMBRO</div></div>
+  <div class="marcador" id="marcador" style="display:none"><span id="mRonda"></span><span class="barraProg"><i id="mBarra"></i></span><span id="mTotal"></span><span class="racha" id="mRacha"></span></div>
+</header>
+<main>
+  <section id="inicio" class="panel">
+    <h2>Cómo se juega</h2>
+    <p>Seis pisos de vegetación, de la costa a la cumbre: <b>cinturón halófilo, cardonal-tabaibal, bosque termófilo, monteverde, pinar y matorral de cumbre</b>. Elige qué tipos de preguntas quieres (puedes marcar varios) y cuántas rondas. Al resolver cada ronda verás la ficha del piso con su cliserie y lo que te pide la PAU.</p>
+    <div class="opciones">
+      <div class="opcion"><b>1. Tipos de pregunta</b> <span class="nota">(marca uno o varios)</span><div class="chips multi" data-grupo="modos">
+        <button class="chip on" data-v="formacion">📷 ¿Qué piso es?<small>Foto de una formación vegetal</small></button>
+        <button class="chip on" data-v="especie">🌱 Especie → piso<small>¿En qué piso vive esta especie?</small></button>
+        <button class="chip on" data-v="clima">📊 Climograma → piso<small>Estaciones de AEMET y AgroCabildo</small></button>
+        <button class="chip on" data-v="mapa">🗺️ Localiza en el mapa<small>Toca dónde estaría un piso o di qué piso hay en un punto</small></button>
+        <button class="chip on" data-v="actual">📉 Potencial y actual<small>¿Qué queda hoy de cada piso en cada isla?</small></button>
+        <button class="chip on" data-v="pau">🎓 Modo PAU<small>Usos, amenazas, espacios protegidos, curiosidades, fitotopónimos…</small></button>
+      </div></div>
+      <div class="opcion"><b>2. Duración</b><div class="chips" data-grupo="rondas">
+        <button class="chip" data-v="6">6 rondas</button><button class="chip on" data-v="12">12 rondas</button><button class="chip" data-v="18">18 rondas</button><button class="chip" data-v="24">24 rondas</button>
+      </div></div>
+    </div>
+    <p class="nota">Puntuación: 100 puntos si aciertas a la primera, 50 a la segunda y 20 a la tercera. La nota final es sobre 10.</p>
+    <button class="btn" id="btnEmpezar" disabled>Cargando datos…</button>
+    <div id="carga" class="nota" style="margin-top:8px"></div>
+  </section>
+  <section id="juego">
+    <div class="panel">
+      <h2 id="enunciado"></h2>
+      <div class="pregunta"><div id="estimulo"></div><div><div class="opcionesResp" id="respuestas"></div></div></div>
+    </div>
+  </section>
+</main>
+<div class="velo" id="velo"><div class="modal" id="modal"></div></div>
+<script>
+"use strict";
+const DATA=[{"k": "hal", "id": 1, "n": "Cinturón halófilo costero", "sub": "Rocas, arenas, dunas y saladares", "donde": "Todo el litoral, en una franja de unas decenas de metros. Más extenso en las costas bajas de Lanzarote, Fuerteventura y el sur de Gran Canaria.", "clima": ["Cálido todo el año y muy seco: Lanzarote Aeropuerto, 21,4 °C, 101 mm, 12 meses secos (BWh)", "Lo decisivo: la <b>sal</b> (maresía, suelos salinos), el <b>viento</b> y la <b>arena móvil</b>"], "forma": "Matorrales bajos y dispersos de plantas que toleran la sal.", "trad": "Pesca y marisqueo, <b>salinas</b> (Janubio, El Carmen), extracción de arena, barrilla y cosco para obtener sosa.", "antes": "Usos poco intensos: pesca, salinas, embarcaderos.", "hoy": "<b>Turismo de sol y playa</b>, hoteles, puertos deportivos, paseos, desaladoras. La franja más disputada.", "cons": "Muy alterado en costas turísticas y urbanas; mejor en las costas bajas orientales y en espacios protegidos.", "nivel": "Alto", "amen": "Urbanización del litoral, extracción de arena, pisoteo y vehículos en dunas, invasoras, obras que cortan la llegada de arena (Maspalomas).", "enp": "RNE Dunas de Maspalomas (GC) · PN Dunas de Corralejo y PN Jandía (FV) · PN Archipiélago Chinijo (LZ) · RNE Montaña Roja (TF)", "cur": ["<b>Barrilla y cosco</b>: en los siglos XVIII y XIX se recogían en las costas bajas para obtener <b>sosa</b> (jabón y vidrio) y se exportaban.", "<b>Balancón</b>: atrapa la arena con sus ramas y forma montículos; es el arquitecto de las dunas.", "<b>Sal y viento</b>: las plantas expulsan la sal por las hojas o la guardan en hojas carnosas.", "<b>Salinas</b> de Janubio (Lanzarote) y del Carmen (Fuerteventura): el litoral también se cultivaba."], "fito": ["<b>Tarajalejo</b> (Fuerteventura): de <i>tarajal</i>, el tamarisco de cauces y costas salinas", "<b>El Saladar</b> (Jandía): de <i>saladar</i>, suelo salino"], "esp": [{"key": "balancon", "n": "Balancón", "tag": "", "t": "Fija las dunas: soporta la arena, la sal y el viento", "f": "Traganum moquinii 002.jpg", "autor": "H. Zell", "lic": "CC BY-SA 3.0"}, {"key": "uvamar", "n": "Uva de mar", "tag": "", "t": "Hojas carnosas que guardan agua; rocas y arenas", "f": "Yaiza La Hoya - LZ-703 - Laguna de Janubio - Zygophyllum fontanesii 06 ies.jpg", "autor": "Frank Vincentz", "lic": "CC BY-SA 3.0"}, {"key": "lechugamar", "n": "Lechuga de mar", "tag": "", "t": "Rocas de la orilla batidas por la maresía", "f": "Astydamia latifolia by Scott Zona 002.jpg", "autor": "scott.zona", "lic": "CC BY 2.0"}, {"key": "siempreviva", "n": "Siempreviva de mar", "tag": "", "t": "Rocas costeras; expulsa la sal por las hojas", "f": "La Palma - Garafía - Vía Puerto de Garafía + Limonium pectinatum 01 ies.jpg", "autor": "Frank Vincentz", "lic": "CC BY-SA 3.0"}, {"key": "mato", "n": "Mato", "tag": "", "t": "Saladares que el mar inunda en mareas altas", "f": "Suaeda vera kz16.jpg", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 4.0"}]}, {"k": "car", "id": 2, "n": "Cardonal-tabaibal", "sub": "Piso basal o infracanario", "donde": "De la costa a unos 350 m en barlovento y 450 m en sotavento. Casi todo Lanzarote y Fuerteventura. El sur de Tenerife, Adeje incluido.", "clima": ["El más cálido y árido: 18–22 °C, sin heladas, 100–300 mm", "Santa Cruz de Tenerife: 21,7 °C, 220 mm, 12 meses secos (BSh)"], "forma": "Matorral abierto de plantas <b>suculentas</b>: guardan agua en los tallos y tienen pocas hojas. Muchos endemismos.", "trad": "<b>Pastoreo de cabras</b>, leña, secano con gavias (FV) y enarenados (LZ), <b>tuneras para la cochinilla</b> (s. XIX).", "antes": "Secano y pastoreo; desde finales del s. XIX, <b>tomate y plátano</b> con agua de pozos y galerías.", "hoy": "<b>Turismo</b> (Adeje, Arona, San Bartolomé de Tirajana), urbanizaciones, aeropuertos, autopistas, invernaderos, canteras, <b>eólicos y fotovoltaicos</b>.", "cons": "Desigual: bien en laderas abruptas, malpaíses e islas orientales; muy transformado en costas y llanos del sur y este de las islas centrales. Aulagares por sobrepastoreo en FV.", "nivel": "Medio-alto", "amen": "Urbanización, infraestructuras, invernaderos, áridos, sobrepastoreo e invasoras como el <b>rabo de gato</b>.", "enp": "RNE Malpaís de Güímar y RNE Malpaís de la Rasca (TF) · SIC Tabaibal del Porís (TF) · PN Jandía (FV) · Parque Rural de Teno (TF)", "cur": ["<b>Euphorbia</b> recuerda a <b>Euforbo</b>, médico del rey <b>Juba II</b> de Mauritania; la tabaiba <i>Euphorbia regis-jubae</i> honra al propio rey, que patrocinó una exploración de Canarias.", "<b>Leche venenosa</b>: el látex del cardón y de la tabaiba amarga levanta ampollas y puede dejar ciego si cae en los ojos.", "<b>Embarbascar</b>: echar ese látex en los charcos para atontar a los peces y cogerlos a mano.", "La <b>tabaiba dulce</b> no es tóxica: su leche servía de liga y, mezclada con sangre de drago, para sellar cartas. La miel de cardón es amarga y pica."], "fito": ["<b>Cardones</b> (Arucas, Gran Canaria)", "<b>El Tabaibal</b> (El Rosario, Tenerife) y el <b>Tabaibal del Porís</b> (Arico)", "<b>Los Balos</b> (Agüimes, Gran Canaria): de <i>balo</i>"], "esp": [{"key": "cardon", "n": "Cardón", "tag": "", "t": "Tallos suculentos con agua; laderas rocosas; sin heladas", "f": "Euphorbia canariensis Tenerife 2012.jpg", "autor": "Cayambe", "lic": "CC BY-SA 3.0"}, {"key": "tabaibadulce", "n": "Tabaiba dulce", "tag": "", "t": "La más resistente a la aridez, la sal y el viento", "f": "Euphorbia balsamifera - Lanzarote - 02.JPG", "autor": "H. Zell", "lic": "CC BY-SA 3.0"}, {"key": "tabaibaamarga", "n": "Tabaiba amarga", "tag": "", "t": "Pierde las hojas en verano para ahorrar agua", "f": "Euphorbia lamarckii 003.jpg", "autor": "H. Zell", "lic": "CC BY-SA 3.0"}, {"key": "verode", "n": "Verode", "tag": "", "t": "Tallos carnosos; laderas y riscos", "f": "Kleinia neriifolia kz19.jpg", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 4.0"}, {"key": "balo", "n": "Balo", "tag": "", "t": "Cauces de barranco con humedad en el subsuelo", "f": "Plocama pendula kz1.JPG", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 4.0"}, {"key": "cornical", "n": "Cornical", "tag": "", "t": "Trepador que se apoya en tabaibas y cardones", "f": "Periploca laevigata-flowers.jpg", "autor": "Engeser 16:47, 21 January 2008 (UTC)", "lic": "CC BY-SA 4.0"}]}, {"k": "ter", "id": 3, "n": "Bosque termófilo", "sub": "Sabinares, acebuchales, almacigares y palmerales", "donde": "Entre el cardonal y el monteverde o el pinar: 350–700 m en barlovento, 450–1.050 m en sotavento. Quedan pocos restos: sabinar de La Dehesa, palmerales de La Gomera y Gran Canaria.", "clima": ["De transición: 15–19 °C, sin heladas, 250–450 mm y <b>verano seco</b> (parecido al mediterráneo)", "Tacoronte (310 m): 18,7 °C, 370 mm, 6 meses secos (BSh)"], "forma": "Bosque abierto de hoja dura (<b>esclerófilo</b>) que resiste la sequía del verano.", "trad": "Asentamientos aborígenes y primeros pueblos: <b>cereal, viña, frutales, bancales</b>. Palmera (cestería, guarapo), drago (resina), sabina (vigas).", "antes": "El piso más roturado para cultivos y pueblos desde el s. XV.", "hoy": "<b>Urbanización de medianías</b>, viviendas dispersas, carreteras, viña (Tacoronte). El abandono agrícola deja volver al bosque.", "cons": "El <b>peor conservado</b>: queda en torno a un 13 %, en restos pequeños y aislados.", "nivel": "Muy alto", "amen": "Urbanización de medianías, fragmentación, incendios, invasoras (rabo de gato, tuneras, pitas). Restauración: LIFE de Teno.", "enp": "Parque Rural de Frontera (sabinar, EH) · Parque Rural de Valle Gran Rey (palmerales, LG) · Parque Rural de Teno (TF) · RNE Barranco del Infierno (Adeje)", "cur": ["<b>Sabinar de La Dehesa</b> (El Hierro): sabinas retorcidas y tumbadas por el alisio; es un símbolo de la isla.", "<b>Dragos del Roque de las Ánimas</b> (Taganana, Anaga): de los pocos dragos silvestres que quedan, en riscos donde no llegan las cabras.", "<b>Sangre de drago</b>: resina roja que se usaba para dientes y encías, quemaduras y como tinte. Con troncos huecos de drago se hacían <b>corchos</b> para las colmenas.", "<b>Palmera canaria</b>: <b>guarapo</b> y <b>miel de palma</b> en La Gomera; con sus hojas, la <b>cestería</b> de palma (cestos, sombreros, escobas)."], "fito": ["<b>Las Palmas</b> de Gran Canaria y <b>El Palmar</b> (Teno)", "<b>Sabinosa</b> (El Hierro)", "<b>El Draguillo</b> (Anaga)", "<b>Almáciga</b> (Anaga) y <b>Monte Lentiscal</b> (Gran Canaria)"], "esp": [{"key": "drago", "n": "Drago", "tag": "", "t": "Guarda agua en el tronco; hoy sobre todo en riscos", "f": "Los Dragos Gemelos - Breña Alta - La Palma 01.jpg", "autor": "H. Zell", "lic": "CC BY-SA 3.0"}, {"key": "palmera", "n": "Palmera canaria", "tag": "", "t": "Necesita agua en el subsuelo: barrancos y vaguadas", "f": "La Gomera-Hermigua-08-Garten-Palme-Phoenix canariensis-2015-gje.jpg", "autor": "Gerd Eichmann", "lic": "CC BY 4.0"}, {"key": "sabina", "n": "Sabina", "tag": "", "t": "Aguanta viento y sequía estival; laderas y riscos", "f": "Juniperus phoenicea turbinata kz2.JPG", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 4.0"}, {"key": "acebuche", "n": "Acebuche", "tag": "", "t": "Olivo silvestre de hoja dura; resiste la sequía", "f": "Olea europaea subsp. guanchica kz3.jpg", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 4.0"}, {"key": "almacigo", "n": "Almácigo", "tag": "", "t": "Pierde la hoja en la estación seca", "f": "Pistacia atlantica kz6.jpg", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 4.0"}, {"key": "lentisco", "n": "Lentisco", "tag": "", "t": "Arbusto de hoja dura en laderas secas", "f": "Pistacia lentiscus 001.jpg", "autor": "H. Zell", "lic": "CC BY-SA 3.0"}]}, {"k": "mon", "id": 4, "n": "Monteverde", "sub": "Laurisilva y fayal-brezal", "donde": "Solo en <b>barlovento</b> de las islas altas, entre 700 y 1.450 m: Anaga, Garajonay, Los Tilos (LP), El Golfo (EH), restos en Gran Canaria.", "clima": ["Húmedo y templado: 12–17 °C, sin heladas, 450–1.000 mm de lluvia. Agulo: 15,8 °C, 456 mm (Csb)", "<b>Precipitación horizontal</b>: agua que las hojas y ramas atrapan de las gotitas de la niebla del mar de nubes y que gotea hasta el suelo. Puede aportar <b>hasta 5 veces más agua</b> que la lluvia convencional", "Por eso los meses «secos» del climograma no lo son para el bosque: la niebla además frena la evaporación en verano"], "forma": "Bosque denso y siempre verde de <b>hoja ancha y brillante</b>. <b>Reliquia del Terciario</b>. Degradado → <b>fayal-brezal</b>.", "trad": "<b>Madera, leña y carbón</b>; varas y horquetas para el plátano; hojarasca para el ganado; roturación (papas); agua de nacientes.", "antes": "Talas intensas desde la conquista: madera, carbón y tierras de cultivo.", "hoy": "En su borde, cultivos de medianías y viviendas; dentro, <b>senderismo</b>, galerías de agua, pistas. Casi todo protegido.", "cons": "Laurisilva bien conservada: en torno a <b>una décima parte</b> de su área potencial; fayal-brezal, otra cuarta parte.", "nivel": "Medio", "amen": "<b>Incendios</b> (Garajonay 2012), cambio climático (alisio y mar de nubes), extracción de agua que seca nacientes, invasoras, pistas.", "enp": "PN de Garajonay (LG; Patrimonio Mundial 1986) · Parque Rural de Anaga (TF; Reserva de la Biosfera) · Los Tilos (LP) · RNE Los Tilos de Moya (GC)", "cur": ["<b>El Garoé</b>: el árbol santo de los bimbaches de El Hierro era un <b>til</b> que «ordeñaba» el agua de la niebla.", "<b>Barbas de acebiño</b>: musgos que cuelgan de las ramas y llegan a medir metro y medio.", "<b>Garajonay</b>: la leyenda une a Gara y Jonay, dos jóvenes enamorados de La Gomera.", "<b>Reliquia viva</b>: bosques así cubrían el sur de Europa hace millones de años."], "fito": ["<b>Los Tilos</b> (La Palma) y <b>Los Tiles</b> de Moya (Gran Canaria)", "<b>Las Hayas</b> (La Gomera): de <i>haya</i> o faya", "<b>Monteverde</b>: el propio nombre del piso"], "esp": [{"key": "til", "n": "Til (tilo)", "tag": "", "t": "Suelos encharcados: fondos de barranco y nacientes", "f": "Ocotea foetens.JPG", "autor": "No machine-readable author provided. Angrense assumed (based", "lic": "Public domain"}, {"key": "vinatigo", "n": "Viñátigo", "tag": "", "t": "Vaguadas muy húmedas y profundas", "f": "Persea indica Spreng. JdP 2011.jpg", "autor": "Jebulon", "lic": "CC0"}, {"key": "barbusano", "n": "Barbusano", "tag": "", "t": "Laderas más secas y rocosas, límite inferior", "f": "Apollonias barbujana kz2.JPG", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 3.0"}, {"key": "laurel", "n": "Laurel", "tag": "", "t": "El árbol más extendido de la laurisilva", "f": "Laurus novocanariensis (Garafía) 01 ies.jpg", "autor": "Frank Vincentz", "lic": "CC BY-SA 3.0"}, {"key": "faya", "n": "Faya", "tag": "", "t": "Suelos pobres; ocupa donde se taló la laurisilva", "f": "Myrica faya with fruits.jpg", "autor": "blueclaude", "lic": "CC BY-SA 4.0"}, {"key": "brezo", "n": "Brezo", "tag": "", "t": "Crestas y zonas degradadas; capta la niebla", "f": "Erica arborea kz5.JPG", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 4.0"}]}, {"k": "pin", "id": 5, "n": "Pinar canario", "sub": "Piso mesocanario y supracanario inferior", "donde": "Encima del monteverde (barlovento) o del termófilo (sotavento), hasta unos 2.000 m. Falta en Lanzarote y Fuerteventura.", "clima": ["Más fresco y seco: 11–15 °C, <b>heladas</b> ocasionales, mucha insolación; por encima del mar de nubes", "Vilaflor (1.258 m, sotavento): 14,7 °C, 430 mm, amplitud 12,5 °C (Csa)"], "forma": "Bosque de coníferas casi solo de <b>pino canario</b>, abierto y luminoso; sotobosque pobre.", "trad": "<b>Madera de tea</b> (casas, techumbres, iglesias), resina para <b>pez</b> (barcos), carbón, <b>pinocha</b> para ganado y embalaje de fruta.", "antes": "Talas intensas en el s. XIX y principios del XX.", "hoy": "Uso recreativo, protección del suelo y del agua, algo de madera, viviendas en su borde (riesgo de incendio).", "cons": "<b>Bueno y en expansión</b>: repoblaciones desde los años cuarenta. Muchas masas son plantaciones densas.", "nivel": "Medio", "amen": "<b>Grandes incendios</b> (GC 2007 y 2019, TF 2007 y 2023, LP 2016), agravados por la pinocha acumulada, las plantaciones densas y el cambio climático.", "enp": "PN de la Corona Forestal (TF; el mayor ENP de Canarias) · PN de Tamadaba y RNI de Inagua (GC) · PN Caldera de Taburiente y PN de Cumbre Vieja (LP)", "cur": ["El <b>pino canario</b> es el único árbol de España que rebrota por el tronco y las ramas después de un incendio.", "<b>Tea</b>: el corazón resinoso del pino, casi imputrescible; techos y balcones de tea duran siglos.", "<b>Pinocha</b>: se recogía para cama del ganado y para embalar plátanos y tomates.", "<b>Pinzón azul</b>: ave endémica que se alimenta de piñones."], "fito": ["<b>El Pinar</b> (El Hierro): un municipio con nombre de piso", "<b>Pino Santo</b> (Gran Canaria) y la Virgen del Pino de Teror", "<b>Roque de los Pinos</b> (Anaga)"], "esp": [{"key": "pino", "n": "Pino canario", "tag": "", "t": "Rebrota tras el fuego; aguanta sequía y heladas", "f": "Pinus canariensis - Gran Canaria.jpg", "autor": "H. Zell", "lic": "CC BY-SA 3.0"}, {"key": "escobon", "n": "Escobón", "tag": "", "t": "Sotobosque; antes, forraje para el ganado", "f": "Chamaecytisus proliferus angustifolius.jpg", "autor": "Xemenendura", "lic": "CC BY-SA 4.0"}, {"key": "codeso", "n": "Codeso", "tag": "", "t": "Claros y bordes del pinar", "f": "Adenocarpus foliolosus kz03.jpg", "autor": "Krzysztof Ziarnek, Kenraiz", "lic": "CC BY-SA 4.0"}, {"key": "jara", "n": "Jara", "tag": "", "t": "Coloniza rápido después de los incendios", "f": "20250708 Cistus symphytifolius.jpg", "autor": "Flocci Nivis", "lic": "CC BY 4.0"}, {"key": "pinzon", "n": "Pinzón azul", "tag": "fauna", "t": "Ave endémica del pinar; come piñones", "f": "Teidefink.jpg", "autor": "Bartkauz at German Wikipedia", "lic": "Public domain"}]}, {"k": "cum", "id": 6, "n": "Matorral de cumbre", "sub": "Retamares y codesares", "donde": "Por encima de unos 2.000 m: Las Cañadas del Teide y las cumbres de La Palma. Solo en las dos islas que superan esa altitud.", "clima": ["Alta montaña: ≤ 10 °C, <b>heladas</b> y nieve, gran oscilación diaria, radiación intensa, aire muy seco", "Izaña (2.371 m): 10,5 °C, 332 mm, amplitud 13,8 °C (Csb)"], "forma": "Arbustos en <b>cojín</b>, separados, con hojas mínimas: resisten frío, viento, sequedad y radiación.", "trad": "<b>Pastoreo trashumante</b>, leña de retama, <b>apicultura</b> (miel de retama), <b>nieve</b> de los neveros, azufre y piedra pómez.", "antes": "Usos estacionales y poco intensos: pastores, colmeneros, neveros.", "hoy": "<b>Turismo masivo</b> (el Teide, de los parques más visitados de Europa), teleférico, carreteras, <b>observatorios</b> (Izaña, Roque de los Muchachos).", "cons": "<b>Bueno</b>: casi todo en parques nacionales, aunque la retama y el tajinaste rojo han retrocedido.", "nivel": "Medio", "amen": "<b>Herbívoros introducidos</b> (conejo, muflón), cambio climático (menos nieve, más sequía), pisoteo y turismo.", "enp": "PN del Teide (TF; Patrimonio Mundial 2007) · PN de la Caldera de Taburiente (LP)", "cur": ["<b>Miel de retama</b>: las colmenas suben a Las Cañadas en primavera, con la floración de la retama.", "<b>Tajinaste rojo</b>: una espiga de flores de hasta 2 a 3 m; florece una vez y muere.", "<b>Neveros</b>: la nieve del Teide se guardaba en cuevas y pozos y se bajaba para conservar alimentos.", "<b>Violeta del Teide</b>: crece en los pedregales de la cumbre, de las flores que viven más alto en España."], "fito": ["<b>El Retamar</b> (Las Cañadas del Teide)", "Pocos fitotopónimos en la cumbre: casi nadie vivía allí y los nombres vienen del relieve (cañadas, llanos, roques)"], "esp": [{"key": "retama", "n": "Retama del Teide", "tag": "", "t": "Casi sin hojas, en cojín: heladas, viento y sequía", "f": "Spartocytisus supranubius LC0219.jpg", "autor": "Jörg Hempel", "lic": "CC BY-SA 3.0 de"}, {"key": "codesocumbre", "n": "Codeso de cumbre", "tag": "", "t": "Arbusto almohadillado de las cumbres", "f": "Adenocarpus viscosus 02.jpg", "autor": "Syrio", "lic": "CC BY-SA 4.0"}, {"key": "tajinaste", "n": "Tajinaste rojo", "tag": "", "t": "Endemismo de Las Cañadas; florece una vez y muere", "f": "Echium wildpretii LC0203.jpg", "autor": "Jörg Hempel", "lic": "CC BY-SA 3.0 de"}, {"key": "pajonera", "n": "Hierba pajonera", "tag": "", "t": "Matorral de Las Cañadas, de flor amarilla", "f": "Descurainia bourgaeana LC0218.jpg", "autor": "Jörg Hempel", "lic": "CC BY-SA 3.0 de"}, {"key": "violeta", "n": "Violeta del Teide", "tag": "", "t": "Pedregales de la cumbre, a gran altitud", "f": "Viola cheiranthifolia3.jpg", "autor": "Hans G. Oberlack", "lic": "CC BY-SA 4.0"}]}];
+const ESTS=[{"id": "ca_car_1", "n": "Porís de Abona (Arico)", "la": 28.1722, "lo": -16.4884, "z": 410, "T": [14.5, 14.3, 15.1, 15.8, 17.1, 19.0, 20.9, 21.5, 20.6, 19.7, 17.4, 15.9], "P": [17.6, 47.0, 22.4, 14.7, 4.2, 3.0, 0.2, 6.6, 8.0, 28.7, 42.4, 49.9], "k": "car"}, {"id": "ca_car_2", "n": "Adeje", "la": 28.0814, "lo": -16.7106, "z": 130, "T": [18.1, 18.2, 18.6, 19.6, 20.5, 22.1, 23.4, 24.5, 23.8, 22.8, 20.5, 18.5], "P": [17.7, 14.7, 15.7, 5.8, 0.9, 0.2, 0.0, 1.9, 4.2, 17.1, 21.4, 39.7], "k": "car"}, {"id": "ca_car_3", "n": "Antigua", "la": 28.4169, "lo": -14.0192, "z": 252, "T": [16.0, 15.9, 17.2, 18.3, 19.5, 20.5, 22.4, 23.7, 23.1, 21.4, 18.8, 17.4], "P": [13.9, 14.0, 19.9, 3.8, 1.4, 0.3, 0.0, 0.2, 2.2, 9.1, 15.8, 29.4], "k": "car"}, {"id": "ca_car_4", "n": "Arico", "la": 28.1808, "lo": -16.4833, "z": 418, "T": [16.0, 15.8, 16.3, 17.0, 18.4, 20.1, 22.1, 23.1, 21.9, 21.2, 18.9, 17.3], "P": [17.2, 20.6, 17.9, 15.0, 9.6, 6.2, 0.0, 0.3, 8.0, 34.9, 17.5, 37.4], "k": "car"}, {"id": "ca_car_5", "n": "Arico", "la": 28.131, "lo": -16.4721, "z": 135, "T": [17.3, 17.3, 17.8, 18.4, 19.4, 21.0, 22.3, 23.2, 23.0, 22.2, 20.3, 18.6], "P": [18.5, 26.3, 10.3, 9.0, 1.4, 1.1, 0.0, 3.1, 8.6, 19.7, 18.0, 32.6], "k": "car"}, {"id": "ca_car_6", "n": "Arucas", "la": 28.1417, "lo": -15.5067, "z": 86, "T": [17.4, 17.3, 17.7, 18.6, 19.8, 21.2, 22.2, 23.2, 23.3, 22.6, 20.4, 18.9], "P": [19.2, 22.6, 18.5, 8.1, 2.0, 1.7, 1.2, 0.4, 23.0, 13.2, 22.1, 13.8], "k": "car"}, {"id": "ca_car_7", "n": "Candelaria", "la": 28.3592, "lo": -16.4017, "z": 463, "T": [15.0, 14.9, 15.4, 16.2, 18.1, 19.9, 22.9, 23.5, 21.4, 20.4, 18.0, 16.3], "P": [30.8, 68.6, 37.2, 14.2, 5.5, 1.3, 0.1, 4.7, 9.7, 31.1, 26.0, 36.5], "k": "car"}, {"id": "ca_car_8", "n": "Fuerteventura Aeropuerto", "la": 28.445, "lo": -13.863, "z": 25, "T": [17.8, 18.0, 18.9, 19.8, 21.2, 22.9, 24.3, 24.9, 24.5, 23.3, 21.1, 19.1], "P": [12.6, 10.0, 9.7, 4.6, 0.8, 0.1, 0.0, 0.3, 2.0, 11.4, 13.3, 21.2], "k": "car"}, {"id": "ca_car_9", "n": "Las Galletas (Arona)", "la": 28.0406, "lo": -16.6532, "z": 95, "T": [16.8, 17.0, 17.7, 18.4, 19.6, 21.3, 22.8, 23.5, 22.9, 21.7, 19.7, 18.0], "P": [16.3, 18.2, 10.7, 10.4, 1.2, 0.4, 0.0, 2.5, 3.8, 16.1, 20.1, 36.0], "k": "car"}, {"id": "ca_car_10", "n": "Gran Canaria Aeropuerto", "la": 27.918, "lo": -15.395, "z": 32, "T": [18.2, 18.3, 19.0, 19.8, 20.9, 22.6, 24.1, 24.9, 24.4, 23.3, 21.4, 19.4], "P": [23.4, 19.8, 11.9, 5.0, 0.8, 0.4, 0.0, 0.6, 5.0, 21.2, 17.4, 28.7], "k": "car"}, {"id": "ca_car_11", "n": "Guía de Isora", "la": 28.1912, "lo": -16.7792, "z": 476, "T": [15.3, 15.4, 16.3, 16.5, 17.9, 19.4, 21.4, 22.0, 21.3, 20.3, 18.3, 16.5], "P": [14.9, 29.3, 15.5, 9.2, 1.0, 0.4, 0.2, 2.9, 3.5, 17.3, 18.8, 41.4], "k": "car"}, {"id": "ca_car_12", "n": "La Aldea de San Nicolás, Tasarte", "la": 27.9089, "lo": -15.77, "z": 318, "T": [17.3, 17.6, 18.8, 19.6, 21.4, 23.3, 26.0, 26.8, 24.8, 23.3, 20.6, 18.6], "P": [12.3, 25.2, 14.4, 3.7, 0.4, 0.2, 0.0, 2.1, 4.2, 16.2, 19.5, 22.0], "k": "car"}, {"id": "ca_car_13", "n": "La Gomera, Aeropuerto", "la": 28.0317, "lo": -17.2108, "z": 219, "T": [17.7, 17.5, 18.1, 18.7, 19.8, 21.2, 23.0, 23.9, 23.6, 22.8, 20.7, 18.8], "P": [21.1, 31.6, 16.5, 6.5, 1.8, 0.2, 0.0, 1.4, 3.9, 29.5, 25.7, 42.7], "k": "car"}, {"id": "ca_car_14", "n": "La Oliva", "la": 28.6125, "lo": -13.9317, "z": 217, "T": [15.9, 16.1, 17.1, 18.1, 19.6, 21.0, 22.7, 23.9, 23.1, 21.8, 19.3, 17.2], "P": [13.3, 15.3, 14.3, 4.9, 0.7, 0.4, 0.3, 0.2, 1.8, 11.1, 23.9, 22.7], "k": "car"}, {"id": "ca_car_15", "n": "La Palma Aeropuerto", "la": 28.633, "lo": -17.755, "z": 33, "T": [18.3, 18.2, 18.5, 19.2, 20.3, 21.9, 23.2, 24.1, 24.1, 23.1, 21.1, 19.5], "P": [38.8, 51.5, 24.6, 17.5, 4.4, 2.4, 1.0, 1.9, 11.9, 42.8, 56.5, 74.9], "k": "car"}, {"id": "ca_car_16", "n": "Lanzarote Aeropuerto", "la": 28.952, "lo": -13.6, "z": 14, "T": [17.6, 18.0, 19.1, 20.0, 21.4, 23.0, 24.6, 25.6, 24.8, 23.3, 20.9, 18.8], "P": [15.4, 16.1, 12.2, 4.1, 1.2, 0.1, 0.0, 0.5, 1.8, 12.8, 15.8, 21.4], "k": "car"}, {"id": "ca_car_17", "n": "Las Palmas de G.C. (Tafira Cmt)", "la": 28.075, "lo": -15.4508, "z": 269, "T": [16.1, 16.3, 16.9, 17.5, 18.7, 20.2, 21.4, 22.5, 22.3, 21.4, 19.1, 17.4], "P": [43.6, 30.8, 21.4, 14.3, 5.6, 3.0, 2.5, 2.8, 7.6, 33.1, 42.6, 34.1], "k": "car"}, {"id": "ca_car_18", "n": "Las Palmas de Gran Canaria, Tafira", "la": 28.0781, "lo": -15.4533, "z": 269, "T": [15.8, 15.7, 16.3, 17.2, 18.5, 20.1, 21.2, 22.4, 22.2, 21.4, 19.0, 17.2], "P": [37.3, 30.7, 20.1, 14.6, 4.5, 2.7, 2.8, 2.4, 7.0, 39.7, 54.5, 28.9], "k": "car"}, {"id": "ca_car_19", "n": "Maspalomas, C. Insular Turismo", "la": 27.7581, "lo": -15.5756, "z": 45, "T": [18.3, 18.6, 19.4, 20.2, 21.8, 23.3, 25.1, 26.0, 24.9, 23.9, 21.6, 19.6], "P": [18.4, 8.3, 6.4, 2.3, 0.4, 0.3, 0.0, 0.5, 5.3, 7.4, 12.7, 21.6], "k": "car"}, {"id": "ca_car_20", "n": "Mogán, Puerto", "la": 27.8164, "lo": -15.7642, "z": 10, "T": [19.1, 19.1, 19.9, 20.6, 21.7, 23.1, 24.9, 25.6, 25.2, 24.1, 22.2, 20.4], "P": [7.7, 6.5, 4.4, 2.4, 0.4, 0.1, 0.1, 2.0, 2.8, 7.6, 7.4, 11.4], "k": "car"}, {"id": "ca_car_21", "n": "Puerto de la Cruz", "la": 28.4181, "lo": -16.5483, "z": 25, "T": [18.3, 18.2, 18.6, 19.3, 20.4, 22.1, 23.2, 24.0, 24.1, 23.1, 20.9, 19.6], "P": [32.1, 38.5, 26.0, 20.2, 5.0, 4.3, 0.6, 1.9, 4.4, 31.6, 54.8, 30.6], "k": "car"}, {"id": "ca_car_22", "n": "San Bartolome Tirajana, Lomo Pedro Alfonso", "la": 27.8569, "lo": -15.645, "z": 806, "T": [14.4, 14.8, 16.2, 16.8, 19.3, 21.1, 26.3, 27.0, 22.8, 20.9, 17.8, 15.4], "P": [23.0, 29.7, 19.1, 8.0, 0.6, 0.5, 0.0, 0.6, 6.0, 22.5, 20.3, 57.0], "k": "car"}, {"id": "ca_car_23", "n": "San Bartolome Tirajana, el Matorral", "la": 27.8125, "lo": -15.4531, "z": 41, "T": [17.8, 18.2, 19.1, 19.7, 21.1, 23.0, 25.1, 25.6, 24.5, 23.1, 21.1, 19.0], "P": [20.0, 14.0, 8.9, 3.1, 0.8, 0.0, 0.0, 0.4, 3.2, 11.5, 12.9, 22.0], "k": "car"}, {"id": "ca_car_24", "n": "Sta.Cruz de Tenerife", "la": 28.463, "lo": -16.255, "z": 35, "T": [18.3, 18.4, 19.0, 19.9, 21.3, 23.2, 25.2, 25.8, 25.1, 23.6, 21.4, 19.5], "P": [28.8, 33.7, 37.8, 10.3, 3.5, 0.6, 0.1, 3.5, 4.5, 24.4, 35.8, 36.8], "k": "car"}, {"id": "ca_car_25", "n": "Tejina (San Cristóbal de La Laguna)", "la": 28.5324, "lo": -16.3955, "z": 69, "T": [16.9, 16.9, 17.4, 18.1, 19.3, 20.8, 21.9, 22.9, 22.9, 21.7, 19.3, 17.8], "P": [31.9, 31.4, 31.3, 19.6, 7.1, 3.9, 3.5, 5.0, 6.4, 39.3, 53.0, 33.0], "k": "car"}, {"id": "ca_car_26", "n": "Telde, Centro Forestal Doramas", "la": 27.9875, "lo": -15.4578, "z": 344, "T": [15.5, 15.7, 16.6, 17.3, 19.0, 21.0, 23.5, 24.0, 22.7, 21.3, 19.1, 16.9], "P": [48.2, 32.9, 23.6, 11.8, 3.3, 1.3, 0.5, 0.6, 8.4, 26.0, 32.6, 47.5], "k": "car"}, {"id": "ca_car_27", "n": "Tenerife sur Aeropuerto", "la": 28.047, "lo": -16.561, "z": 64, "T": [18.6, 18.6, 19.2, 19.8, 20.8, 22.4, 24.1, 25.0, 24.5, 23.5, 21.6, 19.8], "P": [16.5, 18.6, 11.1, 8.2, 0.6, 0.3, 0.0, 1.5, 3.0, 13.3, 12.5, 31.7], "k": "car"}, {"id": "ca_car_28", "n": "Topo Negro (Güímar)", "la": 28.3264, "lo": -16.4056, "z": 280, "T": [15.9, 15.9, 16.5, 17.5, 19.1, 21.0, 23.1, 23.5, 22.3, 21.1, 18.9, 17.1], "P": [43.7, 53.7, 26.5, 10.8, 3.9, 2.0, 0.1, 7.4, 6.8, 40.0, 27.5, 45.2], "k": "car"}, {"id": "ca_ter_1", "n": "Añavingo (Arafo)", "la": 28.3419, "lo": -16.4333, "z": 700, "T": [13.1, 13.3, 14.3, 14.9, 16.8, 18.9, 22.6, 22.7, 19.9, 18.5, 16.1, 14.3], "P": [77.8, 98.0, 52.6, 23.2, 13.0, 8.1, 0.6, 8.1, 14.9, 64.9, 81.0, 43.7], "k": "ter"}, {"id": "ca_ter_2", "n": "Badajoz (Güímar)", "la": 28.3014, "lo": -16.4266, "z": 430, "T": [15.2, 15.3, 16.2, 16.9, 18.7, 20.5, 23.4, 23.8, 21.9, 20.5, 18.4, 16.5], "P": [53.4, 78.8, 43.3, 11.5, 7.1, 7.7, 0.2, 11.1, 15.3, 51.7, 40.3, 43.9], "k": "ter"}, {"id": "ca_ter_3", "n": "Chío (Guía de Isora)", "la": 28.2333, "lo": -16.7892, "z": 735, "T": [12.9, 12.5, 14.3, 14.5, 16.0, 17.8, 21.5, 22.2, 19.7, 18.5, 16.0, 14.0], "P": [20.6, 54.4, 28.1, 12.2, 2.1, 1.2, 0.5, 5.3, 6.3, 20.1, 33.1, 52.1], "k": "ter"}, {"id": "ca_ter_4", "n": "El Pinar, la Dehesa", "la": 27.7253, "lo": -18.115, "z": 713, "T": [13.8, 14.2, 14.4, 15.0, 16.6, 19.0, 22.1, 23.1, 20.9, 19.1, 16.8, 15.1], "P": [52.5, 37.4, 33.5, 20.6, 5.8, 3.1, 0.3, 1.2, 4.4, 31.9, 44.5, 76.0], "k": "ter"}, {"id": "ca_ter_5", "n": "El Guanchero (Icod de los Vinos)", "la": 28.379, "lo": -16.7348, "z": 17, "T": [16.9, 16.9, 17.5, 18.4, 19.5, 21.1, 22.3, 23.1, 23.0, 21.8, 19.7, 18.0], "P": [31.2, 34.4, 31.3, 18.9, 6.2, 4.0, 1.2, 4.5, 4.1, 31.6, 54.6, 36.1], "k": "ter"}, {"id": "ca_ter_6", "n": "Lomo de Mena (Güímar)", "la": 28.2715, "lo": -16.4162, "z": 518, "T": [15.0, 14.9, 15.8, 16.4, 17.8, 19.3, 22.9, 23.1, 21.0, 20.0, 18.1, 16.0], "P": [59.4, 50.9, 38.2, 11.8, 17.2, 7.0, 0.1, 12.4, 6.8, 30.8, 31.4, 89.6], "k": "ter"}, {"id": "ca_ter_7", "n": "La Orotava", "la": 28.4066, "lo": -16.5143, "z": 214, "T": [15.6, 15.9, 16.2, 16.9, 18.0, 19.5, 20.7, 21.5, 21.5, 20.6, 18.4, 16.8], "P": [58.3, 51.9, 48.2, 33.7, 10.8, 5.9, 1.0, 5.0, 6.0, 37.7, 78.3, 52.6], "k": "ter"}, {"id": "ca_ter_8", "n": "El Pinalet (Granadilla de Abona)", "la": 28.127, "lo": -16.6059, "z": 850, "T": [12.3, 12.2, 13.6, 13.8, 15.5, 17.6, 22.5, 23.4, 19.5, 17.8, 15.4, 13.4], "P": [30.8, 78.9, 39.5, 33.0, 3.0, 4.7, 0.0, 2.4, 8.0, 39.3, 37.2, 90.0], "k": "ter"}, {"id": "ca_ter_9", "n": "El Pozo (Guía de Isora)", "la": 28.2002, "lo": -16.7631, "z": 700, "T": [14.2, 13.8, 15.1, 15.2, 17.1, 18.7, 22.0, 22.7, 20.7, 19.6, 17.3, 15.3], "P": [15.5, 37.0, 22.8, 12.2, 2.2, 2.2, 0.6, 3.9, 5.2, 30.1, 21.5, 32.3], "k": "ter"}, {"id": "ca_ter_10", "n": "San Miguel (Granadilla de Abona)", "la": 28.099, "lo": -16.5845, "z": 505, "T": [14.4, 14.1, 15.3, 15.7, 17.2, 18.7, 21.7, 22.5, 20.7, 19.5, 17.5, 15.5], "P": [20.6, 59.0, 25.9, 15.4, 3.3, 3.2, 0.2, 4.2, 7.5, 37.6, 27.2, 55.9], "k": "ter"}, {"id": "ca_ter_11", "n": "Tacoronte", "la": 28.4964, "lo": -16.42, "z": 310, "T": [15.9, 16.0, 15.9, 16.7, 17.9, 19.7, 21.0, 21.9, 21.8, 21.2, 18.8, 17.2], "P": [52.9, 34.6, 49.1, 27.4, 11.9, 8.7, 5.2, 7.3, 9.1, 48.1, 66.8, 48.6], "k": "ter"}, {"id": "ca_ter_12", "n": "Tegueste", "la": 28.5071, "lo": -16.3586, "z": 400, "T": [15.2, 15.1, 15.7, 16.5, 17.7, 19.4, 20.8, 21.8, 21.6, 20.4, 18.0, 16.4], "P": [63.1, 69.8, 55.8, 37.1, 15.8, 13.0, 8.8, 9.4, 10.8, 62.2, 104.1, 51.1], "k": "ter"}, {"id": "ca_mon_1", "n": "Agulo", "la": 28.1789, "lo": -17.2131, "z": 765, "T": [13.3, 12.9, 13.2, 13.8, 15.0, 16.3, 17.9, 19.5, 18.9, 18.2, 16.0, 14.4], "P": [67.4, 58.9, 44.7, 29.2, 15.5, 11.5, 7.0, 6.0, 11.1, 59.1, 70.1, 75.0], "k": "mon"}, {"id": "ca_mon_2", "n": "Benijos (La Orotava)", "la": 28.3615, "lo": -16.5467, "z": 906, "T": [10.4, 10.1, 11.2, 11.4, 12.8, 14.8, 17.7, 18.9, 17.0, 15.9, 13.4, 11.5], "P": [47.0, 72.1, 64.8, 52.4, 26.6, 12.3, 4.6, 8.2, 17.8, 56.0, 105.8, 59.2], "k": "mon"}, {"id": "ca_mon_3", "n": "La Matanza de Acentejo", "la": 28.4495, "lo": -16.438, "z": 650, "T": [12.2, 11.7, 12.7, 13.3, 14.5, 16.2, 18.2, 19.1, 18.4, 17.3, 14.9, 13.2], "P": [60.0, 83.8, 73.3, 42.4, 24.6, 17.8, 6.7, 10.5, 13.4, 67.9, 119.7, 68.1], "k": "mon"}, {"id": "ca_mon_4", "n": "El Palmar (Buenavista del Norte)", "la": 28.337, "lo": -16.8521, "z": 556, "T": [13.0, 12.9, 13.5, 14.3, 15.6, 17.2, 19.2, 20.1, 19.6, 18.5, 16.1, 14.2], "P": [41.3, 77.2, 53.4, 30.9, 7.3, 8.0, 2.6, 5.7, 7.1, 52.5, 94.7, 77.1], "k": "mon"}, {"id": "ca_mon_5", "n": "Palo Blanco (Los Realejos)", "la": 28.3685, "lo": -16.5773, "z": 595, "T": [12.8, 12.3, 13.1, 13.6, 14.7, 16.3, 18.0, 19.1, 18.6, 17.9, 15.6, 14.1], "P": [63.2, 82.3, 70.6, 57.5, 32.0, 16.1, 6.5, 8.6, 20.9, 67.4, 125.6, 59.9], "k": "mon"}, {"id": "ca_mon_6", "n": "El Ratiño (La Orotava)", "la": 28.3804, "lo": -16.5418, "z": 380, "T": [15.1, 14.8, 15.3, 16.0, 17.1, 18.8, 20.2, 21.1, 21.0, 20.1, 17.9, 16.4], "P": [46.6, 90.7, 66.3, 47.3, 25.6, 10.9, 1.1, 5.9, 13.0, 57.7, 105.2, 71.3], "k": "mon"}, {"id": "ca_mon_7", "n": "Ravelo (El Sauzal)", "la": 28.455, "lo": -16.409, "z": 922, "T": [10.2, 10.3, 11.3, 11.7, 13.1, 15.0, 17.5, 18.7, 17.0, 15.8, 13.2, 11.6], "P": [101.1, 87.1, 93.4, 66.2, 30.6, 19.8, 10.9, 13.1, 15.9, 83.3, 111.2, 87.0], "k": "mon"}, {"id": "ca_mon_8", "n": "San Cristóbal de la Laguna,Llano de los Loros", "la": 28.5264, "lo": -16.2803, "z": 868, "T": [12.3, 11.9, 12.9, 13.3, 14.9, 16.5, 18.8, 21.2, 19.4, 18.2, 15.0, 13.7], "P": [113.5, 147.0, 92.9, 67.3, 35.9, 29.8, 22.3, 18.0, 18.4, 111.2, 188.9, 92.1], "k": "mon"}, {"id": "ca_mon_9", "n": "La Suerte (La Orotava)", "la": 28.3729, "lo": -16.5419, "z": 551, "T": [13.7, 13.2, 14.0, 14.6, 15.6, 17.1, 18.6, 19.6, 19.4, 18.6, 16.5, 14.8], "P": [47.1, 79.3, 63.9, 53.6, 21.6, 12.4, 2.6, 7.2, 13.9, 55.9, 102.4, 56.5], "k": "mon"}, {"id": "ca_mon_10", "n": "Tacoronte", "la": 28.4751, "lo": -16.3936, "z": 694, "T": [12.1, 11.9, 12.8, 13.3, 14.6, 16.1, 18.1, 19.3, 18.4, 17.3, 15.0, 13.3], "P": [79.0, 86.2, 72.7, 43.0, 24.0, 19.3, 11.0, 12.0, 15.7, 74.0, 123.9, 65.0], "k": "mon"}, {"id": "ca_mon_11", "n": "Tenerife Norte Aeropuerto", "la": 28.478, "lo": -16.329, "z": 632, "T": [13.3, 13.4, 14.3, 14.9, 16.5, 18.3, 20.2, 21.5, 20.6, 19.1, 16.5, 14.5], "P": [71.5, 67.2, 66.9, 37.5, 16.3, 10.2, 6.8, 6.0, 11.8, 55.6, 91.4, 74.6], "k": "mon"}, {"id": "ca_mon_12", "n": "Teror", "la": 28.0753, "lo": -15.5472, "z": 683, "T": [12.4, 12.4, 13.1, 13.8, 15.4, 17.3, 19.6, 21.1, 19.6, 18.2, 15.7, 13.8], "P": [68.4, 69.6, 58.8, 37.7, 19.0, 13.1, 9.1, 7.9, 22.1, 76.8, 130.4, 88.0], "k": "mon"}, {"id": "ca_mon_13", "n": "La Tierra del Trigo (Los Silos)", "la": 28.3514, "lo": -16.8035, "z": 450, "T": [14.7, 14.5, 14.9, 15.6, 16.8, 18.4, 19.9, 20.8, 20.6, 19.8, 17.5, 15.9], "P": [50.5, 112.1, 70.3, 38.3, 18.2, 19.6, 13.2, 11.6, 12.3, 72.9, 108.3, 83.8], "k": "mon"}, {"id": "ca_mon_14", "n": "Santa Úrsula", "la": 28.4105, "lo": -16.4947, "z": 550, "T": [13.5, 13.4, 14.1, 14.7, 15.9, 17.6, 19.2, 20.1, 19.8, 18.9, 16.6, 14.8], "P": [56.6, 88.4, 78.1, 50.2, 24.6, 15.9, 3.1, 9.0, 12.6, 62.6, 122.3, 71.4], "k": "mon"}, {"id": "ca_mon_15", "n": "La Victoria de Acentejo", "la": 28.4212, "lo": -16.4501, "z": 825, "T": [12.9, 12.5, 13.3, 13.9, 15.1, 16.7, 18.4, 19.4, 18.8, 17.8, 15.6, 14.0], "P": [80.6, 91.3, 90.4, 52.1, 26.2, 18.2, 3.4, 9.7, 14.5, 73.1, 146.8, 87.7], "k": "mon"}, {"id": "ca_pin_1", "n": "El Paso", "la": 28.6539, "lo": -17.8531, "z": 844, "T": [11.6, 12.2, 12.9, 13.5, 14.8, 17.4, 21.7, 22.4, 19.4, 17.3, 14.7, 12.8], "P": [93.4, 99.8, 66.1, 35.1, 11.4, 3.6, 0.3, 2.1, 7.9, 95.6, 80.7, 134.9], "k": "pin"}, {"id": "ca_pin_2", "n": "Guía de Isora", "la": 28.2231, "lo": -16.7527, "z": 1032, "T": [10.4, 10.4, 12.3, 12.5, 14.3, 16.7, 21.9, 22.2, 18.4, 16.3, 13.5, 11.3], "P": [19.0, 72.6, 37.1, 15.4, 3.8, 2.3, 0.4, 4.7, 8.6, 31.6, 34.6, 67.5], "k": "pin"}, {"id": "ca_pin_3", "n": "El Helecho (Arico)", "la": 28.2169, "lo": -16.4906, "z": 930, "T": [11.9, 12.1, 13.4, 13.5, 15.2, 17.9, 22.3, 22.8, 19.2, 17.4, 14.8, 13.1], "P": [45.4, 50.0, 26.9, 18.2, 13.1, 6.8, 0.3, 6.4, 8.1, 39.4, 34.0, 71.1], "k": "pin"}, {"id": "ca_pin_4", "n": "Los Hoyos (Santiago del Teide)", "la": 28.3054, "lo": -16.8055, "z": 990, "T": [10.9, 10.9, 12.2, 12.7, 14.7, 17.3, 21.8, 22.6, 19.1, 17.0, 14.1, 11.7], "P": [36.0, 98.2, 66.5, 27.0, 17.2, 3.5, 0.1, 6.1, 6.0, 41.1, 79.8, 84.0], "k": "pin"}, {"id": "ca_pin_5", "n": "Llanito Perera (Icod de los Vinos)", "la": 28.3647, "lo": -16.6948, "z": 475, "T": [13.9, 14.1, 14.6, 15.5, 16.7, 18.4, 19.8, 20.6, 20.4, 19.3, 17.0, 15.3], "P": [43.9, 75.2, 57.4, 41.4, 17.0, 13.7, 3.4, 7.1, 12.3, 53.7, 106.9, 57.0], "k": "pin"}, {"id": "ca_pin_6", "n": "Puntagorda", "la": 28.7606, "lo": -17.9856, "z": 684, "T": [13.6, 13.7, 14.1, 14.5, 16.1, 18.1, 20.9, 22.2, 20.3, 18.9, 16.7, 14.9], "P": [42.2, 48.7, 51.7, 30.4, 12.0, 2.4, 0.3, 1.1, 13.2, 53.2, 69.7, 82.9], "k": "pin"}, {"id": "ca_pin_7", "n": "Redondo (Icod de los Vinos)", "la": 28.3511, "lo": -16.6983, "z": 525, "T": [12.0, 12.1, 12.9, 13.7, 15.0, 16.7, 18.7, 19.4, 18.6, 17.4, 15.1, 13.2], "P": [37.1, 79.0, 74.7, 42.7, 15.4, 14.7, 3.1, 8.6, 13.8, 51.6, 98.2, 65.0], "k": "pin"}, {"id": "ca_pin_8", "n": "San Bartolome Tirajana, Cuevas del Pinar", "la": 27.9267, "lo": -15.5997, "z": 1220, "T": [10.8, 11.5, 13.8, 14.7, 16.7, 20.2, 25.8, 25.5, 21.3, 17.4, 14.4, 11.7], "P": [52.3, 66.9, 56.6, 8.9, 1.5, 0.1, 0.1, 0.6, 8.2, 39.4, 27.8, 103.9], "k": "pin"}, {"id": "ca_pin_9", "n": "San Bartolome Tirajana, las Tirajanas", "la": 27.92, "lo": -15.5742, "z": 960, "T": [13.3, 13.8, 15.5, 16.1, 18.9, 21.3, 26.3, 27.2, 22.6, 20.1, 16.4, 14.2], "P": [23.1, 86.9, 18.1, 12.0, 1.8, 0.2, 0.0, 0.4, 8.1, 47.1, 45.1, 60.7], "k": "pin"}, {"id": "ca_pin_10", "n": "Tejeda, Cruz de Tejeda", "la": 28.0069, "lo": -15.5989, "z": 1514, "T": [9.1, 9.0, 9.9, 11.2, 13.6, 16.6, 21.7, 21.9, 18.6, 15.8, 12.4, 10.3], "P": [114.6, 104.0, 89.0, 32.4, 9.2, 3.4, 1.4, 2.0, 19.6, 58.0, 87.0, 132.2], "k": "pin"}, {"id": "ca_pin_11", "n": "Vega de San Mateo", "la": 27.9767, "lo": -15.5839, "z": 1702, "T": [7.3, 7.3, 9.2, 10.2, 12.5, 16.0, 21.0, 21.0, 17.3, 13.8, 10.4, 8.4], "P": [84.1, 82.4, 74.6, 26.0, 9.2, 1.2, 0.7, 2.2, 13.3, 55.5, 85.6, 131.5], "k": "pin"}, {"id": "ca_pin_12", "n": "Vilaflor", "la": 28.1442, "lo": -16.6281, "z": 1258, "T": [9.9, 10.2, 11.7, 11.8, 14.0, 17.5, 22.4, 22.4, 18.3, 15.4, 12.4, 10.8], "P": [26.4, 108.0, 49.8, 29.3, 2.4, 1.8, 4.1, 9.7, 14.3, 50.8, 46.6, 87.0], "k": "pin"}, {"id": "ca_cum_1", "n": "Izaña", "la": 28.309, "lo": -16.499, "z": 2371, "T": [4.7, 4.7, 6.5, 8.2, 10.8, 14.6, 18.5, 18.3, 14.7, 11.0, 7.7, 5.9], "P": [55.6, 49.7, 44.0, 18.8, 3.8, 0.5, 0.0, 9.5, 5.6, 33.1, 50.6, 60.3], "k": "cum"}, {"id": "ca_cum_2", "n": "La Orotava, Cañadas Teide", "la": 28.2242, "lo": -16.6261, "z": 2150, "T": [7.3, 7.3, 9.4, 10.7, 13.0, 15.9, 19.8, 20.3, 16.2, 12.5, 9.6, 8.3], "P": [38.4, 69.9, 51.6, 17.1, 0.4, 0.5, 0.0, 6.0, 3.3, 39.0, 28.3, 106.4], "k": "cum"}];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const limpiar=s=>String(s||"").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();
+const barajar=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const azar=a=>a[Math.floor(Math.random()*a.length)];
+const MESES=["E","F","M","A","M","J","J","A","S","O","N","D"];
+const fmt=(v,d=1)=>Number(v).toLocaleString("es-ES",{minimumFractionDigits:d,maximumFractionDigits:d});
+const COL={hal:"#7fc6b6",car:"#f1d48c",ter:"#a3a865",mon:"#2f8f3e",pin:"#9ad25a",cum:"#c9786a"};
+const PISO=Object.fromEntries(DATA.map(p=>[p.k,p]));
+const KEYS=DATA.map(p=>p.k);
+const ID2K={1:"hal",2:"car",3:"ter",4:"mon",5:"pin",6:"cum"};
+const ISLAS={TF:{n:"Tenerife",bb:[-16.95,27.98,-16.10,28.60],z:3715},GC:{n:"Gran Canaria",bb:[-15.85,27.72,-15.35,28.19],z:1949},LP:{n:"La Palma",bb:[-18.02,28.44,-17.70,28.87],z:2423},
+  LG:{n:"La Gomera",bb:[-17.36,28.00,-17.08,28.23],z:1487},EH:{n:"El Hierro",bb:[-18.18,27.62,-17.86,27.86],z:1501},FV:{n:"Fuerteventura",bb:[-14.53,28.03,-13.82,28.77],z:807},LZ:{n:"Lanzarote",bb:[-13.88,28.83,-13.40,29.43],z:670}};
+const VERT={1:{n:"Barlovento",c:[94,140,230]},3:{n:"Sotavento",c:[240,160,90]},4:{n:"Relieve bajo",c:[200,186,150]}};
+const MIDZ={hal:10,car:200,ter:600,mon:1000,pin:1500,cum:2300};
+const pisoHTML=k=>`<span class="pisoChip"><span class="bola" style="background:${COL[k]}"></span>${esc(PISO[k].n)}</span>`;
+function islaDe(lat,lon){for(const ik in ISLAS){const b=ISLAS[ik].bb;if(lon>=b[0]&&lon<=b[2]&&lat>=b[1]&&lat<=b[3])return ik}return "TF"}
+
+/* ---------- Climograma: el mismo modelo PAU de ANAMBRO (P = 2T) ---------- */
+function climogramaSVG(T,P){
+  const W=660,H=380,m={l:58,r:58,t:22,b:42},fs=14,w=W-m.l-m.r,h=H-m.t-m.b;
+  const corte=Math.max(...P)>300,Pb=200,fP=p=>corte&&p>Pb?Pb+(p-Pb)/10:p;
+  let tMax=Math.max(10,Math.ceil(Math.max(...T,fP(Math.max(...P))/2)/10)*10),tMin=Math.min(0,Math.floor(Math.min(...T)/10)*10);
+  const yT=v=>m.t+h*(1-(v-tMin)/(tMax-tMin)),yP=p=>yT(fP(p)/2),bw=w/12,x=i=>m.l+bw*i+bw/2;
+  let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Climograma">`;
+  const paso=(tMax-tMin)>80?20:10;
+  for(let v=Math.ceil(tMin/paso)*paso;v<=tMax;v+=paso){
+    g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${yT(v)}" y2="${yT(v)}" stroke="#e3e9ef"/><text x="${m.l-5}" y="${yT(v)+4}" font-size="${fs}" fill="#c0392b" text-anchor="end">${v}</text>`;
+    if(v>=0){const pv=2*v;const lab=corte&&pv>Pb?Pb+(pv-Pb)*10:pv;g+=`<text x="${m.l+w+5}" y="${yT(v)+4}" font-size="${fs}" fill="#1f5fa8">${lab}</text>`}
+  }
+  P.forEach((p,i)=>{const y0=yT(0),y1=yP(p);g+=`<rect x="${x(i)-bw*.36}" y="${Math.min(y0,y1)}" width="${bw*.72}" height="${Math.abs(y0-y1)}" fill="#4a90d9"/>`});
+  g+=`<line x1="${m.l}" x2="${m.l+w}" y1="${yT(0)}" y2="${yT(0)}" stroke="#7b8a99"/><polyline points="${T.map((t,i)=>x(i)+","+yT(t)).join(" ")}" fill="none" stroke="#c0392b" stroke-width="3"/>`;
+  T.forEach((t,i)=>g+=`<circle cx="${x(i)}" cy="${yT(t)}" r="4" fill="#c0392b"/>`);
+  MESES.forEach((n,i)=>g+=`<text x="${x(i)}" y="${m.t+h+22}" font-size="${fs}" text-anchor="middle" fill="#334">${n}</text>`);
+  g+=`<rect x="${m.l}" y="${m.t}" width="${w}" height="${h}" fill="none" stroke="#7b8a99"/><text x="16" y="${m.t+h/2}" font-size="14" font-weight="700" fill="#c0392b" transform="rotate(-90 16 ${m.t+h/2})" text-anchor="middle">Temperatura ºC</text><text x="${W-14}" y="${m.t+h/2}" font-size="14" font-weight="700" fill="#1f5fa8" transform="rotate(-90 ${W-14} ${m.t+h/2})" text-anchor="middle">Precipitación (mm)</text>`;
+  return g+"</svg>";
+}
+function datosClima(T,P){const Tm=T.reduce((a,b)=>a+b,0)/12,Pa=P.reduce((a,b)=>a+b,0),amp=Math.max(...T)-Math.min(...T),sec=T.filter((t,i)=>P[i]<2*t).length;return{Tm,Pa,amp,sec}}
+
+/* ---------- Mapa de vegetación de Canarias (datos de ANAMBRO: piso potencial, vegetación actual y vertiente por celda) ---------- */
+const BB=[-18.2,27.6,-13.35,29.45];let MAPA=null;
+function cargaImg(u){return new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ko;i.src=u})}
+function pix(img){const c=document.createElement("canvas");c.width=img.width;c.height=img.height;const x=c.getContext("2d");x.drawImage(img,0,0);return x.getImageData(0,0,img.width,img.height).data}
+async function cargarMapa(){
+  const [a,b]=await Promise.all([cargaImg("animaciones/comun/biogeo/canarias.png"),cargaImg("animaciones/comun/biogeo/canarias_vert.png")]);
+  const W=a.width,H=a.height,da=pix(a),db=pix(b),pot=new Uint8Array(W*H),real=new Uint8Array(W*H),vert=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++){if(da[i*4+3]>0){pot[i]=da[i*4];real[i]=da[i*4+1]}const v=db[i*4];vert[i]=v===2?1:v}
+  MAPA={W,H,pot,real,vert};
+  // estadísticas de cada piso en cada isla: qué hay hoy dentro de su área potencial
+  MAPA.est={};
+  for(const ik in ISLAS){const r=rect(ik);const st={};
+    for(let y=r.y0;y<r.y1;y++)for(let x=r.x0;x<r.x1;x++){const i=y*W+x,p=pot[i];if(!p||p>6)continue;const k=ID2K[p];const s=st[k]||(st[k]={n:0,keep:0,urb:0,sus:0,pla:0,otr:0});s.n++;
+      const g=real[i];if(g===p||(p===4&&g===11))s.keep++;else if(g===10)s.urb++;else if(g===8)s.sus++;else if(g===9)s.pla++;else s.otr++}
+    MAPA.est[ik]=st}
+}
+function rect(ik){const b=ISLAS[ik].bb,W=MAPA.W,H=MAPA.H;const X=lon=>Math.round((lon-BB[0])/(BB[2]-BB[0])*W),Y=lat=>Math.round((BB[3]-lat)/(BB[3]-BB[1])*H);return{x0:X(b[0]),x1:X(b[2]),y0:Y(b[3]),y1:Y(b[1])}}
+/* dibuja la isla: modo "vert" (barlovento/sotavento, sin revelar los pisos), "pot" (piso resaltado) o "act" (qué queda dentro del área potencial de un piso) */
+function dibujarIsla(cv,ik,modo,k,punto){
+  const r=rect(ik),w=r.x1-r.x0,h=r.y1-r.y0,E=4;cv.width=w*E;cv.height=h*E;const ctx=cv.getContext("2d");const im=ctx.createImageData(w,h),d=im.data;
+  const id=k?KEYS.indexOf(k)+1:0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(r.y0+y)*MAPA.W+(r.x0+x),o=(y*w+x)*4,p=MAPA.pot[i];let c=[207,227,238];
+    if(p){ if(modo==="vert"){const v=VERT[MAPA.vert[i]];c=v?v.c:[220,210,190]}
+      else if(modo==="pot"){c=p===id?hex(COL[k]):[226,221,208]}
+      else if(modo==="todo"){c=p<=6?hex(COL[ID2K[p]]):[150,150,150]}
+      else{ if(p!==id)c=[226,221,208];else{const g=MAPA.real[i];c=(g===p||(p===4&&g===11))?hex(COL[k]):g===10?[224,48,58]:g===8?[185,143,208]:g===9?[77,107,42]:[160,160,160]}}}
+    d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=255}
+  const tmp=document.createElement("canvas");tmp.width=w;tmp.height=h;tmp.getContext("2d").putImageData(im,0,0);
+  ctx.imageSmoothingEnabled=false;ctx.drawImage(tmp,0,0,w*E,h*E);
+  if(punto)marca(cv,punto.x,punto.y,punto.c||"#111");
+  return{r,E};
+}
+function marca(cv,x,y,c){const ctx=cv.getContext("2d"),E=4,X=x*E+E/2,Y=y*E+E/2;ctx.lineWidth=4;ctx.strokeStyle="#fff";ctx.beginPath();ctx.arc(X,Y,13,0,7);ctx.stroke();ctx.lineWidth=3;ctx.strokeStyle=c;ctx.beginPath();ctx.arc(X,Y,13,0,7);ctx.stroke();ctx.fillStyle=c;ctx.beginPath();ctx.arc(X,Y,5,0,7);ctx.fill()}
+function hex(h){return[1,3,5].map(i=>parseInt(h.slice(i,i+2),16))}
+function pisoEn(ik,x,y,rad=0){const r=rect(ik);const cnt={};for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){const X=r.x0+x+dx,Y=r.y0+y+dy;if(X<0||Y<0||X>=MAPA.W||Y>=MAPA.H)continue;const p=MAPA.pot[Y*MAPA.W+X];if(p>=1&&p<=6)cnt[ID2K[p]]=1}return Object.keys(cnt)}
+function vertEn(ik,x,y){const r=rect(ik);for(let rad=0;rad<=3;rad++)for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){const v=MAPA.vert[(r.y0+y+dy)*MAPA.W+(r.x0+x+dx)];if(VERT[v])return VERT[v].n}return""}
+function puntoAlAzar(ik,k){const r=rect(ik),id=KEYS.indexOf(k)+1,c=[];for(let y=r.y0+2;y<r.y1-2;y++)for(let x=r.x0+2;x<r.x1-2;x++){if(MAPA.pot[y*MAPA.W+x]===id){let ok=true;for(const[dx,dy]of[[2,0],[-2,0],[0,2],[0,-2]])if(MAPA.pot[(y+dy)*MAPA.W+x+dx]!==id)ok=false;if(ok)c.push({x:x-r.x0,y:y-r.y0})}}return c.length?azar(c):null}
+const leyVert='<div class="mapaLey"><span><i style="background:rgb(94,140,230)"></i>Barlovento</span><span><i style="background:rgb(240,160,90)"></i>Sotavento</span><span><i style="background:rgb(200,186,150)"></i>Relieve bajo</span></div>';
+const leyAct=k=>`<div class="mapaLey"><span><i style="background:${COL[k]}"></i>${k==="mon"?"Laurisilva y fayal-brezal":"Se conserva"}</span><span><i style="background:#e0303a"></i>Urbano y agrícola</span><span><i style="background:#b98fd0"></i>Matorral de sustitución</span><span><i style="background:#4d6b2a"></i>Plantaciones</span></div>`;
+
+/* ---------- Fotos de Wikimedia Commons (las mismas formaciones del juego «Paisaje y clima» y las especies de la presentación) ---------- */
+const API_C="https://commons.wikimedia.org/w/api.php";
+async function infoArchivos(nombres){
+  if(!nombres.length)return[];
+  const u=API_C+"?action=query&format=json&origin=*&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1100&iiextmetadatafilter=Artist|LicenseShortName|Credit&titles="+encodeURIComponent(nombres.map(n=>"File:"+n).join("|"));
+  const r=await fetch(u).then(r=>r.json());const pags=Object.values(r?.query?.pages||{});const norm=new Map((r?.query?.normalized||[]).map(n=>[n.to,n.from]));const out=[];
+  for(const n of nombres){const p=pags.find(p=>p.title==="File:"+n||norm.get(p.title)==="File:"+n||p.title.replace(/_/g," ")==("File:"+n).replace(/_/g," "));const ii=p?.imageinfo?.[0];if(!ii||p.missing!==undefined)continue;const md=ii.extmetadata||{};
+    out.push({src:ii.thumburl||ii.url,pagina:ii.descriptionurl,autor:limpiar(md.Artist?.value)||limpiar(md.Credit?.value)||"autor en Wikimedia Commons",licencia:limpiar(md.LicenseShortName?.value)||"ver ficha",archivo:n})}
+  return out;
+}
+async function fotos(nombres){const clave="anambro.pisos.v1."+nombres.length+"."+nombres[0];let info=null;
+  try{const k=JSON.parse(localStorage.getItem(clave)||"null");if(k&&k.t>Date.now()-7*864e5&&k.f.length)info=k.f}catch(x){}
+  if(!info){info=[];for(let i=0;i<nombres.length;i+=45){try{info=info.concat(await infoArchivos(nombres.slice(i,i+45)))}catch(x){console.warn("Commons",x)}}if(info.length)try{localStorage.setItem(clave,JSON.stringify({t:Date.now(),f:info}))}catch(x){}}
+  return new Map(info.map(f=>[f.archivo.replace(/_/g," "),f]))}
+const credito=f=>f?`<a href="${esc(f.pagina)}" target="_blank" rel="noopener">${esc(f.autor)}</a> · ${esc(f.licencia)} · Wikimedia Commons`:"";
+const FORM={hal:[{f:"Matas, Dunas de Corralejo, Fuerteventura, España, 2015.JPG",lugar:"Dunas de Corralejo (Fuerteventura)"},{f:"GC Dunas de Maspalomas R03.jpg",lugar:"Dunas de Maspalomas (Gran Canaria)"}]};
+let FOTOS=new Map();
+
+/* ---------- Preguntas ---------- */
+const NOMS={hal:["cinturón halófilo","halófilo","halófila"],car:["cardonal-tabaibal","cardonal","tabaibal"],ter:["bosque termófilo","termófilo"],mon:["monteverde","laurisilva","fayal-brezal"],pin:["pinar canario","pinar"],cum:["matorral de cumbre"]};
+function tapar(t,k){let s=String(t);for(const n of NOMS[k])s=s.replace(new RegExp(n,"gi"),"▢▢▢");return s}
+const EXTRA=[
+ {q:"¿Qué aporta la niebla del mar de nubes al monteverde?",ok:"Precipitación horizontal: hasta 5 veces más agua que la lluvia convencional",mal:["Heladas que frenan a los árboles","Sal marina que abona el suelo","Más horas de sol en verano"],k:"mon"},
+ {q:"¿Por qué no hay monteverde en sotavento?",ok:"Porque allí no se forma el mar de nubes del alisio",mal:["Porque hace demasiado frío","Porque el suelo es salino","Porque está por encima de los 2.000 m"],k:"mon"},
+ {q:"En sotavento, comparado con barlovento, los pisos…",ok:"Suben más arriba: hace más calor y llueve menos",mal:["Bajan: hace más frío","Son iguales en las dos vertientes","Desaparecen todos menos el pinar"],k:"car"},
+ {q:"¿Qué islas apenas tienen otra cosa que cardonal-tabaibal porque son bajas?",ok:"Lanzarote y Fuerteventura",mal:["Tenerife y La Palma","La Gomera y El Hierro","Gran Canaria y Tenerife"],k:"car"},
+ {q:"La pez o brea se obtenía…",ok:"Quemando la tea del pino canario en peguerías",mal:["Cociendo hojas de laurel","Con la leche de la tabaiba","Con la resina del drago"],k:"pin"},
+ {q:"Según Pigafetta, ¿para qué paró en 1519 la flota de Magallanes en Montaña Roja?",ok:"Para aprovisionarse de pez (brea)",mal:["Para cargar sangre de drago","Para cortar madera de laurel","Para recoger barrilla"],k:"pin"},
+ {q:"¿Qué consumían los ingenios azucareros del siglo XVI que destruyó gran parte del monteverde?",ok:"Enormes cantidades de leña",mal:["Agua de mar","Pinocha para el ganado","Resina de pino"],k:"mon"},
+ {q:"El Garoé, el árbol santo de los bimbaches, era…",ok:"Un til que captaba el agua de la niebla",mal:["Un drago milenario","Una palmera canaria","Un pino canario"],k:"mon"},
+ {q:"¿Qué es «embarbascar»?",ok:"Echar látex de tabaiba o cardón en un charco para atontar a los peces",mal:["Hacer brea con la tea del pino","Cortar palmeras para hacer guarapo","Recoger nieve en los neveros"],k:"car"},
+ {q:"¿Qué árbol rebrota del tronco y las ramas después de un incendio?",ok:"El pino canario",mal:["El laurel","El drago","La sabina"],k:"pin"},
+ {q:"¿Cuál es el piso peor conservado de Canarias (queda en torno a un 13 %)?",ok:"El bosque termófilo",mal:["El matorral de cumbre","El pinar","El cinturón halófilo"],k:"ter"},
+ {q:"¿Qué amenaza sobre todo al matorral de cumbre?",ok:"Los herbívoros introducidos (conejo y muflón) y el cambio climático",mal:["La urbanización turística","Los ingenios azucareros","La extracción de arena"],k:"cum"},
+ {q:"¿Por qué el pinar es hoy el piso mejor recuperado?",ok:"Por las repoblaciones desde los años cuarenta del siglo XX",mal:["Porque nunca se taló","Porque ya no hay incendios","Porque el pino crece en la costa"],k:"pin"},
+ {q:"¿Qué espacio protegido conserva la mejor laurisilva de La Gomera?",ok:"El Parque Nacional de Garajonay",mal:["El Parque Nacional del Teide","Las Dunas de Maspalomas","El Parque Natural de Jandía"],k:"mon"},
+ {q:"Humboldt, en 1799, subió al Teide y…",ok:"Distinguió franjas de vegetación según la altitud",mal:["Descubrió el pino canario","Plantó el drago de Icod","Midió la primera nevada"],k:"cum"}];
+function preguntasPAU(){const Q=[];
+  for(const p of DATA){const k=p.k;
+    const campos=[["Usos tradicionales",p.trad],["Usos con los que compite hoy",p.hoy],["Principales amenazas",p.amen],["Espacios protegidos donde está representado",p.enp],["Cómo es la formación",p.forma],["Clima",p.clima[0]]];
+    for(const[t,v]of campos)Q.push({tipo:"pisotexto",k,tit:t,txt:tapar(v,k)});
+    for(const c of p.cur)Q.push({tipo:"pisotexto",k,tit:"Curiosidad",txt:tapar(c,k)});
+    for(const f of p.fito)Q.push({tipo:"fito",k,txt:f});
+  }
+  for(const e of EXTRA)Q.push({tipo:"extra",...e});
+  return Q}
+
+/* ---------- Partida ---------- */
+const CFG={modos:["formacion","especie","clima","mapa","actual","pau"],rondas:12};let G=null;
+function opcionesPiso(k,pres){const otros=barajar(KEYS.filter(x=>x!==k&&(!pres||pres.includes(x))));const extra=barajar(KEYS.filter(x=>x!==k&&!otros.includes(x)));return barajar([k,...otros,...extra].slice(0,4)).map(x=>({v:x,html:pisoHTML(x)}))}
+function generar(modo,usadas){
+  if(modo==="formacion"){const k=azar(KEYS);const lista=(FORM[k]||[]).filter(f=>FOTOS.get(f.f));const f=lista.length?azar(lista):null;if(!f)return null;
+    return{modo,k,enun:"¿Qué piso de vegetación es?",foto:{...FOTOS.get(f.f),lugar:f.lugar,et:f.et},ops:opcionesPiso(k)}}
+  if(modo==="especie"){const k=azar(KEYS);const e=azar(PISO[k].esp);const f=FOTOS.get(e.f);if(!f||usadas.has(e.key))return null;usadas.add(e.key);
+    return{modo,k,enun:`¿En qué piso vive ${e.key==="pinzon"?"el":"esta especie:"} ${esc(e.n)}?`,foto:{...f,et:e.n},esp:e,ops:opcionesPiso(k)}}
+  if(modo==="clima"){const e=azar(ESTS);if(usadas.has(e.id))return null;usadas.add(e.id);const ik=islaDe(e.la,e.lo);
+    return{modo,k:e.k,enun:"¿A qué piso de vegetación corresponde este climograma?",est:e,ik,ops:opcionesPiso(e.k)}}
+  if(modo==="mapa"){const ik=azar(Object.keys(ISLAS).filter(i=>i!=="FV"&&i!=="LZ"||Math.random()<.25));const st=MAPA.est[ik];const pres=KEYS.filter(k=>st[k]&&st[k].n>40);if(pres.length<2)return null;const k=azar(pres);
+    if(Math.random()<.5&&st[k].n>150)return{modo,sub:"toca",k,ik,enun:`Toca en ${ISLAS[ik].n} un lugar donde estaría el ${PISO[k].n.toLowerCase()} (vegetación potencial)`};
+    const pt=puntoAlAzar(ik,k);if(!pt)return null;return{modo,sub:"punto",k,ik,pt,enun:`¿Qué piso de vegetación potencial corresponde al punto marcado en ${ISLAS[ik].n}?`,ops:opcionesPiso(k,pres)}}
+  if(modo==="actual"){const pares=[];for(const ik in MAPA.est)for(const k in MAPA.est[ik]){const s=MAPA.est[ik][k];if(s.n>=300)pares.push([ik,k])}
+    const[ik,k]=azar(pares);const s=MAPA.est[ik][k],q=Math.round(100*s.keep/s.n);
+    if(Math.random()<.5){const cand=[5,15,30,50,70,90].filter(v=>Math.abs(v-q)>=14);const ds=barajar(cand).slice(0,3);
+      return{modo,sub:"pct",k,ik,s,enun:`¿Qué parte de su área potencial conserva hoy el ${PISO[k].n.toLowerCase()} en ${ISLAS[ik].n}?`,ops:barajar([q,...ds]).map(v=>({v:v===q?"ok":String(v),html:`≈ ${v} %`})),okv:"ok"}}
+    const cats=[["keep",k==="mon"?"El propio monteverde (laurisilva y fayal-brezal)":"El propio "+PISO[k].n.toLowerCase()],["urb","Urbano y agrícola"],["sus","Matorral de sustitución"],["pla","Plantaciones forestales"]];
+    const best=cats.reduce((a,c)=>s[c[0]]>s[a[0]]?c:a,cats[0]);
+    return{modo,sub:"max",k,ik,s,enun:`¿Qué ocupa hoy la mayor parte del área potencial del ${PISO[k].n.toLowerCase()} en ${ISLAS[ik].n}?`,ops:barajar(cats).map(c=>({v:c[0],html:esc(c[1])})),okv:best[0]}}
+  if(modo==="pau"){const q=azar(G.pau.filter(x=>!usadas.has(x)));if(!q)return null;usadas.add(q);
+    if(q.tipo==="extra")return{modo,k:q.k,enun:esc(q.q),texto:null,ops:barajar([q.ok,...q.mal]).map(v=>({v:v===q.ok?"ok":v,html:esc(v)})),okv:"ok",extra:q};
+    if(q.tipo==="fito")return{modo,k:q.k,enun:"¿De qué piso viene este fitotopónimo (nombre de lugar que procede de una planta)?",texto:q.txt,ops:opcionesPiso(q.k)};
+    return{modo,k:q.k,enun:`¿De qué piso hablamos? · ${esc(q.tit)}`,texto:q.txt,ops:opcionesPiso(q.k)}}
+}
+function nuevaPartida(){
+  const n=CFG.rondas,mods=CFG.modos.slice(),r=[],usadas=new Set();G={n:0,pts:0,racha:0,rondas:r,pau:preguntasPAU(),hist:[]};
+  let i=0,orden=barajar(mods);
+  while(r.length<n&&i<2000){const m=orden[i%orden.length];i++;if(i%orden.length===0)orden=barajar(mods);const q=generar(m,usadas);if(q)r.push(q)}
+  $("inicio").style.display="none";$("juego").style.display="block";$("marcador").style.display="flex";ronda();
+}
+function marcador(){$("mRonda").textContent=`Ronda ${G.n+1} / ${G.rondas.length}`;$("mTotal").textContent=`${G.pts} puntos`;$("mBarra").style.width=(100*G.n/G.rondas.length)+"%";$("mRacha").textContent=G.racha>=3?`🔥 ${G.racha} seguidas`:""}
+function ronda(){
+  const q=G.rondas[G.n];G.q=q;G.intentos=0;marcador();
+  $("enunciado").innerHTML=q.enun;const E=$("estimulo"),R=$("respuestas");E.innerHTML="";R.innerHTML="";
+  if(q.foto)E.innerHTML=`<div class="estim"><div class="foto"><img src="${esc(q.foto.src)}" alt="Foto"></div><div class="credito">${credito(q.foto)}</div></div>`;
+  else if(q.est){const d=datosClima(q.est.T,q.est.P),v=vertTxt(q);E.innerHTML=`<div class="estim clim">${climogramaSVG(q.est.T,q.est.P)}<div class="pista">🌡️ Estación a <b>${fmt(q.est.z,0)} m</b> de altitud${v?` · ${v}`:""} · T media ${fmt(d.Tm)} °C · P ${fmt(d.Pa,0)} mm · ${d.sec} meses secos</div></div>`}
+  else if(q.modo==="mapa"){E.innerHTML=`<div class="estim"><div class="mapaBox"><canvas id="cvMapa"></canvas></div>${leyVert}<div class="aviso" id="aviso"></div><div class="nota">El mapa muestra las vertientes (no los pisos): piensa en la altitud, el alisio y el mar de nubes.</div></div>`;
+    const cv=$("cvMapa");dibujarIsla(cv,q.ik,"vert",null,q.sub==="punto"?{...q.pt,c:"#111"}:null);if(q.sub==="toca")cv.onclick=ev=>tocar(ev,cv)}
+  else if(q.modo==="actual"){E.innerHTML=`<div class="estim"><div class="enun2">Área potencial del ${esc(PISO[q.k].n.toLowerCase())} en ${ISLAS[q.ik].n}</div><div class="mapaBox"><canvas id="cvMapa"></canvas></div><div class="mapaLey"><span><i style="background:${COL[q.k]}"></i>${esc(PISO[q.k].n)} (potencial)</span></div></div>`;dibujarIsla($("cvMapa"),q.ik,"pot",q.k)}
+  else if(q.texto)E.innerHTML=`<div class="texto">${q.texto}</div>`;
+  else E.innerHTML=`<div class="texto">🎓 ${q.enun}</div>`;
+  if(q.ops){R.innerHTML=q.ops.map((o,i)=>`<button class="resp txt" data-v="${esc(o.v)}"><span class="letra">${"ABCD"[i]}</span>${o.html}</button>`).join("");
+    R.querySelectorAll(".resp").forEach(b=>b.onclick=()=>responder(b))}
+  else R.innerHTML=`<div class="texto" style="font-size:18px">👆 Toca en el mapa. Tienes tres intentos.</div>`;
+}
+function vertTxt(q){const e=q.est;if(!MAPA)return"";const r=rect(q.ik);const x=Math.round((e.lo-BB[0])/(BB[2]-BB[0])*MAPA.W)-r.x0,y=Math.round((BB[3]-e.la)/(BB[3]-BB[1])*MAPA.H)-r.y0;const v=vertEn(q.ik,x,y);return v?`vertiente: <b>${v.toLowerCase()}</b>`:""}
+const PUNTOS=[100,50,20];
+function acierto(){const pts=PUNTOS[G.intentos]||0;G.pts+=pts;G.racha++;G.hist.push({q:G.q,pts});setTimeout(()=>revelar(pts),550)}
+function fallo(final){G.intentos++;if(G.intentos>=3||final){G.racha=0;G.hist.push({q:G.q,pts:0});setTimeout(()=>revelar(0),650);return true}return false}
+function responder(b){const q=G.q;const ok=(q.okv?b.dataset.v===q.okv:b.dataset.v===q.k);
+  if(ok){b.classList.add("bien");$("respuestas").querySelectorAll(".resp").forEach(x=>x.disabled=true);acierto()}
+  else{b.classList.add("mal");b.disabled=true;if(fallo()){$("respuestas").querySelectorAll(".resp").forEach(x=>{x.disabled=true;if((q.okv?x.dataset.v===q.okv:x.dataset.v===q.k))x.classList.add("bien")})}}}
+function tocar(ev,cv){const q=G.q;const r=cv.getBoundingClientRect();const x=Math.floor((ev.clientX-r.left)/r.width*cv.width/4),y=Math.floor((ev.clientY-r.top)/r.height*cv.height/4);
+  const hay=pisoEn(q.ik,x,y,1);const av=$("aviso");
+  if(hay.includes(q.k)){marca(cv,x,y,"#1e8449");av.className="aviso ok";av.textContent="✅ ¡Ahí está!";cv.onclick=null;q.toque={x,y};acierto();return}
+  marca(cv,x,y,"#c0392b");const aqui=pisoEn(q.ik,x,y,0)[0];av.className="aviso ko";av.textContent=aqui?`❌ Ahí correspondería ${PISO[aqui].n.toLowerCase()}. ${G.intentos<2?"Prueba otra vez.":""}`:"❌ Eso es el mar. Prueba otra vez.";
+  if(fallo()){cv.onclick=null;q.toque=null}}
+
+/* ---------- Ficha de solución ---------- */
+function revelar(pts){
+  const q=G.q,p=PISO[q.k];const ok=pts>0;
+  const fForm=(FORM[q.k]||[]).map(f=>({...FOTOS.get(f.f),lugar:f.lugar})).filter(f=>f.src);const f=q.foto||fForm[0];
+  let explica="";
+  if(q.modo==="especie")explica=`<b>${esc(q.esp.n)}</b>: ${esc(q.esp.t)}.`;
+  if(q.modo==="clima"){const d=datosClima(q.est.T,q.est.P);explica=`Estación <b>${esc(q.est.n)}</b> (${fmt(q.est.z,0)} m): T media ${fmt(d.Tm)} °C, amplitud ${fmt(d.amp)} °C, ${fmt(d.Pa,0)} mm y ${d.sec} meses secos.`}
+  if(q.modo==="actual"){const s=q.s,pc=v=>Math.round(100*v/s.n);explica=`En ${ISLAS[q.ik].n}, dentro del área potencial del ${p.n.toLowerCase()}: se conserva el <b>${pc(s.keep)} %</b>; urbano y agrícola, ${pc(s.urb)} %; matorral de sustitución, ${pc(s.sus)} %; plantaciones, ${pc(s.pla)} %.`}
+  if(q.modo==="mapa")explica=q.sub==="punto"?`El punto está en <b>${vertEn(q.ik,q.pt.x,q.pt.y).toLowerCase()}</b>.`:"A la derecha, dónde estaría el piso (vegetación potencial).";
+  if(q.extra)explica=`<b>${esc(q.extra.ok)}</b>.`;
+  const ik=q.ik||(q.est?islaDe(q.est.la,q.est.lo):"TF"),z=q.est?q.est.z:Math.min(MIDZ[q.k],ISLAS[ik].z-50);
+  const mapas=(q.modo==="mapa"||q.modo==="actual")?`<div class="dosMapas"><div><h3>Distribución potencial</h3><div class="mapaBox"><canvas id="rv1"></canvas></div></div><div><h3>${q.modo==="actual"?"Qué queda hoy":"Todos los pisos"}</h3><div class="mapaBox"><canvas id="rv2"></canvas></div>${q.modo==="actual"?leyAct(q.k):""}</div></div>`:"";
+  $("modal").innerHTML=`
+   <div class="revCab ${ok?"ok":"ko"}"><div><div class="revRes">${ok?"✅ ¡Correcto!":"ℹ️ Era este"}</div><div class="revPts">${ok?"+"+pts+" puntos":"Sin puntos en esta ronda"}</div></div>
+     <div class="revTit"><small>Piso de vegetación</small><b>${esc(p.n)}</b></div>
+     <button class="btn" id="btnSig">${G.n+1<G.rondas.length?"Siguiente ▶":"Ver resultado ▶"}</button></div>
+   ${explica?`<div class="explica">${explica}</div>`:""}
+   ${mapas}
+   <div class="revLugar conModelo"><div>${f&&f.src?`<div class="foto"><img src="${esc(f.src)}" alt="${esc(p.n)}" style="width:100%;height:300px;object-fit:cover;border-radius:10px"></div><div class="credito">${f.lugar?"📷 "+esc(f.lugar)+" · ":""}${credito(f)}</div>`:""}</div><div id="modeloPisos"></div></div>
+   <div class="fichaPau"><h3>🎓 Para la PAU: ${esc(p.n)}</h3><ul>
+     <li><b>Dónde:</b> ${p.donde}</li><li><b>Clima:</b> ${p.clima[0]}</li>
+     <li><b>Especies:</b> ${p.esp.map(e=>esc(e.n)).join(", ")}</li>
+     <li><b>Amenaza:</b> ${esc(p.nivel)}. ${p.amen}</li><li><b>Espacios protegidos:</b> ${p.enp}</li></ul></div>`;
+  $("velo").classList.add("on");$("btnSig").onclick=siguiente;
+  try{AnbGlobo.modeloPisos($("modeloPisos"),{isla:ik,z,nombre:q.est?q.est.n:""})}catch(e){console.warn(e)}
+  if(mapas){dibujarIsla($("rv1"),q.ik,"pot",q.k,q.sub==="punto"?q.pt:(q.toque||null));if(q.modo==="actual")dibujarIsla($("rv2"),q.ik,"act",q.k);else dibujarIsla($("rv2"),q.ik,"todo",null,q.sub==="punto"?q.pt:(q.toque||null))}
+}
+function siguiente(){$("velo").classList.remove("on");G.n++;if(G.n<G.rondas.length)ronda();else final()}
+const NOMMODO={formacion:"¿Qué piso es?",especie:"Especie → piso",clima:"Climograma → piso",mapa:"Localiza en el mapa",actual:"Potencial y actual",pau:"Modo PAU"};
+function final(){marcador();$("mBarra").style.width="100%";const max=G.rondas.length*100,nota=10*G.pts/max;
+  const porModo={};G.hist.forEach(h=>{const m=h.q.modo;const o=porModo[m]||(porModo[m]={n:0,ok:0});o.n++;if(h.pts)o.ok++});
+  $("modal").innerHTML=`<div style="padding:18px 22px"><h2>🏁 Fin de la partida</h2><div class="puntos">${G.pts} puntos</div><p style="font-size:22px">Nota: <b>${fmt(nota,1)}</b> / 10</p>
+   <table class="acf resFinal"><tr><th>Tipo de pregunta</th><th>Aciertos</th></tr>${Object.entries(porModo).map(([m,o])=>`<tr><td>${NOMMODO[m]}</td><td>${o.ok} / ${o.n}</td></tr>`).join("")}</table>
+   <p style="margin-top:14px;display:flex;gap:10px;justify-content:center"><button class="btn" id="btnOtra">🔁 Jugar otra vez</button><button class="btn sec" id="btnOpc">⚙️ Cambiar opciones</button></p></div>`;
+  $("velo").classList.add("on");$("btnOtra").onclick=()=>{$("velo").classList.remove("on");nuevaPartida()};$("btnOpc").onclick=()=>{$("velo").classList.remove("on");$("juego").style.display="none";$("marcador").style.display="none";$("inicio").style.display="block"}}
+
+/* ---------- Opciones y carga ---------- */
+document.querySelectorAll(".chips[data-grupo]").forEach(g=>{const multi=g.classList.contains("multi");g.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{
+  if(multi){c.classList.toggle("on");if(!g.querySelector(".chip.on"))c.classList.add("on")}else{g.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));c.classList.add("on")}
+  CFG.modos=[...document.querySelectorAll('[data-grupo="modos"] .chip.on')].map(x=>x.dataset.v);CFG.rondas=+document.querySelector('[data-grupo="rondas"] .chip.on').dataset.v})});
+$("btnEmpezar").onclick=nuevaPartida;
+(async function(){
+  const carga=$("carga");
+  try{carga.textContent="Cargando el mapa de vegetación de Canarias…";await cargarMapa()}catch(e){carga.textContent="No se pudo cargar el mapa de vegetación: se desactivan los modos de mapa.";document.querySelectorAll('[data-v="mapa"],[data-v="actual"]').forEach(c=>{c.classList.remove("on");c.disabled=true});CFG.modos=CFG.modos.filter(m=>m!=="mapa"&&m!=="actual")}
+  carga.textContent="Cargando fotos de Wikimedia Commons…";
+  try{const fj=await fetch("juego-paisajes-fotos.json").then(r=>r.json());const cat=fj.categorias||{};
+    for(const[k,ck]of[["car","ca_car"],["ter","ca_ter"],["mon","ca_mon"],["pin","ca_pin"],["cum","ca_cum"]])FORM[k]=((cat[ck]||{}).vegetacion||[]).map(x=>({f:x.f,lugar:x.lugar,et:x.et}))}catch(e){console.warn("fotos de paisajes",e)}
+  const nombres=[...new Set([...Object.values(FORM).flat().map(f=>f.f),...DATA.flatMap(p=>p.esp.map(e=>e.f))])];
+  FOTOS=await fotos(nombres);
+  if(!FOTOS.size){document.querySelectorAll('[data-v="formacion"],[data-v="especie"]').forEach(c=>{c.classList.remove("on");c.disabled=true});CFG.modos=CFG.modos.filter(m=>m!=="formacion"&&m!=="especie");carga.textContent="No se pudieron cargar las fotos de Wikimedia Commons: se juega sin las preguntas de fotos."}else carga.textContent="";
+  const b=$("btnEmpezar");b.disabled=false;b.textContent="▶ Empezar";
+})();
+</script>
+<style id="anSalidaCss">
+/* ===== Salir de la partida y volver al menú de Juegos ===== */
+.anSalida{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+header .marcador[style*="flex"] ~ .anSalida{margin-left:0}
+.anSalida button{font:inherit;font-size:15px;font-weight:700;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:6px 14px;min-height:38px;cursor:pointer;white-space:nowrap}
+.anSalida button:hover{background:rgba(255,255,255,.28)}
+.anSalida button[hidden]{display:none}
+</style>
+<script>
+/* ANAMBRO · Terminar la partida en cualquier momento y volver al menú «Juegos» (2026-11-19).
+   «Terminar partida» vuelve a la pantalla de opciones conservando las que estaban elegidas. */
+(function(){
+  const $=id=>document.getElementById(id);
+  const head=document.querySelector("header");if(!head||$("anSalida"))return;
+  const P=window.parent!==window?window.parent:null;
+  let enAnambro=false;try{enAnambro=!!(P&&typeof P.closeAnambroExplanation==="function")}catch(e){}
+  const caja=document.createElement("div");caja.className="anSalida";caja.id="anSalida";
+  caja.innerHTML='<button type="button" id="anTerminar" hidden title="Abandona la partida y vuelve a las opciones">⏹ Terminar partida</button>'+
+    (enAnambro?'<button type="button" id="anMenuJuegos" title="Cierra el juego y abre el menú Juegos de ANAMBRO">🎮 Menú de juegos</button>':"");
+  head.appendChild(caja);
+  const CLAVE="anambro.juego.opciones."+location.pathname+location.search;
+  function guardar(){
+    const o={chips:{},sel:{}};
+    document.querySelectorAll(".chips[data-grupo]").forEach(g=>{o.chips[g.dataset.grupo]=[...g.querySelectorAll(".chip.on")].map(c=>c.dataset.v)});
+    document.querySelectorAll("#inicio select[id]").forEach(s=>{o.sel[s.id]=s.value});
+    try{sessionStorage.setItem(CLAVE,JSON.stringify(o))}catch(e){}
+  }
+  function restaurar(){
+    let o=null;try{o=JSON.parse(sessionStorage.getItem(CLAVE)||"null");sessionStorage.removeItem(CLAVE)}catch(e){}
+    if(!o)return;
+    for(const g in o.chips||{})for(const v of o.chips[g]){const c=document.querySelector(`.chips[data-grupo="${g}"] .chip[data-v="${v}"]`);if(c&&!c.classList.contains("on")&&!c.disabled)c.click()}
+    const ids=Object.keys(o.sel||{});let i=0;
+    (function sigSel(){if(i>=ids.length)return;const s=$(ids[i]),v=o.sel[ids[i]];i++;
+      if(s&&[...s.options].some(x=>x.value===v)&&s.value!==v){s.value=v;s.dispatchEvent(new Event("change",{bubbles:true}))}
+      setTimeout(sigSel,150)})();
+  }
+  $("anTerminar").onclick=()=>{guardar();location.reload()};
+  if($("anMenuJuegos"))$("anMenuJuegos").onclick=()=>{
+    try{
+      const D=P.document,pan=D.getElementById("territorialGamePanel");
+      P.closeAnambroExplanation();
+      if(pan&&pan.classList.contains("hidden")&&typeof P.togglePanel==="function")P.togglePanel("territorialGamePanel");
+    }catch(e){console.warn("Menú de juegos",e)}
+  };
+  // «Terminar partida» solo se ve mientras hay una partida en marcha
+  const juego=$("juego"),ver=()=>{$("anTerminar").hidden=!juego||getComputedStyle(juego).display==="none"};
+  if(juego)new MutationObserver(ver).observe(juego,{attributes:true,attributeFilter:["style","class"]});
+  ver();
+  // se restauran cuando el juego ha terminado de cargar sus datos (botón «Empezar» activo)
+  let n=0;(function espera(){const b=$("btnEmpezar");if((b&&!b.disabled)||n++>300)setTimeout(restaurar,150);else setTimeout(espera,200)})();
+})();
+</script>
+<script>
+/* ANAMBRO · Todo de un vistazo (2026-11-19): la pantalla de juego y la ficha de solución se encogen
+   lo justo para caber enteras en la pantalla, sin tener que bajar con el ratón. Si la pantalla es tan
+   pequeña que quedaría ilegible (móvil), se deja un tamaño mínimo y se puede desplazar. */
+(function(){
+  const MIN=.55,$=id=>document.getElementById(id);
+  const main=document.querySelector("main"),head=document.querySelector("header"),velo=$("velo"),modal=$("modal");
+  function encajarModal(){
+    if(!modal||!velo||!velo.classList.contains("on"))return;
+    modal.style.zoom="";modal.style.maxHeight="none";modal.style.overflow="hidden";
+    const disp=innerHeight-24,alto=modal.scrollHeight;
+    let z=Math.min(1,disp/alto);
+    if(z<MIN){z=MIN;modal.style.maxHeight=Math.floor(disp/z)+"px";modal.style.overflow="auto"}
+    modal.style.zoom=z<.999?z:"";
+  }
+  function encajarJuego(){
+    if(!main)return;const j=$("juego");
+    if(!j||getComputedStyle(j).display==="none"||main.querySelector(".leaflet-container")){main.style.zoom="";return}
+    main.style.zoom="";
+    const disp=innerHeight-(head?head.offsetHeight:0)-12,alto=main.scrollHeight;
+    let z=Math.min(1,disp/alto);if(z<MIN)z=MIN;
+    main.style.zoom=z<.999?z:"";
+  }
+  let pend=0;const pedir=()=>{if(pend)return;pend=requestAnimationFrame(()=>{pend=0;encajarJuego();encajarModal()})};
+  addEventListener("resize",pedir);
+  if(velo)new MutationObserver(pedir).observe(velo,{attributes:true,attributeFilter:["class"]});
+  if(modal)new MutationObserver(pedir).observe(modal,{childList:true,subtree:true});
+  if(main)new MutationObserver(pedir).observe(main,{childList:true,subtree:true});
+  const j=$("juego");if(j)new MutationObserver(pedir).observe(j,{attributes:true,attributeFilter:["style"]});
+  document.addEventListener("load",ev=>{if(ev.target&&ev.target.tagName==="IMG")pedir()},true);
+  pedir();
+})();
+</script>
+</body>
+</html>
